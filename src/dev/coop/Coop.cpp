@@ -34,6 +34,7 @@ float Coop::revive_hp = 0.5f;
 uintptr_t Coop::jmp_ret2 = NULL;
 uintptr_t Coop::jmp_ret5 = NULL;
 uintptr_t Coop::jmp_ret_water = NULL;
+uintptr_t Coop::jmp_ret_water_init = NULL;
 uintptr_t Coop::jmp_ret_unit_tick = NULL;
 uintptr_t Coop::jmp_ret_unit_pass2 = NULL;
 uintptr_t Coop::jmp_ret_unit_pass3 = NULL;
@@ -612,11 +613,41 @@ naked_extern void detour5() {
 // sets mTransInitialize (+0x1B4); the next draw takes the first-draw path 0xAC443E and clears it (0xAC4A50), and every
 // later draw copies phase 2 (mpVBWaterPhase2[0] +0x154), which exists from the second move. With two views on a room's
 // first frame, view 0 clears the flag and view 1 copied from null. That view now skips the water until phase 2 exists.
-// ebx = the water.
+// ebx = the water. The constructor 0xABF4B0 never clears the phase pointers and counts, so a water made in memory a
+// previous one used (the stage left and entered again) held that one's stale pointers and view 1 copied from them
+// (memcpy from 0xBF7C0000, size 0xDE00002C, 0xAC295B): the first move clears every phase it doesn't build
+// (detour_water_init).
 constexpr uintptr_t kWaterFirstDraw = 0xAC443E;
 constexpr uintptr_t kWaterDrawEnd   = 0xAC4A57;   // the epilogue: pops edi / esi / ebx, retn 4
 uintptr_t water_first_draw = kWaterFirstDraw;
 uintptr_t water_draw_end = kWaterDrawEnd;
+
+// uInteractiveWater::move's first pass (esi = the water), after it built phases 0 and 1 of part 0: 0xAC1D39
+// `mov byte ptr [esi+1B4h], 1` (mTransInitialize). Clears the other parts' pointers (+0x148, +0x150, +0x154..+0x17B)
+// and counts (+0x180, +0x188, +0x18C..+0x1B3) until the next move builds them.
+naked_extern void detour_water_init() {
+    __asm {
+        push edi
+        push ecx
+        push eax
+        xor eax, eax
+        mov [esi+0x148], eax
+        mov [esi+0x150], eax
+        mov [esi+0x180], eax
+        mov [esi+0x188], eax
+        lea edi, [esi+0x154]
+        mov ecx, 10          // 0x154..0x17B
+        rep stosd
+        lea edi, [esi+0x18C]
+        mov ecx, 10          // 0x18C..0x1B3
+        rep stosd
+        pop eax
+        pop ecx
+        pop edi
+        mov byte ptr [esi+0x1B4], 1
+        jmp dword ptr [Coop::jmp_ret_water_init]
+    }
+}
 
 naked_extern void detour_water() {
     __asm {
@@ -1079,6 +1110,7 @@ std::optional<std::string> Coop::on_initialize() {
         {coop_pads::kKbCamSiteY2, &hook_kb_cam_y2, (void*)&coop_pads::detour_kb_cam_y2, &coop_pads::ret_kb_cam_y2, 6, "camera keys Y 2"},
         {coop_pads::kVibStopSite, &hook_vib_stop, (void*)&coop_pads::detour_vib_stop, &coop_pads::ret_vib_stop, 6, "rumble stop"},
         {0xAC205B, &hook_water, (void*)&detour_water, &jmp_ret_water, 13, "water draw per view"},
+        {0xAC1D39, &hook_water_init, (void*)&detour_water_init, &jmp_ret_water_init, 7, "water first move"},
         {kFogLoad1, &hook_fog1, (void*)&detour_fog1, &jmp_ret_fog1, 5, "fog per view 1"},
         {kFogLoad2, &hook_fog2, (void*)&detour_fog2, &jmp_ret_fog2, 5, "fog per view 2"},
         {0x8DC324, &hook_unit_init, (void*)&detour_unit_init, &jmp_ret_unit_init, 9, "unit init context"},

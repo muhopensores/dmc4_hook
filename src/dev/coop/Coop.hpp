@@ -53,6 +53,7 @@ public:
     static uintptr_t jmp_ret2;
     static uintptr_t jmp_ret5;
     static uintptr_t jmp_ret_water;
+    static uintptr_t jmp_ret_water_init;
     static uintptr_t jmp_ret_unit_tick;
     static uintptr_t jmp_ret_unit_pass2;
     static uintptr_t jmp_ret_unit_pass3;
@@ -75,7 +76,7 @@ private:
     std::unique_ptr<FunctionHook> hook2, hook5;
     std::unique_ptr<FunctionHook> hook_kb_merge, hook_kb_exceed, hook_vib, hook_vib_stop, hook_fog1, hook_fog2,
         hook_kb_cam_x, hook_kb_cam_y, hook_kb_cam_y2;
-    std::unique_ptr<FunctionHook> hook_water, hook_unit_init, hook_unit_tick, hook_unit_pass2, hook_unit_pass3, hook_grab_hit, hook_damage_pre, hook_set_game_system,
+    std::unique_ptr<FunctionHook> hook_water, hook_water_init, hook_unit_init, hook_unit_tick, hook_unit_pass2, hook_unit_pass3, hook_grab_hit, hook_damage_pre, hook_set_game_system,
         hook_lock_on, hook_common_save, hook_dante_save, hook_nero_save, hook_disp_sphere, hook_em_step;
     std::unique_ptr<Patch> patch1;
 };
