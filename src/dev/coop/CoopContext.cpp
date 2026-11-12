@@ -28,7 +28,10 @@ struct OwnedClass { uintptr_t dti; uintptr_t owner; };
 constexpr OwnedClass kOwnedClasses[] = {
     {0xE5AB70, 0x17B0},   // uPlShl::mpParent (before uShell: its mpSrcActor may be the shot's other source)
     {0xE5B310, 0x1370},   // uShell::mpSrcActor
+    {0xE5AD30, 0x2F34},   // uPlWpRightHand::mpParentPl (before uPlWeapon: the Devil Trigger stand's arm, whose
+                          // collision reports the arm itself (uCollisionMgr::init 0x83B733), keeps its Nero only here)
     {0xE5ABB0, 0x1378},   // uPlWeapon::mpParent
+    {0xE5AA70, 0x13C8},   // uPlGrabShortHit: the Buster impact's hit, its stand arm (create 0x8203E0; a part, see part_slot)
     {0xE5AA90, 0x1370},   // uPlNeroDevil::mpParent
 };
 constexpr uintptr_t kNeroVtable   = 0xBE4FA0; // uPlayerNero::vftable
@@ -160,15 +163,27 @@ bool grab_attack(uint32_t id) {
     return id == 1 || id == 2 || id == 5 || id == 6 || id == 7 || id == 8;
 }
 
-// The player 2-4 a player pointer is, -1 if none.
-int slot_of(uintptr_t player) {
+// The player (from `first`) whose body, Devil Trigger stand (uPlayerNero +0xCDF8) or stand arm (uPlNeroDevil::mpRightHand
+// +0x1374) `owner` is, -1 if none. Pointer compares only: an owner field may hold a unit that is gone.
+int part_slot(uintptr_t owner, int first) {
+    if (!owner) {
+        return -1;
+    }
     const int n = (int)Coop::player_num < kMaxPlayers ? (int)Coop::player_num : kMaxPlayers;
-    for (int i = 1; i < n; i++) {
-        if (player && players[i].unit == player) {
-            return i;
-        }
+    for (int i = first; i < n; i++) {
+        const uintptr_t pl = players[i].unit;
+        if (!pl) continue;
+        if (pl == owner) return i;
+        if (at<uint32_t>(pl, 0x1494) != 1) continue;   // mPlayerID: only a Nero has a stand
+        const uintptr_t stand = at<uintptr_t>(pl, kStand);
+        if (stand && (stand == owner || at<uintptr_t>(stand, 0x1374) == owner)) return i;
     }
     return -1;
+}
+
+// The player 2-4 a player pointer (or one of his parts, part_slot) is, -1 if none.
+int slot_of(uintptr_t player) {
+    return part_slot(player, 1);
 }
 
 bool kind_of(uintptr_t dti, uintptr_t target) {
@@ -373,10 +388,8 @@ int player_slot(uintptr_t unit) {
     const uintptr_t dti = dti_of(unit);
     for (const OwnedClass& c : kOwnedClasses) {
         if (kind_of(dti, c.dti)) {
-            const uintptr_t owner = at<uintptr_t>(unit, c.owner);
-            for (int i = 0; i < n; i++) {
-                if (owner && players[i].unit == owner) return i;
-            }
+            const int slot = part_slot(at<uintptr_t>(unit, c.owner), 0);
+            if (slot >= 0) return slot;
         }
     }
     return -1;

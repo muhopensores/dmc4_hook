@@ -66,5 +66,6 @@ void prefer_players(uintptr_t player);  // after his lock-on values are in, just
 void after_lock_on();                   // after it: what prefer_players hid comes back
 bool grabs_ready();                     // the rows are in: players can be grabbed
 const char* grabs_error();              // why not
+void draw_grab_diag();                   // the grab counters (Coop's Diagnostics)
 
 } // namespace coop_pvp

@@ -979,7 +979,9 @@ bool __stdcall pad_update_fallback(cPeripheral* peripheral) {
 // move lines 15 / 16 only (the enemies) with uActor::isEmJump 0x4AB170: the actor's step points (+0x1318 a table of
 // 32-byte entries: joint, radius, 3 unused, offset in the joint's frame; -1 ends it; +0x131C the mask of points in use,
 // +0x1320 on), each against the jumper's position + 85 cm. Enemies get theirs from uEnemy::setup (emjump_data_tbl
-// 0xC79070 by kind); players have none and stand on line 13. At the miss (0x804A71) the other players are tried with
+// 0xC79070 by kind); players have none and stand on line 13. Before line 16 is scanned (0x804A37: reached only once
+// the skill, mIsEmJumpEnable, the action's step bit, the jump press and the step timer have all passed, and line 15
+// had no target; every early return shares 0x804A71, so the hook can't go there) the other players are tried with
 // step points of their own (the chest, as the Scarecrow's / Angelo's first point); a hit goes on at 0x804A7C as the
 // game's: the target's enemyJumpMessage (vtable +0xE8, a nullsub on players), the step timers, action 25.
 #pragma pack(push, 1)
@@ -994,6 +996,7 @@ constexpr uintptr_t kEmJumpData = 0x1318, kEmJumpMask = 0x131C, kEmJumpOn = 0x13
 constexpr uintptr_t kIsEmJump = 0x4AB170;
 uintptr_t em_step_target = 0;
 uintptr_t em_step_hit = 0x804A7C;
+uintptr_t em_step_sunit = 0xE552CC;   // sUnit::mpInstance
 
 uintptr_t __stdcall find_player_step(uintptr_t jumper) {
     em_step_target = 0;
@@ -1025,12 +1028,11 @@ naked_extern void detour_em_step() {
         popad
         mov esi, [em_step_target]
         test esi, esi
-        jz miss
+        jz enemies
         jmp dword ptr [em_step_hit]
-    miss:
-        xor al, al
-        pop esi
-        mov esp, ebp
+    enemies:
+        mov eax, [em_step_sunit]
+        mov eax, [eax]
         jmp dword ptr [Coop::jmp_ret_em_step]
     }
 }
@@ -1080,7 +1082,7 @@ std::optional<std::string> Coop::on_initialize() {
         {0x8DC39C, &hook_unit_tick, (void*)&detour_unit_tick, &jmp_ret_unit_tick, 9, "unit tick context"},
         {0x8DC44B, &hook_unit_pass2, (void*)&detour_unit_pass2, &jmp_ret_unit_pass2, 9, "unit pass 2 context"},
         {0x8DC4C4, &hook_unit_pass3, (void*)&detour_unit_pass3, &jmp_ret_unit_pass3, 9, "unit pass 3 context"},
-        {0x804A71, &hook_em_step, (void*)&detour_em_step, &jmp_ret_em_step, 5, "enemy step off players"},
+        {0x804A37, &hook_em_step, (void*)&detour_em_step, &jmp_ret_em_step, 5, "enemy step off players"},
     };
     for (const Site& s : sites) {
         if (!install_hook_absolute(s.addr, *s.hook, s.detour, s.ret, s.len)) {
@@ -1337,6 +1339,7 @@ void Coop::on_gui_frame(int display) {
         ImGui::Text(_("Lines serial now: %s, context swaps last frame: %u"), coop_diag::serial_now() ? _("yes") : _("no"),
                     coop_context::swaps_last_frame());
         coop_context::draw_diag();
+        coop_pvp::draw_grab_diag();
         coop_hud::draw_diag();
         coop_diag::draw();
         ImGui::TreePop();

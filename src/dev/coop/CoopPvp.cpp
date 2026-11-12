@@ -44,7 +44,7 @@ constexpr uint32_t  kHitByPlayers   = 0x11;    // sides 0 and 1's damage bits
 
 // V2: grabs
 constexpr uintptr_t kGrabPassEnd     = 0x47BCB1;   // sCollisionGame::checkAttackMain after both checkGrabProcess (edi = this): cmp byte [edi+1Ch],0 / jnz
-constexpr uintptr_t kChainTop        = 0x24;       // sCollisionGame::mppCollisionChainTop[kind * 4 + chain]
+constexpr uintptr_t kChainTop        = 0x20;       // sCollisionGame::mppCollisionChainTop[side * 4 + chain] (0 attack, 1 damage, 2 push, 3 grab; checkGrabProcess reads [edi + side * 10h + 2Ch])
 constexpr uintptr_t kCheckGroup      = 0x47D9A0;   // sCollisionGame::checkGroup_ (ecx = scratch; group, group, mode; retn 0Ch; al)
 constexpr uintptr_t kGrabPre         = 0x4A7EB0;   // uActor::grabPreMessage (eax = target group; actor, grab group; retn 8)
 constexpr uintptr_t kGrabTypeSite    = 0x83E2CB;   // grabHitMessageNormal: mov eax,[edi+0EA4h] (the target's mActorType)
@@ -77,6 +77,7 @@ constexpr uintptr_t kInvincible   = 0x150B;    // mIsInvincible
 constexpr uintptr_t kHolyTimer    = 0x20A4;
 constexpr uintptr_t kReviveTimer  = 0x20A8;
 constexpr uintptr_t kLowerAction  = 0x1500;    // mBdyAction[1].no
+constexpr uintptr_t kActStat     = 0x1554;    // uPlayer::mActStat (2 = in the air)
 constexpr uintptr_t kDamageType   = 0x157C;    // mDamage.type (DMAGE_ID)
 constexpr uintptr_t kDamageActor  = 0x1584;    // mDamage.pActor
 constexpr uintptr_t kDamageAng    = 0x158C;    // mDamage.ang (moveDmgButtobi flies away from it)
@@ -89,6 +90,7 @@ constexpr uintptr_t kCollMgr      = 0x1E8C;    // uCollisionMgr*: +0x1C mLand
 constexpr uintptr_t kCoatMdl      = 0x20C4;    // uDevil4Model*: plays the body's motion numbers
 constexpr uintptr_t kMotionEnd    = 0x2A54;    // mMotionFrameEnd[0]
 constexpr uintptr_t kGrabActor    = 0xCCD0;    // uPlayerNero::mGrabHitInfo.actor
+constexpr uintptr_t kBusterGrabOn = 0xCCE2;    // uPlayerNero: set by the Buster's first phase, cleared by his grabHitMessage
 constexpr uint32_t  kActionAttack = 0xC;
 constexpr int       kDmgBut       = 3;         // DMG_ID_BUT: moveDmgButtobi, the blow, landing and getting up
 constexpr int       kActionDamage = 20;
@@ -97,7 +99,8 @@ constexpr int       kDmgPvpGrab   = 0x20;      // ours: past DMAGE_ID's last (0x
 // Dante's bank 8 (pl006_09, the boss's reactions: 0x800 pulled, 0x801 landing, 0x804 Buster, 0x80C landing in the air);
 // a Nero gets the same file in his bank 9 (free: his setup never loads it; reserved from the motion registry), with
 // Nero's own empty coat file of the Buster-on-Dante set on his coat (as setBusterMotionRsrc does for bank 15).
-constexpr int kMotPulled = 0x00, kMotLand = 0x01, kMotBuster = 0x04, kMotAirLand = 0x0C;
+constexpr int kMotPulled = 0x00, kMotLand = 0x01, kMotBuster = 0x04, kMotBusterFall = 0x05, kMotBusterLand = 0x06,
+              kMotBusterAir = 0x07, kMotAirLand = 0x0C;
 constexpr int kNeroVictimBank = 9;
 const char* kVictimLmt = "motion\\pl006\\pl006_09";
 const char* kVictimCoatLmt = "motion\\pl000_03\\pl006\\pl000_03_pl006_00";
@@ -116,7 +119,7 @@ const arc_rows::Row kRows[] = {
 constexpr float kPi = 3.14159265f;
 
 std::unique_ptr<FunctionHook> hook_vs_attr, hook_own_hit, hook_grab_pass, hook_grab_type, hook_grab_msg, hook_short_grab,
-    hook_reaction, hook_move_damage, hook_damage_calc, hook_nero_hit;
+    hook_reaction, hook_move_damage, hook_damage_calc, hook_nero_hit, hook_hold_start, hook_hold_release;
 uintptr_t vs_attr_original = 0;
 uintptr_t ret_own_hit = 0;                     // 0x47C463: the pair is tested (checkGroup_)
 uintptr_t ret_no_hit = 0x47C4AC;               // the next damage group
@@ -148,10 +151,18 @@ int owner_of_mgr(uintptr_t mgr) {
     return mgr ? owner_of_actor(at<uintptr_t>(mgr, kMgrReport)) : -1;
 }
 
-// The player's own body (not his shells or weapons), as a player index; -1 otherwise.
+// The player's own body (not his shells or weapons), as a player index; -1 otherwise. A pointer compare only: callers
+// pass objects that may not be units (the folded grab-message stub), so no DTI call.
 int body_player(uintptr_t actor) {
-    const int i = actor ? coop_context::player_of(actor) : -1;
-    return i >= 0 && coop::players[i].unit == actor ? i : -1;
+    if (!actor) {
+        return -1;
+    }
+    for (int i = 0; i < (int)Coop::player_num && i < coop::kMaxPlayers; i++) {
+        if (coop::players[i].unit == actor) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 bool active() {
@@ -160,17 +171,58 @@ bool active() {
 
 // ---- V1: hits ----
 
+// Nero's charged shot (uPlNeroShl001, wp000.col groups, side 1) passed through players in game: what its attack groups get
+// from setVsAttr, and whether the hit pass ever tests one against a player's damage group (Diagnostics).
+constexpr uintptr_t kChargeShotVtable = 0xBE8FA8;   // uPlNeroShl001::vftable
+struct ChargeDiag {
+    uint32_t groups = 0, pairs = 0;
+    int owner = -1;
+    uint32_t kind = 0, attr = 0, vs = 0;
+};
+ChargeDiag charge_diag;
+
+// The Buster's impact hit (uPlGrabShortHit) on a thrown player: made, its box found and given the players bit, weighed
+// against a player by the hit pass (Diagnostics).
+constexpr uintptr_t kImpactVtable = 0xBE8898;   // uPlGrabShortHit::vftable
+struct ImpactDiag {
+    uint32_t made = 0, armed = 0, no_box = 0, pairs = 0;
+    uint32_t vs = 0;
+    int owner = -1;
+};
+ImpactDiag impact_diag;
+
+bool is_impact(uintptr_t mgr) {
+    const uintptr_t r = mgr ? at<uintptr_t>(mgr, kMgrReport) : 0;
+    return r && at<uintptr_t>(r, 0) == kImpactVtable;
+}
+
+bool is_charge_shot(uintptr_t mgr) {
+    const uintptr_t r = mgr ? at<uintptr_t>(mgr, kMgrReport) : 0;
+    return r && at<uintptr_t>(r, 0) == kChargeShotVtable;
+}
+
 void __stdcall after_vs_attr(uintptr_t group, uintptr_t mgr) {
-    if (!group || !Coop::mod_enabled || owner_of_mgr(mgr) < 0) {
+    if (!group || !Coop::mod_enabled) {
         return;
     }
-    const uint32_t attr = at<uint32_t>(group, kGroupAttr);
-    uint32_t& vs = at<uint32_t>(group, kGroupVsAttr);
-    if (attr & 1) {
-        vs |= kAttacksPlayers;
+    const bool charge = is_charge_shot(mgr);
+    const int owner = owner_of_mgr(mgr);
+    if (owner >= 0) {
+        const uint32_t attr = at<uint32_t>(group, kGroupAttr);
+        uint32_t& vs = at<uint32_t>(group, kGroupVsAttr);
+        if (attr & 1) {
+            vs |= kAttacksPlayers;
+        }
+        if (attr & 2) {
+            vs |= kHitByPlayers;
+        }
     }
-    if (attr & 2) {
-        vs |= kHitByPlayers;
+    if (charge) {
+        charge_diag.groups++;
+        charge_diag.owner = owner;
+        charge_diag.kind = at<uint32_t>(group, 0x04);
+        charge_diag.attr = at<uint32_t>(group, kGroupAttr);
+        charge_diag.vs = at<uint32_t>(group, kGroupVsAttr);
     }
 }
 
@@ -178,8 +230,17 @@ bool __stdcall same_player(uintptr_t attack_group, uintptr_t damage_group) {
     if (!Coop::mod_enabled || !attack_group || !damage_group) {
         return false;
     }
-    const int attacker = owner_of_mgr(at<uintptr_t>(attack_group, kGroupMgr));
-    return attacker >= 0 && attacker == owner_of_mgr(at<uintptr_t>(damage_group, kGroupMgr));
+    const uintptr_t amgr = at<uintptr_t>(attack_group, kGroupMgr);
+    const int attacker = owner_of_mgr(amgr);
+    const int target = owner_of_mgr(at<uintptr_t>(damage_group, kGroupMgr));
+    if (target >= 0 && target != attacker && is_charge_shot(amgr)) {
+        charge_diag.pairs++;
+    }
+    if (target >= 0 && is_impact(amgr)) {
+        impact_diag.pairs++;
+        impact_diag.owner = attacker;
+    }
+    return attacker >= 0 && attacker == target;
 }
 
 // setVsAttr's arguments are pushed again for the original, which pops them (retn 0Ch); eax is the group throughout.
@@ -286,8 +347,96 @@ struct Victim {
     int phase = 0;
     float timer = 0.0f;
     bool script = false;        // a Nero victim's .ctn script goes in on the tick after a motion request
+    uint32_t ticks = 0;         // victim_move calls of this hold (Diagnostics)
+    uintptr_t impact = 0;       // the Buster's impact hit, until its box gets the players bit
+    uint32_t armor = 0;         // the victim's own uDamage mState bits 0-2, put back on release
+    bool armored = false;
 };
+
+// Super armor while thrown, as the boss: uPlayerDanteBoss::damageMessage 0x7C54A0 -> setStatusSuperArmor 0x7C5B10 sets
+// uDamage::mState (+0x84) |= 7 (1 no light reaction, 2 no flinch, 4 no blow) for every hit while he is in his Buster
+// action (55), so Nero's throw hits and its landing impact hurt without knocking him out of it. Without it a held
+// player was knocked down by the throw's own hits before Nero slammed him.
+constexpr uintptr_t kDamageState = 0x15B4 + 0x84;   // uPlayer::mDamage (uDamage) mState
+constexpr uint32_t  kArmorBits   = 7;
+
+void armor_on(uintptr_t player, Victim& v) {
+    uint32_t& s = at<uint32_t>(player, kDamageState);
+    v.armor = s & kArmorBits;
+    v.armored = true;
+    s |= kArmorBits;
+}
+
+void armor_off(uintptr_t player, Victim& v) {
+    if (v.armored) {
+        uint32_t& s = at<uint32_t>(player, kDamageState);
+        s = (s & ~kArmorBits) | v.armor;
+        v.armored = false;
+    }
+}
+
+// Why the last hold ended (Diagnostics): the reason, how long it lasted, and the grabbing Nero's state then.
+enum HoldEnd { HOLD_NONE, HOLD_NO_MOTION, HOLD_NO_GRABBER, HOLD_PVP_OFF, HOLD_LET_GO, HOLD_MOTION_END, HOLD_LANDED,
+               HOLD_FELL, HOLD_THROWN };
+const char* kHoldEndNames[] = {"-", "victim motion didn't load", "grabber gone", "PvP off", "Nero let go",
+                               "victim motion ended", "landed (Snatch)", "airborne end (Snatch)", "thrown (Buster done)"};
+constexpr uintptr_t kReactionFn = 0xD66C;   // uPlayerNero: the grab reaction function (mvAtckSGScare ...), 0 = none
+constexpr uintptr_t kActPhase   = 0x1504;   // uPlayer::mBdyAction[1].phase
+struct HoldDiag {
+    uint32_t holds = 0;
+    int end = HOLD_NONE, kind = 0;
+    uint32_t ticks = 0, nero_action = 0, nero_phase = 0;
+    bool nero_holds_him = false, nero_motion_end = false;
+    uintptr_t nero_fn = 0;
+};
+HoldDiag hold_diag;
+
+void note_hold_end(const Victim& v, uintptr_t player, int why) {
+    HoldDiag& d = hold_diag;
+    d.end = why;
+    d.kind = v.kind;
+    d.ticks = v.ticks;
+    const uintptr_t g = v.grabber;
+    if (g) {
+        d.nero_action = at<uint32_t>(g, kLowerAction);
+        d.nero_phase = at<uint32_t>(g, kActPhase);
+        d.nero_holds_him = at<uintptr_t>(g, kGrabActor) == player;
+        d.nero_motion_end = at<bool>(g, kMotionEnd);
+        d.nero_fn = at<uint32_t>(g, kPlayerId) == 1 ? at<uintptr_t>(g, kReactionFn) : 0;
+    }
+}
 Victim victims[coop::kMaxPlayers];
+
+// The player a grab group grabs for, -1 if none. The Snatch's box is on the Devil Bringer's collision (uPlWpRightHand::
+// uCollisionCtrl, its mode at +0x137C); the Buster's is on Nero's own body collision, and uPlayerNero::grabHitMessage
+// 0x7E67F0 hands a contact to his stand's arm (mpDevilStand +0xCDF8 -> +0x1374, vtable +0xD8) only while +0xCCE2 is
+// set (the Buster's first phase sets it, the hand-over clears it). Outside that a contact would only put the group's ID
+// in the victim's queue (grabPreMessage) and block the real one, so it isn't one.
+int grab_source(uintptr_t reporter) {
+    if (!reporter) {
+        return -1;
+    }
+    if (at<uintptr_t>(reporter, 0) == kHandCtrlVtable) {
+        return owner_of_actor(reporter);
+    }
+    const int i = body_player(reporter);
+    if (i < 0 || at<uint32_t>(reporter, kPlayerId) != 1 || !at<bool>(reporter, kBusterGrabOn)) {
+        return -1;
+    }
+    return i;
+}
+
+// How far grab attempts on players get, for the Diagnostics panel: frames a Nero's grab group was out, contacts with
+// another player's body, contacts on a stunned player (grabPreMessage called), grab messages reached (the hand's ray
+// checks and grabHitMessageNormal passed), and the last contact's victim action / DMAGE_ID.
+struct GrabDiag {
+    uint32_t hand_frames = 0, contacts = 0, sent = 0, messages = 0;
+    uint32_t stunned_boxes = 0, stunned_off = 0, stunned_status = 0, stunned_apart = 0;   // a stunned player's body boxes while a hand is out
+    int last_action = -1, last_type = -1, last_reaction = -1;
+    bool last_stunned = false, last_invincible = false;
+    float last_holy = 0.0f, last_revive = 0.0f;
+};
+GrabDiag grab_diag;
 
 // A player can be grabbed only while stunned: in the damage action with a hit reaction (DMAGE_ID 1 HIT, 2 ZURI, 3 BUT,
 // 5 KIRI, 6 HITIME launched, 10 COMBO, 11 AIR_COMBO), and not while uPlayer::canBeGrabbed 0x7AEF60 refuses
@@ -315,19 +464,39 @@ void __stdcall grab_players(uintptr_t game) {
         for (uintptr_t g = chains[kind * 4 + 3]; g; g = at<uintptr_t>(g, kGroupNext + 4 * 3)) {
             if (at<bool>(g, kGroupClear)) continue;
             const uintptr_t mgr = at<uintptr_t>(g, kGroupMgr);
-            const uintptr_t hand = mgr ? at<uintptr_t>(mgr, kMgrReport) : 0;
-            if (!hand || at<uintptr_t>(hand, 0) != kHandCtrlVtable) continue;
-            const int grabber = owner_of_actor(hand);
+            const uintptr_t src = mgr ? at<uintptr_t>(mgr, kMgrReport) : 0;
+            const int grabber = grab_source(src);
             if (grabber < 0) continue;
             if (!rows.arc) continue;   // Nero's Buster-on-Dante set and the victims' motions aren't in the cache
+            grab_diag.hand_frames++;
             for (uintptr_t d = chains[0 * 4 + 1]; d; d = at<uintptr_t>(d, kGroupNext + 4 * 1)) {
-                if (at<bool>(d, kGroupClear)) continue;
                 const uintptr_t dmgr = at<uintptr_t>(d, kGroupMgr);
                 const uintptr_t target = dmgr ? at<uintptr_t>(dmgr, kMgrReport) : 0;
                 const int victim = body_player(target);
-                if (victim < 0 || victim == grabber || !stunned(target)) continue;
-                if (at<int8_t>(target, kActorStatus) < 0) continue;
-                if (!check_group(scratch, g, d, 2)) continue;
+                if (victim < 0 || victim == grabber) continue;
+                const bool is_stunned = stunned(target);
+                if (is_stunned) grab_diag.stunned_boxes++;
+                if (at<bool>(d, kGroupClear)) {
+                    if (is_stunned) grab_diag.stunned_off++;
+                    continue;
+                }
+                if (at<int8_t>(target, kActorStatus) < 0) {
+                    if (is_stunned) grab_diag.stunned_status++;
+                    continue;
+                }
+                if (!check_group(scratch, g, d, 2)) {
+                    if (is_stunned) grab_diag.stunned_apart++;
+                    continue;
+                }
+                grab_diag.contacts++;
+                grab_diag.last_action = at<int>(target, kActionNo);
+                grab_diag.last_type = at<int>(target, kDamageType);
+                grab_diag.last_invincible = at<bool>(target, kInvincible);
+                grab_diag.last_holy = at<float>(target, kHolyTimer);
+                grab_diag.last_revive = at<float>(target, kReviveTimer);
+                grab_diag.last_stunned = is_stunned;
+                if (!grab_diag.last_stunned) continue;
+                grab_diag.sent++;
                 grab_pre(d, target, g);
                 break;
             }
@@ -393,7 +562,7 @@ int motion_of(uintptr_t player, int block) {
 
 const uint8_t kEndOnly[4] = {0xFF, 0, 0, 0};   // a .ctn script that only ends: no cancel window
 
-bool play(uintptr_t player, Victim& v, int block, uint32_t attr, float interp, float start) {
+bool play(uintptr_t player, Victim& v, int block, uint32_t attr, float interp, float start, float speed = 1.0f) {
     const int motion = motion_of(player, block);
     if (motion < 0) {
         return false;
@@ -402,7 +571,7 @@ bool play(uintptr_t player, Victim& v, int block, uint32_t attr, float interp, f
         devil4_sdk::borrow_ctn((void*)player, 0, 0);   // for the request; the end-only script replaces it next tick
         v.script = true;
     }
-    devil4_sdk::indexed_anim_call((uint32_t)motion, (uPlayer*)player, attr, 1.0f, start, interp);
+    devil4_sdk::indexed_anim_call((uint32_t)motion, (uPlayer*)player, attr, speed, start, interp);
     return true;
 }
 
@@ -430,6 +599,7 @@ Vec3 forward(float yaw, float len) {
 
 // Let go: the game's blow (moveDmgButtobi) flies him away from where he faces, lands and gets him up.
 void release_blown(uintptr_t player, Victim& v) {
+    armor_off(player, v);
     at<float>(player, kDamageAng) = at<float>(player, kRotNow);
     at<int>(player, kDamageType) = kDmgBut;
     set_action_damage(player);
@@ -438,9 +608,108 @@ void release_blown(uintptr_t player, Victim& v) {
 }
 
 void release_footwork(uintptr_t player, Victim& v) {
+    armor_off(player, v);
     v.active = false;
     at<int>(player, kDamageType) = 0;
     set_footwork(player, 10.0f);
+}
+
+// Nero's hold (enemy block): with the Buster button held, uPlayerNero::checkEnemyBlock 0x7E9060 turns the Buster into
+// attack 7 / 8 (moveAtckRightHandShortEnemyBlock: one motion, then footwork) and his stand into action 7
+// (uPlNeroDevil::moveActEmBlock 0x82AA80), which keeps holding while his mGrabHitInfo.actor (+0xCCD0) is set. A held
+// enemy puts itself on the stand's arm every frame (uEm000Base::moveEx 0x543F44: the arm's mPos, its yaw + pi). The boss
+// Dante is never held, so a held player's pose is the Buster motion paused at kHoldFrame.
+constexpr uintptr_t kAtckId       = 0x1564;   // uPlayer::mAtckId
+constexpr uintptr_t kNeroStand    = 0xCDF8;   // uPlayerNero::mpDevilStand
+constexpr uintptr_t kStandArm     = 0x1374;   // uPlNeroDevil::mpRightHand
+constexpr uintptr_t kStandAction  = 0x22A8;   // uPlNeroDevil::mActionNo
+constexpr int       kStandEmBlock = 7;
+constexpr int       kPhaseHeld    = 10;
+constexpr float     kHoldFrame    = 20.0f;
+constexpr uintptr_t kGetAngle     = 0xA32CC0;  // uCoord::getAngle (thiscall; MtVector3* out; returns it)
+
+bool nero_throws(uintptr_t g, uintptr_t player) {
+    const uint32_t atck = at<uint32_t>(g, kAtckId);
+    return at<uint32_t>(g, kLowerAction) == kActionAttack && at<uintptr_t>(g, kGrabActor) == player &&
+           atck != 7 && atck != 8;
+}
+
+bool nero_holds(uintptr_t g, uintptr_t player) {
+    if (at<uint32_t>(g, kPlayerId) != 1 || at<uintptr_t>(g, kGrabActor) != player) {
+        return false;
+    }
+    const uint32_t atck = at<uint32_t>(g, kAtckId);
+    if (at<uint32_t>(g, kLowerAction) == kActionAttack && (atck == 7 || atck == 8)) {
+        return true;
+    }
+    const uintptr_t stand = at<uintptr_t>(g, kNeroStand);
+    return stand && at<int>(stand, kStandAction) == kStandEmBlock;
+}
+
+void place_on_arm(uintptr_t player, uintptr_t g) {
+    const uintptr_t stand = at<uintptr_t>(g, kNeroStand);
+    const uintptr_t arm = stand ? at<uintptr_t>(stand, kStandArm) : 0;
+    if (!arm) {
+        return;
+    }
+    alignas(16) float ang[4] = {};
+    using AngleFn = const float*(__fastcall*)(uintptr_t, uintptr_t, float*);
+    const float* a = reinterpret_cast<AngleFn>(kGetAngle)(arm, 0, ang);
+    float yaw = (a ? a[1] : 0.0f) + kPi;
+    if (yaw > kPi) yaw -= 2.0f * kPi;
+    stop(player);
+    at<Vec3>(player, kPos) = at<Vec3>(arm, kPos);
+    face(player, yaw);
+    set_coll_init_pos(player);
+}
+
+// The Buster's impact (uPlayerDanteBoss::setPlGrabShortHit 0x7C53B0): uPlGrabShortHit::create 0x8203E0 (edi = position;
+// type, the actor hit, the grabbing Nero's stand arm; cdecl) at the victim's vtable +0x84 point. Its 20 cm attack box
+// (uPlGrabShortHit::setup 0x820450) is made with its own shape, so setVsAttr never runs on it: cCollisionGroup::setAttr
+// mode 1 gives it 0x22222200, no players; arm_impact adds the bit. Its owner for Coop: the arm (+0x13C8, CoopContext).
+constexpr uintptr_t kGrabShortHitCreate = 0x8203E0;
+constexpr int       kImpactType         = 0x91;
+constexpr uintptr_t kVtblHitPoint       = 0x84;     // uActor: a point on the actor (into a buffer, returned)
+constexpr uintptr_t kImpactMgr          = 0x13D0;   // uPlGrabShortHit's uCollisionMgr
+constexpr uintptr_t kMgrGroups          = 0x358;    // uCollisionMgr::mppCollisionGroup
+uintptr_t fn_grab_short_hit = kGrabShortHitCreate;
+
+naked_extern uintptr_t __stdcall grab_short_hit(const float* pos, int type, uintptr_t target, uintptr_t arm) {
+    __asm {
+        push edi
+        mov edi, [esp+8]
+        push dword ptr [esp+14h]
+        push dword ptr [esp+14h]
+        push dword ptr [esp+14h]
+        call dword ptr [fn_grab_short_hit]
+        add esp, 0Ch
+        pop edi
+        ret 10h
+    }
+}
+
+uintptr_t impact_hit(uintptr_t player, uintptr_t grabber) {
+    const uintptr_t stand = at<uint32_t>(grabber, kPlayerId) == 1 ? at<uintptr_t>(grabber, kNeroStand) : 0;
+    const uintptr_t arm = stand ? at<uintptr_t>(stand, kStandArm) : 0;
+    if (!arm) {
+        return 0;
+    }
+    alignas(16) float buf[4] = {};
+    using PointFn = const float*(__fastcall*)(uintptr_t, uintptr_t, float*);
+    const float* p = reinterpret_cast<PointFn>(at<uintptr_t>(at<uintptr_t>(player, 0), kVtblHitPoint))(player, 0, buf);
+    impact_diag.made++;
+    return grab_short_hit(p ? p : buf, kImpactType, player, arm);
+}
+
+void arm_impact(uintptr_t hit) {
+    const uintptr_t group = at<uintptr_t>(hit + kImpactMgr, kMgrGroups);
+    if (group && (at<uint32_t>(group, kGroupAttr) & 1)) {
+        at<uint32_t>(group, kGroupVsAttr) |= kAttacksPlayers;
+        impact_diag.armed++;
+        impact_diag.vs = at<uint32_t>(group, kGroupVsAttr);
+    } else {
+        impact_diag.no_box++;
+    }
 }
 
 // uPlayer::moveActDamage for a held player, from uPlayerDanteBoss::moveActSnatch 0x7C3EE0 / moveActBuster 0x7C4630
@@ -451,18 +720,24 @@ bool __stdcall victim_move(uintptr_t player) {
     }
     const int i = body_player(player);
     if (i < 0 || !victims[i].active || !active()) {
-        if (i >= 0) victims[i].active = false;
+        if (i >= 0) {
+            note_hold_end(victims[i], player, HOLD_PVP_OFF);
+            armor_off(player, victims[i]);
+            victims[i].active = false;
+        }
         at<int>(player, kDamageType) = kDmgBut;   // PvP turned off mid-grab: the game's blow
         set_action_damage(player);
         return true;
     }
     Victim& v = victims[i];
+    v.ticks++;
     if (v.script) {
         devil4_sdk::install_ctn_script((void*)player, kEndOnly);
         v.script = false;
     }
     const uintptr_t g = v.grabber;
     if (!g || body_player(g) < 0) {
+        note_hold_end(v, player, HOLD_NO_GRABBER);
         release_blown(player, v);
         return true;
     }
@@ -472,31 +747,95 @@ bool __stdcall victim_move(uintptr_t player) {
     const float gyaw = at<float>(g, kRotNow);
 
     if (v.kind == kModeBuster) {
-        const bool holding = at<uint32_t>(g, kLowerAction) == kActionAttack && at<uintptr_t>(g, kGrabActor) == player;
-        if (v.phase == 0) {
-            stop(player);
-            if (!play(player, v, kMotBuster, 0, 0.0f, 0.0f)) {
+        // uPlayerDanteBoss::moveActBuster 0x7C4630, generic path: held (0x804, 0x807 with Nero in the air), then 107 cm
+        // back and 0x805 falling (speed y -100, gravity -1.5), on landing 0x806 and the impact hit (setPlGrabShortHit
+        // 0x91), footwork at its end. Nero's hold (enemy block) in between: phase kPhaseHeld.
+        if (v.phase == kPhaseHeld) {
+            if (nero_throws(g, player)) {   // let go into the throw (checkEnemyBlockFinish): from its start
+                v.phase = 0;
+            } else if (!nero_holds(g, player)) {
+                note_hold_end(v, player, HOLD_LET_GO);
+                release_blown(player, v);
+                return true;
+            } else {
+                at<float>(player, kDelta) = at<float>(g, kDelta);
+                place_on_arm(player, g);
+                return true;
+            }
+        }
+        if (v.phase <= 1) {
+            if (v.phase == 1 && nero_holds(g, player)) {   // Nero kept the button held: the hold (checkEnemyBlock)
+                stop(player);
+                if (!play(player, v, kMotBuster, 0, 5.0f, kHoldFrame, 0.0f)) {
+                    note_hold_end(v, player, HOLD_NO_MOTION);
+                    release_blown(player, v);
+                    return true;
+                }
+                v.phase = kPhaseHeld;
+                place_on_arm(player, g);
+                return true;
+            }
+            const bool holding = nero_throws(g, player);
+            if (v.phase == 0) {
+                stop(player);
+                const int block = (at<uint32_t>(g, kActStat) & 2) ? kMotBusterAir : kMotBuster;
+                if (!play(player, v, block, 0, 0.0f, 0.0f)) {
+                    note_hold_end(v, player, HOLD_NO_MOTION);
+                    release_blown(player, v);
+                    return true;
+                }
+                v.phase = 1;
+            }
+            // in Nero's frame, as the boss: his position, facing him, his frame time
+            at<float>(player, kDelta) = at<float>(g, kDelta);
+            pos = gpos;
+            float yaw = gyaw + kPi;
+            if (yaw > kPi) yaw -= 2.0f * kPi;
+            face(player, yaw);
+            set_coll_init_pos(player);
+            if (!holding) {
+                note_hold_end(v, player, HOLD_LET_GO);
                 release_blown(player, v);
                 return true;
             }
-            v.phase = 1;
-        }
-        // in Nero's frame, as the boss: his position, facing him, his frame time
-        at<float>(player, kDelta) = at<float>(g, kDelta);
-        pos = gpos;
-        float yaw = gyaw + kPi;
-        if (yaw > kPi) yaw -= 2.0f * kPi;
-        face(player, yaw);
-        set_coll_init_pos(player);
-        const bool ended = at<bool>(player, kMotionEnd);
-        if (!holding || ended) {
-            if (ended) {   // the motion's last pose stands 107 cm back (moveActBuster, before 0x805)
+            if (at<bool>(player, kMotionEnd)) {   // the motion's last pose stands 107 cm back
                 const Vec3 off = forward(yaw, -107.4399f);
                 pos.x += off.x;
                 pos.z += off.z;
+                if (!play(player, v, kMotBusterFall, 1, 0.0f, 0.0f)) {
+                    note_hold_end(v, player, HOLD_NO_MOTION);
+                    release_blown(player, v);
+                    return true;
+                }
+                stop(player);
+                at<float>(player, kVel + 4) = -100.0f;
+                at<float>(player, kAcc + 4) = -1.5f;
                 set_coll_init_pos(player);
+                v.phase = 2;
             }
-            release_blown(player, v);
+            return true;
+        }
+        if (v.phase == 2) {
+            if (landed(player)) {
+                stop(player);
+                if (!play(player, v, kMotBusterLand, 4, 10.0f, 0.0f)) {
+                    note_hold_end(v, player, HOLD_NO_MOTION);
+                    release_footwork(player, v);
+                    return true;
+                }
+                at<uint32_t>(player, kActStat) = (at<uint32_t>(player, kActStat) & ~3u) | 1u;
+                v.impact = impact_hit(player, g);
+                v.phase = 3;
+            }
+            return true;
+        }
+        if (v.impact) {   // its box is made in its setup, later in the frame it was created in (5 frames of life)
+            arm_impact(v.impact);
+            v.impact = 0;
+        }
+        if (at<bool>(player, kMotionEnd)) {
+            note_hold_end(v, player, HOLD_THROWN);
+            release_footwork(player, v);
         }
         return true;
     }
@@ -507,6 +846,7 @@ bool __stdcall victim_move(uintptr_t player) {
         face(player, std::atan2(gpos.x - pos.x, gpos.z - pos.z));
         stop(player);
         if (!play(player, v, kMotPulled, 1, 0.0f, 0.0f)) {
+            note_hold_end(v, player, HOLD_NO_MOTION);
             release_footwork(player, v);
             return true;
         }
@@ -535,6 +875,7 @@ bool __stdcall victim_move(uintptr_t player) {
             const float yaw = at<float>(player, kRotNow);
             const bool ground = landed(player);
             if (!play(player, v, ground ? kMotLand : kMotAirLand, 5, ground ? 0.0f : 3.0f, ground ? 0.0f : 5.0f)) {
+                note_hold_end(v, player, HOLD_NO_MOTION);
                 release_footwork(player, v);
                 return true;
             }
@@ -551,9 +892,11 @@ bool __stdcall victim_move(uintptr_t player) {
         }
         if (at<bool>(player, kMotionEnd)) {
             if (landed(player)) {
+                note_hold_end(v, player, HOLD_LANDED);
                 stop(player);
                 release_footwork(player, v);
             } else {
+                note_hold_end(v, player, HOLD_FELL);
                 release_blown(player, v);
             }
         }
@@ -578,25 +921,35 @@ naked_extern void detour_move_damage() {
 
 // Every uPlayer's grab message (vtable +0xDC: ecx = the actor, the grab group, the target group; retn 8). For a player
 // grabbed by another: start his reaction and answer as the boss Dante does (3 = pulled, 9 = Nero's generic Buster).
+// 0x8D4630 is a folded `xor eax,eax / retn 8` shared by 157 vtable slots of many classes, so nothing is read from the
+// object or the arguments until the object is known to be a player's body (a pointer compare, no DTI call).
 using GrabMsgFn = int(__fastcall*)(uintptr_t, uintptr_t, uintptr_t, uintptr_t);
 
 int __fastcall grab_message(uintptr_t actor, uintptr_t edx, uintptr_t grab_group, uintptr_t target_group) {
     const int victim = active() ? body_player(actor) : -1;
-    const uintptr_t mgr = grab_group ? at<uintptr_t>(grab_group, kGroupMgr) : 0;
-    const uintptr_t hand = mgr ? at<uintptr_t>(mgr, kMgrReport) : 0;
-    if (victim < 0 || !hand || at<uintptr_t>(hand, 0) != kHandCtrlVtable) {
+    const uintptr_t mgr = victim >= 0 && grab_group ? at<uintptr_t>(grab_group, kGroupMgr) : 0;
+    const uintptr_t src = mgr ? at<uintptr_t>(mgr, kMgrReport) : 0;
+    const bool hand = src && at<uintptr_t>(src, 0) == kHandCtrlVtable;
+    const int grabber = !src ? -1 : hand ? owner_of_actor(src) : body_player(src);
+    if (victim < 0 || grabber < 0) {
         return reinterpret_cast<GrabMsgFn>(grab_msg_original)(actor, edx, grab_group, target_group);
     }
-    const int grabber = owner_of_actor(hand);
-    if (grabber < 0 || grabber == victim) {
+    if (grabber == victim) {
         return 0;
     }
-    const int mode = at<int>(hand, kHandCtrlMode);
+    const int mode = hand ? at<int>(src, kHandCtrlMode) : kModeBuster;   // a Nero's own box: the Buster
+    grab_diag.messages++;
+    grab_diag.last_reaction = mode == kModeSnatch ? kReactSnatch : kReactBuster;
+    hold_diag.holds++;
     Victim& v = victims[victim];
+    armor_off(actor, v);
     v = {};
     v.active = true;
     v.kind = mode == kModeSnatch ? kModeSnatch : kModeBuster;
     v.grabber = coop::players[grabber].unit;
+    if (v.kind == kModeBuster) {
+        armor_on(actor, v);
+    }
     at<int>(actor, kDamageType) = kDmgPvpGrab;
     set_action_damage(actor);
     at<uintptr_t>(actor, kDamageActor) = v.grabber;
@@ -606,6 +959,51 @@ int __fastcall grab_message(uintptr_t actor, uintptr_t edx, uintptr_t grab_group
 // setShortGrabReaction goes on only for a held enemy (type 3); a held player too.
 bool __stdcall held_player_ok(uintptr_t actor) {
     return is_pvp_target(actor);
+}
+
+// checkEnemyBlock 0x7E9128: cmp dword ptr [ecx+0EA4h],3 (ecx = the held actor; 3 goes on to the uEnemy DTI and
+// vtable +0x188 checks at 0x7E9135, else 0x7E90A3 refuses). A held player skips them to the hold (0x7E915F): his
+// vtable +0x188 is uPlayer's setStingerJumpEffect, not a can-be-held test.
+uintptr_t ret_hold_enemy = 0x7E9135, ret_hold_refuse = 0x7E90A3, ret_hold_accept = 0x7E915F;
+
+naked_extern void detour_hold_start() {
+    __asm {
+        cmp dword ptr [ecx+0EA4h], 3
+        je enemy
+        pushad
+        push ecx
+        call is_pvp_target
+        test al, al
+        popad
+        jz refuse
+        jmp dword ptr [ret_hold_accept]
+    enemy:
+        jmp dword ptr [ret_hold_enemy]
+    refuse:
+        jmp dword ptr [ret_hold_refuse]
+    }
+}
+
+// setShortGrabEnemyReactionAfterEnemyBlock 0x7EB730 (esi = Nero; no frame), past its boss Dante refusal: 0x7EB75D
+// switches on the held enemy's kind (+0x1410, a player's button state). A held player gets the enemies' default:
+// reaction phase (+0xD668) 0 and true, so the throw (bossDantefunc, set by setShortGrabReaction) runs from its start.
+uintptr_t ret_hold_release = 0x7EB763;
+
+naked_extern void detour_hold_release() {
+    __asm {
+        pushad
+        push dword ptr [esi+0D664h]
+        call is_pvp_target
+        test al, al
+        popad
+        jz plain
+        mov dword ptr [esi+0D668h], 0
+        mov al, 1
+        ret
+    plain:
+        mov eax, [esi+0D664h]
+        jmp dword ptr [ret_hold_release]
+    }
 }
 
 naked_extern void detour_short_grab() {
@@ -1011,6 +1409,12 @@ std::optional<std::string> install() {
         return "Failed to init Coop: PvP flinching";
     }
     damage_calc_original = hook_damage_calc->get_original();
+    if (!make(hook_hold_start, 0x7E9128, &detour_hold_start)) {
+        return "Failed to init Coop: PvP hold start";
+    }
+    if (!make(hook_hold_release, 0x7EB75D, &detour_hold_release)) {
+        return "Failed to init Coop: PvP hold release";
+    }
     if (!make(hook_nero_hit, kNeroHitMessage, (void*)&nero_hit_message)) {
         return "Failed to init Coop: Nero's hit camera shake";
     }
@@ -1020,8 +1424,26 @@ std::optional<std::string> install() {
     return std::nullopt;
 }
 
+// A held player who left the grab another way (died, a stage change, the action changed) gets his own armor bits back.
+void victims_tick() {
+    for (int i = 0; i < coop::kMaxPlayers; i++) {
+        Victim& v = victims[i];
+        if (!v.armored) continue;
+        const uintptr_t pl = i < (int)Coop::player_num ? coop::players[i].unit : 0;
+        if (!pl) {
+            v = {};
+            continue;
+        }
+        if (!v.active || at<int>(pl, kActionNo) != kActionDamage || at<int>(pl, kDamageType) != kDmgPvpGrab) {
+            armor_off(pl, v);
+            v.active = false;
+        }
+    }
+}
+
 void tick() {
     lock_tick();
+    victims_tick();
     if (active()) {
         if (!rows.arc && !rows_tried) {
             rows_tried = true;
@@ -1062,6 +1484,66 @@ bool grabs_ready() {
 
 const char* grabs_error() {
     return rows.error.c_str();
+}
+
+void draw_grab_diag() {
+    const GrabDiag& d = grab_diag;
+    ImGui::Text("PvP grabs: hand out %u frames, contacts %u, sent %u, messages %u", d.hand_frames, d.contacts, d.sent,
+                d.messages);
+    ImGui::SameLine();
+    Mod::help_marker(_("How far grabbing another player gets. Hand out: frames a Snatch / Buster grab box was active. Contacts: "
+                  "it touched another player's body. Sent: he was stunned, so the grab went to the game. Messages: the "
+                  "game accepted it (line of sight from the arm, the grabbing Nero's state) and the victim was told"));
+    ImGui::Text("stunned player's boxes: %u seen, %u off, %u status, %u out of reach", d.stunned_boxes, d.stunned_off,
+                d.stunned_status, d.stunned_apart);
+    ImGui::SameLine();
+    Mod::help_marker(_("While a grab box is out: body boxes of another player who is stunned (grabbable). Off: the box is "
+                       "switched off. Status: the game marks him as not hittable. Out of reach: the grab box didn't touch it"));
+    ImGui::Text("last contact: action %d, damage type %d, invincible %d, holy %.1f, revive %.1f, stunned %s, reaction %d",
+                d.last_action, d.last_type, d.last_invincible ? 1 : 0, d.last_holy, d.last_revive,
+                d.last_stunned ? "yes" : "no", d.last_reaction);
+    ImGui::SameLine();
+    Mod::help_marker(_("The player touched last: action 20 = hit reaction, its damage type 1 / 2 / 3 / 5 / 6 / 10 / 11 can be "
+                  "grabbed, unless invincible or a holy / revive timer runs. Reaction 3 = pulled by a Snatch, 9 = Buster"));
+    const HoldDiag& h = hold_diag;
+    const char* fn_name = h.nero_fn == 0x7EBC00 ? "SGScare" : h.nero_fn == 0x7EBE40 ? "SGAScare" : h.nero_fn ? "other" : "none";
+    ImGui::Text("holds %u, last ended: %s after %u ticks (%s)", h.holds, kHoldEndNames[h.end], h.ticks,
+                h.kind == kModeSnatch ? "Snatch" : h.kind == kModeBuster ? "Buster" : "-");
+    ImGui::SameLine();
+    Mod::help_marker(_("Why the last grab of a player ended, and how many of the victim's updates it lasted. Nero let go: "
+                       "the grabbing Nero left his grab move or stopped holding this player. Victim motion ended: his "
+                       "thrown animation finished (the normal end of a Buster)"));
+    ImGui::Text("Nero then: lower action %u phase %u, holds him %s, motion ended %s, reaction %s (%08X)", h.nero_action,
+                h.nero_phase, h.nero_holds_him ? "yes" : "no", h.nero_motion_end ? "yes" : "no", fn_name,
+                (unsigned)h.nero_fn);
+    ImGui::SameLine();
+    Mod::help_marker(_("The grabbing Nero when the hold ended. Lower action 12 = an attack (the grab move); phase 2 = its "
+                       "reaction (the throw) is running. Reaction SGScare / SGAScare = the boss Dante's Buster, none = Nero "
+                       "never got a throw to play"));
+    const ChargeDiag& c = charge_diag;
+    ImGui::Text("charged shot: %u attack boxes (last: player %d, side %u, attr %X, mask %08X), tested on a player %u",
+                c.groups, c.owner + 1, c.kind, c.attr, c.vs);
+    ImGui::SameLine();
+    Mod::help_marker(_("Nero's charged Blue Rose shot. Attack boxes: how many it made and the last one's owner (0 = not "
+                       "known as a player's), side and mask; the mask needs bit 2 (attacks players). Tested on a player: "
+                       "times the game's hit test weighed one of its boxes against another player's body. 0 there while "
+                       "the mask has bit 2 = the boxes never overlapped in the game's test"));
+    const ImpactDiag& im = impact_diag;
+    ImGui::Text("Buster impact: made %u, armed %u (mask %08X), no box yet %u, weighed on a player %u (owner player %d)",
+                im.made, im.armed, im.vs, im.no_box, im.pairs, im.owner + 1);
+    ImGui::SameLine();
+    Mod::help_marker(_("The hit that lands a thrown player (the Buster's damage). Armed: its box got the attacks-players "
+                       "bit (mask bit 2) the frame after it was made; no box yet = it wasn't set up by then. Weighed on a "
+                       "player: times the game's hit test tried it against a player's body; owner = the player it counts "
+                       "for (0 = nobody, then Coop skips nothing but the hit counts for no one)"));
+    if (ImGui::Button(_("Reset grab counters"))) {
+        grab_diag = {};
+        hold_diag = {};
+        charge_diag = {};
+        impact_diag = {};
+    }
+    ImGui::SameLine();
+    Mod::help_marker(_("Sets the counters above back to zero, to watch one attempt"));
 }
 
 } // namespace coop_pvp
