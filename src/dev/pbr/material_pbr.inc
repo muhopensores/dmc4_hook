@@ -9,7 +9,8 @@ R"hlsl(// material_pbr.hlsl: dmc4_hook PbrMaterials, the pixel shader of XfMater
 //   - the permutation comes in as LIGHTING (1 4SPOT, 2 SH4SPOT, 3 EMITSH4SPOT, 4 THINSH4SPOT), NORMALMAP (0 / 1), LIGHTMAP
 //     (0 NONE, 1 STANDARD, 2 SHADOW, 5 VCOLOR).
 // Settings: PBR_LINEAR (light in linear space, the scene stays gamma), PBR_SIMPLE_SPEC (the 4 point lights get specular),
-// PBR_DEBUG (0 off, 1 albedo, 2 normal, 3 roughness, 4 metal, 5 occlusion, 6 diffuse light, 7 specular).
+// PBR_REFLECT (what reflects: 0 the scene's ambient light, 1 the cube relit to it, 2 the cube as is; see below), PBR_DEBUG
+// (0 off, 1 albedo, 2 normal, 3 roughness, 4 metal, 5 occlusion, 6 diffuse light, 7 specular).
 //
 // The material (Albam's PBR mode):
 //   MaskMap = ORM: R occlusion, G roughness (perceptual), B metal
@@ -25,6 +26,9 @@ R"hlsl(// material_pbr.hlsl: dmc4_hook PbrMaterials, the pixel shader of XfMater
 #endif
 #ifndef PBR_DEBUG
 #define PBR_DEBUG 0
+#endif
+#ifndef PBR_REFLECT
+#define PBR_REFLECT 0
 #endif
 #ifndef NORMALMAP
 #define NORMALMAP 1
@@ -244,6 +248,14 @@ float3 sh(float3 n) {
 }
 #endif
 
+// Debug views of one value: a dim colour ramp (0 dark blue, 0.25 blue, 0.5 cyan-green, 0.75 yellow, 1 dark red), not grey. The game's
+// auto exposure and bloom scale grey: on a dark stage 0.75 came out white and glowing, and close values looked the same.
+float3 ramp(float v) {
+    v = saturate(v);
+    const float3 c = saturate(1.5 - abs(4.0 * v - float3(3.0, 2.0, 1.0)));   // "jet": dark blue, blue, cyan, green, yellow, red
+    return c * 0.18;
+}
+
 // Split-sum environment BRDF, Karis' analytic fit (no lookup texture).
 float3 env_brdf(float3 f0, float rough, float nv) {
     const float4 c0 = float4(-1.0, -0.0275, -0.572, 0.022);
@@ -393,11 +405,32 @@ R"hlsl(
 #endif
     const float3 R = I - 2.0 * dot(N, I) * N;
     float3 refl = 0;
-#ifdef HAS_XfSamplerEnvironmentMap
+    // What reflects. The cube is rarely of the place: every material without one gets DefaultCube_CM, a 64 x 64 daylight
+    // sky (decoded mean ~0.6, hot spots up to 8), which made 2B look chrome on any stage.
+    //   0: the scene's ambient light (the SH the game gives every SH4SPOT material), read in the reflection direction: the
+    //      stage's own colours and level, smooth, no sky. Without SH (4SPOT) the cube relit as in 1.
+    //   1: the cube divided by its own mean and scaled to the ambient light at this point: its shape, the scene's level.
+    //   2: the cube as it is (a material with a cube made for its place).
+#if PBR_REFLECT == 0 && defined(HAS_gXfSHc)
+    refl = to_lin(sh(R)) * env_brdf(s.f0, rough_aa, s.nv) * (knobs.w * ao * spec_occ);
+#elif defined(HAS_XfSamplerEnvironmentMap)
     const float4 env = texCUBElod(XfSamplerEnvironmentMap, float4(R, rough_aa * lod_range));
     // the cube's colour is gamma, its alpha a linear HDR scale (rgb / a): converting the decoded value instead turned
     // DefaultCube_CM's hot spots (8 decoded) into 97 and lit the silhouettes in sparkles
     refl = to_lin(env.rgb) / max(env.a, 1.0 / 255.0) * env_brdf(s.f0, rough_aa, s.nv) * (knobs.w * ao * spec_occ);
+#if PBR_REFLECT != 2
+    // Relit: the cube over its own mean (its smallest mip, one lookup per face so no seam) times the ambient light this
+    // point gets (SH / vertex colour / lightmap; in the stock shaders' units a white surface under uniform radiance L
+    // shows L).
+    float3 cube_mean = 0;
+    const float3 dirs[6] = { float3(1, 0, 0), float3(-1, 0, 0), float3(0, 1, 0), float3(0, -1, 0), float3(0, 0, 1), float3(0, 0, -1) };
+    for (int k = 0; k < 6; ++k) {
+        const float4 m = texCUBElod(XfSamplerEnvironmentMap, float4(dirs[k], 16.0));
+        cube_mean += to_lin(m.rgb) / max(m.a, 1.0 / 255.0);
+    }
+    const float3 luma = float3(0.2126, 0.7152, 0.0722);
+    refl *= dot(amb, luma) / max(dot(cube_mean / 6.0, luma), 1e-3);
+#endif
 #endif
 
     const float3 kd = (1.0 - metal) * albedo;
@@ -408,11 +441,11 @@ R"hlsl(
 #elif PBR_DEBUG == 2
     col = to_lin(N * 0.5 + 0.5);
 #elif PBR_DEBUG == 3
-    col = to_lin(rough.xxx);
+    col = to_lin(ramp(rough));
 #elif PBR_DEBUG == 4
-    col = to_lin(metal.xxx);
+    col = to_lin(ramp(metal));
 #elif PBR_DEBUG == 5
-    col = to_lin(ao.xxx);
+    col = to_lin(ramp(ao));
 #elif PBR_DEBUG == 6
     col = diff + amb;
 #elif PBR_DEBUG == 7

@@ -30,6 +30,8 @@ namespace pbr_materials {
 extern bool mod_enabled;
 extern bool linear_light;      // light in linear space (the scene stays gamma)
 extern bool simple_specular;   // the 4 point lights get specular too (the stock shader gives them diffuse only)
+extern int  reflect_mode;      // 0 the scene's ambient light (SH), 1 the cube relit to it, 2 the cube as is (usually
+                               // DefaultCube_CM, a day sky: 2B looked chrome)
 extern int  debug_view;        // 0 off, 1 albedo, 2 normal, 3 roughness, 4 metal, 5 occlusion, 6 diffuse light, 7 specular
 
 struct Status {

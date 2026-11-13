@@ -2,6 +2,7 @@
 #include "../../ModFramework.hpp"
 #include <spdlog/spdlog.h>
 #include <d3d9.h>
+#include <algorithm>
 #include <atomic>
 #include <cctype>
 #include <cstdio>
@@ -20,6 +21,7 @@ namespace pbr_materials {
 bool mod_enabled = true;
 bool linear_light = true;
 bool simple_specular = true;
+int  reflect_mode = 0;
 int  debug_view = 0;
 
 namespace {
@@ -270,6 +272,7 @@ void start_compile() {
     Defines common = {
         { "PBR_LINEAR", linear_light ? "1" : "0" },
         { "PBR_SIMPLE_SPEC", simple_specular ? "1" : "0" },
+        { "PBR_REFLECT", std::to_string(reflect_mode) },
         { "PBR_DEBUG", std::to_string(debug_view) },
     };
     auto jobs = std::make_shared<std::vector<Defines>>();
@@ -447,6 +450,15 @@ void PbrMaterials::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("The game's 4 point lights (fill lights) only light diffuse in its own shaders. On = they make highlights on "
                   "PBR materials too."));
+    const char* reflects[] = { _("Scene light"), _("Cube, scene brightness"), _("Cube as is") };
+    ImGui::PushItemWidth(180.0f);
+    if (ImGui::Combo(_("Reflections"), &reflect_mode, reflects, IM_ARRAYSIZE(reflects))) request_compile();
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+    help_marker(_("What PBR materials reflect. Most have no environment cube of their own and get the game's default one, a "
+                  "small daylight sky, which made models look like chrome. Scene light: the stage's own ambient light, soft "
+                  "and in its colours (best without a cube). Cube, scene brightness: the cube's pattern at the stage's "
+                  "brightness. Cube as is: for materials with a cube made for where they're used."));
     const char* views[] = { _("Off"), _("Albedo"), _("Normal"), _("Roughness"), _("Metal"), _("Occlusion"), _("Diffuse light"),
                             _("Specular") };
     ImGui::PushItemWidth(180.0f);
@@ -482,10 +494,12 @@ void PbrMaterials::on_config_load(const utility::Config& cfg) {
     mod_enabled = cfg.get<bool>("pbr_materials").value_or(true);
     linear_light = cfg.get<bool>("pbr_linear_light").value_or(true);
     simple_specular = cfg.get<bool>("pbr_simple_specular").value_or(true);
+    reflect_mode = std::clamp(cfg.get<int>("pbr_reflect").value_or(0), 0, 2);
 }
 
 void PbrMaterials::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("pbr_materials", mod_enabled);
     cfg.set<bool>("pbr_linear_light", linear_light);
     cfg.set<bool>("pbr_simple_specular", simple_specular);
+    cfg.set<int>("pbr_reflect", reflect_mode);
 }
