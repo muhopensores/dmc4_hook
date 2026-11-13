@@ -45,6 +45,12 @@ constexpr uintptr_t kGroupNext   = 0x130;      // cCollisionGroup::mpNext[4] (at
 constexpr uintptr_t kMgrReport   = 0xD8;       // uCollisionMgr::mpReportActor
 constexpr uint32_t  kAttacksPlayers = 0x2;     // side 0's attack bit
 constexpr uint32_t  kHitByPlayers   = 0x11;    // sides 0 and 1's damage bits
+// Before the hit test, checkAttackProcess 0x47BF90 runs shrinkAttackObj 0x47C140 for every attack group that doesn't
+// pierce (mNoThrough: Blue Rose bullets, the charged shot) against each damage list its mask names, and shrinkGroup
+// 0x47C770 pulls the group's sweep back to the first contact. The players bit adds list 0, which holds the shooter's own
+// body: without the own-hit rule there too, every shot was pulled back onto him at the muzzle each frame, so its sweep
+// never left the gun and it missed what it flew at (other players, and the boss Dante while PvP hits was on).
+constexpr uintptr_t kShrinkPairSite = 0x47C2BF;  // shrinkAttackObj: test [eax+0Ch], edx / jz 47C2CF (eax = damage group, ecx = attack group)
 
 // Push: setVsAttr gives a player's push group mVsAttrPlPush (+0x2B8, 0x44444400: enemies only); GermanWord's
 // Doppelganger reads mVsAttrEmPush (+0x2E0, 0x44444444) there instead (0x50C6B9), for every side-0 push group. Coop adds
@@ -137,6 +143,8 @@ uintptr_t ret_no_hit = 0x47C4AC;               // the next damage group
 uintptr_t ret_forced_hit = 0x47C479;           // after a passing checkGroup_: the hit goes on to damagePreMessage
 uintptr_t ret_push_pair = 0x47BF03, ret_no_push = 0x47BF52;   // checkPush: the pair is tested / the next group
 std::unique_ptr<FunctionHook> hook_push_pair;
+uintptr_t ret_shrink_pair = 0x47C2C4, ret_no_shrink = 0x47C2CF;   // shrinkAttackObj: shrinkGroup / the next group
+std::unique_ptr<FunctionHook> hook_shrink_pair;
 uintptr_t ret_grab_pass = 0x47BCB7, ret_grab_pass_cs = 0x47BCC0;
 uintptr_t ret_grab_type = 0;
 uintptr_t grab_msg_original = 0;
@@ -343,9 +351,10 @@ int arm_owner(uintptr_t arm) {
 }
 
 // A player's shot (any uPlShl: Blue Rose bullets and charged shots, Ebony & Ivory, Coyote's pellets) against another
-// player: at the hit test its collision shapes still sit where it was fired (cCollision +0x70 and +0xF0, the two ends
-// checkGroup_ sweeps between, both at the spawn point, measured in game on the charged shot; the shotgun only hit point
-// blank), so checkGroup_ misses the player it flies through. Coop sweeps the shot itself: each attack shape (its pos0,
+// player: when shrinkAttackObj pulled a shot back onto its shooter (kShrinkPairSite), its collision shapes sat where it
+// was fired at the hit test (cCollision +0x70 and +0xF0, the two ends checkGroup_ sweeps between, both at the spawn
+// point, measured in game on the charged shot; the shotgun only hit point blank), and checkGroup_ missed the player it
+// flew through. A backstop for any shot still left there: Coop sweeps the shot itself: each attack shape (its pos0,
 // and pos1 for a capsule, turned by the shell's world matrix +0xA0) from the shell's position (+0x30) to where
 // uPlShl::updatePos 0x830650 puts it next (+0x17A0), against every sphere of the body group (centre = the shape's
 // mMat0 (+0x40 rows) times the prim's pos0 (+0x10), radius = prim +0xC x scale +8). A stopped shot (+0x17B4, set by
@@ -433,22 +442,43 @@ bool shot_touches(uintptr_t shell, uintptr_t attack_group, uintptr_t damage_grou
     return false;
 }
 
-// 0 = the game tests the pair, 1 = no hit, 2 = a hit without the game's test (the charged shot, above). No hit: a
-// player's own groups, and a player in a Buster throw hits nobody (he plays the boss Dante's motions, whose collision
-// events switch on attack groups of his own .col: enemies and the grabbing Nero were hit at the landing).
+// Coop's no-hit rule for a pair, with no side effects: RULE_THROWN = a player in a Buster throw hits nobody (he plays
+// the boss Dante's motions, whose collision events switch on attack groups of his own .col: enemies and the grabbing
+// Nero were hit at the landing), RULE_OWN = a player's own groups. Fills the pair's attacker and target players (-1 = none).
+enum PairRule { RULE_NONE, RULE_THROWN, RULE_OWN };
+PairRule pair_rule(uintptr_t attack_group, uintptr_t damage_group, int& attacker, int& target) {
+    const uintptr_t amgr = at<uintptr_t>(attack_group, kGroupMgr);
+    attacker = owner_of_mgr(amgr);
+    if (attacker < 0 && is_impact(amgr)) {
+        attacker = arm_owner(at<uintptr_t>(at<uintptr_t>(amgr, kMgrReport), 0x13C8));
+    }
+    target = owner_of_mgr(at<uintptr_t>(damage_group, kGroupMgr));
+    if (attacker >= 0 && !is_impact(amgr) && thrown_player(attacker)) {
+        return RULE_THROWN;
+    }
+    return attacker >= 0 && attacker == target ? RULE_OWN : RULE_NONE;
+}
+
+// The shrink pass (kShrinkPairSite) skips the pairs the hit test can't hit, so a shot is never pulled back onto them.
+bool __stdcall shrink_blocked(uintptr_t attack_group, uintptr_t damage_group) {
+    if (!Coop::mod_enabled || !attack_group || !damage_group) {
+        return false;
+    }
+    int attacker, target;
+    return pair_rule(attack_group, damage_group, attacker, target) != RULE_NONE;
+}
+
+// 0 = the game tests the pair, 1 = no hit (pair_rule), 2 = a hit without the game's test (the shot sweep, above).
 int __stdcall same_player(uintptr_t attack_group, uintptr_t damage_group) {
     if (!Coop::mod_enabled || !attack_group || !damage_group) {
         return 0;
     }
     const uintptr_t amgr = at<uintptr_t>(attack_group, kGroupMgr);
-    int attacker = owner_of_mgr(amgr);
-    if (attacker < 0 && is_impact(amgr)) {
-        attacker = arm_owner(at<uintptr_t>(at<uintptr_t>(amgr, kMgrReport), 0x13C8));
-    }
-    if (attacker >= 0 && !is_impact(amgr) && thrown_player(attacker)) {
+    int attacker, target;
+    const PairRule rule = pair_rule(attack_group, damage_group, attacker, target);
+    if (rule == RULE_THROWN) {
         return 1;
     }
-    const int target = owner_of_mgr(at<uintptr_t>(damage_group, kGroupMgr));
     const int shot = target >= 0 && target != attacker ? shot_class(amgr) : -1;
     if (shot >= 0) {
         ChargeDiag& c = charge_diag[shot];
@@ -525,7 +555,7 @@ int __stdcall same_player(uintptr_t attack_group, uintptr_t damage_group) {
         impact_diag.pairs++;
         impact_diag.owner = attacker;
     }
-    if (attacker >= 0 && attacker == target) {
+    if (rule == RULE_OWN) {
         return 1;
     }
     const uintptr_t shell = at<uintptr_t>(amgr, kMgrReport);
@@ -617,6 +647,27 @@ naked_extern void detour_own_hit() {
         jmp dword ptr [ret_no_hit]
     forced:
         jmp dword ptr [ret_forced_hit]
+    }
+}
+
+// eax = the damage group, ecx = the attack group, edx = the attack group's side bit.
+naked_extern void detour_shrink_pair() {
+    __asm {
+        test dword ptr [eax+0Ch], edx
+        jz no_shrink
+        cmp byte ptr [coop_pvp::hits], 0
+        je shrink
+        pushad
+        push eax
+        push ecx
+        call shrink_blocked
+        test al, al
+        popad
+        jnz no_shrink
+    shrink:
+        jmp dword ptr [ret_shrink_pair]
+    no_shrink:
+        jmp dword ptr [ret_no_shrink]
     }
 }
 
@@ -1935,6 +1986,9 @@ std::optional<std::string> install() {
         return "Failed to init Coop: PvP own hits";
     }
     ret_own_hit = kOwnHitSite + 5;
+    if (!make(hook_shrink_pair, kShrinkPairSite, &detour_shrink_pair)) {
+        return "Failed to init Coop: PvP shot shrink";
+    }
     if (!make(hook_attack_pass, kAttackPassStart, &detour_attack_pass)) {
         return "Failed to init Coop: Gerb hitboxes on players";
     }
