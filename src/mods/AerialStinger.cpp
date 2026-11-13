@@ -1,4 +1,5 @@
 #include "../sdk/Devil4.hpp"
+#include "../sdk/BossMoves.hpp"
 #include "AerialStinger.hpp"
 #include "MoveTable.hpp"
 #if 1
@@ -184,6 +185,25 @@ naked void detour6() {
     }
 }
 
+// The boss Dante's Air Stinger (sdk/BossMoves.hpp): closes the distance in the air. Stinger's row 1 (Lv2, id 9, lock-on +
+// forward + melee, Rebellion) is the one this mod opens to the air; the stick is set toward him on purpose.
+static void register_boss_move() {
+    using namespace boss_moves;
+    Move m;
+    m.name = "Air Stinger";
+    m.enabled = &AerialStinger::mod_enabled;
+    m.sword = SWORD_REBELLION;
+    m.cancel = CANCEL_COMMAND;
+    m.input(BTN_LOCK_ON, STICK_TOWARD, 2).input(BTN_LOCK_ON | BTN_MELEE, STICK_TOWARD, 1);
+    m.atck_id = 0x09;
+    m.where = WHERE_AIR;
+    m.min_dist = 400.0f; m.max_dist = 1600.0f;
+    m.min_rise = -250.0f; m.max_rise = 250.0f;
+    m.stands_in = bit(ACTION_ATK_KABUTO) | bit(ACTION_ATK_DECENT_KICK) | bit(ACTION_W_JUMP) | bit(ACTION_ATK_STINGER);
+    m.chance = 0.35f; m.cooldown = 300.0f;
+    add(m);
+}
+
 std::optional<std::string> AerialStinger::on_initialize() {
     if (!install_hook_offset(0x3CE499, hook1, &detour1, &jmp_ret1, 6)) {
 		spdlog::error("Failed to init AerialStinger mod\n");
@@ -209,6 +229,7 @@ std::optional<std::string> AerialStinger::on_initialize() {
 		spdlog::error("Failed to init AerialStinger mod\n");
 		return "Failed to init AerialStinger mod6";
 	}
+    register_boss_move();
     return Mod::on_initialize();
 }
 

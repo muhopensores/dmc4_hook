@@ -6,6 +6,7 @@
 #include "../sdk/EnemyStep.hpp"
 #include "../sdk/Players.hpp"
 #include "../sdk/InputCommand.hpp"
+#include "../sdk/BossMoves.hpp"
 #include <cmath>
 #include <cstring>
 
@@ -45,7 +46,6 @@ constexpr uintptr_t kActStat         = 0x1554;     // mActStat: & 2 = the action
 constexpr uintptr_t kEmJumpTimer     = 0x1FF4;     // > 0 = no step yet
 
 alignas(4) uintptr_t g_actions[kMaxActions] = {};
-int g_registered = 0;
 uint32_t g_bosses_seen = 0;   // readout
 
 uintptr_t table_for_mode() {
@@ -152,9 +152,180 @@ bool control_boss(uintptr_t boss) {
     return true;
 }
 
+// ---- Input fixes for the extended table ----------------------------------------------------------------------------
+// Helm Breaker (action 48, sub_7C3400) presses lock-on, then melee once Dante's row condition 4 holds (Round Trip not
+// out, high enough: sub_7B75A0), and never sets the stick: the interface keeps the last stick an action gave, usually
+// forward from running or jumping at the player. The vanilla table has no air row on lock-on + forward + melee, so it
+// fell through to Helm Breaker's row (atckId 7, air, no stick condition). With Aerial Stinger, Stinger's row (command 3,
+// lock-on + forward + melee) is allowed in the air and comes first: the stale stick turned Helm Breaker into Air
+// Stinger. Centring the stick while the action presses leaves only Helm Breaker's row.
+constexpr uintptr_t kAction = 0x160AC;          // mAction: the boss action running
+constexpr int kActHelmBreaker = 48;
+
+void fix_inputs(uintptr_t boss) {
+    if (mode != MODE_ENHANCED) return;
+    if (at<int32_t>(boss, kAction) == kActHelmBreaker && act::phase(boss) < 2) {
+        std::memset((void*)(boss + kAnlgPow), 0, kAnlgSize);   // pow 0 = PMODE_NONE: the stick centred
+        at<uint8_t>(boss, kAnlgFlag) = 1;
+    }
+}
+
+// ---- Registered moves (sdk/BossMoves.hpp) --------------------------------------------------------------------------
+// Each registered move is boss action kFirstAction + its index, all run by run_move. Its state lives in the boss's
+// mActionFree[8] (+0x16084), which setBossAction clears for every new action:
+//   [0] frames waited (window / confirmation)   [1] the input step   [2] frames into the step
+//   [3] 1 once the move is confirmed            [4] frames since the inputs ended
+// Phases (mActionRno0): 0 weapons + the first window, 1 the input script, 2 the move runs, 3 the game's end phase.
+constexpr uintptr_t kActionFree   = 0x16084;   // float[8]
+constexpr uintptr_t kDeltaTime    = 0x10;      // cUnit::m_delta_time (frames)
+constexpr uintptr_t kNextSword    = 0x1DB4, kNextGun = 0x1DB8;   // cWeaponCtrl mShortId / mLongId: the next weapons (setWepId)
+constexpr uintptr_t kSwordOut     = 0x1DC0, kGunOut = 0x1DC4;    // mEnableShortId / mEnableLongId: the ones out
+constexpr uintptr_t kStyle        = 0x156C;    // mStyle.kind
+constexpr uintptr_t kMotCncl      = 0x30C0, kMotCnclStat = 0x4, kMotCnclSize = 0x2C;   // uPlayer::mMotCncl[8].mStat
+constexpr uintptr_t kLowerAction  = 0x1500;    // mBdyAction[1].no: 12 = attack
+constexpr uintptr_t kAtckId       = 0x1564;
+constexpr uintptr_t kCollMgr      = 0x1E8C;    // mpCollMgr: +0x1C mLand
+constexpr uintptr_t kMediator     = 0xE558B8;  // sMediator::mpInstance: +0x24 mpPlayer
+constexpr float kPi = 3.14159265f;
+
+struct MoveStats { uint32_t picked = 0, started = 0, failed = 0; float last = -1.0e9f; };
+MoveStats g_move_stats[boss_moves::kMaxMoves];
+float g_clock = 0.0f;   // frames the boss has run (cooldowns)
+
+float* action_free(uintptr_t boss) { return reinterpret_cast<float*>(boss + kActionFree); }
+
+bool grounded(uintptr_t actor) {
+    const uintptr_t coll = at<uintptr_t>(actor, kCollMgr);
+    return coll && at<uint8_t>(coll, 0x1C) != 0;
+}
+
+bool window_open(uintptr_t boss, int window) {
+    return window < 0 || at<uint32_t>(boss, kMotCncl + kMotCnclSize * window + kMotCnclStat) == 2;
+}
+
+uintptr_t opponent() {
+    const uintptr_t med = at<uintptr_t>(kMediator, 0);
+    return med ? at<uintptr_t>(med, 0x24) : 0;
+}
+
+void apply_stick(uintptr_t boss, boss_moves::Stick s) {
+    using namespace boss_moves;
+    if (s == STICK_FREE) return;
+    if (s == STICK_CENTRE) {
+        std::memset((void*)(boss + kAnlgPow), 0, kAnlgSize);
+        at<uint8_t>(boss, kAnlgFlag) = 1;
+        return;
+    }
+    float yaw = act::target_yaw(boss);
+    if (s == STICK_AWAY) yaw += kPi;
+    else if (s == STICK_LEFT) yaw += kPi * 0.5f;
+    else if (s == STICK_RIGHT) yaw -= kPi * 0.5f;
+    act::stick(boss, yaw);
+}
+
+bool confirmed(uintptr_t boss, const boss_moves::Move& m) {
+    return m.atck_id >= 0 && at<int32_t>(boss, kLowerAction) == 12 && at<int32_t>(boss, kAtckId) == m.atck_id;
+}
+
+void __fastcall run_move(uintptr_t boss, uintptr_t) {
+    const int index = boss_moves::index_of_action(at<int32_t>(boss, kAction));
+    const boss_moves::Move* m = boss_moves::get(index);
+    uint32_t& ph = act::phase(boss);
+    if (!m) ph = 3;
+    float* f = action_free(boss);
+    const float dt = at<float>(boss, kDeltaTime);
+    switch (ph) {
+    case 0:   // the weapons (setBossAction put Rebellion / Ebony & Ivory back), then the first window
+        if (m->sword >= 0) at<int32_t>(boss, kNextSword) = m->sword;
+        if (m->gun >= 0) at<int32_t>(boss, kNextGun) = m->gun;
+        if ((m->sword < 0 || at<int32_t>(boss, kSwordOut) == m->sword) && (m->gun < 0 || at<int32_t>(boss, kGunOut) == m->gun) &&
+            window_open(boss, m->cancel)) {
+            ph = 1; f[0] = f[1] = f[2] = 0.0f;
+        }
+        else if ((f[0] += dt) > m->start_timeout) { ++g_move_stats[index].failed; ph = 3; }
+        break;
+    case 1: {   // the input script, one step after another
+        const int step = (int)f[1];
+        if (step >= m->num_inputs) { ph = 2; f[0] = f[4] = 0.0f; break; }
+        const boss_moves::Input& in = m->inputs[step];
+        if (f[2] == 0.0f && !window_open(boss, in.wait)) {
+            if ((f[0] += dt) > m->start_timeout) { ++g_move_stats[index].failed; ph = 3; }
+            break;
+        }
+        act::press(boss, in.buttons);
+        apply_stick(boss, in.stick);
+        if ((f[2] += 1.0f) >= (float)in.frames) { f[1] += 1.0f; f[2] = 0.0f; f[0] = 0.0f; }
+        break;
+    }
+    case 2:   // the move runs: hand back once it has ended (or never started)
+        f[4] += dt;
+        if (m->atck_id >= 0) {
+            if (confirmed(boss, *m)) {
+                if (f[3] == 0.0f) { f[3] = 1.0f; ++g_move_stats[index].started; }
+            } else if (f[3] != 0.0f) {
+                if (f[4] >= m->min_run) ph = 3;
+            } else if ((f[0] += dt) > m->start_timeout) {
+                ++g_move_stats[index].failed;
+                ph = 3;
+            }
+        } else if (f[4] >= m->min_run) {
+            ph = 3;
+        }
+        break;
+    default:
+        act::wait_then_next(boss);
+        break;
+    }
+}
+
+// setBossAction 0x7C8940 (esi = the boss, edi = the action his think or reaction think picked): a registered move that
+// may stand in for it, whose situation holds and whose roll passes, is played instead.
+int __stdcall pick_action(uintptr_t boss, int proposed) {
+    if (mode != MODE_ENHANCED || take_control || !is_boss(boss) || proposed < 0 || proposed >= kGameActions) return proposed;
+    const bool air = !grounded(boss);
+    const float dx = at<float>(boss, kTargetPos) - at<float>(boss, kPos);
+    const float dz = at<float>(boss, kTargetPos + 8) - at<float>(boss, kPos + 8);
+    const float dist = std::sqrt(dx * dx + dz * dz);
+    const float rise = at<float>(boss, kTargetPos + 4) - at<float>(boss, kPos + 4);
+    const uintptr_t target = opponent();
+    for (int i = 0, n = boss_moves::count(); i < n; ++i) {
+        const boss_moves::Move& m = *boss_moves::get(i);
+        if (!(m.stands_in & boss_moves::bit((boss_moves::Action)proposed))) continue;
+        if (m.enabled && !*m.enabled) continue;
+        if ((m.where == boss_moves::WHERE_AIR && !air) || (m.where == boss_moves::WHERE_GROUND && air)) continue;
+        if (m.style >= 0 && at<int32_t>(boss, kStyle) != m.style) continue;
+        if (dist < m.min_dist || dist > m.max_dist || rise < m.min_rise || rise > m.max_rise) continue;
+        if (g_clock - g_move_stats[i].last < m.cooldown) continue;
+        if (m.check && !m.check(boss, target)) continue;
+        if (roll() >= m.chance) continue;
+        g_move_stats[i].last = g_clock;
+        ++g_move_stats[i].picked;
+        return boss_moves::kFirstAction + i;
+    }
+    return proposed;
+}
+
+uintptr_t ret_set_action = 0x7C8949;
+
+naked void detour_set_action() {
+    __asm {
+        pushad
+        push edi
+        push esi
+        call pick_action          // __stdcall: pops both; the action to play in eax
+        mov [esp], eax            // the saved edi (pushad: edi at [esp])
+        popad
+        mov [esi+0x160AC], edi    // the replaced bytes, the cmp last for the jnz that follows
+        cmp edi, 0x13
+        jmp dword ptr [ret_set_action]
+    }
+}
+
 // His action has set this frame's buttons: press jump when a step off a player is open and this opening's roll passed.
 void __stdcall after_action(uintptr_t boss) {
+    if (is_boss(boss)) g_clock += at<float>(boss, kDeltaTime);
     if (control_boss(boss)) return;
+    if (is_boss(boss)) fix_inputs(boss);
     if (!enhanced_steps() || !is_boss(boss)) return;
     if (g_step.boss != boss) g_step = StepState{ boss };
     const bool open = save_skill(boss) && at<uint8_t>(boss, kEmJumpEnable) == 1 && (at<uint32_t>(boss, kActStat) & 2) &&
@@ -203,13 +374,6 @@ bool is_boss(uintptr_t unit) {
     return unit && at<uintptr_t>(unit, 0) == kBossVtable;
 }
 
-bool register_action(int id, ActionFn fn) {
-    if (id < kGameActions || id >= kMaxActions || !fn) return false;
-    if (g_actions[id] == g_actions[0]) ++g_registered;
-    g_actions[id] = (uintptr_t)fn;
-    return true;
-}
-
 namespace act {
 
 uint32_t& phase(uintptr_t boss) { return at<uint32_t>(boss, kActionRno0); }
@@ -249,9 +413,10 @@ void wait_then_next(uintptr_t boss) {
 using namespace boss_dante;
 
 std::optional<std::string> BossDante::on_initialize() {
-    // the dispatch's own table, copied; ids from 60 on run action 0 (wait) until an action is registered
+    // the dispatch's own table, copied; ids from 60 on run the registered moves (sdk/BossMoves.hpp)
+    static_assert(boss_moves::kFirstAction == kGameActions && kGameActions + boss_moves::kMaxMoves <= kMaxActions, "action ids");
     std::memcpy(g_actions, (const void*)kActionTable, kGameActions * sizeof(uintptr_t));
-    for (int i = kGameActions; i < kMaxActions; ++i) g_actions[i] = g_actions[0];
+    for (int i = kGameActions; i < kMaxActions; ++i) g_actions[i] = (uintptr_t)&run_move;
     const uintptr_t table = (uintptr_t)g_actions;
     char disp[4];
     std::memcpy(disp, &table, 4);
@@ -271,6 +436,10 @@ std::optional<std::string> BossDante::on_initialize() {
             return "Failed to init BossDante (enemy step)";
         }
         enemy_step::hook_installed = true;
+    }
+    if (!install_hook_absolute(0x7C8940, hook_set_action, &detour_set_action, nullptr, 9)) {
+        spdlog::error("BossDante: failed to hook uPlayerDanteBoss::setBossAction (0x7C8940)");
+        return "Failed to init BossDante (setBossAction)";
     }
     enemy_step::add_target_source(&boss_step_target);
     input_commands::add_tick(&control_tick);
@@ -312,7 +481,16 @@ void BossDante::on_gui_frame(int display) {
                   "Nero stands still meanwhile. The camera and the boss's opponent stay Nero. Not saved."));
     ImGui::EndDisabled();
     const uintptr_t save = at<uintptr_t>(kSave, 0);
-    ImGui::Text(_("Bosses set up: %u | new actions: %d"), g_bosses_seen, g_registered);
+    ImGui::Text(_("Bosses set up: %u | registered moves: %d"), g_bosses_seen, boss_moves::count());
+    if (boss_moves::count() > 0 && ImGui::TreeNode(_("Moves"))) {
+        for (int i = 0; i < boss_moves::count(); ++i) {
+            const boss_moves::Move& m = *boss_moves::get(i);
+            const MoveStats& s = g_move_stats[i];
+            ImGui::Text(_("%s%s: picked %u, started %u, failed %u"), m.name, (m.enabled && !*m.enabled) ? _(" (mod off)") : "",
+                        s.picked, s.started, s.failed);
+        }
+        ImGui::TreePop();
+    }
     ImGui::Text(_("Jump cancels: %u of %u openings | Dante's Enemy Step skill: %s"), g_jcs, g_rolls,
                 save ? (at<uint8_t>(save, 0xDA) == 1 ? _("yes") : _("no")) : "-");
     ImGui::PopID();

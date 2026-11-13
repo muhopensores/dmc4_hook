@@ -1,4 +1,5 @@
 #include "RisingSun.hpp"
+#include "../sdk/BossMoves.hpp"
 
 #if 1
 bool RisingSun::mod_enabled = false;
@@ -212,6 +213,25 @@ naked void detour8() {
 //     }
 // }
 
+// The boss Dante's Rising Sun (sdk/BossMoves.hpp): Gilgamesh's air Shocking (row 36, id 0x25, style button, Swordmaster)
+// becomes Kick 13 with this mod; close range, the target not far below.
+static void register_boss_move() {
+    using namespace boss_moves;
+    Move m;
+    m.name = "Rising Sun";
+    m.enabled = &RisingSun::mod_enabled;
+    m.sword = SWORD_GILGAMESH;
+    m.style = STYLE_SWORDMASTER;
+    m.input(BTN_STYLE, STICK_CENTRE, 1);
+    m.atck_id = 0x25;
+    m.where = WHERE_AIR;
+    m.max_dist = 350.0f;
+    m.min_rise = -150.0f; m.max_rise = 250.0f;
+    m.stands_in = bit(ACTION_ATK_KABUTO) | bit(ACTION_ATK_DECENT_KICK);
+    m.chance = 0.35f; m.cooldown = 300.0f;
+    add(m);
+}
+
 std::optional<std::string> RisingSun::on_initialize() {
     if (!install_hook_offset(0x3CD359, hook1, &detour1, &jmp_ret1, 5)) {
 		spdlog::error("Failed to init RisingSun mod\n");
@@ -249,6 +269,7 @@ std::optional<std::string> RisingSun::on_initialize() {
 	// 	spdlog::error("Failed to init RisingSun mod8\n");
 	// 	return "Failed to init RisingSun mod8";
 	// }
+    register_boss_move();
     return Mod::on_initialize();
 }
 

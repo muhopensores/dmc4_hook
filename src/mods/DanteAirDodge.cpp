@@ -1,4 +1,5 @@
 #include "DanteAirDodge.hpp"
+#include "../sdk/BossMoves.hpp"
 #include "MoveTable.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"
@@ -393,6 +394,29 @@ using namespace dante_air_dodge;
 // the registry's state-function shape (player, atckId): the dodge has one row
 static void __stdcall dodge_move(uintptr_t player, uint32_t) { dante_air_dodge::move(player); }
 
+// The boss Dante's air dodge (sdk/BossMoves.hpp): sidesteps in the air. The command is lock-on held + jump with the stick
+// within side_angle of his facing's right axis (he faces his target), an air jump left; one move per side.
+static void register_boss_move() {
+    using namespace boss_moves;
+    Move m;
+    m.name = "Air dodge (left)";
+    m.enabled = &dante_air_dodge::mod_enabled;
+    m.input(BTN_LOCK_ON, STICK_LEFT, 3).input(BTN_LOCK_ON | BTN_JUMP, STICK_LEFT, 1);
+    m.atck_id = dante_air_dodge::move_id;
+    m.start_timeout = 20.0f;
+    m.where = WHERE_AIR;
+    m.max_dist = 900.0f;
+    m.stands_in = bit(ACTION_AIR_ESC) | bit(ACTION_W_JUMP);
+    m.chance = 0.4f; m.cooldown = 180.0f;
+    add(m);
+
+    Move r = m;
+    r.name = "Air dodge (right)";
+    r.num_inputs = 0;
+    r.input(BTN_LOCK_ON, STICK_RIGHT, 3).input(BTN_LOCK_ON | BTN_JUMP, STICK_RIGHT, 1);
+    add(r);
+}
+
 std::optional<std::string> DanteAirDodge::on_initialize() {
     using namespace input_commands;
     move_registry::register_move(move_registry::DANTE, move_id, &mod_enabled, &dodge_move);   // the ID gate + Dante dispatch
@@ -407,6 +431,7 @@ std::optional<std::string> DanteAirDodge::on_initialize() {
         spdlog::error("DanteAirDodge: failed to hook uPlayerDante::checkWJumpBegin (0x7B8E30)");
         return "Failed to init DanteAirDodge (air hike hook)";
     }
+    register_boss_move();
     return Mod::on_initialize();
 }
 

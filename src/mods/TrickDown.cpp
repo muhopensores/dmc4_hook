@@ -1,4 +1,5 @@
 #include "TrickDown.hpp"
+#include "../sdk/BossMoves.hpp"
 
 bool TrickDown::mod_enabled = false;
 // uintptr_t TrickDown::trick_begin_jmp_ret = NULL;
@@ -131,6 +132,26 @@ naked void landing_anim_detour(void) {
 	}
 }
 
+// The boss Dante's Down Trick (sdk/BossMoves.hpp): drops onto a target below him. Trickster's Air Trick (lock-on + forward
+// + style, id 0x5D) right after a back, forward: the hook above arms it from command 0x52's step, so forward is still
+// held at the style press.
+static void register_boss_move() {
+    using namespace boss_moves;
+    Move m;
+    m.name = "Down Trick";
+    m.enabled = &TrickDown::mod_enabled;
+    m.style = STYLE_TRICKSTER;
+    m.input(BTN_LOCK_ON, STICK_CENTRE, 2).input(BTN_LOCK_ON, STICK_AWAY, 3).input(BTN_LOCK_ON, STICK_TOWARD, 3)
+     .input(BTN_LOCK_ON | BTN_STYLE, STICK_TOWARD, 1);
+    m.atck_id = 0x5D;
+    m.where = WHERE_AIR;
+    m.max_dist = 600.0f;
+    m.max_rise = -150.0f;
+    m.stands_in = bit(ACTION_ATK_KABUTO) | bit(ACTION_ATK_DECENT_KICK) | bit(ACTION_AIR_ESC);
+    m.chance = 0.4f; m.cooldown = 300.0f;
+    add(m);
+}
+
 std::optional<std::string> TrickDown::on_initialize() {
     /*if (!install_hook_offset(0x3CAED1, trick_begin_hook, &trick_begin_detour, &trick_begin_jmp_ret, 5)) {
         spdlog::error("Failed to init TrickDown mod 0\n");
@@ -153,6 +174,7 @@ std::optional<std::string> TrickDown::on_initialize() {
         spdlog::error("Failed to init TrickDown mod 3\n");
         return "Failed to init TrickDown mod 3";
     }
+	register_boss_move();
 	return Mod::on_initialize();
 }
 

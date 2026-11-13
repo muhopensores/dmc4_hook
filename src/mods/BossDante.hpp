@@ -13,7 +13,8 @@
 //   none of the added moves or row edits can start for him. A mode change also applies to a boss already alive.
 // - Enhanced AI: he keeps the extended table (the added moves become his on purpose through new actions).
 // - Actions beyond the game's 60: the dispatch reads a dmc4_hook copy of the table (the instruction's disp32 at
-//   0x7C0B72 repointed), whose entries from 60 on are register_action's (unregistered ones run action 0, wait).
+//   0x7C0B72 repointed), whose entries from 60 on run the moves Dante mods register (sdk/BossMoves.hpp); his think's
+//   picks go through uPlayerDanteBoss::setBossAction 0x7C8940, where a registered move may stand in for his own.
 namespace boss_dante {
 
 enum Mode : int { MODE_VANILLA = 0, MODE_ENHANCED = 1 };
@@ -27,11 +28,8 @@ constexpr uintptr_t kBossVtable = 0xBE4440;
 // The unit is the boss Dante (not the player's Dante, nor the benchmark Dante, vtable 0xBE3FE8).
 bool is_boss(uintptr_t unit);
 
-// A boss action: called once per frame while it is his current action (thiscall: ecx = the boss).
-using ActionFn = void(__fastcall*)(uintptr_t boss, uintptr_t edx);
 constexpr int kGameActions = 60;   // DANTE_BOSS ACTION_WAIT .. ACTION_RESET_TUTO_SUCC
 constexpr int kMaxActions  = 128;
-bool register_action(int id, ActionFn fn);   // id kGameActions .. kMaxActions - 1; false when out of range
 
 // What an action works with, as the game's own actions do.
 namespace act {
@@ -59,6 +57,6 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
 
-    std::unique_ptr<FunctionHook> hook_ctor, hook_after_action, hook_em_step, hook_cmd;
+    std::unique_ptr<FunctionHook> hook_ctor, hook_after_action, hook_em_step, hook_cmd, hook_set_action;
     std::unique_ptr<Patch> patch_dispatch;
 };

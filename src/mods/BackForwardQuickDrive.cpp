@@ -1,4 +1,5 @@
 #include "BackForwardQuickDrive.hpp"
+#include "../sdk/BossMoves.hpp"
 #include "MoveTable.hpp"
 #include "sdk/uPlayer.hpp"
 
@@ -34,7 +35,28 @@ void BackForwardQuickDrive::on_gui_frame(int display) {
 // void BackForwardQuickDrive::on_game_pause(bool toggle) {}
 // bool BackForwardQuickDrive::on_message(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {}
 
+// The boss Dante's back-forward Quick Drive on the ground (sdk/BossMoves.hpp): a mid-range punish. The row is lock-on, back,
+// forward (15 frames each), melee; Rebellion, any style.
+static void register_boss_move() {
+    using namespace boss_moves;
+    Move m;
+    m.name = "Quick Drive (back-forward)";
+    m.enabled = &BackForwardQuickDrive::mod_enabled;
+    m.sword = SWORD_REBELLION;
+    m.cancel = CANCEL_COMMAND;
+    m.input(BTN_LOCK_ON, STICK_CENTRE, 2).input(BTN_LOCK_ON, STICK_AWAY, 3).input(BTN_LOCK_ON, STICK_TOWARD, 3)
+     .input(BTN_LOCK_ON | BTN_MELEE, STICK_TOWARD, 1);
+    m.atck_id = 0x19;
+    m.min_run = 20.0f;
+    m.where = WHERE_GROUND;
+    m.min_dist = 300.0f; m.max_dist = 1300.0f;
+    m.stands_in = bit(ACTION_ATK_STINGER) | bit(ACTION_ATK_LONG) | bit(ACTION_ATK_HIGHTIME);
+    m.chance = 0.3f; m.cooldown = 480.0f;
+    add(m);
+}
+
 std::optional<std::string> BackForwardQuickDrive::on_initialize() {
+    register_boss_move();
     return Mod::on_initialize();
 }
 

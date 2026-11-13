@@ -1,4 +1,5 @@
 #include "LuciAirThrow.hpp"
+#include "../sdk/BossMoves.hpp"
 #include "../sdk/MoveRegistry.hpp"
 #include "MoveTable.hpp"
 #include "sdk/uPlayer.hpp"
@@ -78,6 +79,24 @@ static void __stdcall splash_move(uintptr_t actor, uint32_t) {
     ((void(__stdcall*)(uintptr_t))0x007D6ED0)(actor);
 }
 
+// The boss Dante's Lucifer air throw (sdk/BossMoves.hpp): row 0x6D, Lucifer, lock-on + forward + melee in the air.
+static void register_boss_move() {
+    using namespace boss_moves;
+    Move m;
+    m.name = "Lucifer air throw";
+    m.enabled = &LuciAirThrow::mod_enabled;
+    m.sword = SWORD_LUCIFER;
+    m.cancel = CANCEL_COMMAND;
+    m.input(BTN_LOCK_ON, STICK_TOWARD, 2).input(BTN_LOCK_ON | BTN_MELEE, STICK_TOWARD, 1);
+    m.atck_id = 0x6D;
+    m.where = WHERE_AIR;
+    m.min_dist = 150.0f; m.max_dist = 900.0f;
+    m.min_rise = -300.0f; m.max_rise = 200.0f;
+    m.stands_in = bit(ACTION_ATK_KABUTO) | bit(ACTION_ATK_DECENT_KICK);
+    m.chance = 0.3f; m.cooldown = 480.0f;
+    add(m);
+}
+
 std::optional<std::string> LuciAirThrow::on_initialize() {
     move_registry::register_move(move_registry::DANTE, 0x6D, &mod_enabled, &splash_move);
     if (!install_hook_offset(0x3D6F2B, hook1, &detour1, &jmp_ret1, 8)) {
@@ -96,6 +115,7 @@ std::optional<std::string> LuciAirThrow::on_initialize() {
 		spdlog::error("Failed to init LuciAirThrow mod4\n");
 		return "Failed to init LuciAirThrow mod4";
 	}
+    register_boss_move();
     return Mod::on_initialize();
 }
 

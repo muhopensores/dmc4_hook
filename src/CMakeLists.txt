@@ -458,6 +458,8 @@ set(SDK_SRC
     sdk/InputCommand.cpp
     sdk/EnemyStep.hpp
     sdk/EnemyStep.cpp
+    sdk/BossMoves.hpp
+    sdk/BossMoves.cpp
     sdk/PlayerExt.hpp
     sdk/PlayerExt.cpp
     sdk/NeroStand.hpp

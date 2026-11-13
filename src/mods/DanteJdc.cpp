@@ -1,5 +1,6 @@
 #include "DanteJdc.hpp"
 #include "../sdk/PlayerExt.hpp"
+#include "../sdk/BossMoves.hpp"
 
 #include "Windows.h"
 #undef WIN32_LEAN_AND_MEAN
@@ -453,6 +454,25 @@ naked void detour13() {
     }
 }
 
+// The boss Dante's Judgement Cut (sdk/BossMoves.hpp): the Yamato aerial rave (Darkslayer, style button in the air) with
+// lock-on held and the stick back, which makes the cut whichever input setting is on (lock-on, or lock-on + back).
+// Picked only while he is in Darkslayer.
+static void register_boss_move() {
+    using namespace boss_moves;
+    Move m;
+    m.name = "Judgement Cut";
+    m.enabled = &DanteJdc::mod_enabled;
+    m.style = STYLE_DARKSLAYER;
+    m.input(BTN_LOCK_ON, STICK_AWAY, 3).input(BTN_LOCK_ON | BTN_STYLE, STICK_AWAY, 1);
+    m.min_run = 45.0f;
+    m.where = WHERE_AIR;
+    m.min_dist = 300.0f; m.max_dist = 2000.0f;
+    m.stands_in = bit(ACTION_ATK_KABUTO) | bit(ACTION_ATK_DECENT_KICK) | bit(ACTION_ATK_SHOOT_DOWN) |
+                  bit(ACTION_ATK_SHOOT_DOWN_F) | bit(ACTION_ATK_SHOOT_DOWN_B);
+    m.chance = 0.3f; m.cooldown = 600.0f;
+    add(m);
+}
+
 std::optional<std::string> DanteJdc::on_initialize() {
     if (!install_hook_offset(0x3E1189, hook1, &detour1, &jmp_ret1, 6)) { // set jdc vars
         spdlog::error("Failed to init DanteJdc mod\n");
@@ -471,6 +491,7 @@ std::optional<std::string> DanteJdc::on_initialize() {
         }
         player_ext::hook_installed = true;
     }
+    register_boss_move();
     if (!install_hook_offset(0x41F78B, hook4, &detour4, &jmp_ret4, 8)) { // Reduce JDC hitbox delay
         spdlog::error("Failed to init DanteJdc mod4\n");
         return "Failed to init DanteJdc mod4";

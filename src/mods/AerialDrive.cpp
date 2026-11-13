@@ -1,4 +1,6 @@
 #include "AerialDrive.hpp"
+#include "BackForwardQuickDrive.hpp"
+#include "../sdk/BossMoves.hpp"
 #include "MoveTable.hpp"
 #include "sdk/uPlayer.hpp"
 
@@ -233,6 +235,43 @@ naked void detour9(void) {
     }
 }
 
+// The boss Dante's Air Drive (sdk/BossMoves.hpp): a ranged poke while airborne. Quick Drive (id 0x19) hands off to Drive.
+// Without BackForwardQuickDrive it is native row 4 (melee + style, Rebellion, Swordmaster); with it, that row is off and
+// the back-forward row takes over (lock-on, back, forward, melee; any style).
+static bool drive_native_row(uintptr_t, uintptr_t) { return !BackForwardQuickDrive::mod_enabled; }
+static bool drive_back_forward_row(uintptr_t, uintptr_t) { return BackForwardQuickDrive::mod_enabled; }
+
+static void register_boss_move() {
+    using namespace boss_moves;
+    Move m;
+    m.name = "Air Drive";
+    m.enabled = &AerialDrive::mod_enabled;
+    m.sword = SWORD_REBELLION;
+    m.style = STYLE_SWORDMASTER;
+    m.cancel = CANCEL_MELEE;
+    m.input(BTN_MELEE | BTN_STYLE, STICK_CENTRE, 1);
+    m.atck_id = 0x19;
+    m.min_run = 20.0f;
+    m.where = WHERE_AIR;
+    m.min_dist = 600.0f; m.max_dist = 2500.0f;
+    m.min_rise = -400.0f; m.max_rise = 300.0f;
+    m.stands_in = bit(ACTION_ATK_SHOOT_DOWN) | bit(ACTION_ATK_SHOOT_DOWN_F) | bit(ACTION_ATK_SHOOT_DOWN_B) |
+                  bit(ACTION_ATK_SHOOT_DOWN_L) | bit(ACTION_ATK_SHOOT_DOWN_R) | bit(ACTION_ATK_KABUTO);
+    m.chance = 0.3f; m.cooldown = 480.0f;
+    m.check = &drive_native_row;
+    add(m);
+
+    Move b = m;
+    b.name = "Air Drive (back-forward)";
+    b.style = -1;
+    b.cancel = CANCEL_COMMAND;
+    b.num_inputs = 0;
+    b.input(BTN_LOCK_ON, STICK_CENTRE, 2).input(BTN_LOCK_ON, STICK_AWAY, 3).input(BTN_LOCK_ON, STICK_TOWARD, 3)
+     .input(BTN_LOCK_ON | BTN_MELEE, STICK_TOWARD, 1);
+    b.check = &drive_back_forward_row;
+    add(b);
+}
+
 std::optional<std::string> AerialDrive::on_initialize() {
     if (!install_hook_offset(0x3D0742, hook1, &detour1, &jmp_ret1, 6)) {
 		spdlog::error("Failed to init AerialDrive mod\n");
@@ -270,6 +309,7 @@ std::optional<std::string> AerialDrive::on_initialize() {
 		spdlog::error("Failed to init AerialDrive mod\n");
 		return "Failed to init AerialDrive mod9";
 	}
+    register_boss_move();
     return Mod::on_initialize();
 }
 
