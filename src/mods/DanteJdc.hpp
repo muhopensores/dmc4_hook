@@ -11,7 +11,6 @@ public:
     static bool inertia_enabled;
     static uintptr_t jmp_ret1;
     static uintptr_t jmp_ret2;
-    static uintptr_t jmp_ret3;
     static uintptr_t jmp_ret4;
     static uintptr_t jmp_ret5;
     static uintptr_t jmp_ret6;
@@ -38,6 +37,6 @@ public:
 
 private:
     std::unique_ptr<Patch> patch1, patch2;
-    std::unique_ptr<FunctionHook> hook1, hook2, hook3, hook4, hook5, hook6,
-                                  hook7, hook8, hook9, hook10, hook11, hook12, hook13;
+    std::unique_ptr<FunctionHook> hook1, hook2, hook4, hook5, hook6,
+                                  hook7, hook8, hook9, hook10, hook11, hook12, hook13, hook_ext_setup, hook_ext_dtor;
 };

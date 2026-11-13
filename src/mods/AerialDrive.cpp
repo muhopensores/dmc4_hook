@@ -6,7 +6,6 @@
 bool AerialDrive::mod_enabled = false;
 
 uintptr_t AerialDrive::jmp_ret1 = NULL;
-    bool aerialDrive = false;
 uintptr_t AerialDrive::jmp_ret2 = NULL;
     float ADgrav = -0.5f; 
     float ADbounce = 8.0f; 
@@ -34,6 +33,9 @@ uintptr_t AerialDrive::jmp_ret8 = NULL;
 uintptr_t AerialDrive::jmp_ret9 = NULL;
     constexpr uintptr_t landing_cancel_call = 0x007AA6A0;
 
+// Drive started in the air: a byte on the Dante (uPlayer padding 0x1498, see sdk/uPlayer.hpp player_mod_bytes), so two
+// Dantes (the player and the boss Dante) keep their own. Every hook below has the Dante in ebp; the projectile one
+// (uPlayerDante vtable slot 0x2FC) in ecx.
 void AerialDrive::toggle(bool enable) {
     kAtckDefTbl* DriveEntry = (kAtckDefTbl*)HookDanteKADTbl + MoveTable::extra_dante_moves + 4;
     kAtckDefTbl* BackForwardDriveEntry = (kAtckDefTbl*)HookDanteKADTbl + MoveTable::extra_dante_moves - MoveTable::backForwardQuickDrive;
@@ -55,13 +57,13 @@ void AerialDrive::toggle(bool enable) {
 //Check
 naked void detour1(void) {
     _asm {
-            mov byte ptr [aerialDrive],0
+            mov byte ptr [ebp+0x1498],0
             push eax
             mov eax,[ebp+0x1E8C]
             cmp byte ptr [eax+0x1C],0 //if not grounded
             pop eax
             jne handler
-            mov byte ptr [aerialDrive],1
+            mov byte ptr [ebp+0x1498],1
         originalcode:
             jmp [AerialDrive::jmp_ret1]
         handler:
@@ -73,7 +75,7 @@ naked void detour1(void) {
 //PoM skip
 naked void detour2 (void) {
     _asm {
-            cmp byte ptr [aerialDrive],1
+            cmp byte ptr [ebp+0x1498],1
             jne handler
 
             add dword ptr [ebp+0x1504],03 //skip wind-up PoM
@@ -92,7 +94,7 @@ naked void detour2 (void) {
 //Motion
 naked void detour3(void) {
     _asm {
-            cmp byte ptr [aerialDrive],1
+            cmp byte ptr [ebp+0x1498],1
             jne handler
 
             push 0x900 //custom motion (roulette spin)
@@ -106,7 +108,7 @@ naked void detour3(void) {
 //Timer
 naked void detour4(void) {
     _asm {
-            cmp byte ptr [aerialDrive],1
+            cmp byte ptr [ebp+0x1498],1
             jne originalcode
 
             comiss xmm0,[adTimer]
@@ -124,7 +126,7 @@ naked void detour5(void) {
     uintptr_t esp_addr;
     //char buffer[1000];
     _asm {
-            cmp byte ptr [aerialDrive],1
+            cmp byte ptr [ebp+0x1498],1
             jne originalcode
 
             mov [esp_addr],esp
@@ -153,7 +155,7 @@ naked void detour5(void) {
 //Projectile
 naked void detour6(void) {
     _asm {
-            cmp byte ptr [aerialDrive],1
+            cmp byte ptr [ecx+0x1498],1
             jne handler
 
             mov eax,1
@@ -168,7 +170,7 @@ naked void detour6(void) {
 //Cancel
 naked void detour7(void) {
     _asm {
-            cmp byte ptr [aerialDrive],1
+            cmp byte ptr [ebp+0x1498],1
             jne originalcode
 
             fld [ADRecoveryGrav]
@@ -192,7 +194,7 @@ naked void detour8(void) {
     //uintptr_t esp_addr;
     _asm {
             movss xmm0,[ecx+0x18]
-            cmp byte ptr [aerialDrive],1
+            cmp byte ptr [ebp+0x1498],1
             jne originalcode
 
             comiss xmm0,[AirDriveBufferF]
@@ -211,7 +213,7 @@ naked void detour8(void) {
 //Landing cancel, wew
 naked void detour9(void) {
     _asm {
-            cmp byte ptr [aerialDrive],1
+            cmp byte ptr [ebp+0x1498],1
             jne originalcode
 
             push eax
@@ -221,7 +223,7 @@ naked void detour9(void) {
             jne originalcode
             or byte ptr [ebp+0x1550],1
             mov [ebp+0x1564],0
-            mov byte ptr [aerialDrive],0
+            mov byte ptr [ebp+0x1498],0
             mov ecx,ebp
             call landing_cancel_call
             mov [ebp+0x1504],6

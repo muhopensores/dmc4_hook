@@ -907,7 +907,19 @@ public:
     cProcSpdCtrl mProcSpdCtrl; // 0x1454
     cHitSlowCtrl mHitSlowCtrl; // 0x1484
     uint32_t mPlayerID; // 0x1494
-    char pad_1498[0x8];
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!! DMC4_HOOK, NOT GAME MEMORY !!! AerialDrive: this Dante's Drive started in the air (sdk/uPlayer.hpp player_mod_bytes)
+    uint8_t HOOK_AerialDrive; // 0x1498
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!! DMC4_HOOK, NOT GAME MEMORY !!! TrickDown: this Dante's Air Trick is a Down Trick (sdk/uPlayer.hpp player_mod_bytes)
+    uint8_t HOOK_TrickDown; // 0x1499
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    char pad_149a[0x2];
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!! DMC4_HOOK, NOT GAME MEMORY !!! player_ext::UPlayerExt* (sdk/PlayerExt.hpp); garbage before uPlayer::setup
+    void* HOOK_UPlayerExt; // 0x149c
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     MtVector3 mPosOld; // 0x14a0
     MtMatrix mCorrectMtrx; // 0x14b0
     int32_t mActionNo; // 0x14f0
@@ -1073,6 +1085,9 @@ static_assert(offsetof(uPlayer, mInterface) == 0x1408);
 static_assert(offsetof(uPlayer, mProcSpdCtrl) == 0x1454);
 static_assert(offsetof(uPlayer, mHitSlowCtrl) == 0x1484);
 static_assert(offsetof(uPlayer, mPlayerID) == 0x1494);
+static_assert(offsetof(uPlayer, HOOK_AerialDrive) == 0x1498);
+static_assert(offsetof(uPlayer, HOOK_TrickDown) == 0x1499);
+static_assert(offsetof(uPlayer, HOOK_UPlayerExt) == 0x149c);
 static_assert(offsetof(uPlayer, mPosOld) == 0x14a0);
 static_assert(offsetof(uPlayer, mCorrectMtrx) == 0x14b0);
 static_assert(offsetof(uPlayer, mActionNo) == 0x14f0);
@@ -1332,7 +1347,12 @@ public:
     uint8_t mSoundEngine[64]; // 0xcd40
     bool mIsHitODHiTime; // 0xcd80
     bool mIsHitMessage; // 0xcd81
-    char pad_cd82[0xe];
+    char pad_cd82[0x2];
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!! DMC4_HOOK, NOT GAME MEMORY !!! player_ext::NeroExt* (sdk/PlayerExt.hpp); garbage before uPlayer::setup
+    void* HOOK_NeroExt; // 0xcd84
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    char pad_cd88[0x8];
     MtVector3 mTmpPos; // 0xcd90
     uint32_t /* signed __int32 */ mCsEfctPhase; // 0xcda0
     uint32_t /* signed __int32 */ mODStockUseNum; // 0xcda4
@@ -1425,6 +1445,7 @@ static_assert(offsetof(uPlayerNero, mOdGaugeCtrl) == 0xcce4);
 static_assert(offsetof(uPlayerNero, mSoundEngine) == 0xcd40);
 static_assert(offsetof(uPlayerNero, mIsHitODHiTime) == 0xcd80);
 static_assert(offsetof(uPlayerNero, mIsHitMessage) == 0xcd81);
+static_assert(offsetof(uPlayerNero, HOOK_NeroExt) == 0xcd84);
 static_assert(offsetof(uPlayerNero, mTmpPos) == 0xcd90);
 static_assert(offsetof(uPlayerNero, mCsEfctPhase) == 0xcda0);
 static_assert(offsetof(uPlayerNero, mODStockUseNum) == 0xcda4);
@@ -1637,7 +1658,11 @@ public:
     bool mIsLuciferFunnel; // 0x14db8
     char pad_14db9[0x3];
     kShlCtr mShlCtrl[15]; // 0x14dbc
-    char pad_14df8[0x8];
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!! DMC4_HOOK, NOT GAME MEMORY !!! player_ext::DanteExt* (sdk/PlayerExt.hpp); garbage before uPlayer::setup
+    void* HOOK_DanteExt; // 0x14df8
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    char pad_14dfc[0x4];
     uCollisionMgr mBdyCollMgr; // 0x14e00
     float mGmSaveTimer; // 0x151f0
     float mPandoraGauge; // 0x151f4
@@ -1739,6 +1764,7 @@ static_assert(offsetof(uPlayerDante, mIsBlockActionSet) == 0x14db0);
 static_assert(offsetof(uPlayerDante, mLuciferFunnelTimer) == 0x14db4);
 static_assert(offsetof(uPlayerDante, mIsLuciferFunnel) == 0x14db8);
 static_assert(offsetof(uPlayerDante, mShlCtrl) == 0x14dbc);
+static_assert(offsetof(uPlayerDante, HOOK_DanteExt) == 0x14df8);
 static_assert(offsetof(uPlayerDante, mBdyCollMgr) == 0x14e00);
 static_assert(offsetof(uPlayerDante, mGmSaveTimer) == 0x151f0);
 static_assert(offsetof(uPlayerDante, mPandoraGauge) == 0x151f4);
@@ -2122,3 +2148,20 @@ static_assert(offsetof(uPlayerDanteBoss, mbBlackEnable) == 0x16230);
 static_assert(offsetof(uPlayerDanteBoss, mSaveData) == 0x16234);
 static_assert(offsetof(uPlayerDanteBoss, mBattle) == 0x16334);
 static_assert(offsetof(uPlayerDanteBoss, mActive) == 0x16335);
+
+// ####################################################################################################################
+// ##  !!! DMC4_HOOK SLOTS IN THE GAME'S PLAYER OBJECTS !!!                                                           ##
+// ##  The HOOK_* members above are alignment padding no game code touches, holding dmc4_hook state. Keep them when    ##
+// ##  editing these structs (in the IDB too: uPlayer::uPlayer, uPlayerDante::uPlayerDante, uPlayerNero::uPlayerNero). ##
+// ##  Take a new one only from padding checked unused over the player code (0x7A0000-0x830000) and src/.            ##
+// ####################################################################################################################
+namespace player_mod_bytes {
+constexpr uintptr_t kAerialDrive = 0x1498;   // uPlayer::HOOK_AerialDrive: this Dante's Drive started in the air
+constexpr uintptr_t kTrickDown   = 0x1499;   // uPlayer::HOOK_TrickDown: this Dante's Air Trick is a Down Trick
+constexpr uintptr_t kUPlayerExt  = 0x149C;   // uPlayer::HOOK_UPlayerExt: player_ext::UPlayerExt* (sdk/PlayerExt.hpp)
+constexpr uintptr_t kDanteExt    = 0x14DF8;  // uPlayerDante::HOOK_DanteExt: player_ext::DanteExt*
+constexpr uintptr_t kNeroExt     = 0xCD84;   // uPlayerNero::HOOK_NeroExt: player_ext::NeroExt*
+static_assert(offsetof(uPlayer, HOOK_AerialDrive) == kAerialDrive && offsetof(uPlayer, HOOK_TrickDown) == kTrickDown &&
+              offsetof(uPlayer, HOOK_UPlayerExt) == kUPlayerExt && offsetof(uPlayerDante, HOOK_DanteExt) == kDanteExt &&
+              offsetof(uPlayerNero, HOOK_NeroExt) == kNeroExt, "dmc4_hook slots");
+} // namespace player_mod_bytes

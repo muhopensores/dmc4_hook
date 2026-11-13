@@ -1,4 +1,5 @@
 #include "DanteJdc.hpp"
+#include "../sdk/PlayerExt.hpp"
 
 #include "Windows.h"
 #undef WIN32_LEAN_AND_MEAN
@@ -10,29 +11,24 @@ bool DanteJdc::mod_enabled = false;
 bool DanteJdc::alt_input_enabled = false;
 bool DanteJdc::inertia_enabled  = false;
 
+// Each Dante's Judgement Cut state lives in his DanteExt (sdk/PlayerExt.hpp, its address at [Dante+14DF8h]):
+// the flag and the spawn gate (+0 / +1), the cut's position (+4), and its shell's multi-hit (hits left +14h, next hit's
+// timer +18h). The shell (uPlDanteShl019) reaches its Dante through its owner, [shell+17B0h], which the spawn sets.
 uintptr_t DanteJdc::jmp_ret1 = NULL;
     constexpr uintptr_t detour1_push1 = 0x00486640;
     constexpr uintptr_t detour1_mov1  = 0x00E559D8;
     constexpr uintptr_t detour1_call1 = 0x00A47AA0;
-    bool jdcFlag    = 0;
-    bool canJdc = 0;
-    float jdcXCoord = 0.0f;
-    float jdcYCoord = 0.0f;
-    float jdcZCoord = 0.0f;
 uintptr_t DanteJdc::jmp_ret2 = NULL;
     constexpr uintptr_t detour2_call1 = 0x0081F970;
     constexpr uintptr_t detour2_jne   = 0x007E134D;
     float jdcTimer2 = 6.0f;
     float jdcTimer1 = 5.0f;
-uintptr_t DanteJdc::jmp_ret3 = NULL;
 uintptr_t DanteJdc::jmp_ret4 = NULL;
     constexpr uintptr_t detour4_mov1 = 0x00C3C6EC;
     float jdcDelay = 0.0f;
 uintptr_t DanteJdc::jmp_ret5 = NULL;
-    float jdcOffset = 0.0f;
     float jdcOffsetAdd = 4.0f;
     int jdcHitcountDefault = 5;
-    int jdcHitcount        = 5;
 uintptr_t DanteJdc::jmp_ret6 = NULL;
     constexpr uintptr_t detour6_call1 = 0x0050CB80;
 uintptr_t DanteJdc::jmp_ret7 = NULL;
@@ -57,7 +53,7 @@ uintptr_t DanteJdc::jmp_ret13 = NULL;
 void DanteJdc::toggle(bool enable) {
     if (enable) {
         install_patch_offset(0x3E15D1, patch1, "\x90\x90\x90\x90\x90\x90", 6);
-        install_patch_offset(0x3E18A7, patch1, "\xBA\x92\x00\x00\x00", 5);
+        install_patch_offset(0x3E18A7, patch2, "\xBA\x92\x00\x00\x00", 5);
     }
     else {
         patch1.reset();
@@ -73,6 +69,9 @@ naked void detour1(void) {
 
             pushad
             mov ebp, esi // the Dante doing the move (sMediator's mpPlayer is player 1 only)
+            mov ebx, [ebp+0x14DF8] // his DanteExt (sdk/PlayerExt.hpp)
+            test ebx, ebx
+            je noext
             mov eax, [ebp+0x16D0]
             cmp byte ptr [DanteJdc::alt_input_enabled], 0
             je flagset
@@ -80,23 +79,23 @@ naked void detour1(void) {
         flagset:
             test eax, eax
             je handler
-            mov byte ptr [jdcFlag], 1
+            mov byte ptr [ebx+0x00], 1 // jdc_flag
             mov eax, [ebp+0x3080]
             test eax,eax
             je handler
             fld [eax+0x40]
-            fstp [jdcXCoord]
+            fstp [ebx+0x04] // jdc_pos
             fld [eax+0x44]
-            fstp [jdcYCoord]
+            fstp [ebx+0x08]
             fld [eax+0x48]
-            fstp [jdcZCoord]
+            fstp [ebx+0x0C]
             push detour1_push1
             mov ecx, [ebp+0x00001D64]
             mov edx, [detour1_mov1] // 00E559D8
             mov edx, [edx] // added this so we don't mov our addr
             push 01
             push 01
-            lea eax, [jdcXCoord]
+            lea eax, [ebx+0x04]
             push eax
             push ebp
             push 0x000000D3 // sound id
@@ -107,7 +106,8 @@ naked void detour1(void) {
             jmp originalcode
 
         handler:
-            mov byte ptr [jdcFlag], 0
+            mov byte ptr [ebx+0x00], 0
+        noext:
             popad
 		originalcode:
             mov ecx,esi
@@ -126,27 +126,28 @@ naked void detour2(void) {
         
             pushad
             mov ebp, esi // the Dante doing the move
-            mov al, [jdcFlag]
-            test eax, eax
+            mov ebx, [ebp+0x14DF8] // his DanteExt (sdk/PlayerExt.hpp)
+            test ebx, ebx
+            je handler
+            cmp byte ptr [ebx+0x00], 0 // jdc_flag
             je handler
             mov eax, [ebp+0x000028A4]
             movss xmm0, [eax+0x18]
             comiss xmm0, [jdcTimer1]
             jb JdcGate
-            //movss xmm1,[jdcTimer2]
-            //addss xmm1,[ebp+0x10]
-            //comiss xmm0,xmm1
-            //jnb handler
-            cmp byte ptr [canJdc],1
+            cmp byte ptr [ebx+0x01],1 // jdc_ready
             jne handler
-            mov eax, [ebp+0x3080]
-            call detour2_call1 // Spawn effect + hitbox // DevilMayCry4_DX9.exe+41F970
-            mov byte ptr [canJdc],0
+            // spawn the shell as Slash Dimension's spawn does (sub_7BC6D0): edi = the position, the owner pushed (cdecl)
+            lea edi, [ebx+0x04]
+            push ebp
+            call detour2_call1 // Spawn effect + hitbox // sub_81F970
+            add esp, 4
+            mov byte ptr [ebx+0x01],0
             popad
             jmp originalcode
 
         JdcGate:
-            mov byte ptr [canJdc],1
+            mov byte ptr [ebx+0x01],1
         handler:
             popad
 		originalcode:
@@ -160,42 +161,49 @@ naked void detour2(void) {
     }
 }
 
-// Tracking slash dimension
-naked void detour3(void) {
-    _asm {
-			cmp byte ptr [DanteJdc::mod_enabled], 0
-			je originalcode
+// The cut's shell (uPlDanteShl019): its owner [shell+17B0h] is the Dante whose block holds the multi-hit state. One
+// cut at a time per Dante, as one at a time for everyone before (Slash Dimension's shells share it, as they did).
+template <class T> static inline T& at(uintptr_t base, uintptr_t off) { return *reinterpret_cast<T*>(base + off); }
 
-            push eax
-            push ebp
-            mov ebp, ebx // the Dante that spawned the slash dimension
-            cmp dword ptr [ebp+0x00001564], 0x6B
-            je handler
-            cmp dword ptr [ebp+0x00001564], 0x6C
-            je handler
-            mov eax, [ebp+0x3080]
-            movss xmm0, [jdcXCoord]
-            movss xmm1, [jdcYCoord]
-            movss xmm2, [jdcZCoord]
-            movss [esi+0x30], xmm0
-            movss [esi+0x34], xmm1
-            movss [esi+0x38], xmm2
-        code:
-            pop ebp
-            pop eax
-        jmp_return:
-			jmp dword ptr [DanteJdc::jmp_ret3]
+static player_ext::DanteExt* shell_ext(uintptr_t shell) {
+    const uintptr_t owner = at<uintptr_t>(shell, 0x17B0);
+    return owner ? player_ext::dante(owner) : nullptr;
+}
 
-        originalcode:
-            fld dword ptr [edi+0x08]
-            fstp dword ptr [esi+0x38]
-            jmp jmp_return
-
-        handler:
-            fld dword ptr [edi+0x08]
-            fstp dword ptr [esi+0x38]
-            jmp code
+// Multi-hit: each time the shell's timer passes the next hit's, count a hit and let it hit again.
+static void __stdcall jdc_multi_hit(uintptr_t shell) {
+    player_ext::DanteExt* e = shell_ext(shell);
+    if (!e) return;
+    if (at<float>(shell, 0x10) + at<float>(shell, 0x1790) < e->jdc_offset) return;
+    const int before = e->jdc_hits_left;
+    e->jdc_hits_left = before - 1;
+    if (before == 1) {
+        e->jdc_offset = 0.0f;
+        return;
     }
+    e->jdc_offset += jdcOffsetAdd;
+    at<uint8_t>(shell, 0x15) = 0;
+}
+
+// At the shell's despawn point: stay (0) while hits are left, else go (2) and reset the count for the next cut.
+static void __stdcall jdc_despawn_state(uintptr_t shell) {
+    player_ext::DanteExt* e = shell_ext(shell);
+    if (!e) {
+        at<uint8_t>(shell, 0x14) = 1;
+        return;
+    }
+    if (e->jdc_hits_left != 0) {
+        at<uint8_t>(shell, 0x14) = 0;
+        return;
+    }
+    e->jdc_hits_left = jdcHitcountDefault;
+    at<uint8_t>(shell, 0x14) = 2;
+}
+
+// The screen shake stays for the last hit only.
+static bool __stdcall jdc_shake(uintptr_t shell) {
+    player_ext::DanteExt* e = shell_ext(shell);
+    return !e || e->jdc_hits_left == 1;
 }
 
 // Reduce JDC hitbox delay
@@ -217,36 +225,16 @@ naked void detour4(void) {
     }
 }
 
-// Multi-hit jdc
+// Multi-hit jdc (esi = the shell)
 naked void detour5(void) {
     _asm {
 			cmp byte ptr [DanteJdc::mod_enabled], 0
 			je originalcode
 
-            push ebp
-            push eax
-            mov ebp, esi
-            movss xmm0, [ebp+0x10]
-            addss xmm0, [ebp+0x1790]
-            comiss xmm0, [jdcOffset]
-            jb handler
-            mov eax, [jdcHitcount]
-            cmp eax, 1
-            dec eax
-            mov [jdcHitcount], eax
-            je handler2
-            movss xmm1, [jdcOffset]
-            addss xmm1, [jdcOffsetAdd]
-            movss [jdcOffset], xmm1
-            mov byte ptr [esi+0x15], 00
-            jmp handler
-
-        handler2:
-            xorps xmm1,xmm1
-            movss [jdcOffset], xmm1
-        handler:
-            pop eax
-            pop ebp
+            pushad
+            push esi
+            call jdc_multi_hit
+            popad
 		originalcode:
             cmp byte ptr [esi+0x15], 00
             movss xmm0, [esi+0x10]
@@ -255,28 +243,16 @@ naked void detour5(void) {
     }
 }
 
-// Stop jdc despawn timer
+// Stop jdc despawn timer (esi = the shell)
 naked void detour6(void) {
     _asm {
 			cmp byte ptr [DanteJdc::mod_enabled], 0
 			je originalcode
 
-            push eax
-            mov eax, [jdcHitcount]
-            test eax,eax
-            je handler
-            mov byte ptr [esi+0x14], 00
-            pop eax
-            jmp code
-
-        handler:
-            push ecx
-            mov ecx, [jdcHitcountDefault]
-            mov [jdcHitcount], ecx
-            pop ecx
-            mov byte ptr [esi+0x14], 02
-            pop eax
-        code:
+            pushad
+            push esi
+            call jdc_despawn_state // writes the shell's state byte
+            popad
             call detour6_call1
             jmp jmp_return
 
@@ -347,7 +323,10 @@ naked void detour10(void) {
             je originalcode
 
             push eax
-            mov al, [jdcFlag]
+            mov eax, [esi+0x14DF8] // DanteExt (sdk/PlayerExt.hpp)
+            test eax, eax
+            je handler
+            mov al, [eax+0x00] // jdc_flag
             test al, al
             je handler
             movss xmm6, [esi+0x1E1C]
@@ -382,7 +361,10 @@ naked void detour11(void) {
             je originalcode
 
             push eax
-            mov al, [jdcFlag]
+            mov eax, [esi+0x14DF8] // DanteExt (sdk/PlayerExt.hpp)
+            test eax, eax
+            je handler
+            mov al, [eax+0x00] // jdc_flag
             test al,al
             je handler
             pop eax
@@ -404,8 +386,12 @@ naked void detour12(void) {
 			cmp byte ptr [DanteJdc::mod_enabled], 0
 			je originalcode
 
-            cmp dword ptr [jdcHitcount], 1
-            je originalcode
+            pushad
+            push esi // the shell
+            call jdc_shake
+            test al, al
+            popad // flags survive popad
+            jnz originalcode
 
             xor eax, eax
 
@@ -476,9 +462,14 @@ std::optional<std::string> DanteJdc::on_initialize() {
         spdlog::error("Failed to init DanteJdc mod2\n");
         return "Failed to init DanteJdc mod2";
     }
-    if (!install_hook_offset(0x41F9C2, hook3, &detour3, &jmp_ret3, 6)) { // Tracking slash dimension
-        spdlog::error("Failed to init DanteJdc mod3\n");
-        return "Failed to init DanteJdc mod3";
+    // (the cut's position: the spawn now passes it, as Slash Dimension's does, so the spawner needs no hook)
+    if (!player_ext::hook_installed) {   // one installer: whichever mod needs per-player state first
+        if (!install_hook_absolute(player_ext::kSetupSite, hook_ext_setup, &player_ext::detour_setup, &player_ext::jmp_ret_setup, 6) ||
+            !install_hook_absolute(player_ext::kDtorSite, hook_ext_dtor, &player_ext::detour_dtor, &player_ext::jmp_ret_dtor, 6)) {
+            spdlog::error("Failed to init DanteJdc (player_ext)\n");
+            return "Failed to init DanteJdc (player_ext)";
+        }
+        player_ext::hook_installed = true;
     }
     if (!install_hook_offset(0x41F78B, hook4, &detour4, &jmp_ret4, 8)) { // Reduce JDC hitbox delay
         spdlog::error("Failed to init DanteJdc mod4\n");

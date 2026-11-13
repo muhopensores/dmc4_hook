@@ -6,7 +6,8 @@ uintptr_t TrickDown::buffered_action_jmp_ret = NULL;
 uintptr_t TrickDown::trick_down_jmp_ret = NULL;
 uintptr_t TrickDown::floor_touch_jmp_ret = NULL;
 uintptr_t TrickDown::landing_anim_jmp_ret = NULL;
-bool TrickDown::downFlag = false;
+// Down Trick armed: a byte on the Dante (uPlayer padding 0x1499, see sdk/uPlayer.hpp player_mod_bytes); every hook has
+// the Dante in esi.
 static constexpr float down_float = -200.0f;
 static constexpr float backforward_timer_comparison = 5.0f; // same as LiveMoveTableSwaps
 
@@ -28,14 +29,14 @@ naked void trick_begin_detour(void) { // not gonna player compare because the id
 			jb PopNormalTrick
 			movss xmm0, [esp]
 			add esp, 4
-			mov byte ptr [TrickDown::downFlag], 1
+			mov byte ptr [esi+0x1499], 1
 			jmp originalcode
 
 		PopNormalTrick:
 			movss xmm0, [esp]
 			add esp, 4
 		normalTrick:
-			mov byte ptr [TrickDown::downFlag], 0
+			mov byte ptr [esi+0x1499], 0
 		originalcode:
 			mov ebx, 00000001
 			jmp dword ptr [TrickDown::trick_begin_jmp_ret]
@@ -61,14 +62,14 @@ naked void buffered_action_detour(void) {
 			jb popNormaltrick
 			movss xmm0, [esp]
 			add esp, 4
-			mov byte ptr [TrickDown::downFlag], 1
+			mov byte ptr [esi+0x1499], 1
 			jmp originalcode
 
 		popNormaltrick:
 			movss xmm0, [esp]
 			add esp, 4
 		normalTrick:
-			mov byte ptr [TrickDown::downFlag], 0
+			mov byte ptr [esi+0x1499], 0
 			jmp originalcode
 
 		popcode:
@@ -85,7 +86,7 @@ naked void trick_down_detour(void) {
 			cmp byte ptr [TrickDown::mod_enabled], 0
 			je originalcode
 
-			cmp byte ptr [TrickDown::downFlag], 1
+			cmp byte ptr [esi+0x1499], 1
 			jne originalcode
 			movss xmm2, [down_float] // Overwrite y axis momentum with -200 
 		originalcode:
@@ -100,7 +101,7 @@ naked void floor_touch_detour(void) {
 			cmp byte ptr [TrickDown::mod_enabled], 0
 			je originalcode
 
-			cmp byte ptr [TrickDown::downFlag], 1
+			cmp byte ptr [esi+0x1499], 1
 			jne originalcode
 			movss xmm2, [down_float] // Overwrite y axis momentum with -200 
 		originalcode:
@@ -115,7 +116,7 @@ naked void landing_anim_detour(void) {
 			cmp byte ptr [TrickDown::mod_enabled], 0
 			je originalcode
 
-			cmp byte ptr [TrickDown::downFlag], 1
+			cmp byte ptr [esi+0x1499], 1
 			jne originalcode
 			push 0x01
 			jmp cont
