@@ -98,7 +98,7 @@ char __fastcall MtObject__isKindOf(uEnemy_Old* enemy, uintptr_t MtDTI) {
 }
 
 // recreation of 0x4AB170 with sphere displays. This is called twice - one with sUnit+0x194 (enemies) and one with sUnit+0x1AC (extra enemy parts)
-void DisplayEnemyStepSpheres(uEnemy_Old* enemy, uPlayer* player) {
+void DisplayEnemyStepSpheres(uEnemy_Old* enemy, uPlayer_old* player) {
     while (enemy) {
         ImGui::PushID((void*)enemy);
 
@@ -281,7 +281,7 @@ void VisualizeHitbox::on_frame(fmilliseconds& dt) {
 
     if (mod_enabled3) { // enemy step
         static constexpr uintptr_t uActor__MtDTI = 0xE58158;
-        if (uPlayer* player = devil4_sdk::get_local_player()) {
+        if (uPlayer_old* player = devil4_sdk::get_local_player()) {
             uEnemy_Old* enemy = (uEnemy_Old*)devil4_sdk::get_moveline_top(15);
             if (enemy && MtObject__isKindOf(enemy, uActor__MtDTI))
                 DisplayEnemyStepSpheres(enemy, player);

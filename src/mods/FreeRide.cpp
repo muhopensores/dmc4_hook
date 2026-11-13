@@ -227,7 +227,7 @@ uintptr_t lock_target(uintptr_t pl) {
 int character_of(uintptr_t pl) { return at<int>(pl, pl::mPlayerID) == 1 ? NERO : DANTE; }
 
 void request_motion(uintptr_t pl, int motion, uint32_t attr, float interp, float start, float speed) {
-    devil4_sdk::indexed_anim_call(motion, (uPlayer*)pl, attr, speed, start, interp);
+    devil4_sdk::indexed_anim_call(motion, (uPlayer_old*)pl, attr, speed, start, interp);
 }
 
 void face(uintptr_t pl, float yaw) {
@@ -1229,7 +1229,7 @@ void FreeRide::on_gui_frame(int display) {
         help_marker(_("Frames between two plays of the ride sound. 0 = only once, when the ride starts."));
     }
 
-    if (uPlayer* pl = devil4_sdk::get_local_player()) {      // live readout
+    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {      // live readout
         const uintptr_t P = (uintptr_t)pl;
         const int c = character_of(P);
         const RideState* s = find_state(P);

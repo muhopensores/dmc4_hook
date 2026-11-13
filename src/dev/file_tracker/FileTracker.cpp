@@ -304,7 +304,7 @@ void FileTracker::on_gui_frame(int display) {
         help_marker(_("The 16 motion banks of the player's body and coat models: a motion number is bank << 8 | block. A bank named "
                       "motion\\registry_bankN is the motion registry's merged list (several mods' files; the registry's own "
                       "readouts say which), not a file."));
-        if (uPlayer* pl = devil4_sdk::get_local_player()) {
+        if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
             const uintptr_t models[2] = { (uintptr_t)pl, at<uintptr_t>((uintptr_t)pl, kCoatModel) };
             if (ImGui::BeginTable("banks", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp)) {
                 ImGui::TableSetupColumn(_("Bank"));

@@ -5,7 +5,7 @@
 void MutatorHolyWater::use_hw_asm_call(){
 	constexpr uintptr_t use_holy_water_fptr = 0x00827D10;
 
-	uPlayer* u_plr = devil4_sdk::get_local_player();
+	uPlayer_old* u_plr = devil4_sdk::get_local_player();
 	if (!u_plr) { return; }
 
 	__asm {

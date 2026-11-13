@@ -1231,7 +1231,7 @@ static_assert(sizeof(uShadow) == 0x228);
 class sMediator {
 public:
     char pad_0[0x24];
-    class uPlayer* player_ptr; // 0x24
+    class uPlayer_old* player_ptr; // 0x24
     char pad_28[0x88];
     class uEnemy_Old* uBoss1; // 0xb0
     char pad_b4[0x1c];

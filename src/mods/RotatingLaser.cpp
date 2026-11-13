@@ -56,10 +56,10 @@ void RotatingLaser::rotate(float delta) {
         m_actor->mPos.z = m_pos.z - dir.z * halfLen;
     } else if (m_rotationType == 3) {
         m_actor->mPos   = m_pos;
-        uPlayer* player = nullptr;   // the player nearest to the laser (across the floor) sets its height
+        uPlayer_old* player = nullptr;   // the player nearest to the laser (across the floor) sets its height
         float best      = 0.0f;
         for (int i = 0; i < player_info::count(); i++) {
-            uPlayer* pl = (uPlayer*)player_info::player(i);
+            uPlayer_old* pl = (uPlayer_old*)player_info::player(i);
             if (!pl) continue;
             const float dx = pl->mPos.x - m_pos.x, dz = pl->mPos.z - m_pos.z;
             const float d  = dx * dx + dz * dz;

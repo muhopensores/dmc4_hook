@@ -22,7 +22,7 @@ struct Grace {
 };
 static Grace graces[4];
 
-static void kill_player(uPlayer* player) { // vtable+BC (DevilMayCry4_DX9.exe+3B7AD0) is die with damage IDs, vtable+1A4 (DevilMayCry4_DX9.exe+3AAB80) is die but it crashes if I do it while aerial???
+static void kill_player(uPlayer_old* player) { // vtable+BC (DevilMayCry4_DX9.exe+3B7AD0) is die with damage IDs, vtable+1A4 (DevilMayCry4_DX9.exe+3AAB80) is die but it crashes if I do it while aerial???
     _asm {
         pushad
         mov esi, player
@@ -80,7 +80,7 @@ void FloorIsLava::on_frame(fmilliseconds& dt) {
 
     const int n = player_info::count();
     for (int i = 0; i < 4; i++) {
-        uPlayer* player = i < n ? (uPlayer*)player_info::player(i) : nullptr;
+        uPlayer_old* player = i < n ? (uPlayer_old*)player_info::player(i) : nullptr;
         Grace& g = graces[i];
         if (g.player != (uintptr_t)player) {
             g = Grace{};

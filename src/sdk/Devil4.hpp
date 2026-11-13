@@ -22,7 +22,7 @@ namespace devil4_sdk {
 	uActor* get_moveline_top(int ml);
 	sRender* get_sRender();
 	sMediator* get_sMediator();
-	uPlayer* get_local_player();
+	uPlayer_old* get_local_player();
 	uCameraCtrl* get_local_camera();
 	cCameraPlayer* get_player_camera();
 	sStylishCount* get_stylish_count();
@@ -35,7 +35,7 @@ namespace devil4_sdk {
 	std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum);
 	float get_current_style_rank();
 	bool __stdcall internal_kb_check(uint32_t input);
-	MtObject* __stdcall effect_generator(char* efl_path, void* uPlayer, uint8_t op = 0x14,
+	MtObject* __stdcall effect_generator(char* efl_path, void* uPlayer_old, uint8_t op = 0x14,
 										uint32_t Group = -1, uint32_t Material = -1, bool isStationary = false,
 										float* PosBuffer = nullptr, float* RotBuffer = nullptr);
 	void __stdcall effect_cleanup(uintptr_t effect_ptr);
@@ -65,10 +65,10 @@ namespace devil4_sdk {
 	void __stdcall finish_effect(void* player, int id);          // uPlayer::finishEffectId 0x81FB70 (this@eax, id, 1)
 	uint32_t __stdcall ground_material(void* player);            // uPlayer::getEfctMtrlFlg 0x820060 (this@eax): the material mask under the player
 	void* __stdcall held_weapon(void* player);                   // uPlayer::cWeaponCtrl::getHeldWeapon 0x7B1F90 (&mWeaponCtrl@esi): the weapon unit, or null
-    void __stdcall indexed_anim_call(uint32_t id, uPlayer* actor, uint32_t mode = 0,
+    void __stdcall indexed_anim_call(uint32_t id, uPlayer_old* actor, uint32_t mode = 0,
 									float speed = 1.0f, float startFrame = 0.0f,
 									float interpolationFrame = 3.0f);
-	void __stdcall neutral_air_transition(uPlayer* uActor);
+	void __stdcall neutral_air_transition(uPlayer_old* uActor);
 	MtObject* __stdcall get_stuff_from_files(MtDTI* dti, char* path, uint32_t mode = 1);
 	void __stdcall release_resource(cResource* rsrc);
 	void spawn_or_something(void* a1, MtObject* obj_to_spawn, int a3);

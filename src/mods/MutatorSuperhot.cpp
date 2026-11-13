@@ -51,7 +51,7 @@ static bool fastest(int character, float& vel) {
 	bool found = false;
 	vel = 0.0f;
 	for (int i = 0; i < player_info::count(); i++) {
-		uPlayer* pl = (uPlayer*)player_info::player(i);
+		uPlayer_old* pl = (uPlayer_old*)player_info::player(i);
 		if (pl && pl->controllerID == character) {
 			vel = std::max(vel, pl->m_d_vel_magnitude);
 			found = true;

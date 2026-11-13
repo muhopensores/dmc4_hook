@@ -304,7 +304,7 @@ std::optional<std::string> MoveTable::on_initialize() {
 
 void MoveTable::on_frame(fmilliseconds& dt) {
     if (!display_move_table) { return; }
-    uPlayer* player = devil4_sdk::get_local_player();
+    uPlayer_old* player = devil4_sdk::get_local_player();
     if (player) {
         auto screen_px = devil4_sdk::get_sRender()->screenRes;
         ImVec2 screenRes(screen_px.x, screen_px.y);
@@ -636,7 +636,7 @@ void MoveTable::display_attack_entry(kAtckDefTbl* TblEntry) {
 void MoveTable::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         ImGui::Checkbox(_("Display Move Table"), &display_move_table);
-        uPlayer* player = devil4_sdk::get_local_player();
+        uPlayer_old* player = devil4_sdk::get_local_player();
 
         if (player) {
             ImGui::Indent(lineIndent);

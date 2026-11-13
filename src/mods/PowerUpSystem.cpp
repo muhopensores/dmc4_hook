@@ -8,8 +8,8 @@
 
 static uintptr_t s_picker = 0;   // the collector while a callback runs
 
-uPlayer* PowerUpSystem::picker() {
-    return s_picker ? (uPlayer*)s_picker : devil4_sdk::get_local_player();
+uPlayer_old* PowerUpSystem::picker() {
+    return s_picker ? (uPlayer_old*)s_picker : devil4_sdk::get_local_player();
 }
 
 PowerUpSystem::PowerUpSystem() : 
@@ -226,7 +226,7 @@ void PowerUpSystem::spawnRandomPowerUp() {
 }
 
 void PowerUpSystem::spawnSpecificPowerUp(const std::string& typeId) {
-    uPlayer* player = devil4_sdk::get_local_player();
+    uPlayer_old* player = devil4_sdk::get_local_player();
     if (!player) return;
     
     const PowerUpDefinition* def = getPowerUpDefinition(typeId);
@@ -256,7 +256,7 @@ void PowerUpSystem::checkPlayerProximity() {
         if (!powerup.active || powerup.effectActive) continue;
 
         for (int i = 0; i < n; i++) {
-            uPlayer* player = (uPlayer*)player_info::player(i);
+            uPlayer_old* player = (uPlayer_old*)player_info::player(i);
             if (!player) continue;
             Vector3f playerPos = player->mPos;
             float distance = glm::distance(

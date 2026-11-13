@@ -978,7 +978,7 @@ bool play(uintptr_t player, Victim& v, int block, uint32_t attr, float interp, f
         devil4_sdk::borrow_ctn((void*)player, 0, 0);   // for the request; the end-only script replaces it next tick
         v.script = true;
     }
-    devil4_sdk::indexed_anim_call((uint32_t)motion, (uPlayer*)player, attr, speed, start, interp);
+    devil4_sdk::indexed_anim_call((uint32_t)motion, (uPlayer_old*)player, attr, speed, start, interp);
     return true;
 }
 

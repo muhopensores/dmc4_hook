@@ -6,7 +6,7 @@ static uintptr_t player_transforms_detour_continue = NULL;
 static bool  g_mod_enable = false;
 static float t_workrate   = 1.2f;
 static float o_workrate   = 0.0f;
-static uPlayer* plr = nullptr;
+static uPlayer_old* plr = nullptr;
 
 naked void player_transforms_detour() {
 	__asm {

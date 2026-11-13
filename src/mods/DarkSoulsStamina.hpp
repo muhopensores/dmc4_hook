@@ -1,7 +1,7 @@
 #pragma once
 #include "../mod.hpp"
 
-class uPlayer;
+class uPlayer_old;
 
 class DarkSoulsStamina : public Mod {
 public:
@@ -27,7 +27,7 @@ public:
     static uintptr_t gauge_player[kSlots];
     static uint8_t exhausted[kSlots];
 
-    static float get_move_cost(uPlayer* player, int moveID);
+    static float get_move_cost(uPlayer_old* player, int moveID);
 
     static uintptr_t jmp_ret1;
 

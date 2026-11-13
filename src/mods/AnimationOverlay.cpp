@@ -51,7 +51,7 @@ bool has_valid_frame_max(float value) {
     return std::isfinite(value) && value > 0.0f && value < 100000.0f;
 }
 
-bool read_player_grounded(uPlayer* player) {
+bool read_player_grounded(uPlayer_old* player) {
     if (player->grounded == 2) {
         return false;
     }
@@ -66,7 +66,7 @@ bool read_player_grounded(uPlayer* player) {
     return player->collisionSettings && player->collisionSettings->mLand != 0;
 }
 
-bool read_animation_overlay_state(uPlayer* player, AnimationOverlayState& state) {
+bool read_animation_overlay_state(uPlayer_old* player, AnimationOverlayState& state) {
     if (!player) {
         return false;
     }
@@ -95,7 +95,7 @@ bool read_animation_overlay_state(uPlayer* player, AnimationOverlayState& state)
     return std::isfinite(state.anim_frame);
 }
 
-uPlayer* get_animation_overlay_player_safe() {
+uPlayer_old* get_animation_overlay_player_safe() {
     __try {
         return devil4_sdk::get_local_player();
     }

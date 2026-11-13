@@ -26,7 +26,7 @@ struct AreaJumpRuntime {
     sArea* area = nullptr;
     aGame* game = nullptr;
     sMediator* mediator = nullptr;
-    uPlayer* player = nullptr;
+    uPlayer_old* player = nullptr;
 };
 
 bool read_area_jump_runtime_safe(AreaJumpRuntime& runtime, bool require_player) {

@@ -265,7 +265,7 @@ static float WrapAngle(float angle) {
     return angle;
 }
 
-static bool CameraIsRight(cCameraPlayer* cam, uPlayer* player) {
+static bool CameraIsRight(cCameraPlayer* cam, uPlayer_old* player) {
     const float camRotation = GetCamRotation(cam);
     const float playerRotation = glm::half_pi<float>() - player->facingDirection;
     const float difference = WrapAngle(camRotation - playerRotation);

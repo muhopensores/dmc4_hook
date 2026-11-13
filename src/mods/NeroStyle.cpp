@@ -126,7 +126,7 @@ void apply(bool reset_field) {
     gerb::apply_row();
     gunslinger::apply_row();
     if (reset_field)
-        if (uPlayer* lp = devil4_sdk::get_local_player(); lp && is_nero((uintptr_t)lp)) at<int>((uintptr_t)lp, kStyle) = NONE;
+        if (uPlayer_old* lp = devil4_sdk::get_local_player(); lp && is_nero((uintptr_t)lp)) at<int>((uintptr_t)lp, kStyle) = NONE;
 }
 
 } // namespace
@@ -228,7 +228,7 @@ void NeroStyle::on_gui_frame(int display) {
     gerb::apply_row();     // every frame while the panel is open: cheap, and the rows follow the controls above
     gunslinger::apply_row();
 
-    if (uPlayer* lp = devil4_sdk::get_local_player()) {    // live readout
+    if (uPlayer_old* lp = devil4_sdk::get_local_player()) {    // live readout
         const uintptr_t P = (uintptr_t)lp;
         if (is_nero(P)) {
             const State& s = state_for(P);

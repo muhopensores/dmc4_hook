@@ -468,13 +468,13 @@ bool is_boss_enemy_id(int enemy_id);
 uDamage_Old* get_enemy_damage_block(uEnemy_Old* enemy);
 sArea* get_s_area_safe();
 sMediator* get_s_mediator_safe();
-uPlayer* get_local_player_safe();
+uPlayer_old* get_local_player_safe();
 uCameraCtrl* get_local_camera_safe();
 sWorkRate* get_work_rate_safe();
 sDevil4Pad* get_global_pad_safe();
 void clear_pending_player_resource_restore();
 void tick_pending_player_resource_restore();
-void clear_player_input_snapshot(uPlayer* player);
+void clear_player_input_snapshot(uPlayer_old* player);
 bool set_screen_pause(bool paused);
 uint32_t playback_action_resolution_role();
 const char* character_role_label(uint32_t role);
@@ -561,7 +561,7 @@ sMediator* get_s_mediator_safe() {
     return devil4_sdk::get_sMediator();
 }
 
-uPlayer* get_local_player_safe() {
+uPlayer_old* get_local_player_safe() {
     auto* mediator = get_s_mediator_safe();
     if (!mediator || !mediator->pad_0) {
         return nullptr;
@@ -1023,11 +1023,11 @@ bool playback_start_busy() {
     return Macro::playback_enabled || snapshot_work_pending();
 }
 
-bool is_nero_player_safe(uPlayer* player) {
+bool is_nero_player_safe(uPlayer_old* player) {
     return player && player->controllerID == 1;
 }
 
-uint32_t character_role_from_player_safe(uPlayer* player) {
+uint32_t character_role_from_player_safe(uPlayer_old* player) {
     if (!player) {
         return MACRO_CHARACTER_INVALID;
     }
@@ -3953,7 +3953,7 @@ void set_playback_status(const std::string& message) {
     strncpy_s(Macro::playback_status, message.c_str(), _TRUNCATE);
 }
 
-uEnemy_Old* select_hit_confirm_enemy(uPlayer* player) {
+uEnemy_Old* select_hit_confirm_enemy(uPlayer_old* player) {
     if (!player) {
         return nullptr;
     }
@@ -3981,7 +3981,7 @@ uEnemy_Old* select_hit_confirm_enemy(uPlayer* player) {
     return nullptr;
 }
 
-EnemyHitSample capture_enemy_hit_sample(uPlayer* player) {
+EnemyHitSample capture_enemy_hit_sample(uPlayer_old* player) {
     EnemyHitSample sample{};
 
     __try {
@@ -4309,7 +4309,7 @@ void clear_player_resource_snapshots() {
     }
 }
 
-bool capture_player_resource_snapshot(uPlayer* player, PlayerResourceSnapshot& snapshot, bool was_active) {
+bool capture_player_resource_snapshot(uPlayer_old* player, PlayerResourceSnapshot& snapshot, bool was_active) {
     snapshot = {};
 
     __try {
@@ -4373,7 +4373,7 @@ void copy_player_resource_snapshot_to_legacy_fields(const PlayerResourceSnapshot
     position_snapshot.player_dreadnaught = snapshot.dreadnaught;
 }
 
-uPlayer* get_player_for_role_safe(uint32_t role) {
+uPlayer_old* get_player_for_role_safe(uint32_t role) {
     if (role >= MACRO_CHARACTER_ROLE_COUNT) {
         return nullptr;
     }
@@ -4400,7 +4400,7 @@ uPlayer* get_player_for_role_safe(uint32_t role) {
             continue;
         }
 
-        auto* player = reinterpret_cast<uPlayer*>(candidate);
+        auto* player = reinterpret_cast<uPlayer_old*>(candidate);
         if (character_role_from_player_safe(player) == role) {
             return player;
         }
@@ -4409,7 +4409,7 @@ uPlayer* get_player_for_role_safe(uint32_t role) {
     return nullptr;
 }
 
-void capture_player_resource_snapshots(uPlayer* active_player) {
+void capture_player_resource_snapshots(uPlayer_old* active_player) {
     clear_player_resource_snapshots();
 
     PlayerResourceSnapshot active_snapshot{};
@@ -4434,7 +4434,7 @@ void capture_player_resource_snapshots(uPlayer* active_player) {
             continue;
         }
 
-        auto* player = reinterpret_cast<uPlayer*>(candidate);
+        auto* player = reinterpret_cast<uPlayer_old*>(candidate);
         PlayerResourceSnapshot snapshot{};
         if (!capture_player_resource_snapshot(player, snapshot, false) ||
             snapshot.role >= MACRO_CHARACTER_ROLE_COUNT) {
@@ -4447,7 +4447,7 @@ void capture_player_resource_snapshots(uPlayer* active_player) {
     }
 }
 
-void apply_player_resource_snapshot_values(uPlayer* player, const PlayerResourceSnapshot& snapshot, bool clear_input) {
+void apply_player_resource_snapshot_values(uPlayer_old* player, const PlayerResourceSnapshot& snapshot, bool clear_input) {
     if (!restore_resources_snapshot || !player || !snapshot.valid) {
         return;
     }
@@ -4478,7 +4478,7 @@ void apply_player_resource_snapshot_values(uPlayer* player, const PlayerResource
     }
 }
 
-void clear_player_input_snapshot(uPlayer* player) {
+void clear_player_input_snapshot(uPlayer_old* player) {
     if (!player) {
         return;
     }
@@ -4499,7 +4499,7 @@ void clear_player_input_snapshot(uPlayer* player) {
     Macro::input_active = Macro::clear_input_frames > 0 || (Macro::mod_enabled && Macro::playback_enabled);
 }
 
-void apply_player_resource_snapshot(uPlayer* player) {
+void apply_player_resource_snapshot(uPlayer_old* player) {
     if (!restore_resources_snapshot || !player) {
         return;
     }
@@ -5344,7 +5344,7 @@ void apply_one_hit_kill_action(const MacroFrame& frame) {
     }
 }
 
-bool is_player_grounded(uPlayer* player) {
+bool is_player_grounded(uPlayer_old* player) {
     if (!player) {
         return false;
     }

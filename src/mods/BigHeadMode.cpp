@@ -16,7 +16,7 @@ static uintptr_t joint_size_detour2_continue = NULL;
 glm::vec3 size{ 0.5f, 0.5f, 0.5f };
 glm::vec3 size_torso{ 0.9f, 0.8f, 0.8f };
 
-static void scale_head_joint(UModelJoint* joint, uPlayer* player) {
+static void scale_head_joint(UModelJoint* joint, uPlayer_old* player) {
     glm::vec3& scale = *(glm::vec3*)&joint->mScale;
     
     if (player->controllerID == 1) {
@@ -39,9 +39,9 @@ static void scale_head_joint(UModelJoint* joint, uPlayer* player) {
 
 // The player this joint is the head (big head) or torso (swole) of, under his own character's toggles; null for any
 // other joint. Every player is checked, so it doesn't matter which context the joint update runs in.
-static uPlayer* joint_owner(UModelJoint* joint) {
+static uPlayer_old* joint_owner(UModelJoint* joint) {
     for (int i = 0; i < player_info::count(); i++) {
-        uPlayer* u_plr = (uPlayer*)player_info::player(i);
+        uPlayer_old* u_plr = (uPlayer_old*)player_info::player(i);
         if (!u_plr || !u_plr->joint_array) continue;
         const bool dante = u_plr->controllerID == 0, nero = u_plr->controllerID == 1;
         const bool swole = (dante && BigHeadMode::swole_mode_dante) || (nero && BigHeadMode::swole_mode_nero);
@@ -57,7 +57,7 @@ static uPlayer* joint_owner(UModelJoint* joint) {
 
 // 1 = the joint was a player's head / torso and is scaled (the original scale write is skipped)
 static int __cdecl scale_if_head(UModelJoint* joint) {
-    uPlayer* owner = joint_owner(joint);
+    uPlayer_old* owner = joint_owner(joint);
     if (!owner) return 0;
     scale_head_joint(joint, owner);
     return 1;

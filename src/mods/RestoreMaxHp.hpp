@@ -3,7 +3,7 @@
 #include "../mod.hpp"
 
 class sMediator;
-class uPlayer;
+class uPlayer_old;
 
 class RestoreMaxHp : public Mod {
 public:
@@ -19,7 +19,7 @@ public:
     }
     std::optional<std::string> on_initialize() override;
 
-    void restore_health_and_timer(sMediator* s_med_ptr, uPlayer* player);
+    void restore_health_and_timer(sMediator* s_med_ptr, uPlayer_old* player);
 
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;

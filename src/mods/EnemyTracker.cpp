@@ -253,7 +253,7 @@ static uEnemy_Old* GetDesiredEnemy(bool useLockon) {
     sMediator* s_med_ptr = devil4_sdk::get_sMediator();
     uEnemy_Old* enemy = NULL;
     if (useLockon) {
-        if (uPlayer* player = devil4_sdk::get_local_player()) {
+        if (uPlayer_old* player = devil4_sdk::get_local_player()) {
             if (player->lockOnTargetPtr3) {
                 if ((uintptr_t)player->lockOnTargetPtr3 != (uintptr_t)s_med_ptr->uBoss1) {
                     enemy = player->lockOnTargetPtr3;
@@ -325,7 +325,7 @@ void EnemyTracker::on_gui_frame(int display) {
                 if (s_med_ptr->enemyCount[0] > 0) {
                     ImGui::SliderInt(_("Enemy Select"), &which_enemy, 0, s_med_ptr->enemyCount[2] - 1);
                     if (ImGui::Button(_("Find Locked On Enemy In List"))) {
-                        if (uPlayer* player = devil4_sdk::get_local_player()) {
+                        if (uPlayer_old* player = devil4_sdk::get_local_player()) {
                             for (uint32_t i = 0; i < s_med_ptr->enemyCount[2]; ++i) {
                                 if (s_med_ptr->uEnemies[i] && s_med_ptr->uEnemies[i] == player->lockOnTargetPtr3) {
                                     which_enemy = i;

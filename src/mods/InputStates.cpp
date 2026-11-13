@@ -32,7 +32,7 @@ Rose* rose_of(uintptr_t player) {
     return i >= 0 && i < 4 ? &roses[i] : nullptr;
 }
 
-void play_rose(uPlayer* player, Rose& r) {
+void play_rose(uPlayer_old* player, Rose& r) {
     player->lucifer->visible = true;
     player->moveBank         = 12;
     player->moveID2          = 55;
@@ -47,7 +47,7 @@ void play_rose(uPlayer* player, Rose& r) {
     r.active = true;
 }
 
-void hide_lucifer(uPlayer* player) { // hide lucifer after rose if weaponid is not lucifer
+void hide_lucifer(uPlayer_old* player) { // hide lucifer after rose if weaponid is not lucifer
     if (player->lucifer->visible == true && player->currentSword != 6 && player->controllerID == 0) {
         if (!ForceLucifer::mod_enabled) {
             player->lucifer->visible = false;
@@ -59,7 +59,7 @@ void hide_lucifer(uPlayer* player) { // hide lucifer after rose if weaponid is n
 constexpr uintptr_t change_to_lucifer_call = 0x00836190;
 
 void easy_fast_drive_check(void) {
-    uPlayer* player = devil4_sdk::get_local_player();
+    uPlayer_old* player = devil4_sdk::get_local_player();
     if (player) {
         if (player->inputPress[0] & 0x1 && player->inputHold[1] & 0x6 && player->controllerID == 0 && player->moveIDBest == 0x232 && player->animFrame < 7.0f) {
             player->meleeCancelPermissions1[3] = (uint8_t)0x10;
@@ -212,7 +212,7 @@ bool __stdcall InputStates::rose_active(uintptr_t player) {
 void __stdcall InputStates::rose_press(uintptr_t pl) {
     Rose* r = rose_of(pl);
     if (!r) return;
-    uPlayer* player = (uPlayer*)pl;
+    uPlayer_old* player = (uPlayer_old*)pl;
     if (player->grounded == 2) {
         if (player->jumpCancelPermissions1[1] == 0x10 || player->moveIDBest == 0x10 || player->moveIDBest == 0x11) { // if (in free frames, post trick, airhike)
             play_rose(player, *r);
@@ -227,7 +227,7 @@ void __stdcall InputStates::rose_press(uintptr_t pl) {
 void __stdcall InputStates::rose_tick(uintptr_t pl) {
     Rose* r = rose_of(pl);
     if (!r) return;
-    uPlayer* player = (uPlayer*)pl;
+    uPlayer_old* player = (uPlayer_old*)pl;
     if (r->buffered) {
         if (player->grounded == 2) { // aerial?
             if (player->jumpCancelPermissions1[1] == 0x10) { // if in free frames

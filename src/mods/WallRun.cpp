@@ -211,7 +211,7 @@ void rotate_request(uintptr_t pl, float target, float max_step) {
 
 // requestSetMotion_2(forcible = 1, this, motion, attr, interp, start, speed), whole-body form.
 void request_motion(uintptr_t pl, int motion, uint32_t attr, float interp, float start, float speed) {
-    devil4_sdk::indexed_anim_call(motion, (uPlayer*)pl, attr, speed, start, interp);
+    devil4_sdk::indexed_anim_call(motion, (uPlayer_old*)pl, attr, speed, start, interp);
 }
 
 // ---- small helpers over the player ---------------------------------------------------------------------------
@@ -970,7 +970,7 @@ void WallRun::on_gui_frame(int display) {
     help_marker(_("Debug lines for the local player: shots fired, the controllers' motions, the lower motion's state and the "
                   "cancel windows a follow-up shot needs."));
     if (gun_readout) {
-        if (uPlayer* P = devil4_sdk::get_local_player()) {
+        if (uPlayer_old* P = devil4_sdk::get_local_player()) {
             const uintptr_t p = (uintptr_t)P;
             using namespace upper_gun;     // the offsets of the readout
             ImGui::Text("gun: shots %d | %s | lower motion %04X upper %04X aim %04X | custom LMT %s | upper action %d",
@@ -1069,7 +1069,7 @@ void WallRun::on_gui_frame(int display) {
             if (ImGui::InputText(_("Nero coat LMT"), lmt_coat_nero, sizeof(lmt_coat_nero), ImGuiInputTextFlags_EnterReturnsTrue)) register_lmt();
             if (ImGui::InputText(_("Dante coat LMT"), lmt_coat_dante, sizeof(lmt_coat_dante), ImGuiInputTextFlags_EnterReturnsTrue)) register_lmt();
         }
-        if (uPlayer* pl = devil4_sdk::get_local_player()) {
+        if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
             ImGui::Text(_("File: %s | in use: %s"), lmt_file_exists(lmt_body) ? "found" : "missing",
                         motion_registry::placed(lmt_set, (uintptr_t)pl) ? "custom cycles" : "placeholders");
             ImGui::Text("%s", motion_registry::describe(lmt_set, (uintptr_t)pl).c_str());

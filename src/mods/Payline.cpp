@@ -199,7 +199,7 @@ naked void detour6(void) { // how many frames to wait before starting loop
     }
 }
 
-static void __stdcall exceed_handling(uPlayer& neroBase) {
+static void __stdcall exceed_handling(uPlayer_old& neroBase) {
     if (neroBase.animID == 0x351) {
         if ((neroBase.animFrame > payline_loop_frame + 1.0f) && (neroBase.animFrame < payline_loop_frame + 4.0f)) {
             neroBase.canExceed = 1;

@@ -316,7 +316,7 @@ static void drawAllJoints(void* ml, float view[16], float projection[16], int& s
 
 void JointDisplay::on_frame(fmilliseconds& dt) {
     if ((JointDisplay::mod_enabled || show_manipulators) && PhotoMode::mod_enabled) {
-        uPlayer* player = devil4_sdk::get_local_player();
+        uPlayer_old* player = devil4_sdk::get_local_player();
         if (!player) { return; }
 
         w2s::ImGuizmoSetup();

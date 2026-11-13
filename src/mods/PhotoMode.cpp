@@ -165,7 +165,7 @@ static void ToggleGameplayCam(bool enable) {
 
 static void DisablePlayerInputs(bool enable) { // every player
     for (int i = 0; i < player_info::count(); i++) {
-        if (uPlayer* player = (uPlayer*)player_info::player(i)) {
+        if (uPlayer_old* player = (uPlayer_old*)player_info::player(i)) {
             player->pad_1e80[2] = enable;
         }
     }
@@ -294,7 +294,7 @@ static void ImGuizmoManipulators() {
                 }
 
                 if (spot_light->mTargetMode) {
-                    uPlayer* player    = devil4_sdk::get_local_player();
+                    uPlayer_old* player    = devil4_sdk::get_local_player();
                     Vector3f playerPos = player->mPos;
                     Vector3f offset    = spot_light->mTargetPos;
                     Vector3f worldTarget;
@@ -694,7 +694,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
 
 void PhotoMode::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
-        uPlayer* player = devil4_sdk::get_local_player();
+        uPlayer_old* player = devil4_sdk::get_local_player();
         ImVec2 ScreenSize = ImGui::GetIO().DisplaySize;
         if (forceHideCameraHUD) {
             HUDCooldown = 1.0f;

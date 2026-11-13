@@ -238,7 +238,7 @@ struct EnemyStepExtraInfo {
     float jc_timer = 0.0f;
 };
 
-uPlayer* get_enemy_step_player_safe() {
+uPlayer_old* get_enemy_step_player_safe() {
     __try {
         return devil4_sdk::get_local_player();
     }
@@ -247,7 +247,7 @@ uPlayer* get_enemy_step_player_safe() {
     }
 }
 
-EnemyStepExtraInfo read_enemy_step_extra_info(uPlayer* player) {
+EnemyStepExtraInfo read_enemy_step_extra_info(uPlayer_old* player) {
     EnemyStepExtraInfo info{};
     if (!player) {
         return info;
@@ -269,7 +269,7 @@ EnemyStepExtraInfo read_enemy_step_extra_info(uPlayer* player) {
 
 void EnemyStepDisplay::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
-        uPlayer* player = get_enemy_step_player_safe();
+        uPlayer_old* player = get_enemy_step_player_safe();
         if (!player) { return; }
         static constexpr int WindowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground;
         ImGui::Begin("Enemy Step Possible UI", NULL, WindowFlags);
@@ -304,7 +304,7 @@ void EnemyStepDisplay::on_frame(fmilliseconds& dt) {
     }
 
     if (chart_enabled) {
-        if (uPlayer* player = devil4_sdk::get_local_player()) {
+        if (uPlayer_old* player = devil4_sdk::get_local_player()) {
             if (sRender* sRen = devil4_sdk::get_sRender()) {
                 Vector2f screen_res = sRen->screenRes;
                 float uiScale = screen_res.y / 1080.0f;

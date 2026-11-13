@@ -6,7 +6,7 @@
 #include "../mod.hpp"
 #include "../sdk/Pad.hpp"
 
-class uPlayer;
+class uPlayer_old;
 
 constexpr uint32_t MACRO_CHARACTER_ROLE_COUNT = 2;
 constexpr uint32_t MACRO_ACTION_SLOT_COUNT = 13;

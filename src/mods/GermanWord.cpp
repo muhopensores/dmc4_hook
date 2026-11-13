@@ -12,7 +12,7 @@ bool GermanWord::spawn_queued = false;
 
 static constexpr uintptr_t danteSpawnAddr = 0x7B2130;
 static constexpr uintptr_t neroSpawnAddr  = 0x7E1A70;
-static uPlayer* doppelAddr          = nullptr;
+static uPlayer_old* doppelAddr          = nullptr;
 
 static bool spawn_ai_dante_toggle = false;
 static bool spawn_ai_nero_toggle = false;
@@ -46,7 +46,7 @@ void GermanWord::toggle3(bool enable) {
     }
 }
 
-static void __stdcall update_spawn_pos(uPlayer* player1, Vector3f* doppelPos, float* doppelRot) {
+static void __stdcall update_spawn_pos(uPlayer_old* player1, Vector3f* doppelPos, float* doppelRot) {
     float yaw = player1->rotation2;
     doppelPos->x = player1->mPos.x + cosf(yaw) * -100.0f;
     doppelPos->y = player1->mPos.y;
@@ -55,7 +55,7 @@ static void __stdcall update_spawn_pos(uPlayer* player1, Vector3f* doppelPos, fl
 }
 
 static void spawn_dante() {
-    uPlayer* player = devil4_sdk::get_local_player();
+    uPlayer_old* player = devil4_sdk::get_local_player();
     if (!player /* || player->controllerID == 1*/) {
         return;
     }
@@ -88,7 +88,7 @@ static void spawn_dante() {
 }
 
 static void spawn_nero() {
-    uPlayer* player = devil4_sdk::get_local_player();
+    uPlayer_old* player = devil4_sdk::get_local_player();
     if (!player /* || player->controllerID == 0*/) {
         return;
     }
@@ -125,7 +125,7 @@ public:
     ParentOf* prev; // 0x04
     ParentOf* next; // 0x08
     char pad_0c[0x17a4];
-    uPlayer* parent; // 0x17b0
+    uPlayer_old* parent; // 0x17b0
     char pad_0x17b4[0x29];
     bool die; // 0x17dd
     char pad_0x17de[0x6f];
@@ -180,7 +180,7 @@ static_assert(sizeof(NeroStand) == 0x2450);
 static int pending_nero_despawn = 0;
 void GermanWord::DoppelSpawnLogic(bool enabled) {
     toggle1(enabled);
-    uPlayer* player = devil4_sdk::get_local_player();
+    uPlayer_old* player = devil4_sdk::get_local_player();
     if (!player) { return; }
     spawn_queued = false;
     int id = player->controllerID;
@@ -197,7 +197,7 @@ void GermanWord::DoppelSpawnLogic(bool enabled) {
     } else {
         if (id == 0) {
             if (doppelAddr && devil4_sdk::check_exists_in_moveline(doppelAddr, 13)) {
-                uPlayer* doppel = (uPlayer*)doppelAddr;
+                uPlayer_old* doppel = (uPlayer_old*)doppelAddr;
                 void* addr = doppel->lucifer;
                 call_vfunc12(addr);
 
@@ -213,7 +213,7 @@ void GermanWord::DoppelSpawnLogic(bool enabled) {
         } else {
             if (doppelAddr && devil4_sdk::check_exists_in_moveline(doppelAddr, 13)) {
                 if (pending_nero_despawn == 0) {
-                    uPlayer* doppel      = (uPlayer*)doppelAddr;
+                    uPlayer_old* doppel      = (uPlayer_old*)doppelAddr;
                     NeroStand* stand     = (NeroStand*)doppel->stand;
                     stand->int22c0       = 50;
                     pending_nero_despawn = 1;
@@ -238,7 +238,7 @@ void GermanWord::on_frame(fmilliseconds& dt) {
         pending_nero_despawn++;
         if (pending_nero_despawn > 3) {
             if (doppelAddr && devil4_sdk::check_exists_in_moveline(doppelAddr, 13)) {
-                uPlayer* doppel  = (uPlayer*)doppelAddr;
+                uPlayer_old* doppel  = (uPlayer_old*)doppelAddr;
                 NeroStand* stand = (NeroStand*)doppel->stand;
                 call_vfunc12(stand);
                 despawn_owned_projectiles(doppel);

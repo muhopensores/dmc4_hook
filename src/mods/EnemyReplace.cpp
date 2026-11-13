@@ -646,7 +646,7 @@ void EnemyReplace::on_gui_frame(int display) {
             ImGui::Indent(lineIndent);
             if (ImGui::Checkbox(_("Preload enemies"), &enemy_randomizer_arc_load)) {
                 if (!Survival::mod_enabled) {
-                    uPlayer* player = devil4_sdk::get_local_player();
+                    uPlayer_old* player = devil4_sdk::get_local_player();
                     if (player) {
                         load_arcs();
                     }

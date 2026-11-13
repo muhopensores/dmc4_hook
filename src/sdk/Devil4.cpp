@@ -225,7 +225,7 @@ namespace devil4_sdk {
 		return s_mediator_ptr;
 	}
 
-	uPlayer* get_local_player() {
+	uPlayer_old* get_local_player() {
 		constexpr uintptr_t static_mediator_ptr = 0x00E558B8;
 		sMediator* s_mediator_ptr = (sMediator*)*(uintptr_t*)static_mediator_ptr;
 		if (!s_mediator_ptr) return nullptr;
@@ -298,7 +298,7 @@ namespace devil4_sdk {
 	bool is_playing() {
 		sMediator* sMed = devil4_sdk::get_sMediator();
 		if (!sMed) return false;
-		uPlayer* player = sMed->player_ptr;
+		uPlayer_old* player = sMed->player_ptr;
 		if (!player) return false;
 		return (player->damageStruct.HP > 0.0f);
 	}
@@ -450,15 +450,15 @@ namespace devil4_sdk {
 		}
 	}
 
-	MtObject* __stdcall effect_generator(char* efl_path, void* uPlayer, uint8_t op, uint32_t Group, uint32_t Material, bool isStationary,
+	MtObject* __stdcall effect_generator(char* efl_path, void* uPlayer_old, uint8_t op, uint32_t Group, uint32_t Material, bool isStationary,
             float* PosBuffer, float* RotBuffer) {
 		MtObject* eflObject = read_efl_file(efl_path);
         MtObject* uDevil4Effect = uDevil4Effect_constructor(mt_allocate_heap(0x200, 0x10));
         spawn_or_something((void*)0x00E552CC, uDevil4Effect, op);
         if (!isStationary)
-			TrackingEfxInit(uDevil4Effect, eflObject, uPlayer, Group, Material);
+			TrackingEfxInit(uDevil4Effect, eflObject, uPlayer_old, Group, Material);
 		else
-            StationaryEfxInit(uDevil4Effect, eflObject, uPlayer, Group, Material, PosBuffer, RotBuffer);
+            StationaryEfxInit(uDevil4Effect, eflObject, uPlayer_old, Group, Material, PosBuffer, RotBuffer);
 		return uDevil4Effect;
 	}
 
@@ -636,7 +636,7 @@ namespace devil4_sdk {
 			inst, rsrc, id, player, pos, 1, 1, fn_sePositionCb);
 	}
 
-	void __stdcall indexed_anim_call(uint32_t id, uPlayer* actor, uint32_t mode, float speed,
+	void __stdcall indexed_anim_call(uint32_t id, uPlayer_old* actor, uint32_t mode, float speed,
 									float startFrame, float interpolationFrame) {
         uintptr_t anim_call = 0x00821450;
 		uintptr_t curr_esp;
@@ -661,7 +661,7 @@ namespace devil4_sdk {
 		}
 	}
 
-	void __stdcall neutral_air_transition(uPlayer* uActor) {
+	void __stdcall neutral_air_transition(uPlayer_old* uActor) {
             float float_val1 = 0.98f;
             float float_val2 = 1000000.0f;
             float float_val3 = 20.0f;

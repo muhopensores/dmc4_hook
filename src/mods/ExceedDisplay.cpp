@@ -34,7 +34,7 @@ static ExceedChartEntry exceedChart[EXCEED_CHART_SIZE];
 static int exceedChartIndex = 0;
 static ExceedAttemptEntry exceedAttemptChart[EXCEED_CHART_SIZE];
 static int exceedAttemptIndex = 0;
-static void update_exceed_chart_tick(uPlayer* player) {
+static void update_exceed_chart_tick(uPlayer_old* player) {
     if (!player || player->controllerID != 1) {
         return;
     }
@@ -47,7 +47,7 @@ static void update_exceed_chart_attempt() {
     exceedAttemptChart[exceedAttemptIndex] = { snapshot.time, snapshot.exceedTimer, snapshot.canExceed, true };
     exceedAttemptIndex = (exceedAttemptIndex + 1) % EXCEED_CHART_SIZE;
 }
-static void record_exceed_press_time(uPlayer* player) {
+static void record_exceed_press_time(uPlayer_old* player) {
     if (!player || player->controllerID != 1) {
         return;
     }
@@ -145,7 +145,7 @@ naked void detour3() {
 
 void ExceedDisplay::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
-        uPlayer* player = devil4_sdk::get_local_player();
+        uPlayer_old* player = devil4_sdk::get_local_player();
         if (!player) { return; }
         if (player->controllerID != 1) { return; }
         float exceedTimeSeconds = std::chrono::duration<float>(exceedPressTime - exceedWindowTime).count();
@@ -170,7 +170,7 @@ void ExceedDisplay::on_frame(fmilliseconds& dt) {
         ImGui::End();
     }
     if (chart_enabled) {
-        if (uPlayer* player = devil4_sdk::get_local_player()) {
+        if (uPlayer_old* player = devil4_sdk::get_local_player()) {
             if (player->controllerID != 1) { return; }
             if (sRender* sRen = devil4_sdk::get_sRender()) {
                 Vector2f screen_res = sRen->screenRes;

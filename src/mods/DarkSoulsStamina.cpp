@@ -66,7 +66,7 @@ naked void detour1() { // gamepad inputs (keyboard is handled by detour2 in Inpu
     }
 }
 
-float DarkSoulsStamina::get_move_cost(uPlayer* player, int moveID) {
+float DarkSoulsStamina::get_move_cost(uPlayer_old* player, int moveID) {
     if (!player) return 0.0f;
 
     if (player->controllerID == 0) {// dante
@@ -158,7 +158,7 @@ static void ghost_drain(Gauge& g, float seconds) {
     }
 }
 
-static void check_for_stamina_use(uPlayer* player, Gauge& g) {
+static void check_for_stamina_use(uPlayer_old* player, Gauge& g) {
     int moveID    = player->moveIDBest;
     float moveFrame = player->animFrame;
     if ((player->movePart == 1) ||
@@ -254,7 +254,7 @@ void DarkSoulsStamina::on_frame(fmilliseconds& dt) {
         if (player_info::view_rect(i, rect)) {
             draw_bar(g, i, rect);
         }
-        check_for_stamina_use((uPlayer*)pl, g);
+        check_for_stamina_use((uPlayer_old*)pl, g);
         exhausted[i] = g.stamina < 0.0f;
     }
 }

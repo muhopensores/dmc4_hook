@@ -51,7 +51,7 @@ static Vector3f random_pos_in_radius(Vector3f origin, float radius_min, float ra
 }
 
 void EnvironmentalHazards::on_frame(fmilliseconds& dt) {
-    uPlayer* player = devil4_sdk::get_local_player();
+    uPlayer_old* player = devil4_sdk::get_local_player();
     if (devil4_sdk::is_paused() || !player)
         return;
 
@@ -84,7 +84,7 @@ void EnvironmentalHazards::on_frame(fmilliseconds& dt) {
     if (EnvironmentalHazards::platform_enabled) {
         // each player's Taunt: a platform under his target, or under him
         for (int i = 0; i < 4; i++) {
-            uPlayer* pl = i < player_info::count() ? (uPlayer*)player_info::player(i) : nullptr;
+            uPlayer_old* pl = i < player_info::count() ? (uPlayer_old*)player_info::player(i) : nullptr;
             // bool platform_key_down = pl && (pl->inputHold[2] & 1) != 0; // l3
             bool platform_key_down = pl && (pl->inputHold[0] & 0x8) != 0;
             if (platform_key_down && !platform_key_was_down[i]) {

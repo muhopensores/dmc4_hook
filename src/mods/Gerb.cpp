@@ -60,7 +60,7 @@ void set_action_land(uintptr_t pl) { ((void(__fastcall*)(uintptr_t, int))fn_setA
 
 // requestSetMotion_2(forcible = 1, this, motion, attr, interp, start, speed), whole-body form.
 void request_motion(uintptr_t pl, int motion, uint32_t attr, float interp, float start, float speed) {
-    devil4_sdk::indexed_anim_call(motion, (uPlayer*)pl, attr, speed, start, interp);
+    devil4_sdk::indexed_anim_call(motion, (uPlayer_old*)pl, attr, speed, start, interp);
 }
 
 constexpr int kPlayerSlots = 8;        // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
@@ -239,12 +239,12 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
 
     switch (phase) {
     case PHASE_ENTRY: {
-        if (!ready(pl)) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }   // no LMT: bail out
+        if (!ready(pl)) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }   // no LMT: bail out
 
         s.vertical = atck_id == move_id_vertical;
         s.dir = pick_direction(pl, s.vertical);
         const int motion = motion_registry::word(lmt_set, pl, slot[s.dir]);
-        if (motion < 0) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }   // slot past the file's blocks
+        if (motion < 0) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }   // slot past the file's blocks
         const glm::vec3 fwd = wmat_row(pl, 2), right = wmat_row(pl, 0);
         switch (s.dir) {
         case FORWARD: s.dir_vec = fwd;    break;
@@ -558,7 +558,7 @@ void Gerb::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Game path of the LMT under nativePC, without .lmt; Enter applies it. The hook places it in a free motion "
                   "bank itself (shared with the other features that add animations)."));
-    if (uPlayer* pl = devil4_sdk::get_local_player()) {
+    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
         ImGui::Text(_("File: %s | %s"), lmt_file_exists(lmt_path) ? "found" : "missing",
                     motion_registry::describe(lmt_set, (uintptr_t)pl).c_str());
         if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next jump
@@ -601,7 +601,7 @@ void Gerb::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("The air hike's sound at the launch frame: an SE id of the player's own sound resource. The air hike plays 40."));
     if (se_enabled) ImGui::InputInt(_("SE id"), &se_id);
-    if (uPlayer* pl = devil4_sdk::get_local_player()) {      // live readout for debugging the cancel window
+    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {      // live readout for debugging the cancel window
         const uintptr_t P = (uintptr_t)pl;
         ImGui::Text("actLimit %04X  actStat %02X  frame %.1f  phase %d  motion ctrl0 %04X ctrl1 %04X (half used: %s)",
                     at<uint32_t>(P, pl::mActLimit), at<uint32_t>(P, pl::mActStat), at<float>(P, pl::mMotionFrame0),

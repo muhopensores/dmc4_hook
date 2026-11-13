@@ -11,7 +11,7 @@ static float test_float = 0.0f; // floats can have decimals
 
 // functions do nothing unless they are called by something. This is called by the "Set DT Gauge" button in the gui section below
 static void set_dt_gauge() {
-    uPlayer* player = devil4_sdk::get_local_player(); // get the player
+    uPlayer_old* player = devil4_sdk::get_local_player(); // get the player
     if (player) {                // if the player exists,
         player->DT = test_float; // set the player's dt gauge to the value of test_float
         // (you can find more by typing player-> and scrolling the list, or check the definition of "uPlayer" by ctrl clicking it)
@@ -19,7 +19,7 @@ static void set_dt_gauge() {
 }
 
 static void PlayRollAnimation() {
-    uPlayer* player = devil4_sdk::get_local_player();
+    uPlayer_old* player = devil4_sdk::get_local_player();
     if (!player) { return; }
     player->movePart = 3;
     devil4_sdk::indexed_anim_call(8, player, 0, 1.0f, 0.0f, 3.0f);

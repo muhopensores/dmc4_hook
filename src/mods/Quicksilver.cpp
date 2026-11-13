@@ -240,7 +240,7 @@ std::optional<std::string> Quicksilver::on_initialize() {
         .alias("qs")
         .on_init([this]() {
             sMediator* s_med_ptr = *(sMediator**)static_mediator_ptr;
-            uPlayer* u_local_plr = s_med_ptr->player_ptr;
+            uPlayer_old* u_local_plr = s_med_ptr->player_ptr;
             if (u_local_plr) {
                 Quicksilver::qs_operator_new();
             }
@@ -284,7 +284,7 @@ void Quicksilver::on_twitch_command(std::size_t hash) {
         if (m_timer) {
             if (m_timer->m_active == false) {
                 sMediator* s_med_ptr = *(sMediator**)static_mediator_ptr;
-                uPlayer* u_local_plr = s_med_ptr->player_ptr;
+                uPlayer_old* u_local_plr = s_med_ptr->player_ptr;
                 if (u_local_plr) {
                     qs_operator_new();
                     m_timer->start();
@@ -295,7 +295,7 @@ void Quicksilver::on_twitch_command(std::size_t hash) {
 }
 #endif
 void Quicksilver::on_update_input(utility::Input& input) {
-	if (uPlayer* player = devil4_sdk::get_local_player()) {
+	if (uPlayer_old* player = devil4_sdk::get_local_player()) {
 		if (Quicksilver::m_hotkeys[0]->check(input)) {
 			if (mod_enabled_nero) {
 				if (player->controllerID == 1) {

@@ -69,7 +69,7 @@ std::optional<std::string> PinTimer::on_initialize() {
 // where it's dragged).
 static float window_heights[4] = { 270.0f, 270.0f, 270.0f, 270.0f }; // fresh from my ass
 
-static void draw_pins(uPlayer* player, int slot, const float rect[4], bool split) {
+static void draw_pins(uPlayer_old* player, int slot, const float rect[4], bool split) {
     float& height = window_heights[slot];
     ImGuiIO& io = ImGui::GetIO();
     ImGuiWindowFlags window_flags = 
@@ -165,7 +165,7 @@ void PinTimer::on_frame(fmilliseconds& dt) {
         return;
     }
     for (int i = 0; i < player_info::count() && i < 4; i++) {
-        uPlayer* player = (uPlayer*)player_info::player(i);
+        uPlayer_old* player = (uPlayer_old*)player_info::player(i);
         // 0 = dante, some were crashing with nero and this might:tm: fix it
         if (!player || player->controllerID != 0 || !player->luciferPins[0]) {
             continue;

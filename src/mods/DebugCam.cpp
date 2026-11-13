@@ -229,7 +229,7 @@ static void ToggleGameplayCam(bool enable) {
 
 static void DisablePlayerInputs(bool enable) { // every player
     for (int i = 0; i < player_info::count(); i++) {
-        if (uPlayer* player = (uPlayer*)player_info::player(i)) {
+        if (uPlayer_old* player = (uPlayer_old*)player_info::player(i)) {
             player->pad_1e80[2] = enable;
         }
     }
@@ -341,7 +341,7 @@ void DebugCam::on_gui_frame(int display) {
         ImGui::BeginGroup();
         if (ImGui::Checkbox(_("Free Camera"), &mod_enabled)) {
             if (!mod_enabled) {
-                uPlayer* player = devil4_sdk::get_local_player();
+                uPlayer_old* player = devil4_sdk::get_local_player();
                 if (!player) { return; } // quick fix for this crashing when unticking in a menu. this also means you can't use it to restore cutscene cam
                 toggle_gameplay_cam = true;
                 ToggleGameplayCam(toggle_gameplay_cam);

@@ -349,7 +349,7 @@ void FlyingStats::on_frame(fmilliseconds& dt) {
     
     if (!showFlyingStats) { return; }
     if (sMediator* sMedPtr = devil4_sdk::get_sMediator()) {
-        uPlayer* player = sMedPtr->player_ptr;
+        uPlayer_old* player = sMedPtr->player_ptr;
         if (!player) { return; }
 
         if (showFlyingEnemyStats) {

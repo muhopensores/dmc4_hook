@@ -19,7 +19,7 @@ uintptr_t PinTrick::jmp_ret5 = NULL;
     float TrickRange = 5000.0f;
 uintptr_t PinTrick::jmp_ret6 = NULL;
 
-bool __stdcall CheckValidPin(uPlayer *player) {
+bool __stdcall CheckValidPin(uPlayer_old *player) {
     if (!player->luciferPins[0])
         return false;
     for (int i = 15 - 1; i >= 0; i--) {

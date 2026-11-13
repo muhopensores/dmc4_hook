@@ -343,7 +343,7 @@ void start_gun_attack(uintptr_t pl, uint32_t atck_id) {
 }
 
 void request_motion(uintptr_t pl, int motion, uint32_t attr, float interp) {
-    devil4_sdk::indexed_anim_call((uint32_t)motion, (uPlayer*)pl, attr, 1.0f, 0.0f, interp);   // requestSetMotion_2, whole body
+    devil4_sdk::indexed_anim_call((uint32_t)motion, (uPlayer_old*)pl, attr, 1.0f, 0.0f, interp);   // requestSetMotion_2, whole body
 }
 
 // getLockOnTarget (vtbl 170, thiscall (this, a2, a3, exclude), retn 0Ch) as the game's lever check asks it: (0, 0, 0)
@@ -493,7 +493,7 @@ void open_cancel_gate(uintptr_t pl, const ShotMove& m) {
 }
 
 void leave(uintptr_t pl) {
-    if (at<uint32_t>(pl, pl::mActStat) & 0x2) devil4_sdk::neutral_air_transition((uPlayer*)pl);
+    if (at<uint32_t>(pl, pl::mActStat) & 0x2) devil4_sdk::neutral_air_transition((uPlayer_old*)pl);
     else set_action_footwork(pl, 10.0f, 1);
 }
 
@@ -658,7 +658,7 @@ static void air_move(uintptr_t pl, State& s, int& phase) {
         const int motion = m.enabled && ready(pl) ? motion_registry::word(lmt_set, pl, m.block) : -1;
         if (motion < 0) {                                                   // no LMT, or the block isn't in it
             snprintf(g_last, sizeof(g_last), "air shot %d: no motion: %s", step + 1, motion_registry::describe(lmt_set, pl).c_str());
-            devil4_sdk::neutral_air_transition((uPlayer*)pl);
+            devil4_sdk::neutral_air_transition((uPlayer_old*)pl);
             return;
         }
         if (face_target) face_lock_target(pl);
@@ -716,7 +716,7 @@ static void air_move(uintptr_t pl, State& s, int& phase) {
             vel.y = std::max(vel.y + s.gravity * at<float>(pl, pl::m_delta_time), -air_max_fall);
         acc.x = acc.y = acc.z = 0.0f;                                       // the gravity above is the only acceleration
         carry_drift(pl, s);
-        if (at<bool>(pl, pl::mMotionFrameEnd0)) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }
+        if (at<bool>(pl, pl::mMotionFrameEnd0)) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }
         return;
     }
     default:
@@ -755,7 +755,7 @@ static void ground_move(uintptr_t pl, State& s, int& phase) {
         fire_fan(pl, s);
         const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
         s.air_ticks = (coll && !at<bool>(coll, 0x1C)) ? s.air_ticks + 1 : 0;   // mLand
-        if (s.air_ticks > kAirTicks) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }
+        if (s.air_ticks > kAirTicks) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }
         if (!(at<uint32_t>(pl, pl::mBtnOn) & input_commands::BTN_STYLE)) s.held = false;
         if (s.held && spin.enabled && s.fan_next >= std::clamp(fan_shots, 1, FAN_MAX) &&
             at<float>(pl, pl::mMotionFrame0) >= spin.from_frame) {
@@ -786,7 +786,7 @@ static void ground_move(uintptr_t pl, State& s, int& phase) {
         charge_update(pl, s);
         const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
         s.air_ticks = (coll && !at<bool>(coll, 0x1C)) ? s.air_ticks + 1 : 0;   // mLand
-        if (s.air_ticks > kAirTicks) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }
+        if (s.air_ticks > kAirTicks) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }
         if (!(at<uint32_t>(pl, pl::mBtnOn) & input_commands::BTN_STYLE)) {     // let go: the charge shot of the level reached
             const int level = s.charge_level;
             charge_end(pl, s);
@@ -851,7 +851,7 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
         fire_due(pl, s, dodges[s.dir]);
         const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
         s.air_ticks = (coll && !at<bool>(coll, 0x1C)) ? s.air_ticks + 1 : 0;   // mLand
-        if (s.air_ticks > kAirTicks) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }
+        if (s.air_ticks > kAirTicks) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }
         if (at<bool>(pl, pl::mMotionFrameEnd0)) { set_action_footwork(pl, 10.0f, 1); return; }
         return;
     }
@@ -1028,7 +1028,7 @@ void NeroGunslinger::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Game path of the LMT under nativePC, without .lmt; Enter applies it. The hook places it in a free motion bank "
                   "itself (shared with the other features that add animations)."));
-    if (uPlayer* pl = devil4_sdk::get_local_player()) {
+    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
         ImGui::Text(_("File: %s | %s"), lmt_file_exists(lmt_path) ? "found" : "missing", motion_registry::describe(lmt_set, (uintptr_t)pl).c_str());
         if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();
         ImGui::SameLine();
@@ -1273,7 +1273,7 @@ void NeroGunslinger::on_gui_frame(int display) {
         ImGui::Unindent(lineIndent);
     }
     ImGui::PopID();
-    if (uPlayer* pl = devil4_sdk::get_local_player()) {
+    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
         const uintptr_t P = (uintptr_t)pl;
         ImGui::Text("command bits %d / %d (fired %u) | dodges %u air %u shots %u hard hits %u charge shots %u | style %d, row style %d | atckId %02X phase %d frame %.1f spin %.0f | %s",
                     cmd_bit, air_cmd_bit, g_cmd_seen, g_dodges, g_air_shots, g_shots, g_power_hits, g_charge_shots, nero_style::current(P),

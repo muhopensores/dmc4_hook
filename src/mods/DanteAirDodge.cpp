@@ -53,7 +53,7 @@ void set_action_land(uintptr_t pl) { ((void(__fastcall*)(uintptr_t, int))fn_setA
 
 // requestSetMotion_2(forcible = 1, this, motion, attr, interp, start, speed), whole-body form.
 void request_motion(uintptr_t pl, int motion, uint32_t attr, float interp, float start, float speed_) {
-    devil4_sdk::indexed_anim_call(motion, (uPlayer*)pl, attr, speed_, start, interp);
+    devil4_sdk::indexed_anim_call(motion, (uPlayer_old*)pl, attr, speed_, start, interp);
 }
 
 void clear_add_speed(uintptr_t pl) {
@@ -288,7 +288,7 @@ void __stdcall move(uintptr_t pl) {
     case PHASE_ENTRY: {
         ++g_moves;
         ++s.used;
-        if (!ready(pl)) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }   // no LMT: bail out
+        if (!ready(pl)) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }   // no LMT: bail out
 
         const float yaw = at<float>(pl, pl::mAnlgRadian);
         const glm::vec3 stick(std::sin(yaw), 0.0f, std::cos(yaw));
@@ -297,7 +297,7 @@ void __stdcall move(uintptr_t pl) {
         s.dir_vec = dir == RIGHT ? right : -right;
         s.dir = dir;
         const int motion = motion_registry::word(lmt_set, pl, slot[dir]);
-        if (motion < 0) { devil4_sdk::neutral_air_transition((uPlayer*)pl); return; }   // slot past the file's blocks
+        if (motion < 0) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }   // slot past the file's blocks
         if (face_direction) face(pl, yaw_of(s.dir_vec));
         if (cost_air_hike) ++at<char>(pl, pl::mWJumpCnt);              // one air jump; Devil Trigger keeps its second
 
@@ -327,7 +327,7 @@ void __stdcall move(uintptr_t pl) {
                              motion_registry::word(lmt_set, pl, slot[s.dir]), launch_frame,
                              at<float>(pl, pl::mMotionFrame0), at<uint32_t>(pl, pl::mMotionCtrl0No), lmt_path, slot[s.dir],
                              motion_registry::describe(lmt_set, pl));
-                devil4_sdk::neutral_air_transition((uPlayer*)pl);
+                devil4_sdk::neutral_air_transition((uPlayer_old*)pl);
             }
             return;
         }
@@ -362,7 +362,7 @@ void __stdcall move(uintptr_t pl) {
                          "is {}.lmt block {} present and not empty ({})?",
                          frame, at<uint32_t>(pl, pl::mMotionCtrl0No), motion_registry::word(lmt_set, pl, slot[s.dir]), lmt_path, slot[s.dir],
                          motion_registry::describe(lmt_set, pl));
-            devil4_sdk::neutral_air_transition((uPlayer*)pl);
+            devil4_sdk::neutral_air_transition((uPlayer_old*)pl);
             return;
         }
         vel.y += gravity * at<float>(pl, pl::m_delta_time);
@@ -446,7 +446,7 @@ static void log_transitions(uintptr_t P) {
 
 void DanteAirDodge::on_frame(fmilliseconds& dt) {
     if (!mod_enabled) return;
-    if (uPlayer* pl = devil4_sdk::get_local_player()) {
+    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
         if (cmd_bit >= 0 && at<int>((uintptr_t)pl, pl::mPlayerID) == 0       // Dante's bit: on Nero it is another command's
             && (at<uint32_t>((uintptr_t)pl, 0x2184 + 4 * (cmd_bit >> 5)) >> (cmd_bit & 31)) & 1) ++g_bit_seen;
         log_transitions((uintptr_t)pl);
@@ -467,7 +467,7 @@ void DanteAirDodge::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Game path of the LMT under nativePC, without .lmt; Enter applies it. The hook places it in a free motion "
                   "bank itself (shared with the other features that add animations)."));
-    if (uPlayer* pl = devil4_sdk::get_local_player()) {
+    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
         ImGui::Text(_("File: %s | %s"), lmt_file_exists(lmt_path) ? "found" : "missing",
                     motion_registry::describe(lmt_set, (uintptr_t)pl).c_str());
         if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next dodge
@@ -514,7 +514,7 @@ void DanteAirDodge::on_gui_frame(int display) {
     }
     ImGui::Checkbox(_("Take-off sound"), &se_enabled);
     if (se_enabled) ImGui::InputInt(_("SE id"), &se_id);
-    if (uPlayer* pl = devil4_sdk::get_local_player()) {      // live readout
+    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {      // live readout
         const uintptr_t P = (uintptr_t)pl;
         const uint32_t* f = &at<uint32_t>(P, 0x2184);
         ImGui::Text("actStat %02X  frame %.1f  phase %d  atckId %u  stick sideways %d  bit %d: %d  wjumpCnt %d  jump window stat %d reserve %d",

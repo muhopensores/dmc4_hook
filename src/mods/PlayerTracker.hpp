@@ -2,14 +2,14 @@
 
 #include "../mod.hpp"
 
-class uPlayer;
+class uPlayer_old;
 
 class PlayerTracker : public Mod {
 public:
     PlayerTracker() = default;
 
     static uintptr_t jmp_return;
-    static uPlayer* player_ptr;
+    static uPlayer_old* player_ptr;
 
     static Vector3f savedPlayerPosition;
     static float savedPlayerRotation;

@@ -679,7 +679,7 @@ void SpineAim::on_gui_frame(int display) {
                   "crossfade, which plays a short shot diluted. Off = the game's crossfade."));
     {
         const Inert* in = nullptr;
-        if (uPlayer* P = devil4_sdk::get_local_player()) in = find_inert((uintptr_t)P);
+        if (uPlayer_old* P = devil4_sdk::get_local_player()) in = find_inert((uintptr_t)P);
         if (in && in->active) ImGui::Text("fading: %d joints, %.1f / %.1f frames", in->fading, in->t, in->t_end);
         else ImGui::TextUnformatted("fading: none");
     }

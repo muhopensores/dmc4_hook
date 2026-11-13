@@ -9,7 +9,7 @@ static uintptr_t fptr_update_actor_list = 0x008DC540; // Spawns shit
 // DevilMayCry4_DX9.exe+338AA2 // 00738AA2 // calls most enemy spawns
 
 static sMediator* s_med_ptr             = nullptr;
-static uPlayer* u_local_plr             = nullptr;
+static uPlayer_old* u_local_plr             = nullptr;
 static int enemy_spawning               = 0;
 static std::mutex g_mutex;
 
@@ -518,7 +518,7 @@ std::optional<std::string> EnemySpawn::on_initialize() {
 
 void EnemySpawn::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
-        uPlayer* player         = devil4_sdk::get_local_player();
+        uPlayer_old* player         = devil4_sdk::get_local_player();
         int enemy_names_current = 0;
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
 

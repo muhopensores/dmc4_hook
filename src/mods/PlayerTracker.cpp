@@ -11,7 +11,7 @@
 
 #if 1
 uintptr_t PlayerTracker::jmp_return = NULL;
-uPlayer* PlayerTracker::player_ptr = NULL;
+uPlayer_old* PlayerTracker::player_ptr = NULL;
 
 Vector3f PlayerTracker::savedPlayerPosition{ 0.0f, 0.0f, 0.0f };
 float PlayerTracker::savedPlayerRotation = 0.0f;
@@ -792,7 +792,7 @@ void DisplayParameters(void* baseAddress, const ParamArray (&params)[N], const c
 
 void PlayerTracker::on_frame(fmilliseconds& dt) {
 	if (show_player_params) {
-		uPlayer* player = devil4_sdk::get_local_player();
+		uPlayer_old* player = devil4_sdk::get_local_player();
 		if (!player) { return; }
 		if (player->controllerID == 0) {
 			DisplayParameters(player->charactersettingsThree, danteParams, _("Dante Parameters"));
@@ -804,14 +804,14 @@ void PlayerTracker::on_frame(fmilliseconds& dt) {
 }
 
 void PlayerTracker::SavePlayerXYZ() {
-    uPlayer* player = devil4_sdk::get_local_player();
+    uPlayer_old* player = devil4_sdk::get_local_player();
     if (player) {
         savedPlayerPosition = player->mPos;
         savedPlayerRotation = player->rotation2;
     }
 }
 void PlayerTracker::LoadPlayerXYZ() {
-    uPlayer* player = devil4_sdk::get_local_player();
+    uPlayer_old* player = devil4_sdk::get_local_player();
     if (player) {
         player->mPos      = MtVector3{ savedPlayerPosition.x, savedPlayerPosition.y, savedPlayerPosition.z };
         player->rotation2 = savedPlayerRotation;
@@ -819,7 +819,7 @@ void PlayerTracker::LoadPlayerXYZ() {
 }
 
 void PlayerTracker::SavePlayerMove() {
-    uPlayer* player = devil4_sdk::get_local_player();
+    uPlayer_old* player = devil4_sdk::get_local_player();
     if (player) {
         savedPlayerSword           = player->currentSword;
         savedPlayerGun             = player->currentGun;
@@ -840,7 +840,7 @@ void PlayerTracker::SavePlayerMove() {
 }
 
 void PlayerTracker::LoadPlayerMove() {
-    uPlayer* player = devil4_sdk::get_local_player();
+    uPlayer_old* player = devil4_sdk::get_local_player();
     if (player && savedPlayerMoveID) { // verify at least 1 save has happened
         player->nextSword         = savedPlayerSword;
         player->nextGun           = savedPlayerGun;
@@ -893,7 +893,7 @@ std::optional<std::string> PlayerTracker::on_initialize() {
 
     console->system().RegisterCommand("playerdt", "Set DT value", 
         [](float value) {
-            if (uPlayer* pl_ptr = devil4_sdk::get_local_player()) {
+            if (uPlayer_old* pl_ptr = devil4_sdk::get_local_player()) {
                 pl_ptr->DT = value;
             }
         }, 
@@ -901,7 +901,7 @@ std::optional<std::string> PlayerTracker::on_initialize() {
 
     console->system().RegisterCommand("playerhp", "Set HP value", 
         [](float value) {
-            if (uPlayer* pl_ptr = devil4_sdk::get_local_player()) {
+            if (uPlayer_old* pl_ptr = devil4_sdk::get_local_player()) {
                 pl_ptr->damageStruct.HP = value;
             }
         }, 
@@ -1004,7 +1004,7 @@ void PlayerTracker::on_gui_frame(int display) {
         }
 
         if (ImGui::CollapsingHeader(_("[OLD] Display Player Stats"))) {
-            uPlayer* player      = devil4_sdk::get_local_player();
+            uPlayer_old* player      = devil4_sdk::get_local_player();
             sMediator* s_med_ptr = devil4_sdk::get_sMediator();
             if (player) {
                 ImGui::Indent(lineIndent);
@@ -1024,7 +1024,7 @@ void PlayerTracker::on_gui_frame(int display) {
                 ImGui::PopItemWidth();
                 ImGui::SameLine();
                 if (ImGui::Button(_("Play Animation ID"))) {
-                    uPlayer* player = devil4_sdk::get_local_player();
+                    uPlayer_old* player = devil4_sdk::get_local_player();
                     if (!player) {
                         return;
                     }

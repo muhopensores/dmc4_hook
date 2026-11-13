@@ -72,7 +72,7 @@ void NoClip::on_gui_frame(int display) {
         help_marker(_("Disable the areas that teleport the player, activate fights, activate cutscenes etc"));
         if (ImGui::Checkbox(_("Lock Y Pos"), &player_lock_y_pos)) {
             if (player_lock_y_pos) {
-                uPlayer* player = devil4_sdk::get_local_player();
+                uPlayer_old* player = devil4_sdk::get_local_player();
                 if (player) {
                     player_y_backup = player->mPos[1];
                 }
@@ -85,7 +85,7 @@ void NoClip::on_gui_frame(int display) {
 
 void NoClip::on_frame(fmilliseconds& dt) {
     if (player_lock_y_pos) {
-        uPlayer* player = devil4_sdk::get_local_player();
+        uPlayer_old* player = devil4_sdk::get_local_player();
         if (player) {
             player->mPos[1] = player_y_backup;
         }

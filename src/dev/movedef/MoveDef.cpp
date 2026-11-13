@@ -47,7 +47,7 @@ constexpr uintptr_t MIN_ID[2] = { 0x34, 0x6C };          // first free atckId: N
 void set_action_land(uintptr_t pl) { ((void(__fastcall*)(uintptr_t, int))fn_setActionLand)(pl, 0); }
 
 void request_motion(uintptr_t pl, int motion, uint32_t attr, float interp, float start, float speed_) {
-    devil4_sdk::indexed_anim_call((uint32_t)motion, (uPlayer*)pl, attr, speed_, start, interp);   // requestSetMotion_2, whole body
+    devil4_sdk::indexed_anim_call((uint32_t)motion, (uPlayer_old*)pl, attr, speed_, start, interp);   // requestSetMotion_2, whole body
 }
 
 void clear_add_speed(uintptr_t pl) {
@@ -129,7 +129,7 @@ void set_action_footwork(uintptr_t pl, float hokan, int is_mot_set) {
 // Leave the move: the footwork on the ground, the neutral air transition in the air.
 void exit_move(uintptr_t pl) {
     if (at<uint32_t>(pl, pl::mActStat) & 0x1) set_action_footwork(pl, 10.0f, 1);
-    else devil4_sdk::neutral_air_transition((uPlayer*)pl);
+    else devil4_sdk::neutral_air_transition((uPlayer_old*)pl);
 }
 
 // uPlayer::checkEmJumpBegin: the enemy step (jump cancel) reads no cancel window, only a jump press, the upgrade and an
@@ -733,7 +733,7 @@ void run_stage(Move& m, uintptr_t pl) {
         const int motion = motion_for(m, pl, dir);
         if (motion < 0) {
             note("%s: no motion for direction %s (no <slot> and no motion=)", m.def.name.c_str(), xmlmove::dir_name(dir));
-            devil4_sdk::neutral_air_transition((uPlayer*)pl);
+            devil4_sdk::neutral_air_transition((uPlayer_old*)pl);
             return;
         }
         s.dir = dir; s.dir_vec = dv;
@@ -1302,7 +1302,7 @@ std::optional<std::string> MoveDef::on_initialize() {
 
 void MoveDef::on_frame(fmilliseconds& dt) {
     if (!mod_enabled) return;
-    uPlayer* pl = devil4_sdk::get_local_player();
+    uPlayer_old* pl = devil4_sdk::get_local_player();
     if (!pl) return;
     const int character = character_of((uintptr_t)pl);
     for (auto& m : moves()) if (m->enabled && m->def.character == character) ensure_bank(*m, (uintptr_t)pl);
@@ -1349,7 +1349,7 @@ void MoveDef::on_gui_frame(int display) {
         }
         ImGui::TreePop();
     }
-    if (uPlayer* pl = devil4_sdk::get_local_player()) {
+    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
         const uintptr_t P = (uintptr_t)pl;
         ImGui::Text("actStat %02X  frame %.1f  phase %d  atckId %u  wjump %d  air hikes suppressed %d",
                     at<uint32_t>(P, pl::mActStat), at<float>(P, pl::mMotionFrame0), at<int>(P, pl::mBdyActionLowerPhase),

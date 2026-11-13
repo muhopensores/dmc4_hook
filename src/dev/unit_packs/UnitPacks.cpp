@@ -665,7 +665,7 @@ void UnitPacks::on_frame(fmilliseconds& dt) {
             release(r.pack);
             break;
         case Request::SPAWN: {
-            uPlayer* pl = devil4_sdk::get_local_player();
+            uPlayer_old* pl = devil4_sdk::get_local_player();
             if (!pl) { g_last_error = "no player"; break; }
             const float* pp = reinterpret_cast<const float*>((uintptr_t)pl + 0x30);   // uCoord::mPos
             std::string err;
@@ -711,7 +711,7 @@ void UnitPacks::on_frame(fmilliseconds& dt) {
             }
             break;
         case Request::WARP:
-            if (uPlayer* pl = devil4_sdk::get_local_player()) {
+            if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
                 float* pp = &at<float>((uintptr_t)pl, kPos);
                 pp[0] = r.pos[0]; pp[1] = r.pos[1]; pp[2] = r.pos[2];
             }
@@ -750,7 +750,7 @@ void UnitPacks::on_frame(fmilliseconds& dt) {
     for (auto it = g_place.begin(); it != g_place.end();)   // despawned or gone
         if (std::none_of(g_spawned.begin(), g_spawned.end(), [&](const Spawned& s) { return s.unit == it->first; })) it = g_place.erase(it);
         else ++it;
-    uPlayer* pl = devil4_sdk::get_local_player();
+    uPlayer_old* pl = devil4_sdk::get_local_player();
     g_view.swap(view);
     g_have_player = pl != nullptr;
     if (pl) memcpy(g_player_pos, &at<float>((uintptr_t)pl, kPos), sizeof(g_player_pos));

@@ -46,7 +46,7 @@ static ChartEntry guardChart[CHART_SIZE];
 static int guardIndex = 0;
 static ChartEntry hitChart[CHART_SIZE];
 static int hitIndex = 0;
-static bool checkCanBlock(uPlayer* player) {
+static bool checkCanBlock(uPlayer_old* player) {
     __asm {
         mov ecx, [player]
         test ecx, ecx
@@ -61,7 +61,7 @@ static void update_chart_hit(float timeline) {
     hitChart[hitIndex] = {snapshot.time, snapshot.blockTimer, snapshot.releaseTimer, snapshot.blockHeld, snapshot.canBlock, true};
     hitIndex = (hitIndex + 1) % CHART_SIZE;
 }
-static void update_chart_tick(uPlayer* player, float timeline) {
+static void update_chart_tick(uPlayer_old* player, float timeline) {
     bool guardPressed      = (player->inputHold[1] & 0x6) != 0 && player->currentStyle == 3;
     bool canBlock          = checkCanBlock(player) && !player->iFrameCol;
     float blockTimer       = player->guardTimer;
@@ -189,7 +189,7 @@ naked void detour4(void) { // called every tick a few opcodes before guard butto
 
 void GuardTimer::on_frame(fmilliseconds& dt) {
     if (mod_enabled) {
-        if (uPlayer* player = devil4_sdk::get_local_player()) {
+        if (uPlayer_old* player = devil4_sdk::get_local_player()) {
             if (player->controllerID != 0) { return; }
             ImGuiIO& io = ImGui::GetIO();
             if (sRender* sRen = devil4_sdk::get_sRender()) {
@@ -259,7 +259,7 @@ void GuardTimer::on_frame(fmilliseconds& dt) {
         }
     }
     if (chart_enabled) {
-        if (uPlayer* player = devil4_sdk::get_local_player()) {
+        if (uPlayer_old* player = devil4_sdk::get_local_player()) {
             if (player->controllerID != 0) { return; }
             ImGuiIO& io = ImGui::GetIO();
             if (sRender* sRen = devil4_sdk::get_sRender()) {

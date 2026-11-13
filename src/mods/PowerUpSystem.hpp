@@ -1,7 +1,7 @@
 #pragma once
 #include "../mod.hpp"
 
-class uPlayer;
+class uPlayer_old;
 
 using PowerUpActivateCallback = std::function<void()>;
 using PowerUpUpdateCallback = std::function<void(float)>;
@@ -86,7 +86,7 @@ public:
     void applyPowerUpEffect(PowerUp& powerup, uintptr_t picker);
     // The player a callback runs for: the one who collected the pickup (onActivate / onUpdate / onExpire); player 1
     // outside a callback. Per-player effects apply to him; world effects ignore it.
-    static uPlayer* picker();
+    static uPlayer_old* picker();
     void clearPowerUps();
     void toggle(bool enable);
     

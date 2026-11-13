@@ -137,7 +137,7 @@ static bool DrawManipulator(const MtVector3& base, glm::vec3& offset, MtVector3&
 
 void CollLine::render(void* ptrans) {
     sMediator* smed = devil4_sdk::get_sMediator();
-    uPlayer* pl     = smed->player_ptr;
+    uPlayer_old* pl     = smed->player_ptr;
     void* cprim     = debug_draw::get_cprim(ptrans, 6, pl);
     uint flags[2]{ 0xffffffff , 16};
     debug_draw::submit_line(cprim, &this->ls.p0, &this->ls.p1, this->color, flags);
@@ -145,7 +145,7 @@ void CollLine::render(void* ptrans) {
 
 void CollLine::tick() {
     sMediator* smed = devil4_sdk::get_sMediator();
-    uPlayer* pl      = smed->player_ptr;
+    uPlayer_old* pl      = smed->player_ptr;
     if (pl) {
         Param param;
         param.partsFilter      = 0;
