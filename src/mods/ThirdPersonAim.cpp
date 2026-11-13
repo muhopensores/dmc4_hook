@@ -7,7 +7,8 @@
 #include "SpineAim.hpp"              // the chest turns toward the aim before the body does
 #include "../sdk/Cam.hpp"            // sCamera: viewport 0's camera
 #include "../sdk/Enums_Internal.hpp" // MC_UPPER / MC_AIM
-#include "../sdk/Players.hpp"        // the aiming player: the one with the keyboard (the mouse goes with it)
+#include "../sdk/Players.hpp"        // who is a player, who has the keyboard (the mouse goes with it), the players' views
+#include "../sdk/PlayerExt.hpp"      // each player's aim (UPlayerExt::tps)
 #include <Windows.h>
 #include <algorithm>
 #include <cmath>
@@ -71,13 +72,23 @@ constexpr uintptr_t kBdyUpperNo = 0x14F8;            // mBdyAction[0].no: 12 the
 constexpr uintptr_t kPoseStat = 0x16D0, kPoseHoldTimer = 0x16D4;   // mPose.stat (int), mPose.holdTimer (float)
 inline bool pose_walk(uintptr_t pl) { const int l = at<int>(pl, pl::mBdyActionLowerNo); return l >= 15 && l <= 17; }
 
+// Each player's aim: his UPlayerExt's TpsAim (allocated at uPlayer::setup). Only players aim (co-op's players 1-4, the
+// game's own without co-op), and only those set up since dmc4_hook loaded; the boss and other uPlayers get null.
+using player_ext::TpsAim;
+TpsAim* aim_of(uintptr_t pl) {
+    if (!pl || !player_info::is_player(pl)) return nullptr;
+    player_ext::UPlayerExt* e = player_ext::player(pl);
+    return e ? &e->tps : nullptr;
+}
+inline glm::vec3 vec_of(const float* f) { return glm::vec3(f[0], f[1], f[2]); }
+// the mouse (and its buttons) belong to the player with the keyboard
+inline bool mouse_of(uintptr_t pl) { return use_mouse && player_info::has_keyboard(pl); }
+
 // Strafe speed: the pose walk is the game's slow lock-on walk. Its velocity (mVel +0xEC0 x / +0xEC8 z) is scaled in the
 // post-action tick (after the walk set it, before moveMotion moves the player by it) and divided back in the next
 // pre-check tick, so the walk's own logic never sees a scaled value (no compounding); the legs' motion (slot 0 of the
 // body and the coat: uModel::MotionArray[0].mSpeed, +0x354) plays at the same factor, so the steps keep up.
 constexpr uintptr_t kModelSlot0Speed = 0x330 + 0x24;
-float g_vel_scale = 1.0f;                       // the factor in mVel right now (1 = untouched)
-bool  g_legs_scaled = false;
 // The gun's upper-body motions (the pose, the shots, the hand-offs between them: controllers 1 upper / 2 aim) cut in
 // and SpineAim's inertialization fades the gap out over gun_blend frames (or the request's own blend if longer): the
 // shot plays at full strength from its first frame (the game cuts into it with the draw timer, 0 once the gun counts
@@ -105,36 +116,30 @@ void set_leg_speed(uintptr_t pl, float k) {
     at<float>(pl, kModelSlot0Speed) = k;
     if (const uintptr_t coat = at<uintptr_t>(pl, pl::mpCoatMdl)) at<float>(coat, kModelSlot0Speed) = k;
 }
-void unscale_walk(uintptr_t pl) {
-    if (g_vel_scale != 1.0f) {
-        at<float>(pl, pl::mVel + 0) /= g_vel_scale;
-        at<float>(pl, pl::mVel + 8) /= g_vel_scale;
-        g_vel_scale = 1.0f;
+void unscale_walk(uintptr_t pl, TpsAim& s) {
+    if (s.vel_scale != 1.0f) {
+        at<float>(pl, pl::mVel + 0) /= s.vel_scale;
+        at<float>(pl, pl::mVel + 8) /= s.vel_scale;
+        s.vel_scale = 1.0f;
     }
 }
-void scale_walk(uintptr_t pl, bool on) {
+void scale_walk(uintptr_t pl, TpsAim& s, bool on) {
     if (on && strafe_speed != 1.0f) {
         at<float>(pl, pl::mVel + 0) *= strafe_speed;
         at<float>(pl, pl::mVel + 8) *= strafe_speed;
-        g_vel_scale = strafe_speed;
+        s.vel_scale = strafe_speed;
         set_leg_speed(pl, strafe_speed);
-        g_legs_scaled = true;
-    } else if (g_legs_scaled) {                 // left the pose walk / stopped aiming: the legs at their own speed again
+        s.legs_scaled = 1;
+    } else if (s.legs_scaled) {                 // left the pose walk / stopped aiming: the legs at their own speed again
         set_leg_speed(pl, 1.0f);
-        g_legs_scaled = false;
+        s.legs_scaled = 0;
     }
 }
 
-alignas(16) uint8_t g_fake[0x60] = {};   // the fake cLockOnTarget: +0x10 the aim point; +8 (its actor) stays null
-alignas(16) uint8_t g_turn[0x60] = {};   // what setLockOnTargetAngle_2 turns the body toward instead (+0x10 only)
-bool      g_was_aiming = false;
-ULONGLONG g_cam_ms = 0;                  // when aim_camera last aimed (a stale value means no gameplay camera is running: a cutscene)
-uint32_t  g_frame = 0, g_delta_frame = ~0u;   // rendered frames (on_frame), the frame the mouse delta was last applied
-float     g_cam_frac = 1.0f;             // how far out the camera is (1 = the full distance; less = pulled in by a wall)
-float     g_yaw = 0.0f, g_pitch = 0.0f;  // the aim, the game's yaw convention (dir = (sin, 0, cos)), pitch up positive
-bool      g_hit = false;
-glm::vec3 g_aim{};
-bool      g_lmb_last = false;
+// What setLockOnTargetAngle_2 turns the body toward instead of the fake (+0x10 only): written and read within that one
+// call, and the players update one after another, so one serves them all.
+alignas(16) uint8_t g_turn[0x60] = {};
+uint32_t g_frame = 0;                    // rendered frames (on_frame): a camera turns by the mouse / stick once per frame
 
 
 // the mouse counts with the game in front, unpaused and the dmc4_hook menu closed
@@ -152,26 +157,21 @@ bool pad_combo_held(uintptr_t pl) {
     return pl && pad_combo && (at<uint32_t>(pl, kPadBtnOn) & pad_combo) == pad_combo;
 }
 
-// once per camera frame: held = the right button (or the pad combination) down; toggle = each press flips it (kept
-// through a pause / the menu)
-bool g_rmb_last = false, g_toggled = false;
-bool aim_button(uintptr_t pl) {
+// once per camera frame: held = the right button (the keyboard's player) or the pad combination (his own pad) down;
+// toggle = each press flips it (kept through a pause / the menu)
+bool aim_button(uintptr_t pl, TpsAim& s) {
     const bool allowed = aim_allowed();
-    const bool down = allowed && ((use_mouse && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0) || (use_pad && pad_combo_held(pl)));
-    const bool pressed = down && !g_rmb_last;
-    g_rmb_last = down;
+    const bool down = allowed && ((mouse_of(pl) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0) || (use_pad && pad_combo_held(pl)));
+    const bool pressed = down && !s.button_last;
+    s.button_last = down;
     if (!toggle_aim) return down;
-    if (pressed) g_toggled = !g_toggled;
-    return allowed && g_toggled;
+    if (pressed) s.toggled = !s.toggled;
+    return allowed && s.toggled;
 }
 
-// aiming right now: a gameplay camera aimed within the last 100 ms (a cutscene camera isn't one of them, and then nothing
-// aims) and the inputs still count
-bool aiming() { return g_was_aiming && aim_allowed() && GetTickCount64() - g_cam_ms < 100; }
-
-// One player aims: the one with the keyboard (co-op's Keyboard setting; player 1 without co-op). Every hook below runs
-// for each player in his own update and each camera in its player's, so they all ask this first.
-bool aims(uintptr_t pl) { return pl && player_info::has_keyboard(pl); }
+// aiming right now: his gameplay camera aimed within the last 100 ms (a cutscene camera isn't one of them, and then
+// nothing aims) and the inputs still count
+bool aiming(const TpsAim* s) { return s && s->was_aiming && aim_allowed() && GetTickCount64() - s->cam_ms < 100; }
 
 void mouse_delta(int& dx, int& dy) {
     dx = dy = 0;
@@ -183,12 +183,12 @@ void mouse_delta(int& dx, int& dy) {
     dy = *(int*)(mouse + kMouseDy);
 }
 
-void hand_target(uintptr_t pl) {                // the bullets read it; updatePtr drops it (no live parent) between ticks
-    at<uintptr_t>(pl, kpLockTarget) = (uintptr_t)g_fake;
+void hand_target(uintptr_t pl, TpsAim& s) {     // the bullets read it; updatePtr drops it (no live parent) between ticks
+    at<uintptr_t>(pl, kpLockTarget) = (uintptr_t)s.fake;
 }
 
-void release(uintptr_t pl) {                    // letting go: no fake left behind for melee homing to find
-    if (pl && at<uintptr_t>(pl, kpLockTarget) == (uintptr_t)g_fake) {
+void release(uintptr_t pl, TpsAim& s) {         // letting go: no fake left behind for melee homing to find
+    if (at<uintptr_t>(pl, kpLockTarget) == (uintptr_t)s.fake) {
         at<uintptr_t>(pl, kpLockTarget) = 0;
         at<uintptr_t>(pl, kpLockTargetParent) = 0;
     }
@@ -198,8 +198,10 @@ void release(uintptr_t pl) {                    // letting go: no fake left behi
 // lock-on camera, the HUD, the lock-on update) take over: they expect an actor behind the target, and handing them the
 // fake (no actor) crashed. The guns then aim at the locked enemy as usual; the camera stays the shoulder camera.
 constexpr uint32_t BTN_LOCKON = 0x10;
-bool g_virtual_bit = false;                     // the lock-on bit in mBtnOn is ours this tick (the virtual lock-on, below)
-bool free_aim(uintptr_t pl) { return aiming() && (!(at<uint32_t>(pl, pl::mBtnOn) & BTN_LOCKON) || g_virtual_bit); }
+// (TpsAim::virtual_bit: the lock-on bit in his mBtnOn is ours this tick, the virtual lock-on below)
+bool free_aim(uintptr_t pl, const TpsAim* s) {
+    return aiming(s) && (!(at<uint32_t>(pl, pl::mBtnOn) & BTN_LOCKON) || s->virtual_bit);
+}
 
 // The virtual lock-on: while free-aiming, the moves see the lock-on button held, with the crosshair point as the target
 // (getLockOnTarget hands out the fake; checkCmdLever's directions, setLockOnTargetAngle's turns and the moves' homing all
@@ -252,16 +254,16 @@ inline float clampf(float v, float lo, float hi) { return v < lo ? lo : v > hi ?
 inline float wrap_pi(float a) { while (a > kPi) a -= 2.0f * kPi; while (a < -kPi) a += 2.0f * kPi; return a; }
 
 // the yaw from the player to the aim point (the camera sits off to the side, so not the camera's own yaw)
-float aim_yaw(uintptr_t pl) {
+float aim_yaw(uintptr_t pl, const TpsAim& s) {
     const glm::vec3 p = at<MtVector3>(pl, pl::mPos);
-    const float dx = g_aim.x - p.x, dz = g_aim.z - p.z;
-    return (dx * dx + dz * dz) > 1.0f ? std::atan2(dx, dz) : g_yaw;
+    const float dx = s.aim[0] - p.x, dz = s.aim[2] - p.z;
+    return (dx * dx + dz * dz) > 1.0f ? std::atan2(dx, dz) : s.yaw;
 }
 
 // Chest first: the body only turns by what the spine can't take. The facing that keeps the aim within body_turn_deg of
 // it, from `now`: `now` itself while inside the limit, else the aim yaw minus the limit on the aim's side.
-float body_yaw_for(uintptr_t pl, float now) {
-    const float aim = aim_yaw(pl);
+float body_yaw_for(uintptr_t pl, const TpsAim& s, float now) {
+    const float aim = aim_yaw(pl, s);
     const float d = wrap_pi(aim - now), lim = body_turn_deg * kPi / 180.0f;
     if (std::fabs(d) <= lim) return now;
     return wrap_pi(aim - (d > 0.0f ? lim : -lim));
@@ -301,7 +303,6 @@ constexpr uintptr_t kPlCmd = 0x2190, kPlCmdSize = 20, kCmdStep = 0x0, kCmdStatus
 constexpr uintptr_t kCmdFlagWords = 0x2184;     // mCmdFlag[3]: bit = CMD_ID, read by checkAtck this tick
 struct ChargeLevel { uint32_t cmd; float frames; };
 constexpr ChargeLevel kCharge[3] = { { 0x21, 60.0f }, { 0x24, 240.0f }, { 0x26, 420.0f } };
-float g_charge = 0.0f;                          // frames the left button has been held while aiming
 
 void write_charge(uintptr_t pl, float frames) {
     for (const ChargeLevel& c : kCharge) {
@@ -320,31 +321,35 @@ void write_charge(uintptr_t pl, float frames) {
 // the camera is the mouse's, so a held direction ran on the old heading after a camera whip; it is rebuilt here from
 // the shoulder camera's yaw and the live stick (mPeripheral.mAnlgL.radian +0x13C4) and the holds dropped.
 constexpr uintptr_t kAnlgRadian = 0x1420, kCamAnglNow = 0x16F4, kCamAnglIsHold = 0x16FC, kPeriIsHold = 0x1404, kStickRadian = 0x13C4;
-void live_stick(uintptr_t pl) {
-    at<float>(pl, kCamAnglNow) = g_yaw;
+void live_stick(uintptr_t pl, const TpsAim& s) {
+    at<float>(pl, kCamAnglNow) = s.yaw;
     at<bool>(pl, kCamAnglIsHold) = false;
     at<bool>(pl, kPeriIsHold) = false;
-    if (at<int>(pl, pl::mAnlgPow) != 0) at<float>(pl, kAnlgRadian) = wrap_pi(g_yaw + at<float>(pl, kStickRadian));
+    if (at<int>(pl, pl::mAnlgPow) != 0) at<float>(pl, kAnlgRadian) = wrap_pi(s.yaw + at<float>(pl, kStickRadian));
 }
 
 // Pre-check tick (after executeCommandCheck, before checkAction): the stick on the shoulder camera; the fake target
 // back in mpLockTarget (updatePtr dropped it); the left button is the gun button (press, hold); the charge as above.
 // Melee goes through as usual (with the virtual lock-on: the lock-on moves toward the crosshair).
-bool     g_capturing = false;                   // the GUI's Capture: the pad buttons pressed together until all are let go
+// The GUI's Capture: the pad buttons pressed together until all are let go, on any player's pad (the first to press).
+bool     g_capturing = false;
 uint32_t g_capture_bits = 0;
+uintptr_t g_capture_player = 0;
 
 void precheck_tick(uintptr_t pl) {
-    if (!aims(pl)) return;
-    unscale_walk(pl);                           // last tick's strafe speed out of mVel before anything reads it
-    if (g_capturing) {
+    TpsAim* sp = aim_of(pl);
+    if (!sp) return;
+    TpsAim& s = *sp;
+    unscale_walk(pl, s);                        // last tick's strafe speed out of mVel before anything reads it
+    if (g_capturing && (!g_capture_player || g_capture_player == pl)) {
         const uint32_t bits = at<uint32_t>(pl, kPadBtnOn);
-        if (bits) g_capture_bits |= bits;
-        else if (g_capture_bits) { pad_combo = g_capture_bits; g_capture_bits = 0; g_capturing = false; }
+        if (bits) { g_capture_bits |= bits; g_capture_player = pl; }
+        else if (g_capture_bits) { pad_combo = g_capture_bits; g_capture_bits = 0; g_capture_player = 0; g_capturing = false; }
     }
-    if (!aiming()) { g_lmb_last = false; g_charge = 0.0f; return; }
-    live_stick(pl);
-    if (free_aim(pl)) hand_target(pl);
-    else release(pl);
+    if (!aiming(sp)) { s.lmb_last = 0; s.charge = 0.0f; return; }
+    live_stick(pl, s);
+    if (free_aim(pl, sp)) hand_target(pl, s);
+    else release(pl, s);
     // The gun up while aiming: the game's own gun pose. checkPoseBegin 0x803990 starts it (setActionPose: action 13)
     // while mPose.stat (+0x16D0) is 1, the weapon can pose and mActLimit allows (0x10); checkPoseRunBegin 0x803A40 turns
     // it into the pose walk (15 -> 16 / 17: the strafing walk) when moving; checkPoseEnd 0x8039F0 ends it once stat is 0,
@@ -357,25 +362,26 @@ void precheck_tick(uintptr_t pl) {
         const int upper = at<int>(pl, kBdyUpperNo);
         if (upper >= 13 && upper <= 17 && at<uint8_t>(pl, pl::mAtckLongCnt) == 0) at<uint8_t>(pl, pl::mAtckLongCnt) = 1;
     }
-    // the left mouse button is the gun button; the pad's own gun button needs nothing (its hold charges natively)
-    const bool lmb = use_mouse && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+    // the left mouse button is the gun button (the keyboard's player); a pad's own gun button needs nothing (its hold
+    // charges natively)
+    const bool lmb = mouse_of(pl) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
     if (lmb) at<uint32_t>(pl, pl::mBtnOn) |= BTN_GUN;
-    if (lmb && !g_lmb_last) { at<uint32_t>(pl, pl::mBtnTrg) |= BTN_GUN; g_charge = 0.0f; }
+    if (lmb && !s.lmb_last) { at<uint32_t>(pl, pl::mBtnTrg) |= BTN_GUN; s.charge = 0.0f; }
     if (charge_shots) {
         if (lmb) {
-            g_charge += at<float>(pl, pl::m_delta_time);
-            write_charge(pl, g_charge);
-        } else if (g_lmb_last) {                // released: the highest level reached fires
+            s.charge += at<float>(pl, pl::m_delta_time);
+            write_charge(pl, s.charge);
+        } else if (s.lmb_last) {                // released: the highest level reached fires
             for (int i = 2; i >= 0; --i)
-                if (g_charge >= kCharge[i].frames) {
+                if (s.charge >= kCharge[i].frames) {
                     at<uint32_t>(pl, kCmdFlagWords + 4 * (kCharge[i].cmd >> 5)) |= 1u << (kCharge[i].cmd & 31);
                     break;
                 }
-            g_charge = 0.0f;
+            s.charge = 0.0f;
             write_charge(pl, 0.0f);
         }
     }
-    g_lmb_last = lmb;
+    s.lmb_last = lmb;
 }
 
 // After the state functions (cRotateCtrl::update runs after this, 0x7A862F): a bullet made this tick sets up from the
@@ -385,22 +391,24 @@ void precheck_tick(uintptr_t pl) {
 // crosshair; inside the limit the chest covers the rest. Walking outside a gun action is left to the game, whose run
 // moves along the facing.
 void post_action_tick(uintptr_t pl) {
-    if (!aims(pl)) return;
-    if (g_virtual_bit) {                        // the virtual lock-on's window ends: the camera, the HUD and next tick's
+    TpsAim* sp = aim_of(pl);
+    if (!sp) return;
+    TpsAim& s = *sp;
+    if (s.virtual_bit) {                        // the virtual lock-on's window ends: the camera, the HUD and next tick's
         at<uint32_t>(pl, pl::mBtnOn) &= ~BTN_LOCKON;   // updateLockOn see the button as it is
-        g_virtual_bit = false;
+        s.virtual_bit = 0;
     }
-    scale_walk(pl, aiming() && pose_walk(pl));  // the strafe speed (also off again once not aiming / not walking)
-    if (!aiming()) return;
+    scale_walk(pl, s, aiming(sp) && pose_walk(pl));   // the strafe speed (also off again once not aiming / not walking)
+    if (!aiming(sp)) return;
     if (at<int>(pl, pl::mBdyActionLowerNo) != 0x18) inertial_gun_blend(pl);   // the wall run blends its own shots
-    if (!free_aim(pl)) { release(pl); return; }  // lock-on held: the game's target and turns
-    hand_target(pl);
+    if (!free_aim(pl, sp)) { release(pl, s); return; }   // lock-on held: the game's target and turns
+    hand_target(pl, s);
     if (!gun_action(pl)) return;                // not the gun: the move's own turns (toward the crosshair point)
     if (pose_walk(pl)) return;                  // the pose walk faces the aim and strafes: the game's own turn
     const bool stick = at<int>(pl, pl::mAnlgPow) != 0;
     const float goal = stick ? base_yaw(pl)
                      : at<bool>(pl, pl::mRotateIsMove) ? at<float>(pl, pl::mRotateTarget) : at<float>(pl, pl::mRotateNow);
-    const float want = body_yaw_for(pl, goal);
+    const float want = body_yaw_for(pl, s, goal);
     const float from = stick ? at<float>(pl, pl::mRotateNow) : goal;   // pushed: turn toward the stick ourselves (the gun
     if (want != from) rotate_request(pl, want, turn_speed_deg * kPi / 180.0f);   // pose's own turn faces its target)
 }
@@ -410,13 +418,14 @@ void post_action_tick(uintptr_t pl) {
 // body's facing, which is what the shot and pose motions aim along (against the chest, the shots' side-on stances threw
 // the gun off); the body follows only past body_turn_deg.
 bool spine_provider(uintptr_t pl, spine_aim::Request& out) {
-    if (!spine_twist || !aims(pl) || !free_aim(pl)) return false;
+    const TpsAim* s = spine_twist ? aim_of(pl) : nullptr;
+    if (!s || !free_aim(pl, s)) return false;
     // the gun, or standing / walking / running (base actions 0-5) with no attack: not during melee, dashes, rolls, jumps
     const bool neutral = at<int>(pl, pl::mBdyActionLowerNo) <= 5 && at<int>(pl, kBdyUpperNo) != 12;
     if (!gun_action(pl) && !neutral) return false;
     out.aim = true;
     out.wanted_set = true;
-    out.wanted_yaw = aim_yaw(pl);
+    out.wanted_yaw = aim_yaw(pl, *s);
     out.ref_facing = true;
     out.aim_arms = true;
     return true;
@@ -445,26 +454,29 @@ static uintptr_t viewport0_camera() {
 }
 
 // The shoulder camera written at `cam`'s position / target / up fields; the aim point from it. A camera runs with its
-// own player as mpPlayer (co-op's context), so only the aiming player's camera becomes the shoulder camera.
+// own player as mpPlayer (co-op's context: players 2-4's cameras update in theirs), so each aiming player's own camera
+// becomes his shoulder camera, turned by his right stick (and the mouse for the keyboard's player).
 static void aim_apply(uintptr_t cam, uintptr_t off_pos, uintptr_t off_target, uintptr_t off_up) {
     const uintptr_t pl = (uintptr_t)devil4_sdk::get_local_player();
-    if (!aims(pl)) return;
-    const bool button = aim_button(pl);
+    TpsAim* sp = aim_of(pl);
+    if (!sp) return;
+    TpsAim& s = *sp;
+    const bool button = aim_button(pl, s);
     if (!button) {
-        if (g_was_aiming) release(pl);
-        g_was_aiming = false;
+        if (s.was_aiming) release(pl, s);
+        s.was_aiming = 0;
         return;
     }
-    if (!g_was_aiming) {                        // start from where the game's camera looks
+    if (!s.was_aiming) {                        // start from where the game's camera looks
         const glm::vec3 d = glm::vec3(at<MtVector3>(cam, off_target)) - glm::vec3(at<MtVector3>(cam, off_pos));
-        g_yaw   = std::atan2(d.x, d.z);
-        g_pitch = 0.0f;
+        s.yaw   = std::atan2(d.x, d.z);
+        s.pitch = 0.0f;
     }
     int dx = 0, dy = 0;                         // once per rendered frame: some boss cameras run sync several times a frame
     float pad_yaw = 0.0f, pad_pitch = 0.0f;
-    if (g_frame != g_delta_frame) {
-        g_delta_frame = g_frame;
-        if (use_mouse) mouse_delta(dx, dy);
+    if (g_frame != s.delta_frame) {
+        s.delta_frame = g_frame;
+        if (mouse_of(pl)) mouse_delta(dx, dy);
         const float len = at<float>(pl, kStickRLen);
         if (use_pad && len > pad_deadzone) {    // the right stick: degrees per frame, scaled past the dead zone
             const float m = clampf((len - pad_deadzone) / (kStickMax - pad_deadzone), 0.0f, 1.0f) * pad_speed_deg * kPi / 180.0f;
@@ -473,20 +485,20 @@ static void aim_apply(uintptr_t cam, uintptr_t off_pos, uintptr_t off_target, ui
             pad_pitch = (pad_invert_y ? -v : v) * m;
         }
     }
-    g_yaw   += (invert_x ? dx : -dx) * sensitivity + pad_yaw;   // the game's yaw grows to the left on screen
-    g_pitch += (invert_y ? dy : -dy) * sensitivity + pad_pitch;
-    g_pitch  = clampf(g_pitch, -pitch_down_deg * kPi / 180.0f, pitch_up_deg * kPi / 180.0f);
-    if (g_yaw > kPi) g_yaw -= 2.0f * kPi;
-    if (g_yaw < -kPi) g_yaw += 2.0f * kPi;
+    s.yaw   += (invert_x ? dx : -dx) * sensitivity + pad_yaw;   // the game's yaw grows to the left on screen
+    s.pitch += (invert_y ? dy : -dy) * sensitivity + pad_pitch;
+    s.pitch  = clampf(s.pitch, -pitch_down_deg * kPi / 180.0f, pitch_up_deg * kPi / 180.0f);
+    if (s.yaw > kPi) s.yaw -= 2.0f * kPi;
+    if (s.yaw < -kPi) s.yaw += 2.0f * kPi;
 
-    const float cy = std::cos(g_yaw), sy = std::sin(g_yaw), cp = std::cos(g_pitch), sp = std::sin(g_pitch);
-    const glm::vec3 fwd(sy * cp, sp, cy * cp);
+    const float cy = std::cos(s.yaw), sy = std::sin(s.yaw), cp = std::cos(s.pitch), spi = std::sin(s.pitch);
+    const glm::vec3 fwd(sy * cp, spi, cy * cp);
     const glm::vec3 right(-cy, 0.0f, sy);       // screen right at this yaw (the game's yaw grows to the left: seen in-game)
     const glm::vec3 pivot = glm::vec3(at<MtVector3>(pl, pl::mPos)) + glm::vec3(0.0f, height, 0.0f);
     const glm::vec3 eye_free = pivot + right * shoulder - fwd * distance;   // where the camera sits with nothing in the way
     // camera collision: the line pivot -> camera in the camera channels (walls the game's own camera stops at, and the
     // camera-stop walls); on a hit the camera comes in to collision_margin before it, at once, and eases back out
-    const bool first = !g_was_aiming;
+    const bool first = !s.was_aiming;
     float want = 1.0f;
     if (cam_collision) {
         MtLineSegment cs;
@@ -498,9 +510,9 @@ static void aim_apply(uintptr_t cam, uintptr_t off_pos, uintptr_t off_target, ui
         if (len > 1.0f && find_intersection(&cp, &cs, true, &ch))
             want = clampf((glm::length(glm::vec3(ch.hitPos) - pivot) - collision_margin) / len, 0.05f, 1.0f);
     }
-    if (first || want < g_cam_frac) g_cam_frac = want;
-    else g_cam_frac += (want - g_cam_frac) * 0.15f;
-    const glm::vec3 eye = pivot + (eye_free - pivot) * g_cam_frac;
+    if (first || want < s.cam_frac) s.cam_frac = want;
+    else s.cam_frac += (want - s.cam_frac) * 0.15f;
+    const glm::vec3 eye = pivot + (eye_free - pivot) * s.cam_frac;
     at<MtVector3>(cam, off_pos)    = eye;
     at<MtVector3>(cam, off_target) = eye + fwd * 1000.0f;
     at<MtVector3>(cam, off_up)     = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -513,12 +525,13 @@ static void aim_apply(uintptr_t cam, uintptr_t off_pos, uintptr_t off_target, ui
     seg.p1 = eye_free + fwd * range;
     CollParam param = line_param(COLL_SHELL);
     LineResult hit{};
-    g_hit = find_intersection(&param, &seg, false, &hit);
-    g_aim = g_hit ? glm::vec3(hit.hitPos) : glm::vec3(seg.p1);
-    at<MtVector3>((uintptr_t)g_fake, kTargetPos) = g_aim;
+    s.hit = find_intersection(&param, &seg, false, &hit);
+    const glm::vec3 aim = s.hit ? glm::vec3(hit.hitPos) : glm::vec3(seg.p1);
+    s.aim[0] = aim.x; s.aim[1] = aim.y; s.aim[2] = aim.z;
+    at<MtVector3>((uintptr_t)s.fake, kTargetPos) = aim;
 
-    g_was_aiming = true;
-    g_cam_ms = GetTickCount64();
+    s.was_aiming = 1;
+    s.cam_ms = GetTickCount64();
 }
 
 // From the uDevilCamera::sync hook: the boss cameras. sync builds the view with MtMatrix::setLookAtRH 0x8B9470
@@ -537,7 +550,8 @@ bool __stdcall aim_camera(uintptr_t cam) {         // true = fields lent, give t
     std::memcpy(saved, (void*)(cam + kCamPos), sizeof saved);
     const float roll = at<float>(cam, kCamRoll);
     aim_apply(cam, kCamPos, kCamTarget, kCamUp);
-    if (!g_was_aiming || !aim_allowed()) return false;   // not aiming: nothing was written
+    const TpsAim* s = aim_of((uintptr_t)devil4_sdk::get_local_player());   // the player the camera ran for
+    if (!s || !s->was_aiming || !aim_allowed()) return false;   // not aiming: nothing was written
     std::memcpy(s_lent_fields, saved, sizeof saved);
     s_lent_roll = roll;
     s_lent_cam = cam;
@@ -597,17 +611,18 @@ naked void detour_sync() {
     }
 }
 
-// uPlayer::getLockOnTarget(this@ecx, bool a2, bool a3, uActor* exclude) 0x820AE0 (thiscall, retn 0Ch): the fake target
-// while the local player aims; for the grabs (by the return address, see g_virtual_bit) under the virtual lock-on,
+// uPlayer::getLockOnTarget(this@ecx, bool a2, bool a3, uActor* exclude) 0x820AE0 (thiscall, retn 0Ch): his fake target
+// while that player aims; for the grabs (by the return address, see TpsAim::virtual_bit) under the virtual lock-on,
 // what the game returns without lock-on (a2: a3 == 1 the long soft target, else the soft target; !a2: mLockOn.pTarget,
 // which no real lock-on set), or nothing for the Buster's pick. kRunOriginal = the game's own code. The 6 bytes
 // replaced are `mov eax, [ecx+140Ch]`.
 constexpr uintptr_t kRunOriginal = 0xFFFFFFFFu;
 static uintptr_t __stdcall lock_pick(uintptr_t pl, uintptr_t ret, uint32_t a2, uint32_t a3, uintptr_t exclude) {
-    if (!aims(pl) || !free_aim(pl)) return kRunOriginal;
+    TpsAim* s = aim_of(pl);
+    if (!s || !free_aim(pl, s)) return kRunOriginal;
     const bool none = in_ranges(kNoTargetCallers, ret), soft = in_ranges(kSoftTargetCallers, ret);
-    if (!none && !soft) return (uintptr_t)g_fake;
-    if (!g_virtual_bit) return kRunOriginal;    // the bit is the real one's (it isn't held: free_aim): the game's own path
+    if (!none && !soft) return (uintptr_t)s->fake;
+    if (!s->virtual_bit) return kRunOriginal;   // the bit is the real one's (it isn't held: free_aim): the game's own path
     if (none) return 0;
     const uintptr_t t = !(uint8_t)a2 ? at<uintptr_t>(pl, kLockPTarget)
                       : (uint8_t)a3 == 1 ? at<uintptr_t>(pl, kLockPInterLong) : at<uintptr_t>(pl, kLockPInter);
@@ -636,17 +651,18 @@ naked void detour_lock() {
     }
 }
 
-// uPlayer::executeCommandCheck 0x805920 (this@esi), its entry: the virtual lock-on's bit goes in (see g_virtual_bit).
+// uPlayer::executeCommandCheck 0x805920 (this@esi), its entry: the virtual lock-on's bit goes in (see TpsAim::virtual_bit).
 // The 5 bytes replaced are `xorps xmm0, xmm0; push ebx; push ebp`.
 static void __stdcall lock_bit_on(uintptr_t pl) {
-    if (!aims(pl)) return;
-    if (g_virtual_bit) {                        // last tick's never came out (no post-action tick): out first
+    TpsAim* s = aim_of(pl);
+    if (!s) return;
+    if (s->virtual_bit) {                       // last tick's never came out (no post-action tick): out first
         at<uint32_t>(pl, pl::mBtnOn) &= ~BTN_LOCKON;
-        g_virtual_bit = false;
+        s->virtual_bit = 0;
     }
-    if (!virtual_lockon || (at<uint32_t>(pl, pl::mBtnOn) & BTN_LOCKON) || !free_aim(pl)) return;
+    if (!virtual_lockon || (at<uint32_t>(pl, pl::mBtnOn) & BTN_LOCKON) || !free_aim(pl, s)) return;
     at<uint32_t>(pl, pl::mBtnOn) |= BTN_LOCKON;
-    g_virtual_bit = true;
+    s->virtual_bit = 1;
     for (int k = 0; k < 8; ++k) {               // the buffered presses' copies (the rolls read the jump's)
         const uintptr_t c = pl + kMotCncl + kMotCnclSize * k;
         if (at<bool>(c, kMotCnclReserve)) at<uint32_t>(c, kMotCnclBtnOn) |= BTN_LOCKON;
@@ -670,11 +686,12 @@ naked void detour_cmd() {
 // that keeps the aim within body_turn_deg (chest first). The 6 bytes replaced are `push ebp; mov ebp, esp;
 // and esp, -16`.
 static uintptr_t __stdcall turn_point(uintptr_t target, uintptr_t pl) {
-    if (target != (uintptr_t)g_fake || !aims(pl)) return target;
+    const TpsAim* s = aim_of(pl);
+    if (!s || target != (uintptr_t)s->fake) return target;
     if (pose_walk(pl)) return target;           // the pose walk: the body faces the aim, the legs strafe
     if (!gun_action(pl)) return target;         // not the gun: face the crosshair point, as a lock-on target (melee,
                                                 // Trickster: its lever direction is measured against this turn)
-    const float yaw = body_yaw_for(pl, base_yaw(pl));
+    const float yaw = body_yaw_for(pl, *s, base_yaw(pl));
     const glm::vec3 p = at<MtVector3>(pl, pl::mPos);
     at<MtVector3>((uintptr_t)g_turn, kTargetPos) = p + glm::vec3(std::sin(yaw), 0.0f, std::cos(yaw)) * 100.0f;
     return (uintptr_t)g_turn;
@@ -722,6 +739,14 @@ std::optional<std::string> ThirdPersonAim::on_initialize() {
         spdlog::error("ThirdPersonAim: failed to hook uPlayer::executeCommandCheck (0x805920)");
         return "Failed to init ThirdPersonAim (virtual lock-on hook)";
     }
+    if (!player_ext::hook_installed) {                  // each player's aim lives in his UPlayerExt
+        if (!install_hook_absolute(player_ext::kSetupSite, hook_ext_setup, &player_ext::detour_setup, &player_ext::jmp_ret_setup, 6) ||
+            !install_hook_absolute(player_ext::kDtorSite, hook_ext_dtor, &player_ext::detour_dtor, &player_ext::jmp_ret_dtor, 6)) {
+            spdlog::error("ThirdPersonAim: failed to hook uPlayer::setup / ~uPlayer (player_ext)");
+            return "Failed to init ThirdPersonAim (player_ext)";
+        }
+        player_ext::hook_installed = true;
+    }
     spine_aim::add_provider(&spine_provider);           // the chest leads the aim
     if (!input_commands::hook_installed) {
         if (!install_hook_absolute(0x7A83B5, hook_pre, &input_commands::detour, &input_commands::jmp_ret, 8)) {
@@ -744,19 +769,26 @@ std::optional<std::string> ThirdPersonAim::on_initialize() {
 
 void ThirdPersonAim::on_frame(fmilliseconds& dt) {
     ++g_frame;
-    if (!mod_enabled || !crosshair || !aiming()) return;
+    if (!mod_enabled || !crosshair) return;
+    // each aiming player's crosshair in the middle of his view (the whole screen without a split; a view in
+    // ViewportWindow's window, or none on screen, gets none)
     const ImVec2 size = ImGui::GetIO().DisplaySize;
-    const ImVec2 c(size.x * 0.5f, size.y * 0.5f);
     ImDrawList* dl = ImGui::GetBackgroundDrawList();
     const ImU32 white = IM_COL32(255, 255, 255, 230), black = IM_COL32(0, 0, 0, 160);
     const float gap = 4.0f, len = 9.0f;
     const ImVec2 dirs[4] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
-    for (const ImVec2& d : dirs) {
-        const ImVec2 a(c.x + d.x * gap, c.y + d.y * gap), b(c.x + d.x * (gap + len), c.y + d.y * (gap + len));
-        dl->AddLine(a, b, black, 4.0f);
-        dl->AddLine(a, b, white, 2.0f);
+    for (int i = 0; i < player_info::count(); ++i) {
+        const TpsAim* s = aim_of(player_info::player(i));
+        float r[4];
+        if (!aiming(s) || !player_info::view_rect(i, r)) continue;
+        const ImVec2 c(size.x * (r[0] + r[2]) * 0.5f, size.y * (r[1] + r[3]) * 0.5f);
+        for (const ImVec2& d : dirs) {
+            const ImVec2 a(c.x + d.x * gap, c.y + d.y * gap), b(c.x + d.x * (gap + len), c.y + d.y * (gap + len));
+            dl->AddLine(a, b, black, 4.0f);
+            dl->AddLine(a, b, white, 2.0f);
+        }
+        dl->AddCircleFilled(c, 2.0f, s->hit ? IM_COL32(255, 80, 80, 230) : white);
     }
-    dl->AddCircleFilled(c, 2.0f, g_hit ? IM_COL32(255, 80, 80, 230) : white);
 }
 
 void ThirdPersonAim::on_gui_frame(int display) {
@@ -764,8 +796,9 @@ void ThirdPersonAim::on_gui_frame(int display) {
     ImGui::Checkbox(_("Third-person aim"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Hold the right mouse button to aim over the shoulder with the mouse; the left mouse button fires the gun. "
-                  "Guns only: melee is ignored while aiming. The bullets, the body turn and the up / down aim go to where the "
-                  "crosshair points (a red dot: it is on a surface)."));
+                  "The bullets, the body turn and the up / down aim go to where the crosshair points (a red dot: it is on a "
+                  "surface). In co-op every player aims with his own gamepad (the combination below and his right stick), and "
+                  "the player with the keyboard also with the mouse; each gets the shoulder camera and crosshair in his own view."));
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
     ImGui::Checkbox(_("Toggle aim"), &toggle_aim);
@@ -773,26 +806,28 @@ void ThirdPersonAim::on_gui_frame(int display) {
     help_marker(_("Off: aim while the right mouse button (or the gamepad combination) is held. On: each press turns aiming on or off."));
     ImGui::Checkbox(_("Mouse"), &use_mouse);
     ImGui::SameLine();
-    help_marker(_("Right mouse button aims, the mouse turns the camera, the left button fires (and charges while held)."));
+    help_marker(_("Right mouse button aims, the mouse turns the camera, the left button fires (and charges while held). In co-op "
+                  "the mouse belongs to the player with the keyboard (Coop's Keyboard setting)."));
     ImGui::SameLine();
     ImGui::Checkbox(_("Gamepad"), &use_pad);
     ImGui::SameLine();
-    help_marker(_("The button combination below aims, the right stick turns the camera; the gun button fires and charges as usual."));
+    help_marker(_("The button combination below aims, the right stick turns the camera; the gun button fires and charges as usual. "
+                  "In co-op each player uses his own pad, with the same combination."));
     if (use_pad) {
         ImGui::Text(_("Aim combination: %s (pad bits %08X)"), pad_combo ? _("set") : _("none"), pad_combo);
         ImGui::SameLine();
         if (g_capturing) {
             ImGui::Text(_("- press the buttons together, then let go (%08X)"), g_capture_bits);
             ImGui::SameLine();
-            if (ImGui::Button(_("Cancel"))) { g_capturing = false; g_capture_bits = 0; }
+            if (ImGui::Button(_("Cancel"))) { g_capturing = false; g_capture_bits = 0; g_capture_player = 0; }
         } else {
-            if (ImGui::Button(_("Capture"))) { g_capturing = true; g_capture_bits = 0; }
+            if (ImGui::Button(_("Capture"))) { g_capturing = true; g_capture_bits = 0; g_capture_player = 0; }
             ImGui::SameLine();
             if (ImGui::Button(_("Clear"))) pad_combo = 0;
         }
         ImGui::SameLine();
-        help_marker(_("Capture, then on the gamepad press every button of the combination together and let go: those buttons, all "
-                      "held, aim. The buttons still do their own thing in the game, so pick ones that don't get in the way (the "
+        help_marker(_("Capture, then on a gamepad (in co-op, any player's: the first to press) press every button of the "
+                      "combination together and let go: those buttons, all held, aim. The buttons still do their own thing in the game, so pick ones that don't get in the way (the "
                       "stick clicks, say). Leave lock-on out: holding lock-on while aiming hands the target back to the game."));
         ImGui::SliderFloat(_("Right stick speed"), &pad_speed_deg, 0.5f, 10.0f, "%.1f");
         ImGui::SameLine();
@@ -860,17 +895,21 @@ void ThirdPersonAim::on_gui_frame(int display) {
     help_marker(_("Degrees per frame the body turns while standing still (the game's own gun turn is 24)."));
     ImGui::Checkbox(_("Readout"), &readout);
     ImGui::SameLine();
-    help_marker(_("Debug lines: the aim, the aim point, the body's facing against the aim, the charge."));
+    help_marker(_("Debug lines per player: the aim, the aim point, the body's facing against the aim, the charge."));
     if (readout) {
-        const uintptr_t pl = player_info::keyboard_player();
-        ImGui::Text("aiming %s | yaw %.1f pitch %.1f | aim (%.0f, %.0f, %.0f) %s | target handed %s | camera out %.2f | charge %.0f",
-                    aiming() ? "yes" : "no", g_yaw * 180.0f / kPi, g_pitch * 180.0f / kPi, g_aim.x, g_aim.y, g_aim.z,
-                    g_hit ? "hit" : "far", pl && at<uintptr_t>(pl, kpLockTarget) == (uintptr_t)g_fake ? "yes" : "no", g_cam_frac, g_charge);
-        if (pl)
-            ImGui::Text("facing %.0f | aim yaw %.0f | aim off the facing %.0f | upper %d lower %d",
-                        at<float>(pl, pl::mRotateNow) * 180.0f / kPi, aim_yaw(pl) * 180.0f / kPi,
-                        wrap_pi(aim_yaw(pl) - at<float>(pl, pl::mRotateNow)) * 180.0f / kPi, at<int>(pl, kBdyUpperNo),
+        for (int i = 0; i < player_info::count(); ++i) {
+            const uintptr_t pl = player_info::player(i);
+            const TpsAim* s = aim_of(pl);
+            if (!s) { ImGui::Text("P%d: no aim state (set up before dmc4_hook loaded?)", i + 1); continue; }
+            ImGui::Text("P%d%s: aiming %s | yaw %.1f pitch %.1f | aim (%.0f, %.0f, %.0f) %s | target handed %s | camera out %.2f | charge %.0f",
+                        i + 1, player_info::has_keyboard(pl) ? " (keyboard)" : "", aiming(s) ? "yes" : "no",
+                        s->yaw * 180.0f / kPi, s->pitch * 180.0f / kPi, s->aim[0], s->aim[1], s->aim[2], s->hit ? "hit" : "far",
+                        at<uintptr_t>(pl, kpLockTarget) == (uintptr_t)s->fake ? "yes" : "no", s->cam_frac, s->charge);
+            ImGui::Text("    facing %.0f | aim yaw %.0f | aim off the facing %.0f | upper %d lower %d",
+                        at<float>(pl, pl::mRotateNow) * 180.0f / kPi, aim_yaw(pl, *s) * 180.0f / kPi,
+                        wrap_pi(aim_yaw(pl, *s) - at<float>(pl, pl::mRotateNow)) * 180.0f / kPi, at<int>(pl, kBdyUpperNo),
                         at<int>(pl, pl::mBdyActionLowerNo));
+        }
     }
     ImGui::Unindent(lineIndent);
 }

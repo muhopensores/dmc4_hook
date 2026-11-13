@@ -5,7 +5,10 @@
 
 // ThirdPersonAim: an over-the-shoulder aim mode for the guns (2026-10-25). Mouse: hold (or toggle) the right button to
 // aim, the mouse turns the camera, the left button fires and charges. Gamepad: a captured button combination aims, the
-// right stick turns, the gun button fires and charges as usual. The local player only; melee works while aiming.
+// right stick turns, the gun button fires and charges as usual. Melee works while aiming.
+// Co-op: every player aims with his own pad (the combination and the right stick of his pad), the player with the
+// keyboard also with the mouse; each aiming player's own camera becomes his shoulder camera and his crosshair is drawn
+// in his view. Each player's aim lives in his UPlayerExt (sdk/PlayerExt.hpp, TpsAim); the settings are shared.
 // How (RE: Vibed\RE\player_move_pipeline.md "Where a gun's target comes from" and the notes after it):
 //   - camera, by camera kind: the normal rooms' controller cCameraPlayer::Main 0x417A10 and the fixed / rail rooms'
 //     cCameraRailBase::Main 0x428400 (six controller vtables) are wrapped in their vtable slots and their output
@@ -93,6 +96,6 @@ public:
     void on_gui_frame(int display) override;
 
 private:
-    std::unique_ptr<FunctionHook> hook_sync, hook_lock, hook_turn, hook_cmd, hook_pre, hook_post;
+    std::unique_ptr<FunctionHook> hook_sync, hook_lock, hook_turn, hook_cmd, hook_pre, hook_post, hook_ext_setup, hook_ext_dtor;
     std::unique_ptr<Patch> patch_player, patch_rail[6];
 };

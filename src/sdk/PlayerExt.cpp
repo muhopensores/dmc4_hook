@@ -11,6 +11,8 @@ namespace player_ext {
 static_assert(offsetof(DanteExt, jdc_flag) == kJdcFlag && offsetof(DanteExt, jdc_ready) == kJdcReady &&
               offsetof(DanteExt, jdc_pos) == kJdcPos && offsetof(DanteExt, jdc_hits_left) == kJdcHitsLeft &&
               offsetof(DanteExt, jdc_offset) == kJdcOffset, "DanteExt offsets");
+static_assert(offsetof(UPlayerExt, tps) == kTps && offsetof(TpsAim, cam_ms) == 0x80 && offsetof(TpsAim, pad_93) == 0x93,
+              "UPlayerExt offsets");
 
 // the slots are the HOOK_* members of the SDK's player structs (sdk/uPlayer.hpp)
 static_assert(kPlayerSlot == player_mod_bytes::kUPlayerExt && kDanteSlot == player_mod_bytes::kDanteExt &&
