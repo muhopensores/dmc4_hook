@@ -1,41 +1,38 @@
 #include "SpineAim.hpp"
-#include "WallRun.hpp"          // wallrun::at / wallrun::pl offsets; shares no state with WallRun
-#include "../sdk/Devil4.hpp"
-#include "../sdk/Math.hpp"      // glm quaternions: this tick's chain orientations by forward kinematics
+#include "../mods/WallRun.hpp"  // wallrun::at / wallrun::pl offsets; shares no state with WallRun
+#include "../utility/FunctionHook.hpp"
+#include "../utility/Patch.hpp"
+#include "Devil4.hpp"
+#include "Math.hpp"             // glm quaternions: this tick's chain orientations by forward kinematics
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <memory>
+#include <vector>
 
-#undef naked                     // mod.hpp's `naked` is `static __declspec(naked)`; detour_unpoke() is declared in the header
+#undef naked                     // a precompiled mod.hpp's `naked` is `static __declspec(naked)`; detour_unpoke() is declared in the header
 #define naked __declspec(naked)
 
 using namespace wallrun;
 
 namespace spine_aim {
 
-bool  mod_enabled     = true;
-bool  aim_always      = false;
-float max_deg         = 70.0f;
-float slew_deg        = 6.0f;
-float share[3]        = { 0.30f, 0.45f, 0.25f };
-float joint_max[3]    = { 20.0f, 25.0f, 40.0f };
-float aim_gain        = 1.0f;
-float aim_offset_deg  = 0.0f;
-float unwind_deg      = 120.0f;
-int   axis_mode       = 1;
-int   ref_mode        = 1;
-float return_slew_deg = 24.0f;
-int   order           = 0;
-bool  flip            = false;
-bool  hips_flip       = false;
-float test_deg        = 0.0f;
-float test_hips_deg   = 0.0f;
-bool  inertial_enabled = true;
 uintptr_t jmp_ret_unpoke = 0;
 constexpr uintptr_t kUpdateLocalMatrix = 0x9E87E0;   // uModel::updateLocalMatrix, what the players' vtable slot 13 held
+constexpr uintptr_t kLocalSlotNero  = 0xBE4FD4;      // uPlayerNero::vftable slot 13 (+0x34)
+constexpr uintptr_t kLocalSlotDante = 0xBE3C84;      // uPlayerDante::vftable slot 13 (the boss's too: it derives)
+constexpr uintptr_t kUnpokeSite     = 0x9F89D0;      // uModel::moveMotion entry
 
 namespace {
+
+// the settled values (tuned in-game on the wall run and ThirdPersonAim, 2026-10-25)
+constexpr float kMaxDeg        = 70.0f;                        // the aim twist is clamped to +-this
+constexpr float kSlewDeg       = 6.0f;                         // degrees per frame the aim twist and the lean may change
+constexpr float kShare[3]      = { 0.30f, 0.45f, 0.25f };      // how a twist splits over joints 1, 2, 3
+constexpr float kJointMax[3]   = { 20.0f, 25.0f, 40.0f };      // the spine constraint: no joint turns past its own limit
+constexpr float kUnwindDeg     = 120.0f;                       // further round than this the aim goes back to neutral
+constexpr float kReturnSlewDeg = 24.0f;                        // the spine's return twist (the game turns an actor at 24)
 
 // uModel (the player is one): the joint array and the joint-number -> index table
 constexpr uintptr_t kJointNum   = 0x02E0;
@@ -44,7 +41,6 @@ constexpr uintptr_t kJointTable = 0x02E8;   // uchar[]: joint number -> index, 2
 // uModel::Joint (0x90)
 constexpr uintptr_t kJointSize  = 0x90;
 constexpr uintptr_t kJSymmetry  = 0x08;     // byte: the mirror joint's INDEX (255 = none)
-constexpr uintptr_t kJOffset    = 0x10;     // MtFloat3: the joint's position in its parent's frame
 constexpr uintptr_t kJQuat      = 0x20;     // MtVector4 x y z w: the local rotation updateLocalMatrix wrote
 constexpr uintptr_t kJTrans     = 0x40;     // MtVector3: the decoded local translation (the offset when the track is absent)
 constexpr uintptr_t kJWmat      = 0x50;     // MtMatrix: last tick's world matrix until updateWorldMatrix runs
@@ -85,30 +81,18 @@ inline void qmul(const float a[4], const float b[4], float o[4]) {
     o[3] = a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2];
 }
 
-// Rotate the joint's local quaternion by `deg` about the unit `axis` given in the joint's own frame (post-multiply
-// under order 0, the variant settled in-game; `order` 1 swaps).
+// Rotate the joint's local quaternion by `deg` about the unit `axis` given in the joint's own frame (post-multiplied:
+// the variant settled in-game).
 void rotate_local(uintptr_t jp, const glm::vec3& axis, float deg) {
     if (std::fabs(deg) < 1e-3f) return;
     const float h = deg * 3.14159265f / 360.0f, s = std::sin(h);
     const float q[4] = { axis.x * s, axis.y * s, axis.z * s, std::cos(h) };
     float* L = &at<float>(jp, kJQuat);
     float o[4];
-    if (order == 0) qmul(L, q, o); else qmul(q, L, o);
+    qmul(L, q, o);
     const float n = std::sqrt(o[0] * o[0] + o[1] * o[1] + o[2] * o[2] + o[3] * o[3]);
     if (n < 1e-6f) return;
     for (int i = 0; i < 4; ++i) L[i] = o[i] / n;
-}
-
-// The bone axis of joint `no`: its child's offset (expressed in this joint's frame), normalised.
-bool bone_axis(uintptr_t model, int no, glm::vec3& out) {
-    const uintptr_t child = joint(model, no + 1);
-    if (!child) return false;
-    const float* o = &at<float>(child, kJOffset);
-    const glm::vec3 v(o[0], o[1], o[2]);
-    const float len = glm::length(v);
-    if (len < 1e-3f) return false;
-    out = v / len;
-    return true;
 }
 
 // An MT quaternion (x y z w) as glm's (w x y z): the same rotation, column form; rows of an MtMatrix = its columns
@@ -289,7 +273,6 @@ void inert_start(Inert& in, uintptr_t joints, float frames) {
 
 // After the engine's local pass: start a requested fade, apply the running ones, record the pose shown.
 void inert_pass(uintptr_t model) {
-    if (!mod_enabled || !inertial_enabled) return;
     ++g_inert_clock;
     Inert& in = inert_for(model);
     const uintptr_t joints = at<uintptr_t>(model, kpJoint);
@@ -355,7 +338,7 @@ void inert_pass(uintptr_t model) {
 } // namespace
 
 bool inertialize(uintptr_t player, float frames) {
-    if (!mod_enabled || !inertial_enabled || !player || frames <= 0.0f) return false;
+    if (!player || frames <= 0.0f) return false;
     Inert* in = find_inert(player);
     if (!in || !in->have_last) return false;     // no pose recorded yet: nothing to fade from
     if (!in->pending || frames > in->pending_frames) in->pending_frames = frames;
@@ -364,13 +347,14 @@ bool inertialize(uintptr_t player, float frames) {
 }
 
 bool add_provider(Provider fn) {
-    if (!fn || g_provider_count >= 8) return false;
+    if (!fn || g_provider_count >= 8) { spdlog::error("SpineAim: no room for another provider"); return false; }
+    if (!install()) return false;
     g_providers[g_provider_count++] = fn;
     return true;
 }
 
 void __stdcall tick(uintptr_t pl) {
-    if (!mod_enabled || !pl) return;
+    if (!pl) return;
     ++g_tick;
 
     // who wants what
@@ -384,10 +368,9 @@ void __stdcall tick(uintptr_t pl) {
         if (r.lean_deg != 0.0f) { req.lean_deg = r.lean_deg; req.lean_axis = r.lean_axis; }
     }
     const int upper = at<int>(pl, kBdyUpperNo);
-    if (aim_always && (upper == 12 || upper == 13 || upper == 16)) req.aim = true;
 
     State* sp = find_state(pl);
-    const bool wants = req.aim || req.wanted_set || req.hips_set || req.lean_deg != 0.0f || test_deg != 0.0f || test_hips_deg != 0.0f;
+    const bool wants = req.aim || req.wanted_set || req.hips_set || req.lean_deg != 0.0f;
     if (!sp && !wants) return;                      // a visitor that twists nothing (a shell, a bystander): no slot
     State& s = sp ? *sp : state_for(pl);
     s.last_seen = g_tick;
@@ -400,7 +383,7 @@ void __stdcall tick(uintptr_t pl) {
     }
 
     const float dt = at<float>(pl, pl::m_delta_time);
-    const float step = slew_deg * (dt > 0.0f ? dt : 1.0f);
+    const float step = kSlewDeg * (dt > 0.0f ? dt : 1.0f);
 
     // Where the chest points THIS tick before any poke: forward kinematics over the local quaternions / translations
     // updateLocalMatrix just wrote (root = the actor's mQuat / mPos), down to the two clavicles; their line is the
@@ -431,7 +414,7 @@ void __stdcall tick(uintptr_t pl) {
     }
     g_dbg.torso_deg = wrap_pi(chest_yaw - at<float>(pl, pl::mRotateNow)) * 180.0f / 3.14159265f;
 
-    // the aim: reference yaw - wanted yaw, clamped (the sense settled in-game with order 0)
+    // the aim: the wanted yaw against the reference, clamped
     float err_deg = 0.0f, want = 0.0f, wanted = 0.0f;
     bool have_wanted = false;
     const uintptr_t target = at<uintptr_t>(pl, kpLockTarget);
@@ -441,21 +424,19 @@ void __stdcall tick(uintptr_t pl) {
         const glm::vec3 d(tp.x - pm.x, 0.0f, tp.z - pm.z);
         if (glm::length(d) > 1.0f) { wanted = yaw_of(d); have_wanted = true; }
     }
-    if (test_deg != 0.0f) want = test_deg;
-    else if (have_wanted) {
-        const float ref = (ref_mode == 1 && chest_ok && !req.ref_facing) ? chest_yaw : at<float>(pl, pl::mRotateNow);
-        // the turn that brings the reference onto the wanted yaw (a positive rotation about up raises the yaw). Until
-        // 2026-10-25 this was ref - wanted, which twisted away from the target unless Flip was on (seen in TPS aim:
-        // the gun arm swung the error further out; Flip lined it up)
+    if (have_wanted) {
+        const float ref = (chest_ok && !req.ref_facing) ? chest_yaw : at<float>(pl, pl::mRotateNow);
+        // the turn that brings the reference onto the wanted yaw (a positive rotation about up raises the yaw; the
+        // other sense twisted away from the target)
         err_deg = wrap_pi(wanted - ref) * 180.0f / 3.14159265f;
         if (std::fabs(err_deg) > 150.0f && s.aim * err_deg < 0.0f) err_deg = -err_deg;   // target behind: keep the side we are on
-        if (std::fabs(err_deg) > unwind_deg) want = 0.0f;                                // too far round to aim at: back to neutral
-        else want = clampf(err_deg * aim_gain + (err_deg < 0.0f ? -aim_offset_deg : aim_offset_deg), -max_deg, max_deg);
+        if (std::fabs(err_deg) > kUnwindDeg) want = 0.0f;                               // too far round to aim at: back to neutral
+        else want = clampf(err_deg, -kMaxDeg, kMaxDeg);
     }
     slew(s.aim, want, step);
     slew(s.lean, req.lean_deg, step);
-    s.hips = test_hips_deg != 0.0f ? test_hips_deg : (req.hips_set ? req.hips_deg : 0.0f);   // exact: the legs must face their way every frame
-    slew(s.ret, req.return_deg, return_slew_deg * (dt > 0.0f ? dt : 1.0f));
+    s.hips = req.hips_set ? req.hips_deg : 0.0f;   // exact: the legs must face their way every frame
+    slew(s.ret, req.return_deg, kReturnSlewDeg * (dt > 0.0f ? dt : 1.0f));
     g_dbg.err = err_deg; g_dbg.want = want; g_dbg.now = s.aim; g_dbg.lean = s.lean; g_dbg.upper = upper;
     g_dbg.target = target != 0; g_dbg.asked = req.aim || req.wanted_set; g_dbg.from_provider = req.wanted_set; g_dbg.joints = 0;
     g_dbg.hips = s.hips; g_dbg.ret = s.ret;
@@ -463,14 +444,12 @@ void __stdcall tick(uintptr_t pl) {
     // The chain's orientations THIS tick, by forward kinematics over the local quaternions, recomputed after each poke
     // so a child's axis sees its parent's new turn. (Last tick's mWmat carried last tick's twist and lean into each
     // other's axis: a one-tick feedback between two rotations about different axes, which oscillated.)
-    const float sign = flip ? -1.0f : 1.0f;
-    const float hsign = hips_flip ? -1.0f : 1.0f;
     const glm::vec3 up(0.0f, 1.0f, 0.0f);
     glm::quat R = Rm;
     if (const uintptr_t j0 = joint(pl, 0)) {
         if (std::fabs(s.hips) >= 0.01f) {                                 // the hips (and so the legs) turned about world up
             const glm::quat R0 = R * mt_quat(&at<float>(j0, kJQuat));
-            rotate_local(j0, glm::normalize(glm::inverse(R0) * up), hsign * s.hips);
+            rotate_local(j0, glm::normalize(glm::inverse(R0) * up), s.hips);
         }
         R = R * mt_quat(&at<float>(j0, kJQuat));
     }
@@ -478,10 +457,10 @@ void __stdcall tick(uintptr_t pl) {
     float ret_k[3] = { 0, 0, 0 };
     if (std::fabs(s.ret) >= 0.01f) {
         float left = s.ret;
-        for (int k = 0; k < 3; ++k) { ret_k[k] = clampf(s.ret * share[k], -joint_max[k], joint_max[k]); left -= ret_k[k]; }
+        for (int k = 0; k < 3; ++k) { ret_k[k] = clampf(s.ret * kShare[k], -kJointMax[k], kJointMax[k]); left -= ret_k[k]; }
         for (int pass = 0; pass < 2 && std::fabs(left) > 0.01f; ++pass)
             for (int k = 0; k < 3; ++k) {
-                const float room = joint_max[k] - std::fabs(ret_k[k]);
+                const float room = kJointMax[k] - std::fabs(ret_k[k]);
                 if (room <= 0.0f) continue;
                 const float take = clampf(left, -room, room);
                 ret_k[k] += take; left -= take;
@@ -493,17 +472,17 @@ void __stdcall tick(uintptr_t pl) {
     float aim_k[3] = { 0, 0, 0 };
     if (std::fabs(s.aim) >= 0.01f) {
         if (req.aim_arms) {
-            const float sum = (share[0] + share[1]) > 0.0f ? share[0] + share[1] : 1.0f;
+            const float sum = kShare[0] + kShare[1];
             float left = s.aim;
-            for (int k = 0; k < 2; ++k) { aim_k[k] = clampf(s.aim * share[k] / sum, -joint_max[k], joint_max[k]); left -= aim_k[k]; }
+            for (int k = 0; k < 2; ++k) { aim_k[k] = clampf(s.aim * kShare[k] / sum, -kJointMax[k], kJointMax[k]); left -= aim_k[k]; }
             for (int k = 0; k < 2 && std::fabs(left) > 0.01f; ++k) {
-                const float room = joint_max[k] - std::fabs(aim_k[k]);
+                const float room = kJointMax[k] - std::fabs(aim_k[k]);
                 if (room <= 0.0f) continue;
                 const float take = clampf(left, -room, room);
                 aim_k[k] += take; left -= take;
             }
         } else {
-            for (int k = 0; k < 3; ++k) aim_k[k] = clampf(s.aim * share[k], -joint_max[k], joint_max[k]);
+            for (int k = 0; k < 3; ++k) aim_k[k] = clampf(s.aim * kShare[k], -kJointMax[k], kJointMax[k]);
         }
     }
     bool checked = false;
@@ -521,17 +500,11 @@ void __stdcall tick(uintptr_t pl) {
             rotate_local(jp, glm::normalize(glm::inverse(Rj) * req.lean_axis), s.lean);
             Rj = R * mt_quat(&at<float>(jp, kJQuat));
         }
-        const float total = sign * aim_k[k] + hsign * ret_k[k];
-        if (std::fabs(total) >= 0.01f) {                                  // this joint's turn: aim share + return share
-            glm::vec3 axis;
-            bool ok = true;
-            if (axis_mode == 1) axis = glm::normalize(glm::inverse(Rj) * up);   // world up in this joint's frame, as it is now
-            else ok = bone_axis(pl, kSpine[k], axis);
-            if (ok) {
-                ++g_dbg.joints;
-                rotate_local(jp, axis, total);
-                Rj = R * mt_quat(&at<float>(jp, kJQuat));
-            }
+        const float total = aim_k[k] + ret_k[k];
+        if (std::fabs(total) >= 0.01f) {                                  // this joint's turn: aim share + return share,
+            ++g_dbg.joints;                                               // about world up in this joint's frame as it is now
+            rotate_local(jp, glm::normalize(glm::inverse(Rj) * up), total);
+            Rj = R * mt_quat(&at<float>(jp, kJQuat));
         }
         R = Rj;
     }
@@ -599,138 +572,46 @@ naked void detour_unpoke() {
     }
 }
 
+// The hooks, ModBase's install_hook_absolute / install_patch_absolute without a Mod: the players' vtable slot 13 points
+// at local_pass, uModel::moveMotion's entry runs step_begin.
+namespace {
+std::unique_ptr<FunctionHook> g_hook_unpoke;
+Patch::Ptr g_patch_local_nero, g_patch_local_dante;
+int g_installed = 0;   // 0 not tried, 1 installed, -1 failed
+
+Patch::Ptr slot_patch(uintptr_t slot) {
+    const uintptr_t fn = (uintptr_t)&local_pass;
+    std::vector<int16_t> bytes;
+    for (int i = 0; i < 4; ++i) bytes.push_back((int16_t)((fn >> (8 * i)) & 0xFF));
+    spdlog::info("SpineAim: patching vtable slot {:x}", slot);
+    return Patch::create(slot, bytes, true);
+}
+} // namespace
+
+bool install() {
+    if (g_installed) return g_installed > 0;
+    spdlog::info("SpineAim: installing hook at {:x}", kUnpokeSite);
+    g_hook_unpoke = std::make_unique<FunctionHook>(kUnpokeSite, &detour_unpoke);
+    if (!g_hook_unpoke->create()) {
+        spdlog::error("SpineAim: failed to hook uModel::moveMotion ({:x})", kUnpokeSite);
+        g_hook_unpoke.reset();
+        g_installed = -1;
+        return false;
+    }
+    jmp_ret_unpoke = kUnpokeSite + 6;   // `push ebp; mov ebp, esp; and esp, -8`
+    g_patch_local_nero = slot_patch(kLocalSlotNero);
+    g_patch_local_dante = slot_patch(kLocalSlotDante);
+    g_installed = 1;
+    return true;
+}
+
+void draw_readout(uintptr_t player) {
+    ImGui::Text("spine: hips %.1f | return %.1f | aim err %.1f (%s) want %.1f now %.1f | lean %.1f | torso vs facing %.1f | upper %d | target %s | joints %d | fk check %.1f",
+                g_dbg.hips, g_dbg.ret, g_dbg.err, g_dbg.from_provider ? "provider" : "own", g_dbg.want, g_dbg.now, g_dbg.lean,
+                g_dbg.torso_deg, g_dbg.upper, g_dbg.target ? "yes" : "no", g_dbg.joints, g_dbg.fk_check);
+    const Inert* in = player ? find_inert(player) : nullptr;
+    if (in && in->active) ImGui::Text("spine: fading %d joints, %.1f / %.1f frames", in->fading, in->t, in->t_end);
+    else ImGui::TextUnformatted("spine: fading none");
+}
+
 } // namespace spine_aim
-
-// ---------------------------------------------------------------------------------------------------------------
-using namespace spine_aim;
-
-std::optional<std::string> SpineAim::on_initialize() {
-    const uintptr_t fn = (uintptr_t)&local_pass;   // vtable slot 13 of uPlayerNero (0xBE4FD4) and uPlayerDante (0xBE3C84)
-    install_patch_absolute(0xBE4FD4, patch_local_nero, (const char*)&fn, 4);
-    install_patch_absolute(0xBE3C84, patch_local_dante, (const char*)&fn, 4);
-    if (!install_hook_absolute(0x9F89D0, hook_unpoke, &detour_unpoke, &jmp_ret_unpoke, 6)) {
-        spdlog::error("SpineAim: failed to hook uModel::moveMotion (0x9F89D0)");
-        return "Failed to init SpineAim (unpoke hook)";
-    }
-    return Mod::on_initialize();
-}
-
-void SpineAim::on_config_load(const utility::Config& cfg) {
-    mod_enabled     = cfg.get<bool>("spine_aim_enabled").value_or(mod_enabled);
-    aim_always      = cfg.get<bool>("spine_aim_always").value_or(aim_always);
-    max_deg         = cfg.get<float>("spine_aim_max").value_or(max_deg);
-    slew_deg        = cfg.get<float>("spine_aim_slew").value_or(slew_deg);
-    share[0]        = cfg.get<float>("spine_aim_share1").value_or(share[0]);
-    share[1]        = cfg.get<float>("spine_aim_share2").value_or(share[1]);
-    share[2]        = cfg.get<float>("spine_aim_share3").value_or(share[2]);
-    joint_max[0]    = cfg.get<float>("spine_aim_limit1").value_or(joint_max[0]);
-    joint_max[1]    = cfg.get<float>("spine_aim_limit2").value_or(joint_max[1]);
-    joint_max[2]    = cfg.get<float>("spine_aim_limit3").value_or(joint_max[2]);
-    aim_gain        = cfg.get<float>("spine_aim_gain").value_or(aim_gain);
-    aim_offset_deg  = cfg.get<float>("spine_aim_offset").value_or(aim_offset_deg);
-    unwind_deg      = cfg.get<float>("spine_aim_unwind").value_or(unwind_deg);
-    axis_mode       = cfg.get<int>("spine_aim_axis").value_or(axis_mode);
-    ref_mode        = cfg.get<int>("spine_aim_ref").value_or(ref_mode);
-    return_slew_deg = cfg.get<float>("spine_aim_return_slew").value_or(return_slew_deg);
-    order           = cfg.get<int>("spine_aim_order").value_or(order);
-    flip            = cfg.get<bool>("spine_aim_flip_v2").value_or(flip);   // new key: the sign was fixed, an old "on" would undo it
-    hips_flip       = cfg.get<bool>("spine_aim_hips_flip").value_or(hips_flip);
-    inertial_enabled = cfg.get<bool>("spine_aim_inertial").value_or(inertial_enabled);
-}
-
-void SpineAim::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("spine_aim_enabled", mod_enabled);
-    cfg.set<bool>("spine_aim_always", aim_always);
-    cfg.set<float>("spine_aim_max", max_deg);
-    cfg.set<float>("spine_aim_slew", slew_deg);
-    cfg.set<float>("spine_aim_share1", share[0]);
-    cfg.set<float>("spine_aim_share2", share[1]);
-    cfg.set<float>("spine_aim_share3", share[2]);
-    cfg.set<float>("spine_aim_limit1", joint_max[0]);
-    cfg.set<float>("spine_aim_limit2", joint_max[1]);
-    cfg.set<float>("spine_aim_limit3", joint_max[2]);
-    cfg.set<float>("spine_aim_gain", aim_gain);
-    cfg.set<float>("spine_aim_offset", aim_offset_deg);
-    cfg.set<float>("spine_aim_unwind", unwind_deg);
-    cfg.set<int>("spine_aim_axis", axis_mode);
-    cfg.set<int>("spine_aim_ref", ref_mode);
-    cfg.set<float>("spine_aim_return_slew", return_slew_deg);
-    cfg.set<int>("spine_aim_order", order);
-    cfg.set<bool>("spine_aim_flip_v2", flip);
-    cfg.set<bool>("spine_aim_hips_flip", hips_flip);
-    cfg.set<bool>("spine_aim_inertial", inertial_enabled);
-}
-
-void SpineAim::on_gui_frame(int display) {
-    if (display != DISPLAY_SYSTEM_A) return;
-    ImGui::Checkbox(_("Spine aim"), &mod_enabled);
-    ImGui::SameLine();
-    help_marker(_("Procedural spine and hips rotations for a move that asks for them (none does today: kept for a third-person / "
-                  "aiming mode): a twist of the spine toward a target, a hips counter-yaw with the spine giving it back, a lean. "
-                  "Applied after the motion blend and before the skeleton is built (uPlayer::updateMatrix), so the arms, coat and "
-                  "hitboxes follow."));
-    if (!mod_enabled) return;
-    ImGui::Indent(lineIndent);
-    ImGui::PushID("SpineAim");
-    ImGui::Checkbox(_("Inertial blends"), &inertial_enabled);
-    ImGui::SameLine();
-    help_marker(_("Moves that ask for it (the wall run's shots and its return to the run) cut to their new motion and fade the "
-                  "difference from the old pose out over their blend time, keeping the joints' speed, instead of the game's "
-                  "crossfade, which plays a short shot diluted. Off = the game's crossfade."));
-    {
-        const Inert* in = nullptr;
-        if (uPlayer_old* P = devil4_sdk::get_local_player()) in = find_inert((uintptr_t)P);
-        if (in && in->active) ImGui::Text("fading: %d joints, %.1f / %.1f frames", in->fading, in->t, in->t_end);
-        else ImGui::TextUnformatted("fading: none");
-    }
-    ImGui::Checkbox(_("Aim on every gun pose (debug)"), &aim_always);
-    ImGui::SameLine();
-    help_marker(_("Twist toward the lock-on point on every gun pose even when no move asks. On the ground the game turns the whole "
-                  "body itself, so the twist shows during that turn."));
-    ImGui::SliderFloat(_("Max angle"), &max_deg, 0.0f, 120.0f);
-    ImGui::SliderFloat(_("Speed (deg per frame)"), &slew_deg, 0.5f, 30.0f);
-    ImGui::SliderFloat(_("Gain"), &aim_gain, 0.5f, 2.0f);
-    ImGui::SliderFloat(_("Offset (deg)"), &aim_offset_deg, -45.0f, 45.0f);
-    ImGui::SliderFloat(_("Share spine lower"), &share[0], 0.0f, 1.0f);
-    ImGui::SliderFloat(_("Share spine upper"), &share[1], 0.0f, 1.0f);
-    ImGui::SliderFloat(_("Share neck"), &share[2], 0.0f, 1.0f);
-    ImGui::SliderFloat(_("Limit spine lower"), &joint_max[0], 0.0f, 60.0f);
-    ImGui::SliderFloat(_("Limit spine upper"), &joint_max[1], 0.0f, 60.0f);
-    ImGui::SliderFloat(_("Limit neck"), &joint_max[2], 0.0f, 90.0f);
-    ImGui::SameLine();
-    help_marker(_("The spine constraint: no joint turns past its own limit whatever the shares and the error ask, so the spine "
-                  "bends toward the target instead of coiling."));
-    ImGui::SliderFloat(_("Unwind beyond (deg)"), &unwind_deg, 60.0f, 180.0f);
-    ImGui::SliderFloat(_("Return speed (deg per frame)"), &return_slew_deg, 1.0f, 60.0f);
-    ImGui::SameLine();
-    help_marker(_("How fast the spine gives a hips counter-yaw back (a provider's return_deg); the game turns an actor at 24."));
-    ImGui::SliderInt(_("Twist axis"), &axis_mode, 0, 1);
-    ImGui::SameLine();
-    help_marker(_("1 = world up in each joint's frame: a true yaw. 0 = each joint's own bone axis: anatomical, but on a leaning "
-                  "spine part of it becomes pitch."));
-    ImGui::SliderInt(_("Reference"), &ref_mode, 0, 1);
-    ImGui::SameLine();
-    help_marker(_("What the wanted yaw is measured against. 1 = the chest's own yaw this tick (the clavicle line, before any "
-                  "twist), which absorbs whatever torso angle the playing motion holds. 0 = the actor's facing."));
-    ImGui::SliderInt(_("Quaternion order"), &order, 0, 1);
-    ImGui::SameLine();
-    help_marker(_("0 is the one that turns the torso about its own axis (settled in-game); 1 bends it sideways instead."));
-    ImGui::Checkbox(_("Flip"), &flip);
-    ImGui::SameLine();
-    ImGui::Checkbox(_("Hips flip"), &hips_flip);
-    ImGui::SameLine();
-    help_marker(_("Flip negates the aim twist; Hips flip negates the hips counter-yaw and the spine's return together."));
-    ImGui::SliderFloat(_("Test angle"), &test_deg, -90.0f, 90.0f);
-    ImGui::SliderFloat(_("Test hips"), &test_hips_deg, -90.0f, 90.0f);
-    ImGui::SameLine();
-    help_marker(_("Constants for calibration: Test angle twists the spine, Test hips rotates joint 0 (the root: legs and spine hang "
-                  "off it) about world up, so the whole character must yaw by it standing still."));
-    ImGui::Text("hips %.1f | return %.1f | aim err %.1f (%s) want %.1f now %.1f | lean %.1f | torso vs facing %.1f | upper %d | target %s | joints %d | fk check %.1f",
-                g_dbg.hips, g_dbg.ret, g_dbg.err, g_dbg.from_provider ? "provider" : "own", g_dbg.want, g_dbg.now, g_dbg.lean, g_dbg.torso_deg,
-                g_dbg.upper, g_dbg.target ? "yes" : "no", g_dbg.joints, g_dbg.fk_check);
-    ImGui::SameLine();
-    help_marker(_("fk check: angle between the spine's orientation computed from this tick's local rotations and last tick's world "
-                  "matrix. Near 0 while standing still means the quaternion convention is right."));
-    ImGui::PopID();
-    ImGui::Unindent(lineIndent);
-}

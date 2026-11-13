@@ -5,7 +5,7 @@
 #include "../sdk/MotionRegistry.hpp"  // the custom LMT's bank
 #include "../sdk/Enums_Internal.hpp" // CANCEL_NO
 #include "MoveTable.hpp"             // HookNeroKADTbl / HookDanteKADTbl: the gun rows the run matches itself
-#include "SpineAim.hpp"              // the torso lean while shooting
+#include "../sdk/SpineAim.hpp"       // the torso lean while shooting
 #include "UpperGun.hpp"              // the gun during the run: the run is one of its hosts
 #include <cmath>
 #include <cstring>
@@ -937,12 +937,12 @@ void WallRun::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("The gun fires from the upper half while the run goes on, exactly as the game's walking shot (its shot motion and "
                   "the elevation layer, on the upper body over the running legs, so the steps stay in sync); after each shot the arms "
-                  "blend back into the run. A torso lean away from the wall while the gun is up (Spine aim must be on for the lean). "
+                  "blend back into the run. A torso lean away from the wall while the gun is up. "
                   "Bullets, effects, sound, mashing for rapid fire and the guns' own animations are the game's. No charge shots, no "
                   "Pandora. Melee still cancels."));
     ImGui::SliderFloat(_("Torso lean while shooting"), &shoot_lean_deg, -45.0f, 45.0f);
     ImGui::SameLine();
-    help_marker(_("Degrees: negative leans away from the wall, positive into it. Needs Spine aim on."));
+    help_marker(_("Degrees: negative leans away from the wall, positive into it."));
     ImGui::SliderFloat(_("Lean blend (frames)"), &lean_blend_frames, 0.0f, 30.0f);
     ImGui::SameLine();
     help_marker(_("How long the lean takes to come in when the gun comes up, and to go when it goes down. 0 = at once."));
@@ -954,9 +954,8 @@ void WallRun::on_gui_frame(int display) {
     ImGui::SliderFloat(_("Shot blend in (frames)"), &upper_blend_min, 0.0f, 20.0f);
     ImGui::SameLine();
     help_marker(_("The least blend a shot (and its aim layer) gets coming in during the run. The game cuts into the shot with no "
-                  "blend once the gun counts as held, which snaps from the running arms. With Spine aim's inertial blends the shot "
-                  "plays at full strength at once and only the gap from the running arms fades out over these frames, so 6-8 is "
-                  "smooth and keeps the recoil; with the game's crossfade a long blend dilutes the short shots (3 is quick)."));
+                  "blend once the gun counts as held, which snaps from the running arms. The shot plays at full strength at once and "
+                  "only the gap from the running arms fades out over these frames, so 6-8 is smooth and keeps the recoil."));
     ImGui::SliderFloat(_("Back to run blend (frames)"), &run_blend_frames, 1.0f, 30.0f);
     ImGui::SameLine();
     help_marker(_("How long the arms take to blend from the end of a shot back into the run cycle (with inertial blends: the fade "

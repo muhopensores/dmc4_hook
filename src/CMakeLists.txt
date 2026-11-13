@@ -346,8 +346,6 @@ set(MODS_SRC
   mods/FreeRideShell.cpp
   mods/NeroGunslinger.hpp
   mods/NeroGunslinger.cpp
-  mods/SpineAim.hpp
-  mods/SpineAim.cpp
   mods/ThirdPersonAim.hpp
   mods/ThirdPersonAim.cpp
   mods/ViewportWindow.hpp
@@ -462,6 +460,8 @@ set(SDK_SRC
     sdk/BossMoves.cpp
     sdk/PlayerExt.hpp
     sdk/PlayerExt.cpp
+    sdk/SpineAim.hpp
+    sdk/SpineAim.cpp
     sdk/NeroStand.hpp
     sdk/Players.hpp
     sdk/Players.cpp

@@ -211,7 +211,6 @@ Mods::Mods() {
     ADD_MOD(DanteAirDodge);
     ADD_MOD(FreeRide);      // before MoveDef: its command bit is taken before MoveDef picks free ones
     ADD_MOD(NeroGunslinger);    // before MoveDef, as FreeRide (its command bit); its row's style is NeroStyle's
-    ADD_MOD(SpineAim);      // standalone: procedural spine / hips rotations for a move that asks (the wall run's lean)
     ADD_MOD(MoveDef);        // after the hand-coded moves: they install the shared command hook first
     ADD_MOD(ViewportWindow);
     ADD_MOD(ChainFix);       // the game's chains (coats, hair) at any frame rate; optional turbulence fix

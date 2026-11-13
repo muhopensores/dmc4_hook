@@ -4,7 +4,7 @@
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"   // the pre-check and post-action ticks
 #include "../sdk/Math.hpp"
-#include "SpineAim.hpp"              // the chest turns toward the aim before the body does
+#include "../sdk/SpineAim.hpp"       // the chest turns toward the aim before the body does
 #include "../sdk/Cam.hpp"            // sCamera: viewport 0's camera
 #include "../sdk/Enums_Internal.hpp" // MC_UPPER / MC_AIM
 #include "../sdk/Players.hpp"        // who is a player, who has the keyboard (the mouse goes with it), the players' views
@@ -875,8 +875,8 @@ void ThirdPersonAim::on_gui_frame(int display) {
     ImGui::SliderFloat(_("Gun blend (frames)"), &gun_blend, 0.0f, 20.0f, "%.0f");
     ImGui::SameLine();
     help_marker(_("While aiming, the gun's upper-body motions (raising it, each shot, back to the pose) cut in at full strength and "
-                  "the gap from the old pose fades out over this many frames, so the recoil plays out and nothing snaps. Needs "
-                  "Spine aim's inertial blends; 0 = the game's own blends."));
+                  "the gap from the old pose fades out over this many frames, so the recoil plays out and nothing snaps. 0 = the "
+                  "game's own blends."));
     ImGui::Checkbox(_("Charge shots"), &charge_shots);
     ImGui::SameLine();
     help_marker(_("Holding the left mouse button charges the gun as holding the gun button does (Blue Rose levels at 1, 4 and 7 "
@@ -884,12 +884,12 @@ void ThirdPersonAim::on_gui_frame(int display) {
                   "The levels you haven't unlocked don't fire. Not on the wall run, which has no charge shots."));
     ImGui::Checkbox(_("Chest leads the aim"), &spine_twist);
     ImGui::SameLine();
-    help_marker(_("The spine twists toward the aim (SpineAim must be on; the twist goes on its lower and upper spine joints, within "
-                  "their limits) and the body turns only when the aim is more than the body-turn angle off its facing."));
+    help_marker(_("The spine twists toward the aim (on its lower and upper spine joints, within their limits) and the body turns "
+                  "only when the aim is more than the body-turn angle off its facing."));
     ImGui::SliderFloat(_("Body turn angle"), &body_turn_deg, 0.0f, 90.0f, "%.0f");
     ImGui::SameLine();
     help_marker(_("Degrees between the aim and the body's facing before the body turns. 0 = the body always faces the aim. Keep it "
-                  "within what the spine can twist: SpineAim's limits for its first two joints (20 + 25 = 45 by default)."));
+                  "within what the spine can twist: 20 + 25 = 45 degrees on its lower and upper joints."));
     ImGui::SliderFloat(_("Body turn speed"), &turn_speed_deg, 1.0f, 90.0f, "%.0f");
     ImGui::SameLine();
     help_marker(_("Degrees per frame the body turns while standing still (the game's own gun turn is 24)."));
@@ -910,6 +910,7 @@ void ThirdPersonAim::on_gui_frame(int display) {
                         wrap_pi(aim_yaw(pl, *s) - at<float>(pl, pl::mRotateNow)) * 180.0f / kPi, at<int>(pl, kBdyUpperNo),
                         at<int>(pl, pl::mBdyActionLowerNo));
         }
+        spine_aim::draw_readout(player_info::keyboard_player());
     }
     ImGui::Unindent(lineIndent);
 }

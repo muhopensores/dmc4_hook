@@ -1134,9 +1134,8 @@ void FreeRide::on_gui_frame(int display) {
                       "then stays aimed instead of dipping between shots. 0 = back to the ride after every shot."));
         ImGui::SliderFloat(_("Shot blend in"), &gun_blend_min, 0.0f, 20.0f, "%.0f frames");
         ImGui::SameLine();
-        help_marker(_("The least blend a shot (and its aim layer) gets coming in. With Spine aim's inertial blends the shot plays at "
-                      "full strength at once and only the gap from the riding arms fades over these frames (6-8); with the game's "
-                      "crossfade a long blend dilutes the short shots (3 is quick)."));
+        help_marker(_("The least blend a shot (and its aim layer) gets coming in. The shot plays at full strength at once and only "
+                      "the gap from the riding arms fades over these frames (6-8)."));
         ImGui::SliderFloat(_("Back to ride blend"), &gun_back_blend, 1.0f, 30.0f, "%.0f frames");
         ImGui::SameLine();
         help_marker(_("How long the arms take to blend from the end of a shot back into the ride's motion."));

@@ -813,7 +813,6 @@ namespace gui {
                 pmods->on_draw_ui<DanteAirDodge>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<FreeRide>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<NeroGunslinger>(DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui<SpineAim>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<ThirdPersonAim>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<ModelExtension>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<MoveDef>(DISPLAY_SYSTEM_A);

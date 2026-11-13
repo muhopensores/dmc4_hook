@@ -186,7 +186,6 @@
 #include "mods/DanteAirDodge.hpp"
 #include "mods/FreeRide.hpp"
 #include "mods/NeroGunslinger.hpp"
-#include "mods/SpineAim.hpp"
 #include "mods/ThirdPersonAim.hpp"
 #include "mods/ViewportWindow.hpp"
 #include "mods/ChainFix.hpp"

@@ -1,6 +1,6 @@
 #include "UpperGun.hpp"
 #include "MoveTable.hpp"             // HookNeroKADTbl / HookDanteKADTbl: the gun rows matched here
-#include "SpineAim.hpp"              // inertialize: the blends
+#include "../sdk/SpineAim.hpp"       // inertialize: the blends
 #include "../sdk/Devil4.hpp"         // request_motion_body
 #include "../sdk/uActor.hpp"
 #include "../sdk/InputCommand.hpp"   // the pre-check and post-action ticks
@@ -462,6 +462,7 @@ bool install() {
     }
     if (!hook(0x7AA8C0, g_hook_pose, &detour_pose_lower, &jmp_ret_pose, 8)) return false;
     if (!hook(0x7AA860, g_hook_pose_upper, &detour_pose_upper, &jmp_ret_pose_upper, 8)) return false;
+    spine_aim::install();   // the inertial blends; failed (logged), the shots keep the game's crossfade
     input_commands::add_tick(&precheck_tick);
     input_commands::add_post_tick(&post_action_tick);
     g_installed = true;
