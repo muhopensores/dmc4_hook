@@ -376,6 +376,8 @@ set(MODS_SRC
   mods/AfterImage.cpp
   mods/EnemyAI.hpp
   mods/EnemyAI.cpp
+  mods/EnemyAIThinkTrace.hpp
+  mods/EnemyAIThinkTrace.cpp
   mods/MultiCharFixes.hpp
   mods/MultiCharFixes.cpp
   mods/PhotoMode.hpp

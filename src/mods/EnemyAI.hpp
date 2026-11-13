@@ -54,6 +54,9 @@ uintptr_t provoker(uintptr_t enemy);
 //   the row's share fsys_param[4] +0x50) the roll is set to land on this row;
 // - cooldown: flag bit 61 (high dword 0x20000000) skips its cooldown / pick-count gates.
 // How many enemies may attack at once stays EnemySlotting's.
+//
+// Think trace (Debug tab, EnemyAIThinkTrace.cpp): the same thinkCheck hook and one on cThinkMgr::GetActionNo 0x45C240
+// record the decisions of the enemy player 1 is locked on to.
 namespace anti_air {
 
 extern bool  enabled;
@@ -73,5 +76,5 @@ public:
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
 
-    std::unique_ptr<FunctionHook> hook_taunt, hook_delta, hook_think, hook_think_check;
+    std::unique_ptr<FunctionHook> hook_taunt, hook_delta, hook_think, hook_think_check, hook_get_action_no;
 };

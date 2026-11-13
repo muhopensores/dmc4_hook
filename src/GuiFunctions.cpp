@@ -830,6 +830,8 @@ namespace gui {
                 pmods->on_draw_ui<Coop>(DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui<AfterImage>(DISPLAY_SYSTEM_A);
+
+                pmods->on_draw_ui<EnemyAI>(DISPLAY_SYSTEM_B); // think trace
 #endif
                 ImGui::SeparatorText(_("Multi-character Fixes"));
 

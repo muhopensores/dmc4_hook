@@ -1,4 +1,5 @@
 #include "EnemyAI.hpp"
+#include "EnemyAIThinkTrace.hpp"
 #include "../sdk/Custom.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/MtDTI.hpp"
@@ -483,7 +484,9 @@ namespace {
 
 template <class T> inline T& at(uintptr_t base, uintptr_t off) { return *reinterpret_cast<T*>(base + off); }
 
-constexpr uintptr_t kThinkCheck    = 0x45C5E0;
+constexpr uintptr_t kThinkCheck    = 0x45C5E0;   // cThinkMgr::thinkCheck (stdcall: the manager, the row by value)
+constexpr uintptr_t kGetActionNo   = 0x45C240;   // cThinkMgr::GetActionNo (stdcall: the manager, motion state, distance,
+                                                 // angle, height, level)
 constexpr float     kAboveMin      = 100.0f;    // a row whose lower height bound is this or more needs the target above
 constexpr float     kUnbounded     = 1.0e30f;   // the tables write FLT_MAX for "no bound"
 // cThinkMgr (DX9)
@@ -500,7 +503,7 @@ constexpr uintptr_t kRowShare      = 0x50;      // fsys_param[4]
 constexpr uint32_t  kRndBlockStart = 0x400000;
 constexpr uint32_t  kNoTimerGates  = 0x20000000;   // high dword: skip the cooldown and pick-count gates
 
-uintptr_t think_check_original = 0;
+uintptr_t think_check_original = 0, get_action_no_original = 0;
 uint32_t g_adjusted = 0;   // readout
 
 void __stdcall adjust_row(uintptr_t mgr, uintptr_t row) {
@@ -528,20 +531,27 @@ void __stdcall adjust_row(uintptr_t mgr, uintptr_t row) {
     ++g_adjusted;
 }
 
-// stdcall: [esp+4] the manager, [esp+8] the row (by value)
-naked void detour_think_check() {
-    __asm {
-        cmp byte ptr [enabled], 0
-        je go
-        pushad
-        lea eax, [esp+0x28]
-        push eax
-        push dword ptr [esp+0x28]
-        call adjust_row
-        popad
-    go:
-        jmp dword ptr [think_check_original]
-    }
+// The two cThinkMgr hooks, shared with the think trace (Debug tab). Both are plain stdcall functions whose callers
+// only rely on the callee-saved registers and eax, so they are wrapped in C++: the row is a 0x68-byte argument by value.
+struct ThinkRow { uint8_t b[0x68]; };
+using ThinkCheckFn  = int(__stdcall*)(uintptr_t mgr, ThinkRow row);
+using GetActionNoFn = int(__stdcall*)(uintptr_t mgr, uint32_t mot, float leng, float deg, float height, int lv);
+
+int __stdcall think_check(uintptr_t mgr, ThinkRow row) {
+    const bool traced = think_trace::recording(mgr);
+    think_trace::Pre pre;
+    if (traced) pre = think_trace::before(mgr, &row);     // before anti-air changes the copy: its place in the table
+    adjust_row(mgr, (uintptr_t)&row);
+    const int result = reinterpret_cast<ThinkCheckFn>(think_check_original)(mgr, row);
+    if (traced) think_trace::after(mgr, &row, pre, result);
+    return result;
+}
+
+int __stdcall get_action_no(uintptr_t mgr, uint32_t mot, float leng, float deg, float height, int lv) {
+    const bool traced = think_trace::begin(mgr, mot, leng, deg, height, lv);
+    const int result = reinterpret_cast<GetActionNoFn>(get_action_no_original)(mgr, mot, leng, deg, height, lv);
+    if (traced) think_trace::end(result);
+    return result;
 }
 
 } // namespace
@@ -564,10 +574,15 @@ std::optional<std::string> EnemyAI::on_initialize() {
         spdlog::error("Provoke: failed to hook cThinkMgr::NextThinkTimer (0x45BEA0)");
         return "Failed to init Provoke (think cooldowns)";
     }
-    if (!install_hook_absolute(anti_air::kThinkCheck, hook_think_check, &anti_air::detour_think_check,
+    if (!install_hook_absolute(anti_air::kThinkCheck, hook_think_check, (void*)&anti_air::think_check,
                                &anti_air::think_check_original)) {
         spdlog::error("EnemyAI: failed to hook cThinkMgr::thinkCheck (0x45C5E0)");
         return "Failed to init EnemyAI (anti-air)";
+    }
+    if (!install_hook_absolute(anti_air::kGetActionNo, hook_get_action_no, (void*)&anti_air::get_action_no,
+                               &anti_air::get_action_no_original)) {
+        spdlog::error("EnemyAI: failed to hook cThinkMgr::GetActionNo (0x45C240)");
+        return "Failed to init EnemyAI (think trace)";
     }
     return Mod::on_initialize();
 }
@@ -575,9 +590,14 @@ std::optional<std::string> EnemyAI::on_initialize() {
 void EnemyAI::on_frame(fmilliseconds& dt) {
     g_frame = g_frame + 1;
     if (rim_glow::update_base()) g_cube.update(aura_color);
+    think_trace::draw_window();
 }
 
 void EnemyAI::on_gui_frame(int display) {
+    if (display == DISPLAY_SYSTEM_B) {     // the Debug tab: the think trace's switch (its window is drawn in on_frame)
+        think_trace::draw_toggle();
+        return;
+    }
     if (display != DISPLAY_SYSTEM_A) return;
     ImGui::PushID("EnemyAI");
     ImGui::SeparatorText(_("Provoke"));
