@@ -2,6 +2,7 @@
 #include "Coop.hpp"
 #include "CoopDiag.hpp"
 #include "CoopPads.hpp"
+#include "CoopPvp.hpp"
 #include "../../mod.hpp"
 #include "../../sdk/Cam.hpp"
 #include "../../mods/MultiCharFixes.hpp"
@@ -97,7 +98,7 @@ using GetNearLengthFn = int(__stdcall*)(uintptr_t actor, const float* pos, float
 const GetNearLengthFn get_near_length = reinterpret_cast<GetNearLengthFn>(0x4A8620);   // uActor::getNearLengthSpherIdx
 using GetCenterPosFn = float*(__fastcall*)(uintptr_t actor, uintptr_t edx, float* out);
 
-struct SavedTarget { uintptr_t target; float length; uint8_t in, camera_in, inter; float near_pos[3]; };
+struct SavedTarget { uintptr_t target; float length; uint8_t in, camera_in, inter, no_target; float near_pos[3]; };
 SavedTarget lock_saved[kMaxTargets];
 int         lock_saved_n = 0;
 bool        lock_swapped = false;
@@ -643,6 +644,7 @@ void apply_lock(int slot, uintptr_t player) {
             s.in = at<uint8_t>(t, kTgtIn);
             s.camera_in = at<uint8_t>(t, kTgtCameraIn);
             s.inter = at<uint8_t>(t, 0x39);
+            s.no_target = at<uint8_t>(t, 0x38);
             for (int k = 0; k < 3; k++) s.near_pos[k] = at<float>(t, kTgtNearPos + 4 * k);
             for (int i = 0; i < c.n; i++) {
                 const CacheEntry& e = c.e[i];
@@ -656,6 +658,7 @@ void apply_lock(int slot, uintptr_t player) {
         }
     }
     set_inter_flags(mgr, player);
+    coop_pvp::targets_for(player);   // the players' targets: mIsNoTarget as for him
     lock_applied = true;
     lock_applied_slot = slot;
 }
@@ -668,6 +671,7 @@ void restore_lock() {
         at<uint8_t>(s.target, kTgtIn) = s.in;
         at<uint8_t>(s.target, kTgtCameraIn) = s.camera_in;
         at<uint8_t>(s.target, 0x39) = s.inter;
+        at<uint8_t>(s.target, 0x38) = s.no_target;
         for (int k = 0; k < 3; k++) at<float>(s.target, kTgtNearPos + 4 * k) = s.near_pos[k];
     }
     lock_saved_n = 0;

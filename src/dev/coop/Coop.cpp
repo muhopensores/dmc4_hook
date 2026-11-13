@@ -921,13 +921,35 @@ void* __fastcall update_lock_on(uintptr_t player, uintptr_t edx) {
     if (!Coop::mod_enabled) {
         return update_lock_on_original(player, edx);
     }
-    coop_pvp::before_lock_on(player);
     coop_context::inter_flags_for(player);
-    const bool began = coop_context::lock_on_begin(player);
+    const bool began = coop_context::lock_on_begin(player);   // first: its restore must come after after_lock_on's
+    coop_pvp::before_lock_on(player);
     coop_pvp::prefer_players(player);
     void* result = update_lock_on_original(player, edx);
     coop_pvp::after_lock_on();
     coop_context::lock_on_report(player);
+    if (began) {
+        coop_context::lock_on_end();
+    }
+    return result;
+}
+
+// uPlayer::updatePtr (thiscall; Nero's 0x7E2B80 and Dante's 0x7B3760 call it; aRoom::updateActor 0x40E0E0 runs every
+// actor's in one pass, outside the players' contexts) drops the held lock (mLockOn.pTarget +0x3080) when its target
+// fails checkLen or has mIsNoTarget set. Each player's runs with his own lock-on values, as his updateLockOn does: a
+// player 2-4's lock on a player (or on an enemy out of player 1's reach) was dropped every frame.
+constexpr uintptr_t kUpdatePtr = 0x7A7C20;
+using UpdatePtrFn = int(__fastcall*)(uintptr_t player, uintptr_t edx);
+UpdatePtrFn update_ptr_original = nullptr;
+
+int __fastcall update_ptr(uintptr_t player, uintptr_t edx) {
+    if (!Coop::mod_enabled) {
+        return update_ptr_original(player, edx);
+    }
+    const bool began = coop_context::lock_on_begin(player);
+    coop_pvp::before_lock_on(player);
+    const int result = update_ptr_original(player, edx);
+    coop_pvp::after_lock_on();
     if (began) {
         coop_context::lock_on_end();
     }
@@ -1149,6 +1171,12 @@ std::optional<std::string> Coop::on_initialize() {
         return "Failed to init Coop: lock-on";
     }
     update_lock_on_original = hook_lock_on->get_original<std::remove_pointer_t<UpdateLockOnFn>>();
+    hook_update_ptr = std::make_unique<FunctionHook>(kUpdatePtr, (uintptr_t)&update_ptr);
+    if (!hook_update_ptr->create()) {
+        spdlog::error("Failed to init Coop (updatePtr)\n");
+        return "Failed to init Coop: lock-on (updatePtr)";
+    }
+    update_ptr_original = hook_update_ptr->get_original<std::remove_pointer_t<UpdatePtrFn>>();
     hook_disp_sphere = std::make_unique<FunctionHook>(kIsDispSphere, (uintptr_t)&detour_disp_sphere);
     if (!hook_disp_sphere->create()) {
         spdlog::error("Failed to init Coop (isDispSphere)\n");

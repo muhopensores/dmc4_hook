@@ -68,9 +68,10 @@ std::optional<std::string> install();   // the hooks; an error text on failure
 void tick();                            // game thread, once a frame: the em_dante rows in while PvP hits is on
 void retry();                           // try loading them again (PvP toggled)
 void stage_end();
-void before_lock_on(uintptr_t player);  // before a player's uPlayer::updateLockOn: the players' targets for him
+void before_lock_on(uintptr_t player);  // before a player's lock-on read (updateLockOn, updatePtr): the players' targets for him
 void prefer_players(uintptr_t player);  // after his lock-on values are in, just before the game's updateLockOn
-void after_lock_on();                   // after it: what prefer_players hid comes back
+void after_lock_on();                   // after it: what prefer_players hid comes back, and the flags before_lock_on replaced
+void targets_for(uintptr_t viewer);     // the players' targets skipped as for `viewer` (CoopContext: his lock-on values in)
 bool grabs_ready();                     // the rows are in: players can be grabbed
 const char* grabs_error();              // why not
 void draw_grab_diag();                   // the grab counters (Coop's Diagnostics)

@@ -151,9 +151,51 @@ bool rows_tried = false;                       // a failed load isn't retried un
 uintptr_t victim_bank[coop::kMaxPlayers] = {}; // the Nero unit whose bank 9 holds the victim motions
 
 // The player (0-3) an actor is or belongs to; the Devil Bringer's grab collision counts for its Nero.
+// Charge Shot 3's bomb: the hit (attack id 9, wp000.atk CHARGE_Lv3_*) doesn't make it, the unit hit does: enemies'
+// damageMessage call uEnemy::setBombShl 0x735370 (uEm000Base::damageMessage 0x557EAE), the boss Dante's sub_729010
+// (0x7C55CA; edi = the unit, joint from its vtable +0x88), and uPlayer::damageMessage 0x7AD950 neither, so a player hit
+// by it got no bomb. The bomb (0x1F80 bytes, vtable 0xBD8CC0, move line 0x10, Collision\em_bomb_shl) follows its host's
+// joint (+0x1380 host, +0x1F74 joint) and when its timer runs out (or the host's +0xEA8 bit 0x80) sets em_bomb_shl's
+// attack groups 0 (everyone), 1 (not the host) and 2 (host +0xEA8 & 0x400). It keeps no shooter, so the ones Coop makes
+// for a player hit are listed here with the player who fired: owner_of_actor answers him, so setVsAttr gives the
+// groups the attacks-players bit and same_player keeps him out of his own blast.
+constexpr uintptr_t kSetPlayerBomb = 0x729010;   // edi = the unit hit; returns the bomb
+constexpr uintptr_t kBombVtable    = 0xBD8CC0;
+constexpr uintptr_t kBombHost      = 0x1380;
+constexpr uint32_t  kChargeShot3Id = 9;          // kAttackStatus mAttackID (cCollisionGroup +0xB4)
+uintptr_t fn_set_player_bomb = kSetPlayerBomb;
+
+struct Bomb { uintptr_t unit = 0, host = 0; int owner = -1; };
+Bomb bombs[16];
+int bomb_next = 0;
+
+naked_extern uintptr_t __stdcall set_player_bomb(uintptr_t victim) {
+    __asm {
+        push edi
+        mov edi, [esp+8]
+        call dword ptr [fn_set_player_bomb]
+        pop edi
+        ret 4
+    }
+}
+
+// The player who fired bomb `actor`, -1 if it isn't one of Coop's. A bomb whose class or host changed is another one
+// at a reused address.
+int bomb_owner(uintptr_t actor) {
+    for (Bomb& b : bombs) {
+        if (!b.unit || b.unit != actor) continue;
+        if (at<uintptr_t>(actor, 0) == kBombVtable && at<uintptr_t>(actor, kBombHost) == b.host) return b.owner;
+        b = {};
+    }
+    return -1;
+}
+
 int owner_of_actor(uintptr_t actor) {
     if (!actor) {
         return -1;
+    }
+    if (const int b = bomb_owner(actor); b >= 0) {
+        return b;
     }
     if (at<uintptr_t>(actor, 0) == kHandCtrlVtable) {
         return coop_context::player_of(at<uintptr_t>(actor, kHandCtrlNero));
@@ -1521,7 +1563,7 @@ constexpr uintptr_t kGroupDtAdd   = 0xEC;
 constexpr uintptr_t kDtGainFactor = 0xDECDC8;
 constexpr uintptr_t kIsDevilTrg   = 0x218;
 constexpr uintptr_t kDtNow = 0x1F24, kDtMax = 0x1F28;
-uintptr_t pvp_attacker = 0, pvp_attack_group = 0;
+uintptr_t pvp_attacker = 0, pvp_attack_group = 0, pvp_victim = 0;
 
 void __stdcall defend_begin(uintptr_t damage, uintptr_t attack_group, uintptr_t defend_group) {
     swapped_damage = 0;
@@ -1537,6 +1579,7 @@ void __stdcall defend_begin(uintptr_t damage, uintptr_t attack_group, uintptr_t 
     }
     pvp_attacker = coop::players[attacker].unit;
     pvp_attack_group = attack_group;
+    pvp_victim = player;
     const uintptr_t entry = at<uintptr_t>(damage, kDefendStatus);
     if (!entry || _strnicmp((const char*)entry, "no-deffend", 10) == 0) {
         return;
@@ -1562,7 +1605,15 @@ void __stdcall defend_end() {
     }
     const uintptr_t pl = pvp_attacker;
     pvp_attacker = 0;
-    if (!pl || !coop_pvp::dt_from_players || body_player(pl) < 0) {
+    const int shooter = body_player(pl);
+    if (pl && shooter >= 0 && pvp_victim && at<uint32_t>(pvp_attack_group, 0xB4) == kChargeShot3Id) {
+        if (const uintptr_t bomb = set_player_bomb(pvp_victim)) {   // as enemies' damageMessage do (above)
+            bombs[bomb_next] = {bomb, pvp_victim, shooter};
+            bomb_next = (bomb_next + 1) % 16;
+        }
+    }
+    pvp_victim = 0;
+    if (!pl || !coop_pvp::dt_from_players || shooter < 0) {
         return;
     }
     const float gain = at<float>(pvp_attack_group, kGroupDtAdd) * at<float>(kDtGainFactor, 0);
@@ -1641,8 +1692,15 @@ naked_extern void detour_damage_calc() {
 // (uActor +0xEF0 count, +0xF00 LOCKONSPHERE_DAT[16]: world sphere, +0x10 joint, +0x20 offset; the boss: one, joint 0,
 // radius 50) through uActor::getNearLengthSpherIdx 0x4A8620.
 // While PvP hits is on each player has a target of ours (with the boss's sphere), kept in the list from the game thread
-// (tick); before each player's updateLockOn his own target (and a dead player's) is skipped and, for player 1, the
-// values are computed for him (CoopContext computes every target's for players 2-4).
+// (tick); before each player's updateLockOn the values are computed for player 1 (CoopContext computes every target's
+// for players 2-4).
+// mIsNoTarget is one byte per target for every player, and uPlayer::updatePtr 0x7A7C20 (aRoom::updateActor 0x40E0E0,
+// every actor in one pass, outside the players' contexts) drops a held lock whose target has it set or is out of range
+// (checkLen): with one player's flags left in, the others' locks on players were dropped every frame and picked again,
+// so the target switch never kept a player and Players first never let go of one. So each player's own target is
+// skipped for him only and a downed player's for everyone (flag_targets): player 1's flags are the base, a player
+// 2-4's go in with his lock-on values (CoopContext's apply_lock calls targets_for) or around a lock-on read outside
+// his context (before_lock_on / after_lock_on), and come back after.
 constexpr uintptr_t kLockMgr        = 0xE558B0;
 constexpr uintptr_t kJobSafe        = 0xE559B9;   // cSystem::mJobSafe
 constexpr uintptr_t kTargetVtable   = 0xB9A464;
@@ -1735,6 +1793,7 @@ void lock_tick() {
             at<float>(t, 0x24) = 100000.0f;   // out of range until measured
             at<float>(t, 0x30) = 30.0f;       // as an enemy's
             at<bool>(t, 0x36) = true;         // misCatch
+            at<bool>(t, 0x38) = unit == coop::players[0].unit;   // player 1's flags (never himself)
             if (at<uint32_t>(unit, kSphereNum) == 0) {   // the boss Dante's: one sphere on joint 0, radius 50
                 at<uint32_t>(unit, kSphereNum) = 1;
                 at<float>(unit, kSphere + 0x0C) = 50.0f;
@@ -1770,18 +1829,42 @@ void drop_all_targets() {
     }
 }
 
+// The players' targets as `viewer` may pick them: never himself, nor a downed player.
+void flag_targets(uintptr_t mgr, uintptr_t viewer) {
+    for (Target& target : lock_targets) {
+        const uintptr_t t = (uintptr_t)target.raw;
+        const uintptr_t unit = at<uintptr_t>(t, 0x08);
+        if (!unit || !in_list(mgr, t)) continue;
+        at<bool>(t, 0x38) = unit == viewer || at<bool>(unit, kIsDead);
+    }
+}
+
+// A player 2-4's flags put in for one lock-on read, and the ones they replaced.
+uint8_t flags_saved[coop::kMaxPlayers];
+bool flags_pushed = false;
+
+void pop_flags() {
+    if (!flags_pushed) return;
+    for (int j = 0; j < coop::kMaxPlayers; j++) at<uint8_t>((uintptr_t)lock_targets[j].raw, 0x38) = flags_saved[j];
+    flags_pushed = false;
+}
+
 void __stdcall before_lock_on_impl(uintptr_t player) {
     const uintptr_t mgr = at<uintptr_t>(kLockMgr, 0);
     if (!mgr || !active()) return;
     const bool player1 = body_player(player) == 0;
+    if (!player1 && !flags_pushed) {
+        for (int j = 0; j < coop::kMaxPlayers; j++) flags_saved[j] = at<uint8_t>((uintptr_t)lock_targets[j].raw, 0x38);
+        flags_pushed = true;
+    }
+    flag_targets(mgr, player);
+    if (!player1) return;
     float center[4] = {};
-    if (player1) center_of(player, center);
+    center_of(player, center);
     for (int j = 0; j < coop::kMaxPlayers; j++) {
         const uintptr_t t = (uintptr_t)lock_targets[j].raw;
         const uintptr_t unit = at<uintptr_t>(t, 0x08);
-        if (!unit || !in_list(mgr, t)) continue;
-        at<bool>(t, 0x38) = unit == player || at<bool>(unit, kIsDead);   // never himself, nor a downed player
-        if (!player1 || unit == player) continue;
+        if (!unit || unit == player || !in_list(mgr, t)) continue;
         float length = at<float>(t, 0x24);
         char camera_in = (char)at<uint8_t>(t, 0x37), in = (char)at<uint8_t>(t, 0x34);
         float near_pos[4] = {at<float>(t, 0x40), at<float>(t, 0x44), at<float>(t, 0x48), 0.0f};
@@ -1796,7 +1879,9 @@ void __stdcall before_lock_on_impl(uintptr_t player) {
 
 // Players first: while one of the other players' targets is pickable for this player (in range and in his view, with
 // his values in: after CoopContext's lock_on_begin), every other target is skipped (mIsNoTarget) for his updateLockOn
-// only, and put back after.
+// only, and put back after. Only while he holds no lock (mLockOn.pTarget +0x3080, which updatePtr has already
+// checked): the target switch (sub_450ED0, from his held lock) walks every target, and hiding the enemies there kept
+// him on the player.
 constexpr int kMaxHidden = 512;
 uintptr_t hidden[kMaxHidden];
 int hidden_n = 0;
@@ -1808,7 +1893,7 @@ bool pickable(uintptr_t t) {
 void __stdcall prefer_players_impl(uintptr_t player) {
     hidden_n = 0;
     const uintptr_t mgr = at<uintptr_t>(kLockMgr, 0);
-    if (!mgr || !active() || !coop_pvp::players_first) return;
+    if (!mgr || !active() || !coop_pvp::players_first || at<uintptr_t>(player, 0x3080)) return;
     bool any = false;
     for (Target& target : lock_targets) {
         const uintptr_t t = (uintptr_t)target.raw;
@@ -1957,10 +2042,17 @@ void prefer_players(uintptr_t player) {
 
 void after_lock_on() {
     restore_hidden();
+    pop_flags();
+}
+
+void targets_for(uintptr_t viewer) {
+    const uintptr_t mgr = at<uintptr_t>(kLockMgr, 0);
+    if (mgr && active() && viewer) flag_targets(mgr, viewer);
 }
 
 void stage_end() {
     drop_all_targets();
+    for (Bomb& b : bombs) b = {};
     arc_rows::release(rows);
     rows_tried = false;
     for (uintptr_t& b : victim_bank) b = 0;
