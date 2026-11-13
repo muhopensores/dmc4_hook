@@ -1203,3 +1203,922 @@ static_assert(offsetof(uPlayer, mIsEnableAtckForceCancel) == 0x3236);
 static_assert(offsetof(uPlayer, mIsEmDanteReverse) == 0x3237);
 static_assert(offsetof(uPlayer, mShotRepeatParam) == 0x3238);
 static_assert(offsetof(uPlayer, mShotChargeParam) == 0x324c);
+
+// The DX9 characters, from the IDB's uPlayerNero::uPlayerNero (0xD680), uPlayerDante::uPlayerDante (0x152F0) and
+// uPlayerDanteBoss::uPlayerDanteBoss (0x16340): SE names placed at the offsets the DX9 constructors write
+// (0x7E1B30, 0x7B2150, 0x7BF9B0); the IDB's member comments say which. Nested types the base declares are reused.
+class uPlayerNero : public uPlayer {
+public:
+    enum NERO_HIT_TYPE : int32_t {
+        HIT_NO_GRAB = 0,
+        HIT_WALL = 1,
+        HIT_SG_GRAB = 2,
+        HIT_LG_GRAB = 3,
+    };
+    enum uEnemy__GRAB_REACTION : int32_t {
+        GR_DEFAULT = 0,
+        GR_PULL_FAIL = 1,
+        GR_PULL_FAIL_L = 2,
+        GR_PULL_ENEMY = 3,
+        GR_PULL_PLAYER = 4,
+        GR_PULL_RETURN = 5,
+        GR_PULL_RETURN_NO_HITSTOP = 6,
+        GR_GRAB_FAIL = 7,
+        GR_GRAB_FAIL_L = 8,
+        GR_GRAB_SHORT_0 = 9,
+        GR_GRAB_SHORT_1 = 10,
+        GR_GRAB_SHORT_2 = 11,
+        GR_GRAB_SHORT_3 = 12,
+        GR_GRAB_SHORT_4 = 13,
+        GR_GRAB_SHORT_5 = 14,
+        GR_GRAB_SHORT_6 = 15,
+        GR_GRAB_SHORT_7 = 16,
+        GR_GRAB_SHORT_8 = 17,
+        GR_GRAB_SHORT_9 = 18,
+        GR_GRAB_HITSTOP = 19,
+    };
+    struct cCnsMatrix {
+        cConstraint baseclass; // 0x0
+        MtMatrix mOfsMat; // 0x20
+        void*  /* MtMath::MtMatrix * */ mpMat; // 0x60
+        char pad_64[0xc];
+    };
+    static_assert(sizeof(cCnsMatrix) == 0x70);
+    struct kMdlHead {
+        uDevil4Model mdl; // 0x0
+        cCnsMatrix cnsMtrx[5]; // 0xea0
+    };
+    static_assert(sizeof(kMdlHead) == 0x10d0);
+    struct kMdlHair {
+        uDevil4Model mdl; // 0x0
+        cCnsMatrix cnsMtrx[2]; // 0xea0
+    };
+    static_assert(sizeof(kMdlHair) == 0xf80);
+    struct cClothCtrl {
+        char pad_0[0x11d0];
+    };
+    static_assert(sizeof(cClothCtrl) == 0x11d0);
+    struct kMdlCoat {
+        uDevil4Model mdl; // 0x0
+        cCnsMatrix cnsMtrx[1]; // 0xea0
+        cClothCtrl clthCtrl[6]; // 0xf10
+    };
+    static_assert(sizeof(kMdlCoat) == 0x79f0);
+    struct cGrabHitInfo {
+        NERO_HIT_TYPE type; // 0x0
+        uEnemy__GRAB_REACTION reaction; // 0x4
+        char pad_8[0x8];
+        MtVector3 pos; // 0x10
+        uActor* actor; // 0x20
+        char pad_24[0xc];
+    };
+    static_assert(sizeof(cGrabHitInfo) == 0x30);
+    struct MtObject {
+        void*  /* MtObject_vtbl * */ vtable; // 0x0
+    };
+    static_assert(sizeof(MtObject) == 0x4);
+    struct cOverDriveGuage__kGuageParam {
+        float spd; // 0x0
+        float add; // 0x4
+        float spdMax; // 0x8
+        float sub; // 0xc
+        float max; // 0x10
+    };
+    static_assert(sizeof(cOverDriveGuage__kGuageParam) == 0x14);
+    struct cOverDriveGuage {
+        MtObject base_0; // 0x0
+        int32_t mStock; // 0x4
+        int32_t mStockOld; // 0x8
+        int32_t mEfctStock; // 0xc
+        float mNow; // 0x10
+        float mBase; // 0x14
+        float mTarget; // 0x18
+        float mOldVal; // 0x1c
+        float mBaseVal; // 0x20
+        float mValReq; // 0x24
+        float mEfctTimer; // 0x28
+        int32_t mPhase; // 0x2c
+        int32_t mBoostEfctType; // 0x30
+        cOverDriveGuage__kGuageParam mParam; // 0x34
+        float mSpd; // 0x48
+        void*  /* uPlayerNero * */ mpParent; // 0x4c
+        void*  /* uPlWeapon * */ mpWeapon; // 0x50
+    };
+    static_assert(sizeof(cOverDriveGuage) == 0x54);
+    struct cDevilTrgAtckCheck {
+        char pad_0[0x4];
+        uPlayer* mpParent; // 0x4
+        bool mIsApprove; // 0x8
+        char pad_9[0x3];
+        float mApproveTimer; // 0xc
+        bool mIsOnGrabBtn; // 0x10
+        bool mIsOnShortAtckBtn; // 0x11
+        char pad_12[0x2];
+        float mGrabBtnTimer; // 0x14
+        float mShortAtckBtnTimer; // 0x18
+    };
+    static_assert(sizeof(cDevilTrgAtckCheck) == 0x1c);
+
+    kMdlHead mHead; // 0x3270
+    kMdlHair mHair; // 0x4340
+    kMdlCoat mCoat; // 0x52c0
+    cGrabHitInfo mGrabHitInfo; // 0xccb0
+    bool mIsGrab; // 0xcce0
+    bool mIsEventGrab; // 0xcce1
+    bool mIsGrabEnable; // 0xcce2
+    char pad_cce3[0x1];
+    cOverDriveGuage mOdGaugeCtrl; // 0xcce4
+    char pad_cd38[0x8];
+    uint8_t mSoundEngine[64]; // 0xcd40
+    bool mIsHitODHiTime; // 0xcd80
+    bool mIsHitMessage; // 0xcd81
+    char pad_cd82[0xe];
+    MtVector3 mTmpPos; // 0xcd90
+    uint32_t /* signed __int32 */ mCsEfctPhase; // 0xcda0
+    uint32_t /* signed __int32 */ mODStockUseNum; // 0xcda4
+    uint32_t /* signed __int32 */ mODStockUsePhase; // 0xcda8
+    bool mIsODGaugeKeep; // 0xcdac
+    char pad_cdad[0x3];
+    uint32_t /* signed __int32 */ mODJumpCnt; // 0xcdb0
+    bool mIsODFollowThroughEnable; // 0xcdb4
+    char pad_cdb5[0x3];
+    float mODFollowThroughRefuseTimer; // 0xcdb8
+    float mODJustFollowThroughTimer; // 0xcdbc
+    float mODKeepTimer; // 0xcdc0
+    cDevilTrgAtckCheck mDTAtckCehck; // 0xcdc4
+    bool mIsDTAtckCheckEnable; // 0xcde0
+    char pad_cde1[0x3];
+    float mDTAtckCheckEnableTimer; // 0xcde4
+    uint32_t /* signed __int32 */ mJustEscapeCnt; // 0xcde8
+    uint32_t /* signed __int32 */ mAirStingerCnt; // 0xcdec
+    bool mIsCheckingEnemyBlock; // 0xcdf0
+    bool mIsEnableEnemyBlockCheck; // 0xcdf1
+    bool mIsCheckEndEnemyBlock; // 0xcdf2
+    bool mIsEnemyBlockCnclRsrv; // 0xcdf3
+    bool mIsDevilYamatoEnable; // 0xcdf4
+    bool mIsAfterEnemyBlock; // 0xcdf5
+    char pad_cdf6[0x2];
+    void*  /* uPlNeroDevil::uPlNeroDevil * */ mpDevilStand; // 0xcdf8
+    bool mIsShortGrabHitStopReq; // 0xcdfc
+    char pad_cdfd[0x3];
+    float mShortGrabHitStopTimer; // 0xce00
+    bool mIsEnemyBlockGuardStopReq; // 0xce04
+    char pad_ce05[0x3];
+    float mEnemyBlockGuardStopTimer; // 0xce08
+    uActor* mpEnemyBlockGuardStopTarget; // 0xce0c
+    bool mIsEnemyBlockBusterEnable; // 0xce10
+    bool mIsEnemyBuster; // 0xce11
+    bool mIsFollowThroughSuccess; // 0xce12
+    bool mIsSSSPowerUp; // 0xce13
+    bool mIsCatchCMsgJustEscape; // 0xce14
+    bool mIsCatchCMsgFindSecretMissionS; // 0xce15
+    bool mIsCatchCMsgFindSecretMissionM; // 0xce16
+    bool mIsCatchCMsgFindSecretMissionL; // 0xce17
+    bool mIsCatchCMsgEnemyBlockReleaseEm; // 0xce18
+    char pad_ce19[0x7];
+    uCollisionMgr mBdyCollMgr; // 0xce20
+    uCollisionMgr mODCollMgr; // 0xd210
+    uint32_t /* signed __int32 */ mIllusionSword; // 0xd600
+    float mIllusionSwordTime; // 0xd604
+    float mIllusionSwordChargeTime; // 0xd608
+    uint32_t /* signed __int32 */ mIllusionSwordChargeRno; // 0xd60c
+    float mEnemyGuardEnableAngle; // 0xd610
+    uint32_t /* signed __int32 */ mShotChargeLv; // 0xd614
+    uint32_t /* signed __int32 */ mDTEfctPhase; // 0xd618
+    uint32_t /* signed __int32 */ mDTEfctLv; // 0xd61c
+    uint32_t /* signed __int32 */ mRedQueenComboExceedLv; // 0xd620
+    bool mIsEnemyBlockingWeight; // 0xd624
+    bool mIsBusterWeight; // 0xd625
+    bool mIsBlueRoseAutoShot; // 0xd626
+    bool mIsBlueRoseAutoCharge; // 0xd627
+    uint32_t mCharTblBank; // 0xd628
+    uint32_t /* signed __int32 */ mBusterScareMotOfs; // 0xd62c
+    MtVector3 mSnatchTargetPos; // 0xd630
+    uint32_t /* signed __int32 */ mAfterHellBoundCnt; // 0xd640
+    bool mUseBusterMotionRsrc; // 0xd644
+    char pad_d645[0xb];
+    MtVector3 mCorrectOfst; // 0xd650
+    bool mIsDanteBuster; // 0xd660
+    bool mIsRequestDT; // 0xd661
+    char pad_d662[0x2];
+    uEnemy* mpSGEnemy; // 0xd664
+    uint32_t /* signed __int32 */ mSgPhase; // 0xd668
+    void* mpSGActionFunc; // 0xd66c
+    bool mIsAutoFollowThrough; // 0xd670
+    bool mIsAutoJustFollowThrough; // 0xd671
+    bool mIsAutoHitimeJump; // 0xd672
+    char pad_d673[0x1];
+    uint32_t /* signed __int32 */ mAutoGrabAtckId; // 0xd674
+    bool mIsAfterSnatchHit; // 0xd678
+    char pad_d679[0x3];
+    cLockonTarget* mSnatchHitTarget; // 0xd67c
+};
+static_assert(sizeof(uPlayerNero) == 0xd680);
+static_assert(offsetof(uPlayerNero, mHead) == 0x3270);
+static_assert(offsetof(uPlayerNero, mHair) == 0x4340);
+static_assert(offsetof(uPlayerNero, mCoat) == 0x52c0);
+static_assert(offsetof(uPlayerNero, mGrabHitInfo) == 0xccb0);
+static_assert(offsetof(uPlayerNero, mIsGrab) == 0xcce0);
+static_assert(offsetof(uPlayerNero, mIsEventGrab) == 0xcce1);
+static_assert(offsetof(uPlayerNero, mIsGrabEnable) == 0xcce2);
+static_assert(offsetof(uPlayerNero, mOdGaugeCtrl) == 0xcce4);
+static_assert(offsetof(uPlayerNero, mSoundEngine) == 0xcd40);
+static_assert(offsetof(uPlayerNero, mIsHitODHiTime) == 0xcd80);
+static_assert(offsetof(uPlayerNero, mIsHitMessage) == 0xcd81);
+static_assert(offsetof(uPlayerNero, mTmpPos) == 0xcd90);
+static_assert(offsetof(uPlayerNero, mCsEfctPhase) == 0xcda0);
+static_assert(offsetof(uPlayerNero, mODStockUseNum) == 0xcda4);
+static_assert(offsetof(uPlayerNero, mODStockUsePhase) == 0xcda8);
+static_assert(offsetof(uPlayerNero, mIsODGaugeKeep) == 0xcdac);
+static_assert(offsetof(uPlayerNero, mODJumpCnt) == 0xcdb0);
+static_assert(offsetof(uPlayerNero, mIsODFollowThroughEnable) == 0xcdb4);
+static_assert(offsetof(uPlayerNero, mODFollowThroughRefuseTimer) == 0xcdb8);
+static_assert(offsetof(uPlayerNero, mODJustFollowThroughTimer) == 0xcdbc);
+static_assert(offsetof(uPlayerNero, mODKeepTimer) == 0xcdc0);
+static_assert(offsetof(uPlayerNero, mDTAtckCehck) == 0xcdc4);
+static_assert(offsetof(uPlayerNero, mIsDTAtckCheckEnable) == 0xcde0);
+static_assert(offsetof(uPlayerNero, mDTAtckCheckEnableTimer) == 0xcde4);
+static_assert(offsetof(uPlayerNero, mJustEscapeCnt) == 0xcde8);
+static_assert(offsetof(uPlayerNero, mAirStingerCnt) == 0xcdec);
+static_assert(offsetof(uPlayerNero, mIsCheckingEnemyBlock) == 0xcdf0);
+static_assert(offsetof(uPlayerNero, mIsEnableEnemyBlockCheck) == 0xcdf1);
+static_assert(offsetof(uPlayerNero, mIsCheckEndEnemyBlock) == 0xcdf2);
+static_assert(offsetof(uPlayerNero, mIsEnemyBlockCnclRsrv) == 0xcdf3);
+static_assert(offsetof(uPlayerNero, mIsDevilYamatoEnable) == 0xcdf4);
+static_assert(offsetof(uPlayerNero, mIsAfterEnemyBlock) == 0xcdf5);
+static_assert(offsetof(uPlayerNero, mpDevilStand) == 0xcdf8);
+static_assert(offsetof(uPlayerNero, mIsShortGrabHitStopReq) == 0xcdfc);
+static_assert(offsetof(uPlayerNero, mShortGrabHitStopTimer) == 0xce00);
+static_assert(offsetof(uPlayerNero, mIsEnemyBlockGuardStopReq) == 0xce04);
+static_assert(offsetof(uPlayerNero, mEnemyBlockGuardStopTimer) == 0xce08);
+static_assert(offsetof(uPlayerNero, mpEnemyBlockGuardStopTarget) == 0xce0c);
+static_assert(offsetof(uPlayerNero, mIsEnemyBlockBusterEnable) == 0xce10);
+static_assert(offsetof(uPlayerNero, mIsEnemyBuster) == 0xce11);
+static_assert(offsetof(uPlayerNero, mIsFollowThroughSuccess) == 0xce12);
+static_assert(offsetof(uPlayerNero, mIsSSSPowerUp) == 0xce13);
+static_assert(offsetof(uPlayerNero, mIsCatchCMsgJustEscape) == 0xce14);
+static_assert(offsetof(uPlayerNero, mIsCatchCMsgFindSecretMissionS) == 0xce15);
+static_assert(offsetof(uPlayerNero, mIsCatchCMsgFindSecretMissionM) == 0xce16);
+static_assert(offsetof(uPlayerNero, mIsCatchCMsgFindSecretMissionL) == 0xce17);
+static_assert(offsetof(uPlayerNero, mIsCatchCMsgEnemyBlockReleaseEm) == 0xce18);
+static_assert(offsetof(uPlayerNero, mBdyCollMgr) == 0xce20);
+static_assert(offsetof(uPlayerNero, mODCollMgr) == 0xd210);
+static_assert(offsetof(uPlayerNero, mIllusionSword) == 0xd600);
+static_assert(offsetof(uPlayerNero, mIllusionSwordTime) == 0xd604);
+static_assert(offsetof(uPlayerNero, mIllusionSwordChargeTime) == 0xd608);
+static_assert(offsetof(uPlayerNero, mIllusionSwordChargeRno) == 0xd60c);
+static_assert(offsetof(uPlayerNero, mEnemyGuardEnableAngle) == 0xd610);
+static_assert(offsetof(uPlayerNero, mShotChargeLv) == 0xd614);
+static_assert(offsetof(uPlayerNero, mDTEfctPhase) == 0xd618);
+static_assert(offsetof(uPlayerNero, mDTEfctLv) == 0xd61c);
+static_assert(offsetof(uPlayerNero, mRedQueenComboExceedLv) == 0xd620);
+static_assert(offsetof(uPlayerNero, mIsEnemyBlockingWeight) == 0xd624);
+static_assert(offsetof(uPlayerNero, mIsBusterWeight) == 0xd625);
+static_assert(offsetof(uPlayerNero, mIsBlueRoseAutoShot) == 0xd626);
+static_assert(offsetof(uPlayerNero, mIsBlueRoseAutoCharge) == 0xd627);
+static_assert(offsetof(uPlayerNero, mCharTblBank) == 0xd628);
+static_assert(offsetof(uPlayerNero, mBusterScareMotOfs) == 0xd62c);
+static_assert(offsetof(uPlayerNero, mSnatchTargetPos) == 0xd630);
+static_assert(offsetof(uPlayerNero, mAfterHellBoundCnt) == 0xd640);
+static_assert(offsetof(uPlayerNero, mUseBusterMotionRsrc) == 0xd644);
+static_assert(offsetof(uPlayerNero, mCorrectOfst) == 0xd650);
+static_assert(offsetof(uPlayerNero, mIsDanteBuster) == 0xd660);
+static_assert(offsetof(uPlayerNero, mIsRequestDT) == 0xd661);
+static_assert(offsetof(uPlayerNero, mpSGEnemy) == 0xd664);
+static_assert(offsetof(uPlayerNero, mSgPhase) == 0xd668);
+static_assert(offsetof(uPlayerNero, mpSGActionFunc) == 0xd66c);
+static_assert(offsetof(uPlayerNero, mIsAutoFollowThrough) == 0xd670);
+static_assert(offsetof(uPlayerNero, mIsAutoJustFollowThrough) == 0xd671);
+static_assert(offsetof(uPlayerNero, mIsAutoHitimeJump) == 0xd672);
+static_assert(offsetof(uPlayerNero, mAutoGrabAtckId) == 0xd674);
+static_assert(offsetof(uPlayerNero, mIsAfterSnatchHit) == 0xd678);
+static_assert(offsetof(uPlayerNero, mSnatchHitTarget) == 0xd67c);
+
+class uPlayerDante : public uPlayer {
+public:
+    enum STYL_SIDE : int32_t {
+        STYL_SIDE_LEFT = 0,
+        STYL_SIDE_RIGHT = 1,
+        STYL_SIDE_MAX = 2,
+        STYL_SIDE_NONE = 2,
+    };
+    enum STYL_DIR : int32_t {
+        POSE_DIR_FF = 0,
+        POSE_DIR_FR = 1,
+        POSE_DIR_FB = 2,
+        POSE_DIR_FL = 3,
+    };
+    enum cInterface__POW_MODE : uint8_t {
+        PMODE_NONE = 0,
+        PMODE_WALK = 1,
+        PMODE_RUN = 2,
+    };
+    struct cCnsMatrix {
+        cConstraint baseclass; // 0x0
+        MtMatrix mOfsMat; // 0x20
+        void*  /* MtMath::MtMatrix * */ mpMat; // 0x60
+        char pad_64[0xc];
+    };
+    static_assert(sizeof(cCnsMatrix) == 0x70);
+    struct kMdlHead {
+        uDevil4Model mdl; // 0x0
+        cCnsMatrix cnsMtrx[5]; // 0xea0
+    };
+    static_assert(sizeof(kMdlHead) == 0x10d0);
+    struct kMdlHair {
+        uDevil4Model mdl; // 0x0
+        cCnsMatrix cnsMtrx[2]; // 0xea0
+    };
+    static_assert(sizeof(kMdlHair) == 0xf80);
+    struct cClothCtrl {
+        char pad_0[0x11d0];
+    };
+    static_assert(sizeof(cClothCtrl) == 0x11d0);
+    struct kMdlCoat {
+        uDevil4Model mdl; // 0x0
+        cCnsMatrix cnsMtrx[8]; // 0xea0
+        cClothCtrl clthCtrl[6]; // 0x1220
+    };
+    static_assert(sizeof(kMdlCoat) == 0x7d00);
+    struct kDanteResource {
+        cResource* bodyMdl; // 0x0
+        cResource* headMdl; // 0x4
+        cResource* hairMdl; // 0x8
+        cResource* coatMdl; // 0xc
+    };
+    static_assert(sizeof(kDanteResource) == 0x10);
+    struct kMajinResource {
+        cResource* bodyMdl; // 0x0
+        cResource* coatMdl; // 0x4
+    };
+    static_assert(sizeof(kMajinResource) == 0x8);
+    struct kShlCtr {
+        void*  /* uPlDanteShl013 * */ ptr; // 0x0
+    };
+    static_assert(sizeof(kShlCtr) == 0x4);
+    struct cInterface__kAnlgDgtlBit {
+        uint32_t up : 1;
+        uint32_t down : 1;
+        uint32_t left : 1;
+        uint32_t right : 1;
+    };
+    static_assert(sizeof(cInterface__kAnlgDgtlBit) == 0x4);
+    union cInterface__yAnlgDgtlInfo {
+        cInterface__kAnlgDgtlBit bit; // 0x0
+        uint8_t raw; // 0x0
+        char pad_1[0x3];
+    };
+    static_assert(sizeof(cInterface__yAnlgDgtlInfo) == 0x4);
+    struct cInterface__kAnlgInfo {
+        cInterface__POW_MODE pow; // 0x0
+        char pad_1[0x3];
+        float radian; // 0x4
+        cInterface__yAnlgDgtlInfo dgtlOn; // 0x8
+        cInterface__yAnlgDgtlInfo dgtlTrg; // 0xc
+        cInterface__yAnlgDgtlInfo dgtlRel; // 0x10
+    };
+    static_assert(sizeof(cInterface__kAnlgInfo) == 0x14);
+
+    kMdlHead mHead; // 0x3270
+    kMdlHair mHair; // 0x4340
+    kMdlCoat mCoat; // 0x52c0
+    kMdlCoat mCoatDevil; // 0xcfc0
+    uint32_t /* signed __int32 */ mPrioBiasBdy; // 0x14cc0
+    uint32_t /* signed __int32 */ mPrioBiasHead; // 0x14cc4
+    uint32_t /* signed __int32 */ mPrioBiasHair; // 0x14cc8
+    uint32_t /* signed __int32 */ mPrioBiasCoat; // 0x14ccc
+    float mReleaseTimer; // 0x14cd0
+    bool mIsBlock; // 0x14cd4
+    bool mIsJust; // 0x14cd5
+    bool mIsCrush; // 0x14cd6
+    char pad_14cd7[0x1];
+    void*  /* rAttackStatusData * */ mpAttackStatusData[7]; // 0x14cd8
+    void*  /* rCollisionShape * */ mpCollisionStatusData[7]; // 0x14cf4
+    uint8_t mGunTameShotCnt; // 0x14d10
+    char pad_14d11[0x3];
+    kDanteResource mDanteRsrc; // 0x14d14
+    kMajinResource mMajinRsrc; // 0x14d24
+    float mAutoLongTimer; // 0x14d2c
+    uint8_t mAutoLongCnt; // 0x14d30
+    char pad_14d31[0x3];
+    uint32_t mDevilType; // 0x14d34
+    uint32_t mDevilTypeReq; // 0x14d38
+    float mChgDevilTypeTimer; // 0x14d3c
+    float mGuardHitPointStore; // 0x14d40
+    float mGuardProgressTime; // 0x14d44
+    float mGuardIssenProgressTime; // 0x14d48
+    uint32_t /* signed __int32 */ mStylEscapeDashCnt; // 0x14d4c
+    uint32_t /* signed __int32 */ mStylEscapeAirTrickCnt; // 0x14d50
+    uint32_t /* signed __int32 */ mBdyMtrlNum; // 0x14d54
+    uint32_t /* signed __int32 */ mPdMeteorCnt; // 0x14d58
+    uint32_t /* signed __int32 */ mRgReleaseCnt; // 0x14d5c
+    MtVector3 mTmpPos; // 0x14d60
+    MtVector3 mCollCorrectPos; // 0x14d70
+    STYL_SIDE mStylSide; // 0x14d80
+    STYL_DIR mStylDir; // 0x14d84
+    STYL_DIR mStylDirOld; // 0x14d88
+    bool mIsGunRepeat; // 0x14d8c
+    bool mIsGunRightHand; // 0x14d8d
+    char pad_14d8e[0x2];
+    float mRevellionTimer; // 0x14d90
+    bool mIsRoundTrip; // 0x14d94
+    bool mIsHitMessage; // 0x14d95
+    bool mIsEM035; // 0x14d96
+    bool mIsQuickDrive; // 0x14d97
+    STYLE_KIND mNewStyle; // 0x14d98
+    float mStyleTimer; // 0x14d9c
+    uint32_t /* signed __int32 */ mCsEfctPhase; // 0x14da0
+    float mCsEfctTime; // 0x14da4
+    float mJustBlockSuccessTime; // 0x14da8
+    float mRgGauge; // 0x14dac
+    bool mIsBlockActionSet; // 0x14db0
+    char pad_14db1[0x3];
+    float mLuciferFunnelTimer; // 0x14db4
+    bool mIsLuciferFunnel; // 0x14db8
+    char pad_14db9[0x3];
+    kShlCtr mShlCtrl[15]; // 0x14dbc
+    char pad_14df8[0x8];
+    uCollisionMgr mBdyCollMgr; // 0x14e00
+    float mGmSaveTimer; // 0x151f0
+    float mPandoraGauge; // 0x151f4
+    float mPdMeteorMoveSpd; // 0x151f8
+    float mPdMeteorMoveSpdMax; // 0x151fc
+    float mPdMeteorRotSpd; // 0x15200
+    float mPdMeteorRotBlendSpd; // 0x15204
+    char pad_15208[0x8];
+    MtVector3 mBdyColCap0; // 0x15210
+    MtVector3 mBdyColCap1; // 0x15220
+    float mBdyColCapRad; // 0x15230
+    char pad_15234[0xc];
+    MtVector3 mPdMetorBdyColCap0; // 0x15240
+    MtVector3 mPdMetorBdyColCap1; // 0x15250
+    float mPdMetorBdyColCapRad; // 0x15260
+    bool mIsPdMetorBdyCol; // 0x15264
+    char pad_15265[0x3];
+    cInterface__kAnlgInfo mOldInfo; // 0x15268
+    uint32_t /* signed __int32 */ mJoy; // 0x1527c
+    float mJoyTime; // 0x15280
+    uint32_t /* signed __int32 */ mJoyRot; // 0x15284
+    char pad_15288[0x8];
+    MtVector4 mBmfVal; // 0x15290
+    uint32_t /* signed __int32 */ mInvinciblePhase; // 0x152a0
+    float mInvincibleTimer; // 0x152a4
+    bool mIsInvincibleMdl; // 0x152a8
+    char pad_152a9[0x3];
+    void*  /* uPlShl * */ mpPlShl; // 0x152ac
+    void*  /* uDevil4Effect * */ mpEfc; // 0x152b0
+    bool mIsAirEsc; // 0x152b4
+    char pad_152b5[0x3];
+    float mEnemyHikeGDownTime; // 0x152b8
+    float mRearrangementTimer; // 0x152bc
+    uint32_t /* signed __int32 */ mRvRoundTripPhase; // 0x152c0
+    float mInvincibleDmgLen; // 0x152c4
+    float mInvincibleDmgTimer; // 0x152c8
+    uint32_t /* signed __int32 */ mInvincibleDmgPhase; // 0x152cc
+    uint32_t /* signed __int32 */ mInvincibleDmgType; // 0x152d0
+    uint32_t /* signed __int32 */ mAutomatic; // 0x152d4
+    bool mHeadDisp; // 0x152d8
+    char pad_152d9[0x3];
+    uint32_t /* signed __int32 */ mSuperRgGaugeRno; // 0x152dc
+    float mSuperRgGaugeTimer; // 0x152e0
+    bool mIsSuperRgGauge; // 0x152e4
+    char pad_152e5[0x3];
+    uint32_t mMdlType; // 0x152e8
+    char pad_152ec[0x4];
+};
+static_assert(sizeof(uPlayerDante) == 0x152f0);
+static_assert(offsetof(uPlayerDante, mHead) == 0x3270);
+static_assert(offsetof(uPlayerDante, mHair) == 0x4340);
+static_assert(offsetof(uPlayerDante, mCoat) == 0x52c0);
+static_assert(offsetof(uPlayerDante, mCoatDevil) == 0xcfc0);
+static_assert(offsetof(uPlayerDante, mPrioBiasBdy) == 0x14cc0);
+static_assert(offsetof(uPlayerDante, mPrioBiasHead) == 0x14cc4);
+static_assert(offsetof(uPlayerDante, mPrioBiasHair) == 0x14cc8);
+static_assert(offsetof(uPlayerDante, mPrioBiasCoat) == 0x14ccc);
+static_assert(offsetof(uPlayerDante, mReleaseTimer) == 0x14cd0);
+static_assert(offsetof(uPlayerDante, mIsBlock) == 0x14cd4);
+static_assert(offsetof(uPlayerDante, mIsJust) == 0x14cd5);
+static_assert(offsetof(uPlayerDante, mIsCrush) == 0x14cd6);
+static_assert(offsetof(uPlayerDante, mpAttackStatusData) == 0x14cd8);
+static_assert(offsetof(uPlayerDante, mpCollisionStatusData) == 0x14cf4);
+static_assert(offsetof(uPlayerDante, mGunTameShotCnt) == 0x14d10);
+static_assert(offsetof(uPlayerDante, mDanteRsrc) == 0x14d14);
+static_assert(offsetof(uPlayerDante, mMajinRsrc) == 0x14d24);
+static_assert(offsetof(uPlayerDante, mAutoLongTimer) == 0x14d2c);
+static_assert(offsetof(uPlayerDante, mAutoLongCnt) == 0x14d30);
+static_assert(offsetof(uPlayerDante, mDevilType) == 0x14d34);
+static_assert(offsetof(uPlayerDante, mDevilTypeReq) == 0x14d38);
+static_assert(offsetof(uPlayerDante, mChgDevilTypeTimer) == 0x14d3c);
+static_assert(offsetof(uPlayerDante, mGuardHitPointStore) == 0x14d40);
+static_assert(offsetof(uPlayerDante, mGuardProgressTime) == 0x14d44);
+static_assert(offsetof(uPlayerDante, mGuardIssenProgressTime) == 0x14d48);
+static_assert(offsetof(uPlayerDante, mStylEscapeDashCnt) == 0x14d4c);
+static_assert(offsetof(uPlayerDante, mStylEscapeAirTrickCnt) == 0x14d50);
+static_assert(offsetof(uPlayerDante, mBdyMtrlNum) == 0x14d54);
+static_assert(offsetof(uPlayerDante, mPdMeteorCnt) == 0x14d58);
+static_assert(offsetof(uPlayerDante, mRgReleaseCnt) == 0x14d5c);
+static_assert(offsetof(uPlayerDante, mTmpPos) == 0x14d60);
+static_assert(offsetof(uPlayerDante, mCollCorrectPos) == 0x14d70);
+static_assert(offsetof(uPlayerDante, mStylSide) == 0x14d80);
+static_assert(offsetof(uPlayerDante, mStylDir) == 0x14d84);
+static_assert(offsetof(uPlayerDante, mStylDirOld) == 0x14d88);
+static_assert(offsetof(uPlayerDante, mIsGunRepeat) == 0x14d8c);
+static_assert(offsetof(uPlayerDante, mIsGunRightHand) == 0x14d8d);
+static_assert(offsetof(uPlayerDante, mRevellionTimer) == 0x14d90);
+static_assert(offsetof(uPlayerDante, mIsRoundTrip) == 0x14d94);
+static_assert(offsetof(uPlayerDante, mIsHitMessage) == 0x14d95);
+static_assert(offsetof(uPlayerDante, mIsEM035) == 0x14d96);
+static_assert(offsetof(uPlayerDante, mIsQuickDrive) == 0x14d97);
+static_assert(offsetof(uPlayerDante, mNewStyle) == 0x14d98);
+static_assert(offsetof(uPlayerDante, mStyleTimer) == 0x14d9c);
+static_assert(offsetof(uPlayerDante, mCsEfctPhase) == 0x14da0);
+static_assert(offsetof(uPlayerDante, mCsEfctTime) == 0x14da4);
+static_assert(offsetof(uPlayerDante, mJustBlockSuccessTime) == 0x14da8);
+static_assert(offsetof(uPlayerDante, mRgGauge) == 0x14dac);
+static_assert(offsetof(uPlayerDante, mIsBlockActionSet) == 0x14db0);
+static_assert(offsetof(uPlayerDante, mLuciferFunnelTimer) == 0x14db4);
+static_assert(offsetof(uPlayerDante, mIsLuciferFunnel) == 0x14db8);
+static_assert(offsetof(uPlayerDante, mShlCtrl) == 0x14dbc);
+static_assert(offsetof(uPlayerDante, mBdyCollMgr) == 0x14e00);
+static_assert(offsetof(uPlayerDante, mGmSaveTimer) == 0x151f0);
+static_assert(offsetof(uPlayerDante, mPandoraGauge) == 0x151f4);
+static_assert(offsetof(uPlayerDante, mPdMeteorMoveSpd) == 0x151f8);
+static_assert(offsetof(uPlayerDante, mPdMeteorMoveSpdMax) == 0x151fc);
+static_assert(offsetof(uPlayerDante, mPdMeteorRotSpd) == 0x15200);
+static_assert(offsetof(uPlayerDante, mPdMeteorRotBlendSpd) == 0x15204);
+static_assert(offsetof(uPlayerDante, mBdyColCap0) == 0x15210);
+static_assert(offsetof(uPlayerDante, mBdyColCap1) == 0x15220);
+static_assert(offsetof(uPlayerDante, mBdyColCapRad) == 0x15230);
+static_assert(offsetof(uPlayerDante, mPdMetorBdyColCap0) == 0x15240);
+static_assert(offsetof(uPlayerDante, mPdMetorBdyColCap1) == 0x15250);
+static_assert(offsetof(uPlayerDante, mPdMetorBdyColCapRad) == 0x15260);
+static_assert(offsetof(uPlayerDante, mIsPdMetorBdyCol) == 0x15264);
+static_assert(offsetof(uPlayerDante, mOldInfo) == 0x15268);
+static_assert(offsetof(uPlayerDante, mJoy) == 0x1527c);
+static_assert(offsetof(uPlayerDante, mJoyTime) == 0x15280);
+static_assert(offsetof(uPlayerDante, mJoyRot) == 0x15284);
+static_assert(offsetof(uPlayerDante, mBmfVal) == 0x15290);
+static_assert(offsetof(uPlayerDante, mInvinciblePhase) == 0x152a0);
+static_assert(offsetof(uPlayerDante, mInvincibleTimer) == 0x152a4);
+static_assert(offsetof(uPlayerDante, mIsInvincibleMdl) == 0x152a8);
+static_assert(offsetof(uPlayerDante, mpPlShl) == 0x152ac);
+static_assert(offsetof(uPlayerDante, mpEfc) == 0x152b0);
+static_assert(offsetof(uPlayerDante, mIsAirEsc) == 0x152b4);
+static_assert(offsetof(uPlayerDante, mEnemyHikeGDownTime) == 0x152b8);
+static_assert(offsetof(uPlayerDante, mRearrangementTimer) == 0x152bc);
+static_assert(offsetof(uPlayerDante, mRvRoundTripPhase) == 0x152c0);
+static_assert(offsetof(uPlayerDante, mInvincibleDmgLen) == 0x152c4);
+static_assert(offsetof(uPlayerDante, mInvincibleDmgTimer) == 0x152c8);
+static_assert(offsetof(uPlayerDante, mInvincibleDmgPhase) == 0x152cc);
+static_assert(offsetof(uPlayerDante, mInvincibleDmgType) == 0x152d0);
+static_assert(offsetof(uPlayerDante, mAutomatic) == 0x152d4);
+static_assert(offsetof(uPlayerDante, mHeadDisp) == 0x152d8);
+static_assert(offsetof(uPlayerDante, mSuperRgGaugeRno) == 0x152dc);
+static_assert(offsetof(uPlayerDante, mSuperRgGaugeTimer) == 0x152e0);
+static_assert(offsetof(uPlayerDante, mIsSuperRgGauge) == 0x152e4);
+static_assert(offsetof(uPlayerDante, mMdlType) == 0x152e8);
+
+class uPlayerDanteBoss : public uPlayerDante {
+public:
+    struct MtObject {
+        void*  /* MtObject_vtbl * */ vtable; // 0x0
+    };
+    static_assert(sizeof(MtObject) == 0x4);
+    struct cEnemyCreateData {
+        MtObject base_0; // 0x0
+        char pad_4[0xc];
+        MtVector3 mPos; // 0x10
+        float mRotY; // 0x20
+        bool mAimPlayer; // 0x24
+        char pad_25[0x3];
+        uint32_t mAppearType; // 0x28
+        uint32_t mGreenOrbType; // 0x2c
+        uint32_t mWhiteOrbType; // 0x30
+        bool mDemoOrb; // 0x34
+        char pad_35[0x3];
+        uint32_t mParam[4]; // 0x38
+        char pad_48[0x8];
+        MtMatrix mMat; // 0x50
+    };
+    static_assert(sizeof(cEnemyCreateData) == 0x90);
+    struct kTHINKRETSET {
+        void*  /* kTHINKDATA * */ pThinkTblRet; // 0x0
+        uint32_t uRetTblIdx; // 0x4
+    };
+    static_assert(sizeof(kTHINKRETSET) == 0x8);
+    struct kTHINKTIMER {
+        float no; // 0x0
+        float group; // 0x4
+        float timer; // 0x8
+    };
+    static_assert(sizeof(kTHINKTIMER) == 0xc);
+    struct kTHINKCOUNT {
+        float no; // 0x0
+        float group; // 0x4
+        float count; // 0x8
+    };
+    static_assert(sizeof(kTHINKCOUNT) == 0xc);
+    struct cThinkMgr {
+        char pad_0[0x4];
+        bool mbCheck[21]; // 0x4
+        char pad_19[0x3];
+        float mfUserParam[4]; // 0x1c
+        float mfSystemParam[5]; // 0x2c
+        float mfHokanA; // 0x40
+        float mfHokanB; // 0x44
+        float mfHokanPower; // 0x48
+        float mfLength; // 0x4c
+        float mfDegAng; // 0x50
+        float mfHeight; // 0x54
+        char pad_58[0x14];
+        void*  /* kTHINKDATA * */ mpThinkTbl; // 0x6c
+        bool mbComboFlag; // 0x70
+        char pad_71[0x3];
+        void*  /* kTHINKDATA * */ mpTempThinkTbl; // 0x74
+        uint32_t mRetSetStackPush; // 0x78
+        kTHINKRETSET mRetSetStack[16]; // 0x7c
+        kTHINKTIMER mkTimer[32]; // 0xfc
+        kTHINKCOUNT mkPassCount[32]; // 0x27c
+        bool mbNextFlg; // 0x3fc
+        bool mbUseNext; // 0x3fd
+        char pad_3fe[0x2];
+        void*  /* kTHINKDATA * */ mpOldSelectThinkTbl; // 0x400
+        void*  /* kTHINKDATA * */ mpOldTopSelectThinkTbl; // 0x404
+        void*  /* kTHINKDATA * */ mpTopSelectThinkTbl; // 0x408
+        int32_t mOldSelectIdxNo; // 0x40c
+        void*  /* kTHINKDATA * */ mpTempOldSelectThinkTbl; // 0x410
+        void*  /* kTHINKDATA * */ mpTempOldTopSelectThinkTbl; // 0x414
+        int32_t mTempOldSelectIdxNo; // 0x418
+        bool mbTempNextFlg; // 0x41c
+        char pad_41d[0xb];
+        uint8_t mActPassNo; // 0x428
+        char pad_429[0x7];
+    };
+    static_assert(sizeof(cThinkMgr) == 0x430);
+    struct cInterface__kBtnBit {
+        uint32_t atckShort : 1;
+        uint32_t atckLong : 1;
+        uint32_t jump : 1;
+        uint32_t provoke : 1;
+        uint32_t lockOn : 1;
+        uint32_t chgLockOn : 1;
+        uint32_t devilTrg : 1;
+        uint32_t chgShort : 1;
+        uint32_t chgLong : 1;
+        uint32_t style : 1;
+        uint32_t grab : 1;
+        uint32_t falling : 1;
+        uint32_t chgStyleTS : 1;
+        uint32_t chgStyleRG : 1;
+        uint32_t chgStyleGS : 1;
+        uint32_t chgStyleSM : 1;
+        uint32_t chgAtckLong : 1;
+    };
+    static_assert(sizeof(cInterface__kBtnBit) == 0x4);
+    union cInterface__yBtnInfo {
+        cInterface__kBtnBit bit; // 0x0
+        uint32_t raw; // 0x0
+    };
+    static_assert(sizeof(cInterface__yBtnInfo) == 0x4);
+    struct sSave__kSaveDataCommon {
+        bool mIsMajin; // 0x0
+        bool mHaveWJump; // 0x1
+        bool mHaveEmJump; // 0x2
+        bool mHaveDash; // 0x3
+        bool mHaveOrbDraw; // 0x4
+        bool mHaveDtgGuageDown; // 0x5
+        char pad_6[0x2];
+        uint32_t mShortWeaponId; // 0x8
+        uint32_t mLongWeaponId; // 0xc
+        int32_t mHaveSkillNum; // 0x10
+        int32_t mProudSoulCnt; // 0x14
+        uint32_t mAtckFlag[8]; // 0x18
+    };
+    static_assert(sizeof(sSave__kSaveDataCommon) == 0x38);
+    struct sSave__kSaveDataDante {
+        bool mHaveGmJump; // 0x0
+        bool mHaveEmHike; // 0x1
+        bool mHaveAirEsc; // 0x2
+        bool mIsStyleTs; // 0x3
+        bool mIsStyleRg; // 0x4
+        bool mIsStyleGs; // 0x5
+        bool mIsStyleSm; // 0x6
+        bool mIsStyleYt; // 0x7
+        bool mIsWeaponGm; // 0x8
+        bool mIsWeaponPd; // 0x9
+        bool mIsWeaponLf; // 0xa
+        char pad_b[0x1];
+        int32_t mStyleTsLv; // 0xc
+        int32_t mStlyeRgLv; // 0x10
+        int32_t mStyleGsLv; // 0x14
+        int32_t mStyleSmLv; // 0x18
+        int32_t mStyle; // 0x1c
+    };
+    static_assert(sizeof(sSave__kSaveDataDante) == 0x20);
+    struct sSave__kButtonData {
+        uint32_t mActBtn[17]; // 0x0
+        uint32_t mActBtnKB[25]; // 0x44
+    };
+    static_assert(sizeof(sSave__kButtonData) == 0xa8);
+    struct sSave__kDanteData {
+        sSave__kSaveDataCommon mCommon; // 0x0
+        sSave__kSaveDataDante mProper; // 0x38
+        sSave__kButtonData mBtn; // 0x58
+    };
+    static_assert(sizeof(sSave__kDanteData) == 0x100);
+
+    cLockonTarget mLockOnTarget; // 0x152f0
+    cLockonTarget mLockOnNero; // 0x15340
+    cEnemyCreateData mEnemyCreateData; // 0x15390
+    void*  /* uEnemySetCtrl * */ mpEnemySetCtrl; // 0x15420
+    cResource* mpRes; // 0x15424
+    char pad_15428[0x8];
+    uCollisionMgr mCollMgrReaction; // 0x15430
+    cThinkMgr mcThink[2]; // 0x15820
+    uint32_t mThinkId; // 0x16080
+    float mActionFree[8]; // 0x16084
+    void* mActionEndCallback; // 0x160a4
+    uint32_t /* signed __int32 */ mPhase; // 0x160a8
+    uint32_t /* signed __int32 */ mAction; // 0x160ac
+    uint32_t /* signed __int32 */ mActionIdOld; // 0x160b0
+    uint32_t mActionRno0; // 0x160b4
+    uint32_t mThinkTblNo; // 0x160b8
+    uint32_t mLv; // 0x160bc
+    uint32_t mDefendStatusNo; // 0x160c0
+    float mNextActionFrame; // 0x160c4
+    float mReactionFrame; // 0x160c8
+    float mWaitFrame; // 0x160cc
+    float mBtnOnJumpFrame; // 0x160d0
+    float mBtnOnShortFrame; // 0x160d4
+    uint32_t mMotionFrameCheckBit; // 0x160d8
+    float mTimer0; // 0x160dc
+    MtVector3 mLockOnTargeAngle; // 0x160e0
+    MtVector3 mLockOnTargetPos; // 0x160f0
+    MtMatrix mReactionMat; // 0x16100
+    float mThinkUsrParam[4]; // 0x16140
+    uint32_t mDamageCnt; // 0x16150
+    uint32_t mDamageInterruptCnt; // 0x16154
+    uint32_t mDamageInterruptHameCnt; // 0x16158
+    uint32_t mDamageBlownCnt; // 0x1615c
+    uint32_t mDevilBusterCnt; // 0x16160
+    uint32_t mTutorialSuccessCnt; // 0x16164
+    uint32_t mM1PlDmgCnt; // 0x16168
+    uint32_t mAnalogAngleType; // 0x1616c
+    uint32_t mShl000ASType; // 0x16170
+    uint32_t mBusterType; // 0x16174
+    uint32_t mBusterChangeFlag; // 0x16178
+    uint32_t mReactionTblNo; // 0x1617c
+    uint32_t /* signed __int32 */ mDoM1PatternCnt; // 0x16180
+    uint32_t mGuardType; // 0x16184
+    uint32_t mGuardNum; // 0x16188
+    uint32_t mThinkFlag; // 0x1618c
+    float mM1PatternChangeFrame; // 0x16190
+    uint32_t mProvokeType; // 0x16194
+    float mAirJumpDisableFrame; // 0x16198
+    float mShootDownNoShlFrame; // 0x1619c
+    uint32_t mReverseNum; // 0x161a0
+    float mReverseFrame; // 0x161a4
+    uint32_t mActionWaitType; // 0x161a8
+    float mCheckActionOffFrame; // 0x161ac
+    MtVector3 mBedAreaBasePos; // 0x161b0
+    float mBedAreaW; // 0x161c0
+    float mBedAreaH; // 0x161c4
+    float mBedRideAreaInW; // 0x161c8
+    float mBedRideAreaInH; // 0x161cc
+    float mBedRideAreaOutW; // 0x161d0
+    float mBedRideAreaOutH; // 0x161d4
+    char pad_161d8[0x8];
+    MtVector3 mCoverOutTargetPoint; // 0x161e0
+    DMAGE_ID mDamageIdOld; // 0x161f0
+    cInterface__yBtnInfo mBtn; // 0x161f4
+    cInterface__yBtnInfo mBtnOld; // 0x161f8
+    cInterface__kAnlgInfo mAnlg; // 0x161fc
+    bool mAnlgFlag; // 0x16210
+    bool mOnOff; // 0x16211
+    bool mbLockOnFixFlag; // 0x16212
+    bool mbLongDamageFlag; // 0x16213
+    bool mbTutorialCompleteFlag; // 0x16214
+    bool mbTutorialSuccessFlag; // 0x16215
+    bool mbTutorialShlHitFlag; // 0x16216
+    bool mbBusterFlag; // 0x16217
+    bool mbBusterTrgFlag; // 0x16218
+    bool mbBusterNextFlag; // 0x16219
+    bool mbBusterNeroDTFlag; // 0x1621a
+    bool mbBusterEffectFlag; // 0x1621b
+    bool mbBusterAirFlag; // 0x1621c
+    bool mbSnatchNearFlag; // 0x1621d
+    bool mbDamageActionFull; // 0x1621e
+    bool mbObjectPush; // 0x1621f
+    bool mPlDmgFlag; // 0x16220
+    bool mPlDmgOld; // 0x16221
+    bool mDanteBlownFlag; // 0x16222
+    bool mSCThinkTblFlag; // 0x16223
+    bool mDmgHighTimeFlag; // 0x16224
+    bool mStyleChangeFirstFlag; // 0x16225
+    bool mbLongCancelFlag; // 0x16226
+    bool mbReactionFlag; // 0x16227
+    bool mbDieCntFlag; // 0x16228
+    char pad_16229[0x3];
+    float mTutorialCompleteTimer; // 0x1622c
+    bool mbBlackEnable; // 0x16230
+    char pad_16231[0x3];
+    sSave__kDanteData mSaveData; // 0x16234
+    bool mBattle; // 0x16334
+    bool mActive; // 0x16335
+    char pad_16336[0xa];
+};
+static_assert(sizeof(uPlayerDanteBoss) == 0x16340);
+static_assert(offsetof(uPlayerDanteBoss, mLockOnTarget) == 0x152f0);
+static_assert(offsetof(uPlayerDanteBoss, mLockOnNero) == 0x15340);
+static_assert(offsetof(uPlayerDanteBoss, mEnemyCreateData) == 0x15390);
+static_assert(offsetof(uPlayerDanteBoss, mpEnemySetCtrl) == 0x15420);
+static_assert(offsetof(uPlayerDanteBoss, mpRes) == 0x15424);
+static_assert(offsetof(uPlayerDanteBoss, mCollMgrReaction) == 0x15430);
+static_assert(offsetof(uPlayerDanteBoss, mcThink) == 0x15820);
+static_assert(offsetof(uPlayerDanteBoss, mThinkId) == 0x16080);
+static_assert(offsetof(uPlayerDanteBoss, mActionFree) == 0x16084);
+static_assert(offsetof(uPlayerDanteBoss, mActionEndCallback) == 0x160a4);
+static_assert(offsetof(uPlayerDanteBoss, mPhase) == 0x160a8);
+static_assert(offsetof(uPlayerDanteBoss, mAction) == 0x160ac);
+static_assert(offsetof(uPlayerDanteBoss, mActionIdOld) == 0x160b0);
+static_assert(offsetof(uPlayerDanteBoss, mActionRno0) == 0x160b4);
+static_assert(offsetof(uPlayerDanteBoss, mThinkTblNo) == 0x160b8);
+static_assert(offsetof(uPlayerDanteBoss, mLv) == 0x160bc);
+static_assert(offsetof(uPlayerDanteBoss, mDefendStatusNo) == 0x160c0);
+static_assert(offsetof(uPlayerDanteBoss, mNextActionFrame) == 0x160c4);
+static_assert(offsetof(uPlayerDanteBoss, mReactionFrame) == 0x160c8);
+static_assert(offsetof(uPlayerDanteBoss, mWaitFrame) == 0x160cc);
+static_assert(offsetof(uPlayerDanteBoss, mBtnOnJumpFrame) == 0x160d0);
+static_assert(offsetof(uPlayerDanteBoss, mBtnOnShortFrame) == 0x160d4);
+static_assert(offsetof(uPlayerDanteBoss, mMotionFrameCheckBit) == 0x160d8);
+static_assert(offsetof(uPlayerDanteBoss, mTimer0) == 0x160dc);
+static_assert(offsetof(uPlayerDanteBoss, mLockOnTargeAngle) == 0x160e0);
+static_assert(offsetof(uPlayerDanteBoss, mLockOnTargetPos) == 0x160f0);
+static_assert(offsetof(uPlayerDanteBoss, mReactionMat) == 0x16100);
+static_assert(offsetof(uPlayerDanteBoss, mThinkUsrParam) == 0x16140);
+static_assert(offsetof(uPlayerDanteBoss, mDamageCnt) == 0x16150);
+static_assert(offsetof(uPlayerDanteBoss, mDamageInterruptCnt) == 0x16154);
+static_assert(offsetof(uPlayerDanteBoss, mDamageInterruptHameCnt) == 0x16158);
+static_assert(offsetof(uPlayerDanteBoss, mDamageBlownCnt) == 0x1615c);
+static_assert(offsetof(uPlayerDanteBoss, mDevilBusterCnt) == 0x16160);
+static_assert(offsetof(uPlayerDanteBoss, mTutorialSuccessCnt) == 0x16164);
+static_assert(offsetof(uPlayerDanteBoss, mM1PlDmgCnt) == 0x16168);
+static_assert(offsetof(uPlayerDanteBoss, mAnalogAngleType) == 0x1616c);
+static_assert(offsetof(uPlayerDanteBoss, mShl000ASType) == 0x16170);
+static_assert(offsetof(uPlayerDanteBoss, mBusterType) == 0x16174);
+static_assert(offsetof(uPlayerDanteBoss, mBusterChangeFlag) == 0x16178);
+static_assert(offsetof(uPlayerDanteBoss, mReactionTblNo) == 0x1617c);
+static_assert(offsetof(uPlayerDanteBoss, mDoM1PatternCnt) == 0x16180);
+static_assert(offsetof(uPlayerDanteBoss, mGuardType) == 0x16184);
+static_assert(offsetof(uPlayerDanteBoss, mGuardNum) == 0x16188);
+static_assert(offsetof(uPlayerDanteBoss, mThinkFlag) == 0x1618c);
+static_assert(offsetof(uPlayerDanteBoss, mM1PatternChangeFrame) == 0x16190);
+static_assert(offsetof(uPlayerDanteBoss, mProvokeType) == 0x16194);
+static_assert(offsetof(uPlayerDanteBoss, mAirJumpDisableFrame) == 0x16198);
+static_assert(offsetof(uPlayerDanteBoss, mShootDownNoShlFrame) == 0x1619c);
+static_assert(offsetof(uPlayerDanteBoss, mReverseNum) == 0x161a0);
+static_assert(offsetof(uPlayerDanteBoss, mReverseFrame) == 0x161a4);
+static_assert(offsetof(uPlayerDanteBoss, mActionWaitType) == 0x161a8);
+static_assert(offsetof(uPlayerDanteBoss, mCheckActionOffFrame) == 0x161ac);
+static_assert(offsetof(uPlayerDanteBoss, mBedAreaBasePos) == 0x161b0);
+static_assert(offsetof(uPlayerDanteBoss, mBedAreaW) == 0x161c0);
+static_assert(offsetof(uPlayerDanteBoss, mBedAreaH) == 0x161c4);
+static_assert(offsetof(uPlayerDanteBoss, mBedRideAreaInW) == 0x161c8);
+static_assert(offsetof(uPlayerDanteBoss, mBedRideAreaInH) == 0x161cc);
+static_assert(offsetof(uPlayerDanteBoss, mBedRideAreaOutW) == 0x161d0);
+static_assert(offsetof(uPlayerDanteBoss, mBedRideAreaOutH) == 0x161d4);
+static_assert(offsetof(uPlayerDanteBoss, mCoverOutTargetPoint) == 0x161e0);
+static_assert(offsetof(uPlayerDanteBoss, mDamageIdOld) == 0x161f0);
+static_assert(offsetof(uPlayerDanteBoss, mBtn) == 0x161f4);
+static_assert(offsetof(uPlayerDanteBoss, mBtnOld) == 0x161f8);
+static_assert(offsetof(uPlayerDanteBoss, mAnlg) == 0x161fc);
+static_assert(offsetof(uPlayerDanteBoss, mAnlgFlag) == 0x16210);
+static_assert(offsetof(uPlayerDanteBoss, mOnOff) == 0x16211);
+static_assert(offsetof(uPlayerDanteBoss, mbLockOnFixFlag) == 0x16212);
+static_assert(offsetof(uPlayerDanteBoss, mbLongDamageFlag) == 0x16213);
+static_assert(offsetof(uPlayerDanteBoss, mbTutorialCompleteFlag) == 0x16214);
+static_assert(offsetof(uPlayerDanteBoss, mbTutorialSuccessFlag) == 0x16215);
+static_assert(offsetof(uPlayerDanteBoss, mbTutorialShlHitFlag) == 0x16216);
+static_assert(offsetof(uPlayerDanteBoss, mbBusterFlag) == 0x16217);
+static_assert(offsetof(uPlayerDanteBoss, mbBusterTrgFlag) == 0x16218);
+static_assert(offsetof(uPlayerDanteBoss, mbBusterNextFlag) == 0x16219);
+static_assert(offsetof(uPlayerDanteBoss, mbBusterNeroDTFlag) == 0x1621a);
+static_assert(offsetof(uPlayerDanteBoss, mbBusterEffectFlag) == 0x1621b);
+static_assert(offsetof(uPlayerDanteBoss, mbBusterAirFlag) == 0x1621c);
+static_assert(offsetof(uPlayerDanteBoss, mbSnatchNearFlag) == 0x1621d);
+static_assert(offsetof(uPlayerDanteBoss, mbDamageActionFull) == 0x1621e);
+static_assert(offsetof(uPlayerDanteBoss, mbObjectPush) == 0x1621f);
+static_assert(offsetof(uPlayerDanteBoss, mPlDmgFlag) == 0x16220);
+static_assert(offsetof(uPlayerDanteBoss, mPlDmgOld) == 0x16221);
+static_assert(offsetof(uPlayerDanteBoss, mDanteBlownFlag) == 0x16222);
+static_assert(offsetof(uPlayerDanteBoss, mSCThinkTblFlag) == 0x16223);
+static_assert(offsetof(uPlayerDanteBoss, mDmgHighTimeFlag) == 0x16224);
+static_assert(offsetof(uPlayerDanteBoss, mStyleChangeFirstFlag) == 0x16225);
+static_assert(offsetof(uPlayerDanteBoss, mbLongCancelFlag) == 0x16226);
+static_assert(offsetof(uPlayerDanteBoss, mbReactionFlag) == 0x16227);
+static_assert(offsetof(uPlayerDanteBoss, mbDieCntFlag) == 0x16228);
+static_assert(offsetof(uPlayerDanteBoss, mTutorialCompleteTimer) == 0x1622c);
+static_assert(offsetof(uPlayerDanteBoss, mbBlackEnable) == 0x16230);
+static_assert(offsetof(uPlayerDanteBoss, mSaveData) == 0x16234);
+static_assert(offsetof(uPlayerDanteBoss, mBattle) == 0x16334);
+static_assert(offsetof(uPlayerDanteBoss, mActive) == 0x16335);
