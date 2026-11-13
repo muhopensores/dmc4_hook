@@ -517,58 +517,58 @@ public:
         uint32_t mRno3 : 8;
     };
     static_assert(sizeof(RnoFlags) == 0x4);
-    struct cUnit {
+    struct cUnit__cUnit {
         void* vtable_ptr; // 0x0
         uint32_t mBeFlag : 3;
         uint32_t mMoveLine : 7;
         uint32_t mUnitAttr : 6;
-        uint8_t mTransMode; // 0x8
-        uint8_t mTransView; // 0x9
-        cUnit* mp_next_unit; // 0xc
-        cUnit* mp_prev_unit; // 0x10
-        float m_delta_time; // 0x14
-        RnoFlags mRno; // 0x18
+        uint32_t mTransMode : 8;
+        uint32_t mTransView : 8;
+        cUnit* mp_next_unit; // 0x8
+        cUnit* mp_prev_unit; // 0xc
+        float m_delta_time; // 0x10
+        RnoFlags mRno; // 0x14
     };
-    static_assert(sizeof(cUnit) == 0x1c);
+    static_assert(sizeof(cUnit__cUnit) == 0x18);
     struct uDamage__uDamage {
-        cUnit cUnitBase; // 0x0
-        float mHitPoint; // 0x1c
-        float mMaxHitPoint; // 0x20
-        int32_t mPointCorrect; // 0x24
-        int32_t mLvCorrect; // 0x28
-        float mDamageCorrect; // 0x2c
-        float mDamageValue; // 0x30
-        float mActualDamageValue; // 0x34
-        int32_t mInterrupt[5]; // 0x38
-        int32_t mBlown[5]; // 0x4c
-        int32_t mMaxInterrupt[5]; // 0x60
-        int32_t mMaxBlown[5]; // 0x74
-        uint32_t mState; // 0x88
-        uint32_t mEffect; // 0x8c
-        bool mIsDead; // 0x90
-        char pad_91[0x3];
-        uintptr_t mpSoundRequest; // 0x94
-        uint32_t mGuardType; // 0x98
-        bool mResetInterruptReq; // 0x9c
-        bool mResetBlownReq; // 0x9d
-        bool mIsEmToEm; // 0x9e
-        char pad_9f[0x1];
-        void*  /* kAttackStatus * */ mpLastAttackStatus; // 0xa0
-        int32_t mEffectReduceCount; // 0xa4
-        float mEffectReduceTimer; // 0xa8
-        char pad_ac[0x4];
-        float mTimer; // 0xb0
-        float mStateTimer; // 0xb4
-        void*  /* kAttackStatus * */ mpAttackStatus; // 0xb8
-        void*  /* kDefendStatus * */ mpDefendStatus; // 0xbc
-        uActor* mpAttackActor; // 0xc0
-        uActor* mpDefendActor; // 0xc4
-        uModel* mpModel; // 0xc8
-        uDamage__UDAMAGE_TYPE mType; // 0xcc
-        uint32_t mComboRank; // 0xd0
-        uintptr_t mpDefendStatusData; // 0xd4
+        cUnit__cUnit cUnitBase; // 0x0
+        float mHitPoint; // 0x18
+        float mMaxHitPoint; // 0x1c
+        int32_t mPointCorrect; // 0x20
+        int32_t mLvCorrect; // 0x24
+        float mDamageCorrect; // 0x28
+        float mDamageValue; // 0x2c
+        float mActualDamageValue; // 0x30
+        int32_t mInterrupt[5]; // 0x34
+        int32_t mBlown[5]; // 0x48
+        int32_t mMaxInterrupt[5]; // 0x5c
+        int32_t mMaxBlown[5]; // 0x70
+        uint32_t mState; // 0x84
+        uint32_t mEffect; // 0x88
+        bool mIsDead; // 0x8c
+        char pad_8d[0x3];
+        uintptr_t mpSoundRequest; // 0x90
+        uint32_t mGuardType; // 0x94
+        bool mResetInterruptReq; // 0x98
+        bool mResetBlownReq; // 0x99
+        bool mIsEmToEm; // 0x9a
+        char pad_9b[0x1];
+        void*  /* kAttackStatus * */ mpLastAttackStatus; // 0x9c
+        int32_t mEffectReduceCount; // 0xa0
+        float mEffectReduceTimer; // 0xa4
+        char pad_a8[0x4];
+        float mTimer; // 0xac
+        float mStateTimer; // 0xb0
+        void*  /* kAttackStatus * */ mpAttackStatus; // 0xb4
+        void*  /* kDefendStatus * */ mpDefendStatus; // 0xb8
+        uActor* mpAttackActor; // 0xbc
+        uActor* mpDefendActor; // 0xc0
+        uModel* mpModel; // 0xc4
+        uDamage__UDAMAGE_TYPE mType; // 0xc8
+        uint32_t mComboRank; // 0xcc
+        uintptr_t mpDefendStatusData; // 0xd0
     };
-    static_assert(sizeof(uDamage__uDamage) == 0xd8);
+    static_assert(sizeof(uDamage__uDamage) == 0xd4);
     struct kEffectElementMessageParam {
         uint32_t mUParam; // 0x0
         int32_t mSParam; // 0x4
@@ -593,6 +593,7 @@ public:
         char pad_31[0x3];
         int32_t level; // 0x34
         uDamage__uDamage mgr; // 0x38
+        uintptr_t pEffElemMsg; // 0x10c
         kEffectElementMessageParam effElemParam; // 0x110
         bool isBaelEatLand; // 0x128
         char pad_129[0x3];
