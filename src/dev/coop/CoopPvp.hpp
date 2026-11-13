@@ -75,6 +75,5 @@ void targets_for(uintptr_t viewer);     // the players' targets skipped as for `
 bool grabs_ready();                     // the rows are in: players can be grabbed
 const char* grabs_error();              // why not
 void draw_grab_diag();                   // the grab counters (Coop's Diagnostics)
-void note_damage_pre(uintptr_t attack_group, uintptr_t target);   // uActor::damagePreMessage was called (Diagnostics)
 
 } // namespace coop_pvp

@@ -867,9 +867,6 @@ constexpr uintptr_t kDamagePreMessage = 0x4A7F30;
 uintptr_t damage_pre_original = 0;
 
 bool __stdcall damage_enter(uintptr_t attacker_group, uintptr_t target) {
-    if (Coop::mod_enabled) {
-        coop_pvp::note_damage_pre(attacker_group, target);
-    }
     return Coop::mod_enabled && coop_context::hit_enter(attacker_group, target);
 }
 

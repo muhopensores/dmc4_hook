@@ -140,7 +140,6 @@ std::unique_ptr<FunctionHook> hook_vs_attr, hook_own_hit, hook_grab_pass, hook_g
 uintptr_t vs_attr_original = 0;
 uintptr_t ret_own_hit = 0;                     // 0x47C463: the pair is tested (checkGroup_)
 uintptr_t ret_no_hit = 0x47C4AC;               // the next damage group
-uintptr_t ret_forced_hit = 0x47C479;           // after a passing checkGroup_: the hit goes on to damagePreMessage
 uintptr_t ret_push_pair = 0x47BF03, ret_no_push = 0x47BF52;   // checkPush: the pair is tested / the next group
 std::unique_ptr<FunctionHook> hook_push_pair;
 uintptr_t ret_shrink_pair = 0x47C2C4, ret_no_shrink = 0x47C2CF;   // shrinkAttackObj: shrinkGroup / the next group
@@ -238,53 +237,6 @@ bool active() {
 
 // ---- V1: hits ----
 
-// Nero's charged shot (uPlNeroShl001, wp000.col groups, side 1) and the Gunslinger fan's bullets (uPlNeroShl000) passed
-// through players in game while the Gunslinger dodge's bullets (uPlNeroShl000 too) hit: per class, what its attack
-// groups get from setVsAttr, and how the hit pass weighs them against a player's damage group (Diagnostics).
-constexpr uintptr_t kBulletVtable     = 0xBE8E40;   // uPlNeroShl000::vftable
-constexpr uintptr_t kChargeShotVtable = 0xBE8FA8;   // uPlNeroShl001::vftable
-struct ChargeDiag {
-    uint32_t groups = 0, pairs = 0, overlaps = 0;
-    int owner = -1;
-    uint32_t kind = 0, attr = 0, vs = 0;
-    float shot[3] = {}, body[3] = {}, dist = -1.0f;   // last pair: bounds centres (cCollisionGroup +0x70 min, +0x80 max)
-    // closest pair since the reset: distance, the shell's own mPos then, the shot box's size, the shooter's mPos
-    float min_dist = -1.0f, shell[3] = {}, size[3] = {}, shooter[3] = {};
-    // ... and its shapes (cCollisionGroup +0x94 count, +0x9C cCollision*[]; cCollision +4 kCollPrim (+0 type, +0xC
-    // radius), +8 scale, +0x10 / +0x20 its box): the shot's first shape, the body's shape count, and how many shot x
-    // body shape pairs have overlapping boxes (checkGroup_'s first test, 0x47DB77)
-    int shot_shapes = 0, body_shapes = 0, shape_overlaps = 0, shot_type = -1;
-    float shot_radius = 0.0f, shot_scale = 0.0f, shot_box[3] = {};
-    int body_bone = -2;   // the body group's first shape: joint (-1 = the model's own matrix), radius, centre
-    float body_radius = 0.0f, body_centre[3] = {};
-    // the hit itself: uActor::damagePreMessage calls with a player's body as the actor hit (Coop.cpp's hook), the
-    // victim's HP then, and the attack ID the group carried
-    uint32_t damage_calls = 0;
-    float damage_hp = -1.0f;
-    int damage_attack_id = -1;
-    uint32_t forced = 0;   // hits Coop's own sweep let through (the charged shot)
-    // the sweep checkGroup_ tests (0x47DBB6: an attack group's sphere becomes a capsule from cCollision +0x40 mMat0 to
-    // +0xC0, the last frame's): their translation rows (+0x70, +0xF0), the body sphere's (+0x70), and the closest
-    // distance from that segment to it minus both radii (<= 0 = touching)
-    float sweep_now[3] = {}, sweep_old[3] = {}, sweep_body[3] = {}, sweep_gap = 0.0f;
-};
-
-bool shape_boxes_overlap(uintptr_t a, uintptr_t b) {
-    for (int k = 0; k < 3; k++) {
-        if (at<float>(a, 0x10 + 4 * k) > at<float>(b, 0x20 + 4 * k) || at<float>(b, 0x10 + 4 * k) > at<float>(a, 0x20 + 4 * k)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-void bounds_centre(uintptr_t group, float* c) {
-    for (int k = 0; k < 3; k++) {
-        c[k] = 0.5f * (at<float>(group, 0x70 + 4 * k) + at<float>(group, 0x80 + 4 * k));
-    }
-}
-ChargeDiag charge_diag[2];   // [0] Blue Rose bullets (uPlNeroShl000), [1] charged shots (uPlNeroShl001)
-
 // The Buster's impact hit (uPlGrabShortHit) on a thrown player: made, its box found and given the players bit, weighed
 // against a player by the hit pass (Diagnostics).
 constexpr uintptr_t kImpactVtable = 0xBE8898;   // uPlGrabShortHit::vftable
@@ -300,13 +252,6 @@ bool is_impact(uintptr_t mgr) {
     return r && at<uintptr_t>(r, 0) == kImpactVtable;
 }
 
-// 0 a Blue Rose bullet, 1 a charged shot, -1 neither.
-int shot_class(uintptr_t mgr) {
-    const uintptr_t r = mgr ? at<uintptr_t>(mgr, kMgrReport) : 0;
-    const uintptr_t vt = r ? at<uintptr_t>(r, 0) : 0;
-    return vt == kBulletVtable ? 0 : vt == kChargeShotVtable ? 1 : -1;
-}
-
 void __stdcall after_vs_attr(uintptr_t group, uintptr_t mgr) {
     if (!group || !Coop::mod_enabled) {
         return;
@@ -314,7 +259,6 @@ void __stdcall after_vs_attr(uintptr_t group, uintptr_t mgr) {
     if (coop_pvp::push && mgr && (at<uint32_t>(group, kGroupAttr) & 4) && body_player(at<uintptr_t>(mgr, kMgrReport)) >= 0) {
         at<uint32_t>(group, kGroupVsAttr) |= kPushPlayers;
     }
-    const int shot = shot_class(mgr);
     const int owner = owner_of_mgr(mgr);
     if (owner >= 0 && coop_pvp::hits) {
         const uint32_t attr = at<uint32_t>(group, kGroupAttr);
@@ -326,18 +270,9 @@ void __stdcall after_vs_attr(uintptr_t group, uintptr_t mgr) {
             vs |= kHitByPlayers;
         }
     }
-    if (shot >= 0) {
-        ChargeDiag& c = charge_diag[shot];
-        c.groups++;
-        c.owner = owner;
-        c.kind = at<uint32_t>(group, 0x04);
-        c.attr = at<uint32_t>(group, kGroupAttr);
-        c.vs = at<uint32_t>(group, kGroupVsAttr);
-    }
 }
 
 bool thrown_player(int i);   // after the grab code: player i is in a Buster throw
-bool __stdcall check_group(void* scratch, uintptr_t grab_group, uintptr_t target_group, uint32_t mode);
 
 // The player whose stand arm `arm` is (the Buster impact's +0x13C8), -1 if none.
 int arm_owner(uintptr_t arm) {
@@ -348,98 +283,6 @@ int arm_owner(uintptr_t arm) {
         if (stand && at<uintptr_t>(stand, 0x1374) == arm) return i;
     }
     return -1;
-}
-
-// A player's shot (any uPlShl: Blue Rose bullets and charged shots, Ebony & Ivory, Coyote's pellets) against another
-// player: when shrinkAttackObj pulled a shot back onto its shooter (kShrinkPairSite), its collision shapes sat where it
-// was fired at the hit test (cCollision +0x70 and +0xF0, the two ends checkGroup_ sweeps between, both at the spawn
-// point, measured in game on the charged shot; the shotgun only hit point blank), and checkGroup_ missed the player it
-// flew through. A backstop for any shot still left there: Coop sweeps the shot itself: each attack shape (its pos0,
-// and pos1 for a capsule, turned by the shell's world matrix +0xA0) from the shell's position (+0x30) to where
-// uPlShl::updatePos 0x830650 puts it next (+0x17A0), against every sphere of the body group (centre = the shape's
-// mMat0 (+0x40 rows) times the prim's pos0 (+0x10), radius = prim +0xC x scale +8). A stopped shot (+0x17B4, set by
-// uPlNeroShl001::hitMessage 0x82D820 and the like) is left alone, and a shot hits a player through Coop's sweep once.
-constexpr uintptr_t kPlShlDti     = 0xE5AB70;   // uPlShl::DTI
-constexpr uintptr_t kDtiParent    = 0x10;       // MtDTI::mp_parent
-constexpr uintptr_t kGetDtiSlot   = 0x10;       // vtable: getDTI
-constexpr uintptr_t kShellWmat    = 0xA0;       // uModel::mWmat
-constexpr uintptr_t kShellNextPos = 0x17A0;
-constexpr uintptr_t kShellStopped = 0x17B4;
-
-bool is_player_shot(uintptr_t actor) {
-    if (!actor || !at<uintptr_t>(actor, 0)) return false;
-    uintptr_t dti = reinterpret_cast<uintptr_t(__fastcall*)(uintptr_t, uintptr_t)>(at<uintptr_t>(at<uintptr_t>(actor, 0), kGetDtiSlot))(actor, 0);
-    for (int depth = 0; dti && depth < 32; depth++, dti = at<uintptr_t>(dti, kDtiParent)) {
-        if (dti == kPlShlDti) return true;
-    }
-    return false;
-}
-
-struct ForcedHit { uintptr_t shell = 0, victim = 0; uint32_t id = 0; };   // id = the attack group's mUniqueID (+0x14): shells reuse addresses
-ForcedHit forced_hits[32];
-int forced_next = 0;
-
-bool already_forced(uintptr_t shell, uintptr_t victim, uint32_t id) {
-    for (const ForcedHit& f : forced_hits) {
-        if (f.shell == shell && f.victim == victim && f.id == id) return true;
-    }
-    return false;
-}
-
-bool swept_touch(const float* a, const float* b, float r, uintptr_t group) {
-    const int n = at<int>(group, 0x94);
-    const uintptr_t* shapes = at<uintptr_t*>(group, 0x9C);
-    const float d[3] = {b[0] - a[0], b[1] - a[1], b[2] - a[2]};
-    const float dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
-    for (int s = 0; shapes && s < n && s < 64; s++) {
-        const uintptr_t sh = shapes[s];
-        const uintptr_t prim = sh ? at<uintptr_t>(sh, 4) : 0;
-        if (!prim || at<int>(prim, 0) != 0) continue;   // spheres
-        float q[3];
-        for (int k = 0; k < 3; k++) {
-            q[k] = at<float>(prim, 0x10) * at<float>(sh, 0x40 + 4 * k) + at<float>(prim, 0x14) * at<float>(sh, 0x50 + 4 * k) +
-                   at<float>(prim, 0x18) * at<float>(sh, 0x60 + 4 * k) + at<float>(sh, 0x70 + 4 * k);
-        }
-        const float w[3] = {q[0] - a[0], q[1] - a[1], q[2] - a[2]};
-        float t = dd > 1e-6f ? (w[0] * d[0] + w[1] * d[1] + w[2] * d[2]) / dd : 0.0f;
-        t = t < 0.0f ? 0.0f : t > 1.0f ? 1.0f : t;
-        const float ex = a[0] + t * d[0] - q[0], ey = a[1] + t * d[1] - q[1], ez = a[2] + t * d[2] - q[2];
-        const float reach = r + at<float>(prim, 0xC) * at<float>(sh, 8);
-        if (ex * ex + ey * ey + ez * ez <= reach * reach) return true;
-    }
-    return false;
-}
-
-// One point of a shot's shape (local offset `ofs`) at the shell's position `at_pos`, turned by its world matrix.
-void shot_point(uintptr_t shell, const float* at_pos, uintptr_t ofs, uintptr_t prim, float* out) {
-    for (int k = 0; k < 3; k++) {
-        out[k] = at_pos[k] + at<float>(prim, ofs) * at<float>(shell, kShellWmat + 4 * k) +
-                 at<float>(prim, ofs + 4) * at<float>(shell, kShellWmat + 0x10 + 4 * k) +
-                 at<float>(prim, ofs + 8) * at<float>(shell, kShellWmat + 0x20 + 4 * k);
-    }
-}
-
-bool shot_touches(uintptr_t shell, uintptr_t attack_group, uintptr_t damage_group) {
-    if (at<uint8_t>(shell, kShellStopped)) return false;
-    const float now[3] = {at<float>(shell, 0x30), at<float>(shell, 0x34), at<float>(shell, 0x38)};
-    const float next[3] = {at<float>(shell, kShellNextPos), at<float>(shell, kShellNextPos + 4), at<float>(shell, kShellNextPos + 8)};
-    const int n = at<int>(attack_group, 0x94);
-    const uintptr_t* shapes = at<uintptr_t*>(attack_group, 0x9C);
-    for (int s = 0; shapes && s < n && s < 64; s++) {
-        const uintptr_t sh = shapes[s];
-        const uintptr_t prim = sh ? at<uintptr_t>(sh, 4) : 0;
-        if (!prim) continue;
-        const int type = at<int>(prim, 0);
-        if (type != 0 && type != 3) continue;
-        const float r = at<float>(prim, 0xC) * at<float>(sh, 8);
-        for (int end = 0; end < (type == 3 ? 2 : 1); end++) {
-            float a[3], c[3];
-            shot_point(shell, now, end ? 0x20 : 0x10, prim, a);
-            shot_point(shell, next, end ? 0x20 : 0x10, prim, c);
-            if (swept_touch(a, c, r, damage_group)) return true;
-        }
-    }
-    return false;
 }
 
 // Coop's no-hit rule for a pair, with no side effects: RULE_THROWN = a player in a Buster throw hits nobody (he plays
@@ -468,7 +311,7 @@ bool __stdcall shrink_blocked(uintptr_t attack_group, uintptr_t damage_group) {
     return pair_rule(attack_group, damage_group, attacker, target) != RULE_NONE;
 }
 
-// 0 = the game tests the pair, 1 = no hit (pair_rule), 2 = a hit without the game's test (the shot sweep, above).
+// 0 = the game tests the pair, 1 = no hit (pair_rule).
 int __stdcall same_player(uintptr_t attack_group, uintptr_t damage_group) {
     if (!Coop::mod_enabled || !attack_group || !damage_group) {
         return 0;
@@ -479,95 +322,11 @@ int __stdcall same_player(uintptr_t attack_group, uintptr_t damage_group) {
     if (rule == RULE_THROWN) {
         return 1;
     }
-    const int shot = target >= 0 && target != attacker ? shot_class(amgr) : -1;
-    if (shot >= 0) {
-        ChargeDiag& c = charge_diag[shot];
-        c.pairs++;
-        bounds_centre(attack_group, c.shot);
-        bounds_centre(damage_group, c.body);
-        const float dx = c.shot[0] - c.body[0], dy = c.shot[1] - c.body[1], dz = c.shot[2] - c.body[2];
-        c.dist = std::sqrt(dx * dx + dy * dy + dz * dz);
-        if (c.min_dist < 0.0f || c.dist < c.min_dist) {
-            c.min_dist = c.dist;
-            const uintptr_t shell = at<uintptr_t>(amgr, kMgrReport);
-            const uintptr_t shooter = attacker >= 0 ? coop::players[attacker].unit : 0;
-            for (int k = 0; k < 3; k++) {
-                c.shell[k] = at<float>(shell, 0x30 + 4 * k);
-                c.size[k] = at<float>(attack_group, 0x80 + 4 * k) - at<float>(attack_group, 0x70 + 4 * k);
-                c.shooter[k] = shooter ? at<float>(shooter, 0x30 + 4 * k) : 0.0f;
-            }
-            const int ns = at<int>(attack_group, 0x94), nb = at<int>(damage_group, 0x94);
-            const uintptr_t* ss = at<uintptr_t*>(attack_group, 0x9C);
-            const uintptr_t* bs = at<uintptr_t*>(damage_group, 0x9C);
-            c.shot_shapes = ns;
-            c.body_shapes = nb;
-            c.shape_overlaps = 0;
-            c.shot_type = -1;
-            for (int s = 0; ss && s < ns && s < 64; s++) {
-                const uintptr_t sh = ss[s];
-                if (!sh) continue;
-                if (s == 0) {
-                    const uintptr_t prim = at<uintptr_t>(sh, 4);
-                    c.shot_type = prim ? at<int>(prim, 0) : -1;
-                    c.shot_radius = prim ? at<float>(prim, 0xC) : 0.0f;
-                    c.shot_scale = at<float>(sh, 8);
-                    for (int k = 0; k < 3; k++) {
-                        c.shot_box[k] = at<float>(sh, 0x20 + 4 * k) - at<float>(sh, 0x10 + 4 * k);
-                    }
-                }
-                for (int d = 0; bs && d < nb && d < 64; d++) {
-                    if (bs[d] && shape_boxes_overlap(sh, bs[d])) c.shape_overlaps++;
-                }
-            }
-            if (ss && ns > 0 && ss[0] && bs && nb > 0 && bs[0]) {
-                float a[3], o[3], q[3];
-                for (int k = 0; k < 3; k++) {
-                    a[k] = c.sweep_now[k] = at<float>(ss[0], 0x70 + 4 * k);
-                    o[k] = c.sweep_old[k] = at<float>(ss[0], 0xF0 + 4 * k);
-                    q[k] = c.sweep_body[k] = at<float>(bs[0], 0x70 + 4 * k);
-                }
-                float d[3] = {o[0] - a[0], o[1] - a[1], o[2] - a[2]}, w[3] = {q[0] - a[0], q[1] - a[1], q[2] - a[2]};
-                const float dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
-                float t = dd > 1e-6f ? (w[0] * d[0] + w[1] * d[1] + w[2] * d[2]) / dd : 0.0f;
-                t = t < 0.0f ? 0.0f : t > 1.0f ? 1.0f : t;
-                const float ex = a[0] + t * d[0] - q[0], ey = a[1] + t * d[1] - q[1], ez = a[2] + t * d[2] - q[2];
-                const uintptr_t sp = at<uintptr_t>(ss[0], 4), bp = at<uintptr_t>(bs[0], 4);
-                const float rs = sp ? at<float>(sp, 0xC) * at<float>(ss[0], 8) : 0.0f;
-                const float rb = bp ? at<float>(bp, 0xC) * at<float>(bs[0], 8) : 0.0f;
-                c.sweep_gap = std::sqrt(ex * ex + ey * ey + ez * ez) - rs - rb;
-            }
-            c.body_bone = -2;
-            if (bs && nb > 0 && bs[0]) {
-                const uintptr_t prim = at<uintptr_t>(bs[0], 4);
-                c.body_bone = prim ? at<int>(prim, 4) : -2;
-                c.body_radius = prim ? at<float>(prim, 0xC) * at<float>(bs[0], 8) : 0.0f;
-                for (int k = 0; k < 3; k++) {
-                    c.body_centre[k] = 0.5f * (at<float>(bs[0], 0x10 + 4 * k) + at<float>(bs[0], 0x20 + 4 * k));
-                }
-            }
-        }
-        alignas(16) uint8_t scratch[64];
-        if (check_group(scratch, attack_group, damage_group, 1)) {
-            c.overlaps++;
-        }
-    }
     if (target >= 0 && is_impact(amgr)) {
         impact_diag.pairs++;
         impact_diag.owner = attacker;
     }
-    if (rule == RULE_OWN) {
-        return 1;
-    }
-    const uintptr_t shell = at<uintptr_t>(amgr, kMgrReport);
-    const uintptr_t victim = at<uintptr_t>(at<uintptr_t>(damage_group, kGroupMgr), kMgrReport);
-    if (attacker >= 0 && target >= 0 && body_player(victim) >= 0 && is_player_shot(shell) && !already_forced(shell, victim, at<uint32_t>(attack_group, 0x14)) &&
-        shot_touches(shell, attack_group, damage_group)) {
-        forced_hits[forced_next] = {shell, victim, at<uint32_t>(attack_group, 0x14)};
-        forced_next = (forced_next + 1) % 32;
-        if (shot >= 0) charge_diag[shot].forced++;
-        return 2;
-    }
-    return 0;
+    return rule == RULE_OWN ? 1 : 0;
 }
 
 bool grabbed_player(int i);   // after the grab code: player i is held by a grab (Snatch, Buster, hold)
@@ -637,16 +396,13 @@ naked_extern void detour_own_hit() {
         push edx
         push dword ptr [ebp+8]
         call same_player
-        cmp eax, 1
+        test eax, eax
         popad
-        je no_hit
-        ja forced
+        jnz no_hit
     hit:
         jmp dword ptr [ret_own_hit]
     no_hit:
         jmp dword ptr [ret_no_hit]
-    forced:
-        jmp dword ptr [ret_forced_hit]
     }
 }
 
@@ -2121,26 +1877,10 @@ const char* grabs_error() {
     return rows.error.c_str();
 }
 
-void note_damage_pre(uintptr_t attack_group, uintptr_t target) {
-    if (!attack_group || !target || body_player(target) < 0) {
-        return;
-    }
-    const int shot = shot_class(at<uintptr_t>(attack_group, kGroupMgr));
-    if (shot < 0) {
-        return;
-    }
-    ChargeDiag& c = charge_diag[shot];
-    c.damage_calls++;
-    c.damage_hp = at<float>(target, kHp);
-    c.damage_attack_id = at<int>(attack_group, 0xB4);   // cCollisionGroup::mAttackStatus.mAttackID (damagePreMessage 0x4A804E)
-}
-
 void draw_grab_diag() {
     if (ImGui::Button(_("Reset grab counters"))) {
         grab_diag = {};
         hold_diag = {};
-        charge_diag[0] = {};
-        charge_diag[1] = {};
         impact_diag = {};
     }
     ImGui::SameLine();
@@ -2191,51 +1931,6 @@ void draw_grab_diag() {
     Mod::help_marker(_("The grabbing Nero when the hold ended. Lower action 12 = an attack (the grab move); phase 2 = its "
                        "reaction (the throw) is running. Reaction SGScare / SGAScare = the boss Dante's Buster, none = Nero "
                        "never got a throw to play"));
-    for (int pass = 0; pass < 2; pass++) {
-        const int shot = 1 - pass;   // the charged shot first: the panel's bottom gets cut off
-        const ChargeDiag& c = charge_diag[shot];
-        ImGui::PushID(shot);
-        ImGui::TextWrapped("%s: %u attack boxes (last: player %d, side %u, attr %X, mask %08X), tested on a player %u, "
-                           "shapes touching %u; last pair: shot at %.0f %.0f %.0f, body at %.0f %.0f %.0f, %.0f apart",
-                           shot ? "charged shot" : "Blue Rose bullet", c.groups, c.owner + 1, c.kind, c.attr, c.vs, c.pairs,
-                           c.overlaps, c.shot[0], c.shot[1], c.shot[2], c.body[0], c.body[1], c.body[2], c.dist);
-        ImGui::SameLine();
-        Mod::help_marker(_("Nero's Blue Rose shots against players: the plain bullet (also every Gunslinger bullet) and the "
-                           "charged shot. Attack boxes: how many it made and the last one's owner (0 = not known as a "
-                           "player's), side and mask; the mask needs bit 2 (attacks players). Tested on a player: times "
-                           "the game's hit test weighed one of its boxes against another player's body. Shapes touching: "
-                           "how many of those the game's own shape test passed"));
-        ImGui::TextWrapped("  closest: %.0f apart; shell at %.0f %.0f %.0f, box size %.0f %.0f %.0f, shooter at %.0f %.0f %.0f",
-                           c.min_dist, c.shell[0], c.shell[1], c.shell[2], c.size[0], c.size[1], c.size[2], c.shooter[0],
-                           c.shooter[1], c.shooter[2]);
-        ImGui::SameLine();
-        Mod::help_marker(_("The pair where the shot's box came closest to another player's body: how far apart their "
-                           "centres were, where the shot itself was, how big its box was (swept from its last position) "
-                           "and where the player who fired it stood"));
-        ImGui::TextWrapped("  its shapes: shot %d (first: type %d, radius %.0f, scale %.2f, box %.0f %.0f %.0f), body %d, "
-                           "shape boxes overlapping %d", c.shot_shapes, c.shot_type, c.shot_radius, c.shot_scale,
-                           c.shot_box[0], c.shot_box[1], c.shot_box[2], c.body_shapes, c.shape_overlaps);
-        ImGui::TextWrapped("  body's first shape: joint %d, radius %.0f, at %.0f %.0f %.0f", c.body_bone, c.body_radius,
-                           c.body_centre[0], c.body_centre[1], c.body_centre[2]);
-        ImGui::TextWrapped("  hit calls on a player %u (last: his HP then %.0f, attack ID %d), let through by Coop's sweep %u",
-                           c.damage_calls, c.damage_hp, c.damage_attack_id, c.forced);
-        ImGui::TextWrapped("  sweep tested: now %.0f %.0f %.0f, last frame %.0f %.0f %.0f, body sphere %.0f %.0f %.0f, gap %.0f",
-                           c.sweep_now[0], c.sweep_now[1], c.sweep_now[2], c.sweep_old[0], c.sweep_old[1], c.sweep_old[2],
-                           c.sweep_body[0], c.sweep_body[1], c.sweep_body[2], c.sweep_gap);
-        ImGui::SameLine();
-        Mod::help_marker(_("The two ends of the swept shot the game's shape test uses (where the shot is now and where it was "
-                           "last frame), the centre of the body sphere it was tested against, and how far apart they "
-                           "really are once both radii are taken off: 0 or below means they touch"));
-        ImGui::SameLine();
-        Mod::help_marker(_("Times the game went on to hurt a player with this shot (uActor::damagePreMessage on his body), his HP "
-                           "at that moment and the attack ID the shot carried. Above 0 while he takes no damage = the hit "
-                           "lands and something refuses the damage; 0 = the hit test never let it through"));
-        ImGui::SameLine();
-        Mod::help_marker(_("At that closest pair: the shot's collision shapes (type 0 sphere, 3 capsule; its radius and "
-                           "the scale the game multiplies it by), the body's shape count, and how many shot / body shape "
-                           "pairs had overlapping boxes, the first thing the game's shape test checks"));
-        ImGui::PopID();
-    }
     const ImpactDiag& im = impact_diag;
     ImGui::TextWrapped("Buster impact: made %u, armed %u (mask %08X), no box yet %u, weighed on a player %u (owner player %d)",
                 im.made, im.armed, im.vs, im.no_box, im.pairs, im.owner + 1);
