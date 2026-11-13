@@ -378,6 +378,8 @@ set(MODS_SRC
   mods/EnemyAI.cpp
   mods/EnemyAIThinkTrace.hpp
   mods/EnemyAIThinkTrace.cpp
+  mods/BossDante.hpp
+  mods/BossDante.cpp
   mods/MultiCharFixes.hpp
   mods/MultiCharFixes.cpp
   mods/PhotoMode.hpp
@@ -454,6 +456,8 @@ set(SDK_SRC
     sdk/Collision.cpp
     sdk/InputCommand.hpp
     sdk/InputCommand.cpp
+    sdk/EnemyStep.hpp
+    sdk/EnemyStep.cpp
     sdk/NeroStand.hpp
     sdk/Players.hpp
     sdk/Players.cpp

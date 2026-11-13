@@ -649,6 +649,7 @@ namespace gui {
                         pmods->on_draw_ui<EnemyDT>(DISPLAY_SYSTEM_A); // needs its own line
 #ifndef PUBLIC_BUILD
                         pmods->on_draw_ui<EnemyAI>(DISPLAY_SYSTEM_A); // Provoke, Anti-air (its own section headers)
+                        pmods->on_draw_ui<BossDante>(DISPLAY_SYSTEM_A);
 #endif
                         tabHeight += ImGui::GetCursorPosY();
                         ImGui::EndChild();

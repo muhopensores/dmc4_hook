@@ -198,6 +198,7 @@ Mods::Mods() {
 #ifndef PUBLIC_BUILD
     ADD_MOD(AfterImage);
     ADD_MOD(EnemyAI);
+    ADD_MOD(BossDante);
     ADD_MOD(SpiderTwerk);
     ADD_MOD(Coop);
     ADD_MOD(Cock);

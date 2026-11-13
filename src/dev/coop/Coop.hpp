@@ -58,7 +58,6 @@ public:
     static uintptr_t jmp_ret_unit_pass2;
     static uintptr_t jmp_ret_unit_pass3;
     static uintptr_t jmp_ret_unit_init;
-    static uintptr_t jmp_ret_em_step;
 
     void toggle(bool enable);
 

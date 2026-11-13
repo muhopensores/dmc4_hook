@@ -8,6 +8,7 @@
 #include "../../sdk/sUnit.hpp"
 #include "../../sdk/cUnit.hpp"
 #include "../../sdk/Players.hpp"
+#include "../../sdk/EnemyStep.hpp"
 #include "../../mods/CharSwitcher.hpp"
 #include "../../mods/DebugCam.hpp" // REGION_* viewport modes; the free camera (Gameplay Cam off) takes the screen
 #include "../../mods/Macro.hpp"
@@ -39,7 +40,6 @@ uintptr_t Coop::jmp_ret_unit_tick = NULL;
 uintptr_t Coop::jmp_ret_unit_pass2 = NULL;
 uintptr_t Coop::jmp_ret_unit_pass3 = NULL;
 uintptr_t Coop::jmp_ret_unit_init = NULL;
-uintptr_t Coop::jmp_ret_em_step = NULL;
 
 namespace coop {
 
@@ -1031,66 +1031,27 @@ bool __stdcall pad_update_fallback(cPeripheral* peripheral) {
     return coop_pads::update_peripheral(peripheral);
 }
 
-// Enemy step off the other players. uPlayer::checkEmJumpBegin 0x804970 (edi = the jumper) looks for a step target on
-// move lines 15 / 16 only (the enemies) with uActor::isEmJump 0x4AB170: the actor's step points (+0x1318 a table of
-// 32-byte entries: joint, radius, 3 unused, offset in the joint's frame; -1 ends it; +0x131C the mask of points in use,
-// +0x1320 on), each against the jumper's position + 85 cm. Enemies get theirs from uEnemy::setup (emjump_data_tbl
-// 0xC79070 by kind); players have none and stand on line 13. Before line 16 is scanned (0x804A37: reached only once
-// the skill, mIsEmJumpEnable, the action's step bit, the jump press and the step timer have all passed, and line 15
-// had no target; every early return shares 0x804A71, so the hook can't go there) the other players are tried with
-// step points of their own (the chest, as the Scarecrow's / Angelo's first point); a hit goes on at 0x804A7C as the
-// game's: the target's enemyJumpMessage (vtable +0xE8, a nullsub on players), the step timers, action 25.
-#pragma pack(push, 1)
-struct EmJumpPoint { int32_t joint; float radius, unused[3], x, y, z; };
-#pragma pack(pop)
-static_assert(sizeof(EmJumpPoint) == 0x20, "em jump entry");
-const EmJumpPoint kPlayerStep[] = {
-    {2, 300.0f, {0.0f, 0.0f, 0.0f}, 0.0f, 0.0f, 0.0f},
-    {-1, 0.0f, {0.0f, 0.0f, 0.0f}, 0.0f, 0.0f, 0.0f},
-};
-constexpr uintptr_t kEmJumpData = 0x1318, kEmJumpMask = 0x131C, kEmJumpOn = 0x1320;
-constexpr uintptr_t kIsEmJump = 0x4AB170;
-uintptr_t em_step_target = 0;
-uintptr_t em_step_hit = 0x804A7C;
-uintptr_t em_step_sunit = 0xE552CC;   // sUnit::mpInstance
-
-uintptr_t __stdcall find_player_step(uintptr_t jumper) {
-    em_step_target = 0;
+// Enemy step off the other players, through the shared enemy-step hook (sdk/EnemyStep.hpp: the game looks for step
+// targets among the enemies only, and measures from sMediator::mpPlayer): a co-op player steps off another player's
+// chest, measured from the jumper.
+uintptr_t coop_step_target(uintptr_t jumper) {
     if (!Coop::mod_enabled) {
         return 0;
     }
-    using IsEmJumpFn = bool(__stdcall*)(uintptr_t);
+    bool jumper_is_player = false;
+    for (int i = 0; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
+        if (players[i].unit == jumper) jumper_is_player = true;
+    }
+    if (!jumper_is_player) {
+        return 0;
+    }
     for (int i = 0; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
         const uintptr_t pl = players[i].unit;
-        if (!pl || pl == jumper) continue;
-        uintptr_t& data = *reinterpret_cast<uintptr_t*>(pl + kEmJumpData);
-        if (data && data != (uintptr_t)kPlayerStep) continue;   // someone else's points: leave them
-        data = (uintptr_t)kPlayerStep;
-        *reinterpret_cast<uint32_t*>(pl + kEmJumpMask) = 1;
-        *reinterpret_cast<uint8_t*>(pl + kEmJumpOn) = 1;
-        if (reinterpret_cast<IsEmJumpFn>(kIsEmJump)(pl)) {
-            em_step_target = pl;
+        if (pl && pl != jumper && enemy_step::in_reach(jumper, pl)) {
             return pl;
         }
     }
     return 0;
-}
-
-naked_extern void detour_em_step() {
-    __asm {
-        pushad
-        push edi
-        call find_player_step
-        popad
-        mov esi, [em_step_target]
-        test esi, esi
-        jz enemies
-        jmp dword ptr [em_step_hit]
-    enemies:
-        mov eax, [em_step_sunit]
-        mov eax, [eax]
-        jmp dword ptr [Coop::jmp_ret_em_step]
-    }
 }
 
 const char* kCharNames[] = {"Nero", "Dante"};
@@ -1139,7 +1100,6 @@ std::optional<std::string> Coop::on_initialize() {
         {0x8DC39C, &hook_unit_tick, (void*)&detour_unit_tick, &jmp_ret_unit_tick, 9, "unit tick context"},
         {0x8DC44B, &hook_unit_pass2, (void*)&detour_unit_pass2, &jmp_ret_unit_pass2, 9, "unit pass 2 context"},
         {0x8DC4C4, &hook_unit_pass3, (void*)&detour_unit_pass3, &jmp_ret_unit_pass3, 9, "unit pass 3 context"},
-        {0x804A37, &hook_em_step, (void*)&detour_em_step, &jmp_ret_em_step, 5, "enemy step off players"},
     };
     for (const Site& s : sites) {
         if (!install_hook_absolute(s.addr, *s.hook, s.detour, s.ret, s.len)) {
@@ -1147,6 +1107,14 @@ std::optional<std::string> Coop::on_initialize() {
             return std::string("Failed to init Coop: ") + s.what;
         }
     }
+    if (!enemy_step::hook_installed) {   // one installer: BossDante uses the same hook
+        if (!install_hook_absolute(enemy_step::kSite, hook_em_step, &enemy_step::detour, &enemy_step::jmp_ret, 5)) {
+            spdlog::error("Failed to init Coop (enemy step off players)\n");
+            return "Failed to init Coop: enemy step off players";
+        }
+        enemy_step::hook_installed = true;
+    }
+    enemy_step::add_target_source(&coop_step_target);
     hook_grab_hit = std::make_unique<FunctionHook>(kGrabHitMessage, (uintptr_t)&grab_hit_message);
     if (!hook_grab_hit->create()) {
         spdlog::error("Failed to init Coop (grab hit context)\n");
