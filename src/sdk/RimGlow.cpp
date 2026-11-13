@@ -127,10 +127,13 @@ bool is_standard(uintptr_t mat) {
 // made without a specular map) don't have. Each has a STANDARD twin in XfMaterialStandard.bfx, and the material's key
 // (cMaterial +0x10 = skin + 7 lighting + 35 normal map + 140 specular + 700 lightmap + 5600 multitexture) is decoded again
 // at every draw (cMaterialStandard::beginDraw 0xA6387B), so the material takes the twin. Skinned materials only: some
-// static twins read one UV set more than the mesh may have.
+// static twins read one UV set more than the mesh may have. RIM (4) takes its twin too, whatever the skin: Albam's PBR
+// materials are RIM keys whose pixel shaders PbrMaterials replaces, and every RIM key's twin has the same vertex shader and
+// registers (Vibed\PBR\README.md).
 uint32_t glow_key(uint32_t key) {
     const uint32_t specular = key / 140 % 5, skin = key % 7;
-    if (specular == 1 || specular == 4 || skin == 0) return key;
+    if (specular == 4) return key - 140 * 3;
+    if (specular == 1 || skin == 0) return key;
     return key - 140 * specular + 140;
 }
 

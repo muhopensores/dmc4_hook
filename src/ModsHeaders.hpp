@@ -195,4 +195,5 @@
 #include "dev/movedef/MoveDef.hpp"
 #include "dev/file_tracker/FileTracker.hpp"
 #include "dev/unit_packs/UnitPacks.hpp"
+#include "dev/pbr/PbrMaterials.hpp"
 #endif

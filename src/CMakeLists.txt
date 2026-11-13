@@ -408,6 +408,8 @@ set(DEV_SRC
   dev/file_tracker/FileTracker.cpp
   dev/unit_packs/UnitPacks.hpp
   dev/unit_packs/UnitPacks.cpp
+  dev/pbr/PbrMaterials.hpp
+  dev/pbr/PbrMaterials.cpp
   dev/coop/Coop.hpp
   dev/coop/Coop.cpp
   dev/coop/CoopPads.hpp
