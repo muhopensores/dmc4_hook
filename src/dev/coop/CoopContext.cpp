@@ -5,6 +5,7 @@
 #include "../../mod.hpp"
 #include "../../sdk/Cam.hpp"
 #include "../../mods/MultiCharFixes.hpp"
+#include "../../mods/EnemyAI.hpp"
 #include <cstring>
 #include <vector>
 
@@ -439,6 +440,13 @@ void pick_target(Aggro& a) {
         a.hold = 0;   // his player is down: the nearest one standing
     }
     if (target_locked(a)) {
+        return;
+    }
+    // provoked by a taunt (EnemyAI's Provoke): after the player who taunted for as long as it lasts
+    if (const int by = player_slot(provoke::provoker(a.enemy)); by >= 0 && by < n && ready(players[by].unit) &&
+        !at<uint8_t>(players[by].unit, kIsDead)) {
+        a.slot = by;
+        a.hold = 0;
         return;
     }
     if (a.hold > 0) {

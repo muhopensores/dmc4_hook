@@ -4,6 +4,7 @@
 #include "../sdk/InputCommand.hpp"
 #include "../sdk/MtDTI.hpp"
 #include "../sdk/Players.hpp"
+#include "../sdk/RimGlow.hpp"
 #include "../sdk/sUnit.hpp"
 #include "../dev/model_ext/ModelExtension.hpp"
 #include <algorithm>
@@ -49,10 +50,6 @@ namespace {
 template <class T> inline T& at(uintptr_t base, uintptr_t off) { return *reinterpret_cast<T*>(base + off); }
 
 // ---- Game addresses ----------------------------------------------------------------------------------------------
-constexpr uintptr_t fn_buildRenderState = 0x00A61D00;   // cMaterial::buildRenderState(this@ecx): mRenderState0 / 1 from mFlags
-constexpr uintptr_t kMaterialStandardDTI = 0x00EAE1E4;  // cMaterialStandard::DTI
-constexpr uintptr_t kShader         = 0x00E55700;       // sShader::mpInstance
-constexpr uintptr_t kSysTextures    = 0x6868;           // sShader::mpSysTexture[6]: 0 NullWhite, 1 NullBlack, 2 NullNormal_NM, 3 DefaultCube_CM
 constexpr uintptr_t kPlayerId       = 0x1494;           // uPlayer::mPlayerID: 0 Dante, 1 Nero
 constexpr uintptr_t kMoveVel        = 0x1E1C;           // uPlayer::mMoveVel
 constexpr uintptr_t kActionNo       = 0x14F0;           // uPlayer::mActionNo
@@ -63,115 +60,15 @@ constexpr int       kCmnShlLine     = 0x12;             // the unit line uPlCmnS
 constexpr uintptr_t kPartModels[3]  = { 0x3270, 0x4340, 0x52C0 };   // uPlayerNero / uPlayerDante mHead, mHair, mCoat (a uDevil4Model first)
 constexpr int       kPartJoint[3]   = { 4, 4, 2 };      // the copy's joint each part hangs from
 
-// cMaterial / cMaterialStandard
-constexpr uintptr_t mFlags        = 0x04;   // byte0 draw mode, byte1 alpha ref, byte2 material id, bits 24-26 blend pick, 27 zwrite, 28 zthrough
-constexpr uintptr_t mStateKey     = 0x10;   // the shader permutation key (decoded at every draw)
-constexpr uintptr_t mpBaseTex     = 0x1C;   // rTexture* (AlbedoMap)
-constexpr uintptr_t mAlpha        = 0x20;   // < 1 forces alpha blending (cMaterial::beginDraw)
-constexpr uintptr_t mDiffuseW     = 0x3C;   // mDiffuseColor.w: times mAlpha = gXfBlendFactor (the output alpha)
-constexpr uintptr_t mColor2W      = 0x4C;   // times EnvMapPower in gXfFresnelFactor.w
-constexpr uintptr_t mFresnel      = 0x90;   // FresnelFactor, FresnelBias, SpecularPow, EnvMapPower
-constexpr uintptr_t mpMaskTex     = 0xD4;   // MaskMap
-constexpr uintptr_t mpEnvTex      = 0xE8;   // EnvironmentMap (cube)
-constexpr uint32_t  MODE_MASK     = 0xFF, ALPHA_REF_MASK = 0xFF00, BLEND_PICK_MASK = 0x07000000;
-constexpr uint32_t  MODE_TRANSPARENT = 8, BLEND_ADDITIVE = 0x01000000, ZWRITE = 0x08000000, ZTHROUGH = 0x10000000;
-
-// rTexture (0xE8): +0x44 mRefCount, +0xCC mpTexture (cTrans::Texture, 0x60: +0x10 the Direct3D texture, +0x14 its SLI
-// copy, +0x1C / +0x1E width / height, +0x24 format, +0x30 mRange = gXfBaseMapScale for an albedo map).
-constexpr size_t kResSize = 0xE8, kTexSize = 0x60;
-
-void build_render_state(uintptr_t mat) { ((void(__fastcall*)(uintptr_t, int))fn_buildRenderState)(mat, 0); }
-
-bool is_standard(uintptr_t mat) {
-    const auto* dti = ((MtDTI*(__fastcall*)(uintptr_t, int))(at<uintptr_t>(at<uintptr_t>(mat, 0), 0x10)))(mat, 0);
-    for (; dti; dti = dti->mp_parent)
-        if ((uintptr_t)dti == kMaterialStandardDTI) return true;
-    return false;
-}
-
-// ---- The glow's textures ------------------------------------------------------------------------------------------
-// A copy of a system texture's rTexture and cTrans::Texture around a Direct3D texture of the mod's: the materials and
-// beginDraw read them like any other, and the huge reference count keeps a stray release from ever freeing them.
-struct alignas(16) FakeTexture {
-    alignas(16) uint8_t res[kResSize];
-    alignas(16) uint8_t tex[kTexSize];
-    IDirect3DBaseTexture9* d3d = nullptr;
-    uintptr_t ptr() { return (uintptr_t)res; }
-};
-FakeTexture g_black, g_white, g_cube;
-std::atomic<bool> g_textures_ready{ false };
-float g_cube_color[3] = { -1.0f, -1.0f, -1.0f };   // what the cube holds now (render thread)
-
-uint32_t argb(float r, float g, float b) {
-    auto c = [](float v) { return (uint32_t)(std::clamp(v, 0.0f, 1.0f) * 255.0f + 0.5f); };
-    return 0xFF000000u | c(r) << 16 | c(g) << 8 | c(b);
-}
-
-void wrap(FakeTexture& f, uintptr_t source, IDirect3DBaseTexture9* d3d) {
-    std::memcpy(f.res, (void*)source, kResSize);
-    std::memcpy(f.tex, (void*)at<uintptr_t>(source, 0xCC), kTexSize);
-    f.d3d = d3d;
-    at<uint32_t>(f.ptr(), 0x44) = 0x40000000;               // mRefCount
-    at<uintptr_t>(f.ptr(), 0xCC) = (uintptr_t)f.tex;
-    const uintptr_t t = (uintptr_t)f.tex;
-    at<IDirect3DBaseTexture9*>(t, 0x10) = d3d;
-    at<uintptr_t>(t, 0x14) = 0;
-    at<uint16_t>(t, 0x1C) = 1;
-    at<uint16_t>(t, 0x1E) = 1;
-    at<uint32_t>(t, 0x24) = D3DFMT_A8R8G8B8;
-    for (int i = 0; i < 4; ++i) at<float>(t, 0x30 + 4 * i) = 1.0f;
-}
-
-bool fill_2d(IDirect3DTexture9* t, uint32_t color) {
-    D3DLOCKED_RECT lr;
-    if (FAILED(t->LockRect(0, &lr, nullptr, 0))) return false;
-    *(uint32_t*)lr.pBits = color;
-    t->UnlockRect(0);
-    return true;
-}
-
-bool fill_cube(IDirect3DCubeTexture9* t, uint32_t color) {
-    for (int face = 0; face < 6; ++face) {
-        D3DLOCKED_RECT lr;
-        if (FAILED(t->LockRect((D3DCUBEMAP_FACES)face, 0, &lr, nullptr, 0))) return false;
-        *(uint32_t*)lr.pBits = color;
-        t->UnlockRect((D3DCUBEMAP_FACES)face, 0);
-    }
-    return true;
-}
+// ---- The glow's textures (rim_glow: the shared black / white, our cube) -------------------------------------------
+rim_glow::Cube g_cube;
 
 // Render thread (on_frame): the textures once the game's system textures exist, then the cube's colour as it changes.
 void update_textures() {
-    if (!g_textures_ready) {
-        const uintptr_t shader = at<uintptr_t>(kShader, 0);
-        if (!shader) return;
-        const uintptr_t white = at<uintptr_t>(shader, kSysTextures), cube = at<uintptr_t>(shader, kSysTextures + 3 * 4);
-        if (!white || !cube || !at<uintptr_t>(white, 0xCC) || !at<uintptr_t>(cube, 0xCC)) return;
-        IDirect3DDevice9* dev = g_framework->get_d3d9_device();
-        if (!dev) return;
-        IDirect3DTexture9 *black_t = nullptr, *white_t = nullptr;
-        IDirect3DCubeTexture9* cube_t = nullptr;
-        if (FAILED(dev->CreateTexture(1, 1, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &black_t, nullptr)) ||
-            FAILED(dev->CreateTexture(1, 1, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &white_t, nullptr)) ||
-            FAILED(dev->CreateCubeTexture(1, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &cube_t, nullptr)) ||
-            !fill_2d(black_t, 0xFF000000u) || !fill_2d(white_t, 0xFFFFFFFFu)) {
-            if (black_t) black_t->Release();
-            if (white_t) white_t->Release();
-            if (cube_t) cube_t->Release();
-            spdlog::error("AfterImage: couldn't make the glow's textures");
-            return;
-        }
-        wrap(g_black, white, black_t);
-        wrap(g_white, white, white_t);
-        wrap(g_cube, cube, cube_t);
-        g_cube_color[0] = -1.0f;
-    }
-    if (g_cube_color[0] != rim_color[0] || g_cube_color[1] != rim_color[1] || g_cube_color[2] != rim_color[2]) {
-        if (fill_cube((IDirect3DCubeTexture9*)g_cube.d3d, argb(rim_color[0], rim_color[1], rim_color[2])))
-            std::memcpy(g_cube_color, rim_color, sizeof g_cube_color);
-    }
-    g_textures_ready = true;
+    if (rim_glow::update_base()) g_cube.update(rim_color);
 }
+
+bool textures_ready() { return rim_glow::base_ready() && g_cube.ready(); }
 
 // ---- Replacement models -------------------------------------------------------------------------------------------
 struct Loaded { char path[128]; void* res; };
@@ -207,18 +104,7 @@ enum Look : uint8_t { LOOK_NONE, LOOK_PLAIN, LOOK_GLOW };
 // what a model's materials were set up for: the look and the options it reads at set-up
 uint8_t setup_key(Look look) { return (uint8_t)(look | (keep_mask ? 4 : 0) | (through_walls ? 8 : 0)); }
 
-// The glow is the shader's specular term, which the permutations without specular (NONE 0, MIRROR 2, POWMAP 3: models
-// made without a specular map) don't have. Each has a STANDARD twin in XfMaterialStandard.bfx, and the material's key
-// (cMaterial +0x10 = skin + 7 lighting + 35 normal map + 140 specular + 700 lightmap + 5600 multitexture) is decoded again
-// at every draw (cMaterialStandard::beginDraw 0xA6387B), so the copy's material takes the twin. Skinned materials only:
-// some static twins read one UV set more than the mesh may have.
-uint32_t glow_key(uint32_t key) {
-    const uint32_t specular = key / 140 % 5, skin = key % 7;
-    if (specular == 1 || specular == 4 || skin == 0) return key;
-    return key - 140 * specular + 140;
-}
-
-struct Saved { uintptr_t mat; uint32_t flags, state_key; uintptr_t base, mask, env; float alpha, diffuse_w, color2_w; float fresnel[4]; };
+using rim_glow::Saved;
 
 // One model of a copy and what was done to its materials. Its memory is the copy's to free (the game deletes a unit
 // without running C++ destructors).
@@ -305,19 +191,7 @@ struct Clone : CustomUnit<Clone> {
     // The model's materials back to what setMaterials made (before they are rebuilt or destroyed: the textures put
     // in are the mod's).
     static void restore(ModelSlot& s) {
-        for (uint32_t i = 0; i < s.saved_num; ++i) {
-            const Saved& v = s.saved[i];
-            at<uint32_t>(v.mat, mFlags) = v.flags;
-            at<uint32_t>(v.mat, mStateKey) = v.state_key;
-            at<uintptr_t>(v.mat, mpBaseTex) = v.base;
-            at<uintptr_t>(v.mat, mpMaskTex) = v.mask;
-            at<uintptr_t>(v.mat, mpEnvTex) = v.env;
-            at<float>(v.mat, mColor2W) = v.color2_w;
-            std::memcpy(&at<float>(v.mat, mFresnel), v.fresnel, sizeof v.fresnel);
-            at<float>(v.mat, mAlpha) = v.alpha;
-            at<float>(v.mat, mDiffuseW) = v.diffuse_w;
-            build_render_state(v.mat);
-        }
+        for (uint32_t i = 0; i < s.saved_num; ++i) rim_glow::restore(s.saved[i]);
         s.saved_num = 0;
         s.look = LOOK_NONE;
         s.key = 0;
@@ -339,30 +213,10 @@ struct Clone : CustomUnit<Clone> {
         }
         for (uint32_t i = 0; i < num; ++i) {
             const uintptr_t mat = mats[i];
-            if (!mat || !is_standard(mat)) continue;
+            if (!mat || !rim_glow::is_standard(mat)) continue;
             Saved& v = s.saved[s.saved_num++];
-            v.mat = mat;
-            v.flags = at<uint32_t>(mat, mFlags);
-            v.state_key = at<uint32_t>(mat, mStateKey);
-            v.base = at<uintptr_t>(mat, mpBaseTex);
-            v.mask = at<uintptr_t>(mat, mpMaskTex);
-            v.env = at<uintptr_t>(mat, mpEnvTex);
-            v.alpha = at<float>(mat, mAlpha);
-            v.diffuse_w = at<float>(mat, mDiffuseW);
-            v.color2_w = at<float>(mat, mColor2W);
-            std::memcpy(v.fresnel, &at<float>(mat, mFresnel), sizeof v.fresnel);
-            uint32_t f = v.flags & ~(ZWRITE | ZTHROUGH);
-            if (through_walls) f |= ZTHROUGH;
-            if (want == LOOK_GLOW) {
-                f = (f & ~(MODE_MASK | ALPHA_REF_MASK | BLEND_PICK_MASK)) | MODE_TRANSPARENT | BLEND_ADDITIVE;
-                at<uint32_t>(mat, mStateKey) = glow_key(v.state_key);
-                at<uintptr_t>(mat, mpBaseTex) = g_black.ptr();
-                if (!keep_mask) at<uintptr_t>(mat, mpMaskTex) = g_white.ptr();
-                at<uintptr_t>(mat, mpEnvTex) = g_cube.ptr();
-                at<float>(mat, mColor2W) = 1.0f;
-            }
-            at<uint32_t>(mat, mFlags) = f;
-            build_render_state(mat);
+            v = rim_glow::save(mat);
+            rim_glow::put_look(v, want == LOOK_GLOW, &g_cube, keep_mask, through_walls);
         }
         s.look = want;
         s.key = setup_key(want);
@@ -403,7 +257,7 @@ struct Clone : CustomUnit<Clone> {
 
     void activate(uintptr_t pl) {
         const int character = at<uint32_t>(pl, kPlayerId) == 1 ? 1 : 0;
-        const Look want = (glow && g_textures_ready) ? LOOK_GLOW : LOOK_PLAIN;
+        const Look want = (glow && textures_ready()) ? LOOK_GLOW : LOOK_PLAIN;
         auto* body = (uDevil4Model*)pl;
         mPos = body->mPos;
         mQuat = body->mQuat;
@@ -433,26 +287,12 @@ struct Clone : CustomUnit<Clone> {
     // The look's live values (the GUI can change them while copies are out) at `strength` (1 full, 0 gone).
     void apply(float strength) {
         const float a = std::clamp(opacity * strength, 0.0f, 1.0f);
-        // the shader's term is (1 + cos)^5 (1 at the outline, 32 face-on): weight 1 at the outline down to 0 where cos
-        // reaches rim_reach
-        const float x = 1.0f + std::clamp(rim_reach, 0.02f, 1.0f), factor = 1.0f / (x * x * x * x * x - 1.0f);
         for (int k = 0; k < slot_num; ++k) {
             const ModelSlot& s = slots[k];
             if (!s.on) continue;
             const bool lit = s.look == LOOK_GLOW;
             s.m->mTransparency = lit ? 1.0f : a;     // the glow keeps mAlpha at 1 (uDevil4Model::updateMaterial copies this)
-            for (uint32_t i = 0; i < s.saved_num; ++i) {
-                const uintptr_t mat = s.saved[i].mat;
-                at<float>(mat, mAlpha) = lit ? 1.0f : a;
-                at<float>(mat, mDiffuseW) = lit ? a : 1.0f;
-                if (lit) {
-                    float* fr = &at<float>(mat, mFresnel);
-                    fr[0] = factor;
-                    fr[1] = -factor;
-                    fr[2] = 200.0f;                       // the lights' highlights shrink to points
-                    fr[3] = rim_power;
-                }
-            }
+            for (uint32_t i = 0; i < s.saved_num; ++i) rim_glow::set_strength(s.saved[i].mat, lit, a, rim_power, rim_reach);
         }
     }
 
@@ -736,7 +576,7 @@ void AfterImage::on_gui_frame(int display) {
     }
     ImGui::Text("copies %u made, %d out | %u spawned, %u taken while out | %u model set-ups | %d attachment(s) on the last "
                 "| glow textures %s", g_made, g_active, g_spawns, g_reused_busy, g_rebuilds, g_attachments_copied,
-                g_textures_ready ? "ready" : "not yet");
+                textures_ready() ? "ready" : "not yet");
     ImGui::Unindent();
     ImGui::PopID();
 }

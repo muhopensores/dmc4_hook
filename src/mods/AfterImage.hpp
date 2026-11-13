@@ -14,25 +14,7 @@
 // uDevil4Model::draw 0x522DC0 skips), until it is needed again. Its models are set up again only when the player's
 // rModel changed (Dante's Devil Trigger, another costume). When every copy is in use the oldest is taken.
 //
-// Glow (DX9 code and XfMaterialStandard.bfx's shaders):
-//   - Blending: cMaterial::buildRenderState 0xA61D00 gives a material of mode 4 / 8 (attr 0x20 / 0x40) the additive
-//     state 0x2A20225 when mFlags bits 24-26 = 1; cMaterial::beginDraw 0xA61A70 uses it only while mAlpha (+0x20) >= 1
-//     and otherwise forces alpha blending (0x2A20625), which is why a fading copy never stayed additive. So mAlpha stays
-//     1 and the fade goes through the blend factor: gXfBlendFactor = mDiffuseColor.w (+0x3C) * mAlpha, which the vertex
-//     shader puts in TEXCOORD0.z and the pixel shader multiplies into the output alpha.
-//   - The edge: the standard pixel shader ends with spec = (envCube * EnvMapPower + light specular) * MaskMap.rgb *
-//     (1 - sat(FresnelFactor * (1 + cos)^5 + FresnelBias)) (gXfFresnelFactor = (FresnelFactor, FresnelBias, SpecularPow,
-//     EnvMapPower * mColor2.w), cMaterialStandard +0x90..+0x9C), cos = the surface's facing toward the camera: the
-//     shader's view vector points from the eye, so its "1 - N.V" is 1 at the silhouette and 2 face-on. FresnelFactor
-//     f = 1 / ((1 + reach)^5 - 1) and FresnelBias -f give weight 1 at the silhouette, 0 from cos = reach inward.
-//   - Materials without the specular term (NONE / MIRROR / POWMAP: models made without a specular map, which Albam's
-//     New DMC4 Model gives SPECULAR_NONE) would draw nothing: the copy's material key (+0x10, decoded at every draw)
-//     takes its SPECULAR_STANDARD twin, which the shader table has for every one of them (skinned materials only).
-//   - Clear inside: the albedo is a black texture, so diffuse and ambient add nothing; additive blending makes black
-//     invisible. The colour is the environment cube's: a 1x1 cube of rim_color. The mask is white unless keep_mask.
-//   - The textures are the mod's own Direct3D textures (made on the render thread, on_frame) behind copies of the game's
-//     system textures' rTexture / cTrans::Texture (sShader +0x6868: NullWhite, DefaultCube_CM), put into the copies'
-//     materials (+0x1C base, +0xD4 mask, +0xE8 env) and taken out again before the materials are destroyed.
+// Glow: the copies' materials go through sdk/RimGlow (the edge glow and how it works); the cube holds rim_color.
 
 namespace after_image {
 

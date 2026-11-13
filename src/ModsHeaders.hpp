@@ -174,6 +174,7 @@
 #include "mods/BrainrotPalace.hpp"
 #ifndef PUBLIC_BUILD
 #include "mods/AfterImage.hpp"
+#include "mods/EnemyAI.hpp"
 #include "mods/SpiderTwerk.hpp"
 #include "dev/coop/Coop.hpp"
 #include "mods/Cock.hpp"

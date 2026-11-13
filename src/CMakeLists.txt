@@ -374,6 +374,8 @@ set(MODS_SRC
   mods/DebugCam.cpp
   mods/AfterImage.hpp
   mods/AfterImage.cpp
+  mods/EnemyAI.hpp
+  mods/EnemyAI.cpp
   mods/MultiCharFixes.hpp
   mods/MultiCharFixes.cpp
   mods/PhotoMode.hpp
@@ -453,6 +455,8 @@ set(SDK_SRC
     sdk/NeroStand.hpp
     sdk/Players.hpp
     sdk/Players.cpp
+    sdk/RimGlow.hpp
+    sdk/RimGlow.cpp
     sdk/MoveRegistry.hpp
     sdk/MoveRegistry.cpp
     sdk/LmtMerge.hpp

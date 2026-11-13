@@ -269,25 +269,9 @@ namespace gui {
 
                 pmods->on_draw_ui<DifficultySelect>(DISPLAY_SYSTEM_A);
                 ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui<EnemySlotting>(DISPLAY_SYSTEM_A);
-
                 pmods->on_draw_ui<DmdBloodyPalace>(DISPLAY_SYSTEM_A);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui<DmdLevelAi>(DISPLAY_SYSTEM_A);
 
-                pmods->on_draw_ui<LdkWithDmd>(DISPLAY_SYSTEM_A);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui<FrenziedBossAI>(DISPLAY_SYSTEM_A);
-
-                pmods->on_draw_ui<EnemyDT>(DISPLAY_SYSTEM_A); // needs its own line
-
-                pmods->on_draw_ui<EnemyAttackOffScreen>(DISPLAY_SYSTEM_A);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui<DisableChimeraBlades>(DISPLAY_SYSTEM_A);
-
-                pmods->on_draw_ui<FrostsDontJump>(DISPLAY_SYSTEM_A);
-                ImGui::SameLine(sameLineWidth);
-                pmods->on_draw_ui<AssaultsDontJump>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<DisableChimeraBlades>(DISPLAY_SYSTEM_A); // enemy AI mods: Environment > Enemy AI
 
                 pmods->on_draw_ui<GhostWalls>(DISPLAY_SYSTEM_A);
 
@@ -603,7 +587,7 @@ namespace gui {
     
                 if (ImGui::BeginTabBar("EnvironmentTabBar", ImGuiTabBarFlags_FittingPolicyShrink)) {
                     tabHeight += ImGui::GetCursorPosY();
-                    static int numTabs = 2;
+                    static int numTabs = 3;
                     float tabWidth = windowWidth / numTabs;
 
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
@@ -632,6 +616,40 @@ namespace gui {
                         pmods->on_draw_ui<SpawnedEnemiesAttack>(DISPLAY_SYSTEM_A);
                         ImGui::SeparatorText(_("Enemy Replacement"));
                         pmods->on_draw_ui<EnemyReplace>(DISPLAY_SYSTEM_A); // needs its own line
+                        tabHeight += ImGui::GetCursorPosY();
+                        ImGui::EndChild();
+                        ImGui::EndTabItem();
+                    }
+                    else {
+                        ImGui::PopStyleVar(2);
+                    }
+
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(tabWidth / 2, ImGui::GetStyle().FramePadding.y));
+                    if (ImGui::BeginTabItem(_("Enemy AI"))) {
+                        ImGui::PopStyleVar(2);
+
+                        ImGui::BeginChild("EnemyAIChild");
+                        ImGui::SeparatorText(_("Behaviour"));
+
+                        pmods->on_draw_ui<EnemySlotting>(DISPLAY_SYSTEM_A);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui<DmdLevelAi>(DISPLAY_SYSTEM_A);
+
+                        pmods->on_draw_ui<LdkWithDmd>(DISPLAY_SYSTEM_A);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui<FrenziedBossAI>(DISPLAY_SYSTEM_A);
+
+                        pmods->on_draw_ui<FrostsDontJump>(DISPLAY_SYSTEM_A);
+                        ImGui::SameLine(sameLineWidth);
+                        pmods->on_draw_ui<AssaultsDontJump>(DISPLAY_SYSTEM_A);
+
+                        pmods->on_draw_ui<EnemyAttackOffScreen>(DISPLAY_SYSTEM_A); // needs its own line
+
+                        pmods->on_draw_ui<EnemyDT>(DISPLAY_SYSTEM_A); // needs its own line
+#ifndef PUBLIC_BUILD
+                        pmods->on_draw_ui<EnemyAI>(DISPLAY_SYSTEM_A); // Provoke, Anti-air (its own section headers)
+#endif
                         tabHeight += ImGui::GetCursorPosY();
                         ImGui::EndChild();
                         ImGui::EndTabItem();
