@@ -16,13 +16,16 @@ bool  mod_enabled         = false;
 float radius              = 1500.0f;
 float duration            = 8.0f;
 float speed               = 1.25f;
+float think_speed         = 1.25f;
 float dt_rate             = 2.0f;
 bool  dt_any_difficulty   = false;
 float think_rate          = 1.5f;
 bool  counted_only        = false;
+bool  ignore_attack_limit = true;
 bool  targeted            = true;
 bool  targeted_and_radius = false;
 bool  aura                = true;
+bool  aura_dt_only        = false;
 float aura_color[3]       = { 1.0f, 0.25f, 0.1f };
 float aura_brightness     = 1.0f;
 float aura_reach          = 0.3f;
@@ -37,6 +40,8 @@ constexpr uintptr_t kTauntCall      = 0x803E67;   // uPlayer::checkProvoke: call
 constexpr uintptr_t kSetProvoke     = 0x7AE9F0;   // esi = the player
 constexpr uintptr_t kDeltaWrite     = 0x8DC314;   // sUnit::move: movss [esi+10h], xmm0 (esi = the unit)
 constexpr uintptr_t kNextThinkTimer = 0x45BEA0;   // cThinkMgr::NextThinkTimer: ecx = the manager, xmm2 = the rate
+constexpr uintptr_t kPermitFree     = 0x48ADA0;   // sEnemyCtrl: is a permit free (eax = sEnemyCtrl, esi = the list; al)
+constexpr uintptr_t kPermitRequest  = 0x48AE10;   // sEnemyCtrl: request one (eax, edi = the list; stack time, enemy; retn 8; al)
 constexpr uintptr_t kThinkFirstOp   = 0xC0ECF4;   // its first instruction: movss xmm1, [0C0ECF4h]
 constexpr uintptr_t kEnemyDti       = 0xE596C8;   // uEnemy::DTI
 constexpr uintptr_t kMediator       = 0xE558B8;   // sMediator::mpInstance
@@ -86,7 +91,8 @@ constexpr uint32_t kStaleFrames = 120;
 Entry g_list[kMaxEntries];
 bool g_any = false;                  // any entry live (the hooks' fast way out)
 volatile uint32_t g_frame = 0;       // render frames
-uint32_t g_taunts = 0, g_provoked = 0, g_auras_made = 0;   // readout
+uint32_t g_taunts = 0, g_provoked = 0, g_auras_made = 0, g_permits = 0;   // readout
+uintptr_t g_unit = 0;                // the unit sUnit::move is running (written by the delta hook)
 
 uintptr_t dti_of(uintptr_t unit) {
     return (uintptr_t)((MtDTI*(__fastcall*)(uintptr_t, int))(at<uintptr_t>(at<uintptr_t>(unit, 0), 0x10)))(unit, 0);
@@ -111,6 +117,25 @@ void update_any() {
     g_any = false;
     for (const Entry& e : g_list)
         if (e.enemy && e.left > 0.0f) { g_any = true; return; }
+}
+
+void forget(uintptr_t enemy) {
+    for (Entry& e : g_list)
+        if (e.enemy == enemy) e = Entry{};
+    update_any();
+}
+
+// True while `unit` is linked in one of sUnit's move lines and not being deleted. Only pointers are compared until a
+// match, so a freed unit is never read.
+bool alive(uintptr_t unit) {
+    sUnit* su = devil4_sdk::get_sUnit();
+    if (!su || !unit) return false;
+    for (int line = 0; line < 32; ++line) {
+        int n = 0;
+        for (const cUnit* u = (const cUnit*)su->mMoveLine[line].mTop; u && n < 8192; u = u->mp_next_unit, ++n)
+            if ((uintptr_t)u == unit) return u->flags.bits.mBeFlag < BEFLAG_PRE_DELETE;
+    }
+    return false;
 }
 
 void provoke_one(uintptr_t enemy, uintptr_t by) {
@@ -209,6 +234,11 @@ void quicken_dt(uintptr_t e, float scaled) {
 void ensure_aura(uintptr_t enemy);
 void release_aura(uintptr_t enemy);
 
+// A provoked enemy glows: always, or only in Devil Trigger.
+bool aura_wanted(uintptr_t enemy) {
+    return aura && (!aura_dt_only || at<uint8_t>(enemy, kDtOn));
+}
+
 // sUnit::move, every unit, before its move: the factor its delta is multiplied by.
 float __stdcall unit_rate(uintptr_t unit, float raw) {
     Entry* e = find(unit);
@@ -223,18 +253,30 @@ float __stdcall unit_rate(uintptr_t unit, float raw) {
     }
     const float s = std::clamp(speed, 0.1f, 4.0f);
     quicken_dt(unit, raw * s);
-    if (aura && at<uint8_t>(unit, kDtOn)) ensure_aura(unit);
+    if (aura_wanted(unit)) ensure_aura(unit);
     return s;
 }
 
-// cThinkMgr::NextThinkTimer: the factor its rate is multiplied by.
+// cThinkMgr::NextThinkTimer: the factor its rate is multiplied by. The rate is the enemy's delta, already sped up by
+// unit_rate, so the animation speed comes out again and the think speed goes in.
 float __stdcall think_scale(uintptr_t mgr) {
-    if (think_rate == 1.0f) return 1.0f;
     for (const Entry& e : g_list) {
         if (!e.enemy || e.left <= 0.0f || mgr < e.enemy || mgr >= e.enemy + e.size) continue;
-        return at<uint8_t>(e.enemy, kDtOn) ? std::clamp(think_rate, 0.1f, 10.0f) : 1.0f;
+        if (!mod_enabled) return 1.0f;
+        float f = std::clamp(think_speed, 0.1f, 4.0f) / std::clamp(speed, 0.1f, 4.0f);
+        if (at<uint8_t>(e.enemy, kDtOn)) f *= std::clamp(think_rate, 0.1f, 10.0f);
+        return f;
     }
     return 1.0f;
+}
+
+// The attack-permit hooks: `enemy` (else the unit moving now) is provoked and may attack without a free permit.
+bool __stdcall permit_override(uintptr_t enemy) {
+    if (!mod_enabled || !ignore_attack_limit) return false;
+    const uintptr_t u = enemy ? enemy : g_unit;
+    if (!u || !find(u)) return false;
+    ++g_permits;
+    return true;
 }
 
 // ---- Aura ----------------------------------------------------------------------------------------------------------
@@ -304,9 +346,14 @@ struct Aura : CustomUnit<Aura> {
 
     void tick() {
         if (!enemy) return;
+        if (!alive(enemy)) {     // killed, or the room is being cleaned: never read it again
+            forget(enemy);
+            release();
+            return;
+        }
         Entry* e = find(enemy);
         auto* src = (uDevil4Model*)enemy;
-        if (!e || !mod_enabled || !aura || !glow_ready() || !at<uint8_t>(enemy, kDtOn) || !is_enemy(enemy) ||
+        if (!e || !mod_enabled || !aura_wanted(enemy) || !glow_ready() || !is_enemy(enemy) ||
             src->mTransparency <= 0.0f || !build(src)) {
             release();
             return;
@@ -374,6 +421,7 @@ uintptr_t fn_set_provoke = kSetProvoke;
 uintptr_t ret_taunt = kTauntCall + 7;
 uintptr_t ret_delta = kDeltaWrite + 5;
 uintptr_t ret_think = kNextThinkTimer + 8;
+uintptr_t permit_free_original = 0, permit_request_original = 0;
 
 // esi = the player
 naked void detour_taunt() {
@@ -392,6 +440,7 @@ naked void detour_taunt() {
 naked void detour_delta() {
     __asm {
         pushfd
+        mov dword ptr [g_unit], esi
         cmp byte ptr [g_any], 0
         je plain
         sub esp, 0x84
@@ -424,6 +473,49 @@ naked void detour_delta() {
         popfd
         movss dword ptr [esi+0x10], xmm0
         jmp dword ptr [ret_delta]
+    }
+}
+
+// eax = sEnemyCtrl, esi = the permit list; returns al (a permit is free)
+naked void detour_permit_free() {
+    __asm {
+        cmp byte ptr [g_any], 0
+        je original
+        push eax
+        push ecx
+        push edx
+        push 0
+        call permit_override
+        test al, al
+        pop edx
+        pop ecx
+        pop eax
+        jz original
+        mov al, 1
+        ret
+    original:
+        jmp dword ptr [permit_free_original]
+    }
+}
+
+// eax = sEnemyCtrl, edi = the permit list, [esp+4] = the time, [esp+8] = the enemy; returns al (granted), retn 8
+naked void detour_permit_request() {
+    __asm {
+        push dword ptr [esp+8]
+        push dword ptr [esp+8]
+        call dword ptr [permit_request_original]
+        test al, al
+        jnz done
+        cmp byte ptr [g_any], 0
+        je done
+        push ecx
+        push edx
+        push dword ptr [esp+0x10]
+        call permit_override
+        pop edx
+        pop ecx
+    done:
+        ret 8
     }
 }
 
@@ -574,6 +666,11 @@ std::optional<std::string> EnemyAI::on_initialize() {
         spdlog::error("Provoke: failed to hook cThinkMgr::NextThinkTimer (0x45BEA0)");
         return "Failed to init Provoke (think cooldowns)";
     }
+    if (!install_hook_absolute(kPermitFree, hook_permit_free, &detour_permit_free, &permit_free_original) ||
+        !install_hook_absolute(kPermitRequest, hook_permit_request, &detour_permit_request, &permit_request_original)) {
+        spdlog::error("Provoke: failed to hook the attack permits (0x48ADA0 / 0x48AE10)");
+        return "Failed to init Provoke (attack permits)";
+    }
     if (!install_hook_absolute(anti_air::kThinkCheck, hook_think_check, (void*)&anti_air::think_check,
                                &anti_air::think_check_original)) {
         spdlog::error("EnemyAI: failed to hook cThinkMgr::thinkCheck (0x45C5E0)");
@@ -585,6 +682,15 @@ std::optional<std::string> EnemyAI::on_initialize() {
         return "Failed to init EnemyAI (think trace)";
     }
     return Mod::on_initialize();
+}
+
+// The room's units are about to be freed (aRoom::cleanRoom): no provoke or aura may outlive them.
+void EnemyAI::on_stage_end() {
+    for (Entry& e : g_list) e = Entry{};
+    g_any = false;
+    g_unit = 0;
+    for (Aura* a : g_auras)
+        if (a) a->release();
 }
 
 void EnemyAI::on_frame(fmilliseconds& dt) {
@@ -603,9 +709,9 @@ void EnemyAI::on_gui_frame(int display) {
     ImGui::SeparatorText(_("Provoke"));
     ImGui::Checkbox(_("Provoke"), &mod_enabled);
     ImGui::SameLine();
-    help_marker(_("Taunting provokes the enemies near you: they move and attack faster and reach their Devil Trigger "
-                  "sooner. In Devil Trigger they glow at their edges and choose their next attack sooner. A new taunt "
-                  "starts the time again."));
+    help_marker(_("Taunting provokes the enemies near you: they glow at their edges, move faster, decide faster and "
+                  "reach their Devil Trigger sooner. In Devil Trigger they choose their next attack sooner still. A new "
+                  "taunt starts the time again."));
     if (mod_enabled) {
         ImGui::Indent();
         ImGui::SliderFloat(_("Radius"), &radius, 100.0f, 5000.0f, "%.0f cm");
@@ -614,12 +720,17 @@ void EnemyAI::on_gui_frame(int display) {
         ImGui::SliderFloat(_("Duration"), &duration, 1.0f, 30.0f, "%.1f s");
         ImGui::SameLine();
         help_marker(_("How long an enemy stays provoked. Taunting again while it is near starts it again; it doesn't add up."));
-        ImGui::SliderFloat(_("Speed"), &speed, 1.0f, 2.0f, "x%.2f");
+        ImGui::SliderFloat(_("Animation speed"), &speed, 1.0f, 2.0f, "x%.2f");
         ImGui::SameLine();
-        help_marker(_("How much faster a provoked enemy runs: its animations, movement and timers."));
+        help_marker(_("How much faster a provoked enemy's animations play: its moves, movement and timers. Its decisions "
+                      "keep their own speed (next option)."));
+        ImGui::SliderFloat(_("Thinking speed"), &think_speed, 1.0f, 4.0f, "x%.2f");
+        ImGui::SameLine();
+        help_marker(_("How much sooner a provoked enemy may decide on its next move: its decision cooldowns run this much "
+                      "faster, whatever its animation speed. x1 = the game's pace."));
         ImGui::SliderFloat(_("Devil Trigger timer"), &dt_rate, 1.0f, 5.0f, "x%.2f");
         ImGui::SameLine();
-        help_marker(_("How much faster a provoked enemy's Devil Trigger timer runs, on top of Speed (x2 with Speed x1.25: "
+        help_marker(_("How much faster a provoked enemy's Devil Trigger timer runs, on top of Animation speed (x2 with x1.25: "
                       "it reaches Devil Trigger in 40% of the usual time). Enemies only Devil Trigger on Dante Must Die "
                       "and in Bloody Palace above floor 80, unless the next option is on."));
         ImGui::Checkbox(_("Devil Trigger on every difficulty"), &dt_any_difficulty);
@@ -628,7 +739,12 @@ void EnemyAI::on_gui_frame(int display) {
         ImGui::SliderFloat(_("Attacks in Devil Trigger"), &think_rate, 1.0f, 4.0f, "x%.2f");
         ImGui::SameLine();
         help_marker(_("In Devil Trigger, how much sooner a provoked enemy may repeat its moves (its decision cooldowns run "
-                      "this much faster, on top of Speed)."));
+                      "this much faster, on top of Thinking speed)."));
+        ImGui::Checkbox(_("Ignores the attack limit"), &ignore_attack_limit);
+        ImGui::SameLine();
+        help_marker(_("Enemies take turns to attack (only a few at once; Enemy Slotting sets how many) and the rest hang "
+                      "back. A provoked enemy doesn't wait for its turn: it comes at you whatever the others do. It still "
+                      "only attacks while it is on screen."));
         ImGui::Checkbox(_("Locked-on taunt"), &targeted);
         ImGui::SameLine();
         help_marker(_("Taunting while locked on to an enemy provokes that enemy alone, however far away it is. It stays "
@@ -642,10 +758,14 @@ void EnemyAI::on_gui_frame(int display) {
         ImGui::Checkbox(_("Only taunts that count"), &counted_only);
         ImGui::SameLine();
         help_marker(_("Only taunts the style meter counts provoke (an enemy near you, and not the same taunt repeated)."));
-        ImGui::Checkbox(_("Aura in Devil Trigger"), &aura);
+        ImGui::Checkbox(_("Aura"), &aura);
         ImGui::SameLine();
-        help_marker(_("Provoked enemies in Devil Trigger glow at their edges."));
+        help_marker(_("Provoked enemies glow at their edges while they are provoked."));
         if (aura) {
+            ImGui::SameLine();
+            ImGui::Checkbox(_("Only in Devil Trigger"), &aura_dt_only);
+            ImGui::SameLine();
+            help_marker(_("The glow only while a provoked enemy is in Devil Trigger."));
             ImGui::ColorEdit3(_("Aura colour"), aura_color, ImGuiColorEditFlags_NoInputs);
             ImGui::SameLine();
             help_marker(_("The colour of the glow."));
@@ -664,8 +784,8 @@ void EnemyAI::on_gui_frame(int display) {
         int live = 0, auras = 0;
         for (const Entry& e : g_list) live += (e.enemy && e.left > 0.0f) ? 1 : 0;
         for (Aura* a : g_auras) auras += (a && a->enemy) ? 1 : 0;
-        ImGui::Text(_("Now: %d provoked, %d aura(s) | %u taunts, %u provokes, %u aura set-ups | glow %s"), live, auras,
-                    g_taunts, g_provoked, g_auras_made, glow_ready() ? _("ready") : _("not yet"));
+        ImGui::Text(_("Now: %d provoked, %d aura(s) | %u taunts, %u provokes, %u aura set-ups, %u attack turns given | glow %s"),
+                    live, auras, g_taunts, g_provoked, g_auras_made, g_permits, glow_ready() ? _("ready") : _("not yet"));
         ImGui::Unindent();
     }
 
@@ -698,13 +818,16 @@ void EnemyAI::on_config_load(const utility::Config& cfg) {
     radius              = cfg.get<float>("provoke_radius").value_or(radius);
     duration            = cfg.get<float>("provoke_duration").value_or(duration);
     speed               = cfg.get<float>("provoke_speed").value_or(speed);
+    think_speed         = cfg.get<float>("provoke_think_speed").value_or(speed);   // missing: the animation speed
     dt_rate             = cfg.get<float>("provoke_dt_rate").value_or(dt_rate);
     dt_any_difficulty   = cfg.get<bool>("provoke_dt_any_difficulty").value_or(dt_any_difficulty);
     think_rate          = cfg.get<float>("provoke_think_rate").value_or(think_rate);
     counted_only        = cfg.get<bool>("provoke_counted_only").value_or(counted_only);
+    ignore_attack_limit = cfg.get<bool>("provoke_ignore_attack_limit").value_or(ignore_attack_limit);
     targeted            = cfg.get<bool>("provoke_targeted").value_or(targeted);
     targeted_and_radius = cfg.get<bool>("provoke_targeted_and_radius").value_or(targeted_and_radius);
     aura                = cfg.get<bool>("provoke_aura").value_or(aura);
+    aura_dt_only        = cfg.get<bool>("provoke_aura_dt_only").value_or(aura_dt_only);
     aura_color[0]       = cfg.get<float>("provoke_aura_r").value_or(aura_color[0]);
     aura_color[1]       = cfg.get<float>("provoke_aura_g").value_or(aura_color[1]);
     aura_color[2]       = cfg.get<float>("provoke_aura_b").value_or(aura_color[2]);
@@ -722,13 +845,16 @@ void EnemyAI::on_config_save(utility::Config& cfg) {
     cfg.set<float>("provoke_radius", radius);
     cfg.set<float>("provoke_duration", duration);
     cfg.set<float>("provoke_speed", speed);
+    cfg.set<float>("provoke_think_speed", think_speed);
     cfg.set<float>("provoke_dt_rate", dt_rate);
     cfg.set<bool>("provoke_dt_any_difficulty", dt_any_difficulty);
     cfg.set<float>("provoke_think_rate", think_rate);
     cfg.set<bool>("provoke_counted_only", counted_only);
+    cfg.set<bool>("provoke_ignore_attack_limit", ignore_attack_limit);
     cfg.set<bool>("provoke_targeted", targeted);
     cfg.set<bool>("provoke_targeted_and_radius", targeted_and_radius);
     cfg.set<bool>("provoke_aura", aura);
+    cfg.set<bool>("provoke_aura_dt_only", aura_dt_only);
     cfg.set<float>("provoke_aura_r", aura_color[0]);
     cfg.set<float>("provoke_aura_g", aura_color[1]);
     cfg.set<float>("provoke_aura_b", aura_color[2]);
