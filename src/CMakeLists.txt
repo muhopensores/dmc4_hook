@@ -410,8 +410,17 @@ set(DEV_SRC
   dev/unit_packs/UnitPacks.cpp
   dev/pbr/PbrMaterials.hpp
   dev/pbr/PbrMaterials.cpp
+  dev/pbr/PbrSpheres.hpp
+  dev/pbr/PbrSpheres.cpp
   dev/shadows/Shadows.hpp
   dev/shadows/Shadows.cpp
+  dev/shadows/ShadowReceiver.hpp
+  dev/shadows/ShadowReceiver.cpp
+  dev/shadows/PbrShadow.hpp
+  dev/shadows/PbrShadow.cpp
+  dev/tonemap/ToneMap.hpp
+  dev/tonemap/ToneMap.cpp
+  dev/ps_bind.hpp
   dev/coop/Coop.hpp
   dev/coop/Coop.cpp
   dev/coop/CoopPads.hpp

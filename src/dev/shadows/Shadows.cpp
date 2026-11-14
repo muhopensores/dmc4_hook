@@ -1,9 +1,12 @@
 #include "Shadows.hpp"
+#include "ShadowReceiver.hpp"
+#include "PbrShadow.hpp"
 #include "../../ModFramework.hpp"
 #include <spdlog/spdlog.h>
 #include <d3d9.h>
 #include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <mutex>
@@ -18,6 +21,10 @@ namespace {
 constexpr uintptr_t kShaderInstance = 0xE55700;    // sShader::mpInstance
 constexpr uint32_t  kShadowQuality = 0x68E0;       // sShader: the PC settings' ShadowQuality (0 none, 1 default, 2 high)
 constexpr uint32_t  kMode = 0xE8, kPcf = 0xFC, kSize = 0x224;
+#ifndef NDEBUG
+constexpr uint32_t  kLightDir = 0x40;              // mInfiniteLightDir, float3
+constexpr uint32_t  kTargetLight = 0x10C, kTargetLightEnable = 0x110;   // mpTargetLight, mTargetLightEnable (move 0xA72BCA)
+#endif
 
 struct FieldDef {
     uint32_t    offset;
@@ -39,9 +46,11 @@ const FieldDef kFields[FIELD_COUNT] = {
     { 0x80, "view_distance", "Shadow distance", 5000.0f, 1000.0f, 20000.0f, "%.0f cm",
       "mShadowViewDistance: how far from the camera shadows reach. With Shadow Quality HIGH the game uses at least 5000 "
       "(50 m), so lower values change nothing there. Longer = the cascades cover more, so each is blurrier." },
-    { 0x50, "depth_bias", "Depth bias", 5.0f, 0.0f, 60.0f, "%.2f",
-      "mShadowDepthBias: how far a surface may be behind the depth the shadow map stored and still count as lit. Too low = "
-      "stripes on lit surfaces (shadow acne); too high = shadows come loose from the feet. Stages use 0.1 to 50." },
+    { 0x50, "depth_bias", "Depth bias", 5.0f, 0.0f, 60.0f, "%.2f cm",
+      "mShadowDepthBias: the cast pass pushes every shadow caster this many cm away from the sun, so a surface is only "
+      "shadowed when it is more than this far behind what casts on it, along the sun's rays. Too low = stripes on lit "
+      "surfaces (shadow acne); too high = shadows come loose from the feet, and nothing standing near a wall shadows it. "
+      "Stages use 3 to 50." },
     { 0xAC, "slope_bias", "Slope bias", 0.0f, 0.0f, 60.0f, "%.2f",
       "mShadowSlopeDepthBias: extra bias on surfaces steep to the light, where acne shows first." },
     { 0x6C, "darkness", "Darkness", 0.6f, 0.0f, 1.0f, "%.2f",
@@ -55,6 +64,26 @@ Override overrides[FIELD_COUNT] = {
     { false, kFields[SPLIT_NEAR].def },  { false, kFields[SPLIT_MIDDLE].def }, { false, kFields[VIEW_DISTANCE].def },
     { false, kFields[DEPTH_BIAS].def },  { false, kFields[SLOPE_BIAS].def },   { false, kFields[DARKNESS].def },
 };
+#ifndef NDEBUG
+SunOverride sun;
+
+constexpr float kDeg = 3.14159265f / 180.0f;
+
+void sun_angles(const float dir[3], float& elevation, float& azimuth) {
+    const float len = std::sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
+    if (len < 1e-6f) { elevation = 90.0f; azimuth = 0.0f; return; }
+    elevation = std::asin(std::clamp(-dir[1] / len, -1.0f, 1.0f)) / kDeg;
+    azimuth = std::atan2(dir[0], dir[2]) / kDeg;
+    if (azimuth < 0.0f) azimuth += 360.0f;
+}
+
+void sun_direction(float elevation, float azimuth, float dir[3]) {
+    const float e = elevation * kDeg, a = azimuth * kDeg;
+    dir[0] = std::cos(e) * std::sin(a);
+    dir[1] = -std::sin(e);
+    dir[2] = std::cos(e) * std::cos(a);
+}
+#endif
 
 namespace {
 
@@ -65,6 +94,12 @@ struct Slot {
     bool      have[FIELD_COUNT] = {};
     float     stage[FIELD_COUNT] = {};
     float     written[FIELD_COUNT] = {};
+#ifndef NDEBUG
+    bool      have_dir = false;
+    float     stage_dir[3] = {};
+    float     written_dir[3] = {};
+    bool      target_light = false;
+#endif
     uint32_t  mode = 0, pcf = 0, size = 0;
 };
 
@@ -121,6 +156,19 @@ void __stdcall on_move(uintptr_t unit) {
         *field = target;
         slot->written[i] = target;
     }
+
+#ifndef NDEBUG
+    // the sun's direction, the same way (3 floats; the .sdl's value kept while overridden)
+    float* dir = (float*)(unit + kLightDir);
+    if (!slot->have_dir || std::memcmp(dir, slot->written_dir, sizeof(slot->written_dir)) != 0) {
+        std::memcpy(slot->stage_dir, dir, sizeof(slot->stage_dir));
+        slot->have_dir = true;
+    }
+    if (mod_enabled && sun.on) sun_direction(sun.elevation, sun.azimuth, dir);
+    else std::memcpy(dir, slot->stage_dir, sizeof(slot->stage_dir));
+    std::memcpy(slot->written_dir, dir, sizeof(slot->written_dir));
+    slot->target_light = *(uint8_t*)(unit + kTargetLightEnable) && *(uintptr_t*)(unit + kTargetLight);
+#endif
 
     // the size option went back to the game's: make the setter (called by this move) run its own rule again
     const uint32_t gen = g_size_gen.load();
@@ -236,6 +284,10 @@ Status status() {
         u.pcf = s.pcf;
         u.size = s.size;
         std::memcpy(u.stage, s.stage, sizeof(u.stage));
+#ifndef NDEBUG
+        std::memcpy(u.stage_dir, s.stage_dir, sizeof(u.stage_dir));
+        u.target_light = s.target_light;
+#endif
     }
     return st;
 }
@@ -251,14 +303,32 @@ std::optional<std::string> Shadows::on_initialize() {
         spdlog::error("Shadows: failed to hook the shadow map size setter (0xA7D3C9)");
     if (!install_hook_absolute(0x8F5A8A, hook_depth, &detour_depth, &jmp_ret_depth, 6))
         spdlog::error("Shadows: failed to hook the depth surface pick (0x8F5A8A); maps over 2048 won't draw");
+    if (!install_hook_absolute(shadow_receiver::kCaptureSite, hook_capture, &shadow_receiver::detour_capture,
+                               &shadow_receiver::jmp_ret_capture, 6))
+        spdlog::error("Shadows: failed to hook the receiver setup (0xA775E0); soft shadows fall back to a fixed radius");
+    shadow_receiver::init();
+    if (!install_hook_absolute(pbr_shadow::kModelGate, hook_model_gate, &pbr_shadow::detour_model_gate,
+                               &pbr_shadow::jmp_ret_model_gate, 8) ||
+        !install_hook_absolute(pbr_shadow::kDevilGate, hook_devil_gate, &pbr_shadow::detour_devil_gate,
+                               &pbr_shadow::jmp_ret_devil_gate, 8)) {
+        spdlog::error("Shadows: failed to hook the receiver pass's material gates; PBR materials keep the stock shadow");
+        pbr_shadow::settings.on = false;
+    }
+    pbr_shadow::init();
     refresh_map_size();
     return Mod::on_initialize();
 }
 
-void Shadows::on_frame(fmilliseconds& dt) { update_depth(); }
+void Shadows::on_frame(fmilliseconds& dt) {
+    update_depth();
+    shadow_receiver::update(mod_enabled);
+    pbr_shadow::update(mod_enabled);
+}
 
 // before IDirect3DDevice9::Reset: default-pool surfaces must go (made again on the next frame)
 void Shadows::on_reset() {
+    pbr_shadow::on_reset();
+    shadow_receiver::release_frame();
     release_depth();
     g_depth_failed = false;
 }
@@ -333,8 +403,132 @@ void Shadows::on_gui_frame(int display) {
         }
         ImGui::PopID();
     }
+
+#ifndef NDEBUG
+    // the sun's direction (debug builds)
+    float stage_e = 0.0f, stage_a = 0.0f;
+    if (st.units > 0) sun_angles(st.unit[0].stage_dir, stage_e, stage_a);
+    ImGui::Checkbox("##sun_on", &sun.on);
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!sun.on);
+    ImGui::SliderFloat(_("Sun height"), &sun.elevation, 5.0f, 90.0f, "%.0f deg");
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    help_marker(_("Where the shadows come from: the sun's height above the horizon. Stages put it 55 to 90 degrees high, so "
+                  "shadows fall straight down onto floors and walls hardly ever catch one (walls turned from the sun never "
+                  "do). Lower = longer shadows that climb walls. It moves only the shadows, not the stage's lighting: keep "
+                  "it near where the stage's light seems to come from. Take from stage copies the stage's sun to start "
+                  "from."));
+    if (st.units > 0) {
+        ImGui::SameLine();
+        ImGui::TextDisabled(_("(stage: %.0f deg)"), stage_e);
+    }
+    ImGui::Dummy(ImVec2(ImGui::GetFrameHeight(), 0.0f));
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!sun.on);
+    ImGui::SliderFloat(_("Sun direction"), &sun.azimuth, 0.0f, 360.0f, "%.0f deg");
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    help_marker(_("Which way the shadows point, around the up axis (0 = along the stage's +z, 90 = +x)."));
+    if (st.units > 0) {
+        ImGui::SameLine();
+        ImGui::TextDisabled(_("(stage: %.0f deg)"), stage_a);
+        ImGui::SameLine();
+        if (ImGui::Button(_("Take from stage"))) {
+            sun.elevation = std::clamp(stage_e, 5.0f, 90.0f);
+            sun.azimuth = stage_a;
+        }
+        if (st.unit[0].target_light && sun.on)
+            ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f),
+                               _("This stage ties the shadow to one of its lights, which replaces the sun override."));
+    }
+#endif
+
     if (ImGui::Button(_("Defaults"))) {
         for (int i = 0; i < FIELD_COUNT; ++i) overrides[i] = Override{ false, kFields[i].def };
+#ifndef NDEBUG
+        sun = SunOverride{};
+#endif
+    }
+
+    // ---- soft shadows (step 2) ----
+    shadow_receiver::Settings& soft = shadow_receiver::settings;
+    ImGui::Checkbox(_("Soft shadows"), &soft.soft);
+    ImGui::SameLine();
+    help_marker(_("Replaces the game's shadow edge filter (16 depth taps in a box) with a contact-hardening one: shadows "
+                  "are sharp where the object touches the ground and soften with the distance between them, like real "
+                  "light. Applies to the stage shadow's 3 cascades (Shadow Quality HIGH)."));
+    if (soft.soft) {
+        const shadow_receiver::Status rs = shadow_receiver::status();
+        if (!rs.found) {
+            ImGui::TextDisabled(_("Waiting for the shader: %s"), rs.waiting.c_str());
+        } else {
+            ImGui::TextDisabled(_("Receiver shaders: %d of %d replaced%s%s"), rs.replaced, rs.targets,
+                                rs.compiling ? ", compiling..." : "", rs.from_file ? " (from nativePC)" : "");
+            if (rs.failed)
+                ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f), _("%d failed: %s"), rs.failed, rs.error.c_str());
+            if (!rs.matrices && st.units > 0)
+                ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f),
+                                   _("No cascade matrices seen: softness uses a fixed radius (not in cascade mode?)."));
+        }
+        static const char* kQualityNames[] = { "16 taps", "24 taps", "32 taps" };
+        if (ImGui::Combo(_("Filter quality"), &soft.quality, kQualityNames, 3)) shadow_receiver::request_compile();
+        ImGui::SameLine();
+        help_marker(_("Depth samples per shadowed pixel. More = smoother wide penumbras, slower."));
+        ImGui::SliderFloat(_("Light size"), &soft.light_size, 0.0f, 0.15f, "%.3f");
+        ImGui::SameLine();
+        help_marker(_("How fast shadows soften with distance: penumbra width per cm between the object and the surface "
+                      "(the light's apparent size). The sun is about 0.01; 0.03 reads as a slightly hazy sun. 0 = always "
+                      "sharp."));
+        ImGui::SliderFloat(_("Widest penumbra"), &soft.max_soft, 5.0f, 150.0f, "%.0f cm");
+        ImGui::SameLine();
+        help_marker(_("The softest a shadow edge gets, in cm. Also how far around each pixel the filter looks for what "
+                      "casts the shadow (at most 48 map pixels)."));
+        ImGui::SliderFloat(_("Sharpest edge"), &soft.min_radius, 0.5f, 3.0f, "%.2f px");
+        ImGui::SameLine();
+        help_marker(_("The narrowest filter, in shadow map pixels: where the object touches the surface. Lower = crisper "
+                      "contact shadows, but the map's pixels can show."));
+        static const char* kDebugNames[] = { "Off", "Cascades", "Penumbra" };
+        if (ImGui::Combo(_("Debug view"), &soft.debug, kDebugNames, 3)) shadow_receiver::request_compile();
+        ImGui::SameLine();
+        help_marker(_("Cascades: near red, middle green, far blue over every receiving surface. Penumbra: the filter "
+                      "width where something shadows, green = sharp .. red = 16 map pixels and up."));
+        if (ImGui::Button(_("Soft defaults"))) {
+            const shadow_receiver::Settings d;
+            if (soft.quality != d.quality || soft.debug != d.debug) shadow_receiver::request_compile();
+            soft = d;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Write shader source"))) shadow_receiver::write_source();
+        ImGui::SameLine();
+        if (ImGui::Button(_("Reload"))) shadow_receiver::request_compile();
+        ImGui::SameLine();
+        help_marker(_("Write shader source puts the shader in nativePC\\shader\\shadows\\shadow_receiver.hlsl, which is "
+                      "used from then on instead of the built-in one; Reload compiles it again after an edit (delete the "
+                      "file to go back)."));
+    }
+
+    // ---- shadows in PBR materials (step 3) ----
+    ImGui::Checkbox(_("Shadows in PBR materials"), &pbr_shadow::settings.on);
+    ImGui::SameLine();
+    help_marker(_("PBR materials (PbrMaterials) shade the stage shadow themselves instead of the game's shadow pass darkening "
+                  "them afterwards: no highlights or light through thin parts inside shadows, and on skin the shadow's edge "
+                  "softens with the scattering. The darkness, colour and softness are the stage's and the settings above. "
+                  "Needs Shadow Quality HIGH (3 cascades) and PBR materials on."));
+    if (pbr_shadow::settings.on) {
+        const pbr_shadow::Status ps = pbr_shadow::status();
+        if (ps.active)
+            ImGui::TextDisabled(_("In use: %d PBR mesh draws took the shadow themselves last frame."), ps.skipped);
+        else if (!ps.pbr)
+            ImGui::TextDisabled(_("Off: PBR materials are off."));
+        else if (!ps.shader)
+            ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f),
+                               _("The PBR shader has no shadow code (an older nativePC\\shader\\pbr\\material_pbr.hlsl? "
+                                 "Write its source again in PbrMaterials): PBR materials keep the game's shadow pass."));
+        else if (!ps.data)
+            ImGui::TextDisabled(_("Waiting for the stage shadow's 3 cascades (Shadow Quality HIGH)."));
+        else
+            ImGui::TextDisabled(_("Waiting for the shadow maps."));
     }
     ImGui::PopItemWidth();
 
@@ -352,6 +546,21 @@ void Shadows::on_config_load(const utility::Config& cfg) {
         overrides[i].on = cfg.get<bool>(key + "_on").value_or(false);
         overrides[i].value = std::clamp(cfg.get<float>(key).value_or(f.def), f.lo, f.hi);
     }
+#ifndef NDEBUG
+    const SunOverride sd;
+    sun.on = cfg.get<bool>("shadows_sun_on").value_or(sd.on);
+    sun.elevation = std::clamp(cfg.get<float>("shadows_sun_height").value_or(sd.elevation), 5.0f, 90.0f);
+    sun.azimuth = std::clamp(cfg.get<float>("shadows_sun_direction").value_or(sd.azimuth), 0.0f, 360.0f);
+#endif
+    shadow_receiver::Settings& soft = shadow_receiver::settings;
+    const shadow_receiver::Settings d;
+    soft.soft = cfg.get<bool>("shadows_soft").value_or(d.soft);
+    soft.quality = std::clamp(cfg.get<int>("shadows_soft_quality").value_or(d.quality), 0, 2);
+    soft.light_size = std::clamp(cfg.get<float>("shadows_light_size").value_or(d.light_size), 0.0f, 0.15f);
+    soft.max_soft = std::clamp(cfg.get<float>("shadows_max_soft").value_or(d.max_soft), 5.0f, 150.0f);
+    soft.min_radius = std::clamp(cfg.get<float>("shadows_min_radius").value_or(d.min_radius), 0.5f, 3.0f);
+    pbr_shadow::settings.on = cfg.get<bool>("shadows_pbr").value_or(pbr_shadow::Settings{}.on);
+    shadow_receiver::request_compile();
     refresh_map_size();
     g_size_gen.fetch_add(1);
 }
@@ -364,4 +573,16 @@ void Shadows::on_config_save(utility::Config& cfg) {
         cfg.set<bool>(key + "_on", overrides[i].on);
         cfg.set<float>(key, overrides[i].value);
     }
+#ifndef NDEBUG
+    cfg.set<bool>("shadows_sun_on", sun.on);
+    cfg.set<float>("shadows_sun_height", sun.elevation);
+    cfg.set<float>("shadows_sun_direction", sun.azimuth);
+#endif
+    const shadow_receiver::Settings& soft = shadow_receiver::settings;
+    cfg.set<bool>("shadows_soft", soft.soft);
+    cfg.set<int>("shadows_soft_quality", soft.quality);
+    cfg.set<float>("shadows_light_size", soft.light_size);
+    cfg.set<float>("shadows_max_soft", soft.max_soft);
+    cfg.set<float>("shadows_min_radius", soft.min_radius);
+    cfg.set<bool>("shadows_pbr", pbr_shadow::settings.on);
 }

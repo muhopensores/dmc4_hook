@@ -197,4 +197,5 @@
 #include "dev/unit_packs/UnitPacks.hpp"
 #include "dev/pbr/PbrMaterials.hpp"
 #include "dev/shadows/Shadows.hpp"
+#include "dev/tonemap/ToneMap.hpp"
 #endif

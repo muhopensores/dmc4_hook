@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <string>
 
+struct IDirect3DPixelShader9;
+
 // PbrMaterials: physically based shading (GGX specular, metal / roughness) for the materials Albam exports in its PBR mode.
 // Plan, RE findings and decisions: Vibed\PBR\README.md.
 //
@@ -33,6 +35,8 @@ extern bool simple_specular;   // the 4 point lights get specular too (the stock
 extern int  reflect_mode;      // 0 the scene's ambient light (SH), 1 the cube relit to it, 2 the cube as is (usually
                                // DefaultCube_CM, a day sky: 2B looked chrome)
 extern int  debug_view;        // 0 off, 1 albedo, 2 normal, 3 roughness, 4 metal, 5 occlusion, 6 diffuse light, 7 specular
+extern bool cube_filter;       // the environment cube sampler made trilinear (the engine's record; every material's cube)
+extern bool cube_cone;         // rough reflections averaged over a cone of the cube's 16 x 16 mip (PBR_CUBE_CONE)
 
 // The shader's tuning values, live: written to pixel shader registers c200 / c201 (c201.w = 1 = written; no game pixel
 // shader uses a float register above c61) whenever sRender::dispatchCommands binds one of ours (hook at 0x8F4E34), and
@@ -65,6 +69,12 @@ struct Status {
 };
 
 Status status();
+
+// For Shadows' "shadows in PBR materials" (dmc4_hook Shadows step 3, src/dev/shadows/PbrShadow.hpp):
+bool is_ours(IDirect3DPixelShader9* ps);    // sRender's thread: one of our pixel shaders
+bool draws_key(uint32_t key);               // any thread: our shader draws this cMaterialStandard permutation key (+0x10)
+bool shader_has_shadows();                  // the running source reads the shadow registers (gPbrShadow)
+
 void request_compile();             // compile again (settings, Reload); any thread
 bool write_source();                // the embedded source -> nativePC\shader\pbr\material_pbr.hlsl
 void update();                      // render thread: find the records, take finished compiles, keep ours installed

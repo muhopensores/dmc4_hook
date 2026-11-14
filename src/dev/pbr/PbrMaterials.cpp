@@ -1,5 +1,7 @@
 #include "PbrMaterials.hpp"
+#include "PbrSpheres.hpp"
 #include "../../ModFramework.hpp"
+#include "../ps_bind.hpp"
 #include <spdlog/spdlog.h>
 #include <d3d9.h>
 #include <algorithm>
@@ -24,6 +26,8 @@ bool linear_light = true;
 bool simple_specular = true;
 int  reflect_mode = 0;
 int  debug_view = 0;
+bool cube_filter = true;
+bool cube_cone = false;
 Tuning tuning;
 
 namespace {
@@ -131,6 +135,14 @@ int                 g_failed = 0;
 std::string         g_error;
 std::string         g_waiting = "not looked yet";   // why standard_info() fails, for the panel
 bool                g_tunable = true;               // the compiled source reads gPbrTune0 / gPbrTune1
+volatile bool       g_shadowed = false;             // the compiled source reads gPbrShadow (the stage shadow)
+
+// draws_key() (the game thread, at the shadow receiver's material gates): the permutation table and which pixel shaders run
+// ours. The table is the technique's (static once loaded); g_ps_live is refreshed by update() every frame.
+constexpr uint32_t           kMaxPs = 4096;
+const uint32_t* volatile     g_key_table = nullptr;
+volatile uint32_t            g_key_count = 0;
+volatile uint8_t             g_ps_live[kMaxPs] = {};
 float               g_tune_last[8] = {};            // what update() wrote to the Tuning registers last
 bool                g_tune_written = false;
 int                 g_tune_lost = 0;                // frames on which they no longer held it (overwritten by someone)
@@ -144,6 +156,7 @@ uintptr_t                     jmp_ret_bind_ps = 0;
 
 // sRender::dispatchCommands is about to bind pixel shader `ps` (a different one from the last): ours gets the Tuning values
 void __stdcall on_bind_ps(IDirect3DDevice9* device, IDirect3DPixelShader9* ps) {
+    ps_bind::call(device, ps);              // other mods' shaders (Shadows' receivers)
     const int n = g_bind_count;
     for (int i = 0; i < n; ++i)
         if (g_bind_ours[i] == ps) {
@@ -200,7 +213,9 @@ void restore(Target& t) {
 }
 
 void forget() {
+    g_key_table = nullptr;
     for (Target& t : g_targets) {
+        if (t.ps >= 0 && (uint32_t)t.ps < kMaxPs) g_ps_live[t.ps] = 0;
         if (t.ours) t.ours->Release();
     }
     g_targets.clear();
@@ -288,6 +303,8 @@ bool locate() {
     g_targets = std::move(targets);
     g_unsupported = unsupported;
     g_tech = tech;
+    g_key_count = perms;
+    g_key_table = table;
     spdlog::info("[PbrMaterials] {} lit RIM pixel shaders to replace, {} left stock (unsupported)", g_targets.size(), unsupported);
     return true;
 }
@@ -314,11 +331,13 @@ void start_compile() {
     }
     auto source = std::make_shared<std::string>(read_source(g_from_file));
     g_tunable = source->find("gPbrTune1") != std::string::npos;
+    g_shadowed = source->find("gPbrShadow") != std::string::npos;
     Defines common = {
         { "PBR_LINEAR", linear_light ? "1" : "0" },
         { "PBR_SIMPLE_SPEC", simple_specular ? "1" : "0" },
         { "PBR_REFLECT", std::to_string(reflect_mode) },
         { "PBR_DEBUG", std::to_string(debug_view) },
+        { "PBR_CUBE_CONE", cube_cone ? "1" : "0" },
     };
     auto jobs = std::make_shared<std::vector<Defines>>();
     for (const Target& t : g_targets) {
@@ -474,9 +493,54 @@ bool write_source() {
     return true;
 }
 
+// The environment cube's sampler state. sShader keeps one 16-byte record per sampler parameter (+0x5038 + 16 x
+// ParameterDesc.mStateHandle; the descriptors are 20 bytes at +0x838, mStateHandle at +14) that sRender::applySamplerState
+// 0x8F4000 turns into SetSamplerState on every draw: dword 0 bits 24-26 MAGFILTER, 27-29 MINFILTER, dword 1 bits 0-2
+// MIPFILTER (D3DTEXF_* values). XfSamplerEnvironmentMap's parameter index is the global 0xE55340. The engine's default
+// is POINT / POINT / NONE (sShader::sampler_defaults_init 0x8FDE80); a blocky or banded cube reflection is that. With
+// cube_filter the record is made LINEAR / LINEAR / LINEAR (written every frame: the game's texture options rewrite the
+// records) and put back when it's turned off.
+constexpr uintptr_t kParamDescs = 0x838, kSamplerStates = 0x5038, kEnvParam = 0xE55340;
+uint32_t g_cube_state_orig[2] = {};
+bool     g_cube_state_saved = false;
+uint32_t g_cube_state_now[2] = {};             // for the panel
+
+uint32_t* cube_sampler_record() {
+    const uintptr_t shader = *reinterpret_cast<uintptr_t*>(kShaderInstance);
+    if (!shader) return nullptr;
+    const uint32_t param = *reinterpret_cast<uint32_t*>(kEnvParam);
+    if (param > 4096) return nullptr;
+    const uint8_t handle = at<uint8_t>(shader, kParamDescs + 20 * param + 14);
+    return reinterpret_cast<uint32_t*>(shader + kSamplerStates + 16 * (uintptr_t)handle);
+}
+
+void update_cube_filter(bool want) {
+    uint32_t* rec = cube_sampler_record();
+    if (!rec) return;
+    if (want) {
+        if (!g_cube_state_saved) {
+            g_cube_state_orig[0] = rec[0];
+            g_cube_state_orig[1] = rec[1];
+            g_cube_state_saved = true;
+        }
+        rec[0] = (rec[0] & ~(0x3Fu << 24)) | (2u << 24) | (2u << 27);     // MAGFILTER, MINFILTER = LINEAR
+        rec[1] = (rec[1] & ~7u) | 2u;                                       // MIPFILTER = LINEAR
+    } else if (g_cube_state_saved) {
+        rec[0] = g_cube_state_orig[0];
+        rec[1] = g_cube_state_orig[1];
+        g_cube_state_saved = false;
+    }
+    g_cube_state_now[0] = rec[0];
+    g_cube_state_now[1] = rec[1];
+}
+
 void update() {
+    update_cube_filter(mod_enabled && cube_filter);
     if (!mod_enabled) {
-        for (Target& t : g_targets) restore(t);
+        for (Target& t : g_targets) {
+            restore(t);
+            if (t.ps >= 0 && (uint32_t)t.ps < kMaxPs) g_ps_live[t.ps] = 0;
+        }
         g_bind_count = 0;
         return;
     }
@@ -511,9 +575,28 @@ void update() {
     for (Target& t : g_targets) {
         install(t);
         if (t.ours && n < kMaxOurs) g_bind_ours[n++] = t.ours;
+        if (t.ps >= 0 && (uint32_t)t.ps < kMaxPs) g_ps_live[t.ps] = (t.ours && handle_of(t) == t.ours) ? 1 : 0;
     }
     g_bind_count = n;
 }
+
+bool is_ours(IDirect3DPixelShader9* ps) {
+    if (!ps) return false;
+    const int n = g_bind_count;
+    for (int i = 0; i < n; ++i)
+        if (g_bind_ours[i] == ps) return true;
+    return false;
+}
+
+bool draws_key(uint32_t key) {
+    const uint32_t* table = g_key_table;
+    if (!mod_enabled || !table || key >= g_key_count) return false;
+    if (key / kStride[3] % kRadix[3] != kRim || key / kStride[1] % kRadix[1] == 0) return false;
+    const uint32_t ps = table[key] & 0xFFFF;
+    return ps < kMaxPs && g_ps_live[ps] != 0;
+}
+
+bool shader_has_shadows() { return g_shadowed; }
 
 } // namespace pbr_materials
 
@@ -526,6 +609,9 @@ std::optional<std::string> PbrMaterials::on_initialize() {
 }
 
 void PbrMaterials::on_frame(fmilliseconds& dt) { update(); }
+
+void draw_scene_buffer();   // below: the scene buffer's format (the PC option HDR)
+void draw_cube_filter();    // below: the environment cube's sampler filters
 
 void PbrMaterials::on_gui_frame(int display) {
     if (display != DISPLAY_SYSTEM_A) return;
@@ -657,8 +743,62 @@ void PbrMaterials::on_gui_frame(int display) {
         ImGui::EndChild();
     }
 
+    draw_cube_filter();
+    draw_scene_buffer();
+    pbr_spheres::draw_gui();
+
     ImGui::PopID();
     ImGui::Unindent(lineIndent);
+}
+
+// The scene buffer's format: the PC option HDR (config.ini [GRAPHICS] HDR = LOW / MEDIUM / HIGH) = sRender +0x1B1D8:
+// 0 A8R8G8B8, 1 A2R10G10B10, 3 A16B16G16R16F (sub_8F7230 makes the screen targets in it). sRender::initDevice sets it to
+// 10-bit when the card has it (0x8EF8ED), whatever the option said; the setter 0x8F6430 (thiscall, the mode) checks the
+// caps byte +0x1B1D0 (1 8-bit, 4 10-bit, 2 FP16 with blending) and flags +0x1B1D4 |= 0x40, and the render thread then
+// makes the targets again. Vibed\ToneMap\README.md.
+// the environment cube sampler's filters (see update_cube_filter)
+void draw_cube_filter() {
+    static const char* kFilter[] = { "none", "point", "linear", "anisotropic", "?", "?", "?", "?" };
+    ImGui::Checkbox(_("Smooth cube filtering"), &cube_filter);
+    ImGui::SameLine();
+    Mod::help_marker(_("Filters the environment cube smoothly (linear within a mip and between mips) instead of the engine's "
+                       "point sampling. Without it, reflections of a cube are blocky and rough ones jump from mip to mip. It's "
+                       "the engine's one setting for every material's cube, so vanilla materials with a cube get it too."));
+    ImGui::SameLine();
+    ImGui::TextDisabled(_("(cube: mag %s, min %s, mip %s)"), kFilter[(g_cube_state_now[0] >> 24) & 7],
+                        kFilter[(g_cube_state_now[0] >> 27) & 7], kFilter[g_cube_state_now[1] & 7]);
+    if (ImGui::Checkbox(_("Cone blur for rough reflections"), &cube_cone)) request_compile();
+    ImGui::SameLine();
+    Mod::help_marker(_("Rough reflections of a cube read its small mips, and D3D9 has no switch for filtering across a cube's "
+                       "faces: whether the faces' edges show at high roughness depends on the card and driver (DXVK always "
+                       "filters across them). On = average 16 lookups of the 16 x 16 mip over a cone instead, which hides the "
+                       "edges everywhere but blurs a little differently. Off = the plain mips (the default)."));
+}
+
+void draw_scene_buffer() {
+    const uintptr_t render = *reinterpret_cast<uintptr_t*>(0xE552D8);  // sRender::mpInstance
+    if (!render) return;
+    const int mode = *reinterpret_cast<int*>(render + 0x1B1D8);
+    const uint8_t caps = *reinterpret_cast<uint8_t*>(render + 0x1B1D0);
+    const char* name = mode == 0 ? "8-bit (HDR LOW)" : mode == 1 ? "10-bit (HDR MEDIUM)" :
+                       mode == 3 ? "16-bit float (HDR HIGH)" : "?";
+    ImGui::Separator();
+    ImGui::Text(_("Scene buffer: %s"), name);
+    ImGui::SameLine();
+    Mod::help_marker(_("The format the game draws the scene in before the tone map. 8 and 10-bit hold the scene up to twice "
+                  "white; 16-bit float keeps brighter values (highlights, effects) for the tone map to compress. The game "
+                  "picks 10-bit at start-up whatever its HDR option says; the button switches live (the screen buffers "
+                  "are made again). With the game's own tone map the difference is small: brighter highlights only."));
+    auto set = [render](int m) { reinterpret_cast<void(__thiscall*)(uintptr_t, int)>(0x8F6430)(render, m); };
+    if (mode != 3) {
+        if (caps & 2) {
+            if (ImGui::Button(_("Use 16-bit float"))) set(3);
+        } else {
+            ImGui::TextDisabled(_("(the card reports no 16-bit float render target with blending)"));
+        }
+    } else if ((caps & 4) && ImGui::Button(_("Back to 10-bit"))) {
+        set(1);
+    }
 }
 
 void PbrMaterials::on_config_load(const utility::Config& cfg) {
@@ -666,6 +806,8 @@ void PbrMaterials::on_config_load(const utility::Config& cfg) {
     linear_light = cfg.get<bool>("pbr_linear_light").value_or(true);
     simple_specular = cfg.get<bool>("pbr_simple_specular").value_or(true);
     reflect_mode = std::clamp(cfg.get<int>("pbr_reflect").value_or(0), 0, 2);
+    cube_filter = cfg.get<bool>("pbr_cube_filter").value_or(true);
+    cube_cone = cfg.get<bool>("pbr_cube_cone").value_or(false);
     const Tuning d{};
     tuning.sss_width = cfg.get<float>("pbr_sss_width").value_or(d.sss_width);
     tuning.sss_saturation = cfg.get<float>("pbr_sss_saturation").value_or(d.sss_saturation);
@@ -681,6 +823,8 @@ void PbrMaterials::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("pbr_linear_light", linear_light);
     cfg.set<bool>("pbr_simple_specular", simple_specular);
     cfg.set<int>("pbr_reflect", reflect_mode);
+    cfg.set<bool>("pbr_cube_filter", cube_filter);
+    cfg.set<bool>("pbr_cube_cone", cube_cone);
     cfg.set<float>("pbr_sss_width", tuning.sss_width);
     cfg.set<float>("pbr_sss_saturation", tuning.sss_saturation);
     cfg.set<float>("pbr_sss_strength", tuning.sss_strength);

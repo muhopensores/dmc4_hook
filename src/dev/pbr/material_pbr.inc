@@ -8,7 +8,8 @@ R"hlsl(// material_pbr.hlsl: dmc4_hook PbrMaterials, the pixel shader of XfMater
 //     s2, ...) and HAS_<name> for each one it lists, and nothing else may be read;
 //   - the permutation comes in as LIGHTING (1 4SPOT, 2 SH4SPOT, 3 EMITSH4SPOT, 4 THINSH4SPOT), NORMALMAP (0 / 1), LIGHTMAP
 //     (0 NONE, 1 STANDARD, 2 SHADOW, 5 VCOLOR).
-// Settings: PBR_LINEAR (light in linear space, the scene stays gamma), PBR_SIMPLE_SPEC (the 4 point lights get specular),
+// Settings: PBR_SHADOW (1: the stage shadow is shaded here, see "the stage shadow" below; the Shadows mod binds its maps),
+// PBR_LINEAR (light in linear space, the scene stays gamma), PBR_SIMPLE_SPEC (the 4 point lights get specular),
 // PBR_REFLECT (what reflects: 0 the scene's ambient light, 1 the cube relit to it, 2 the cube as is; see below), PBR_DEBUG
 // (0 off, 1 albedo, 2 normal, 3 roughness, 4 metal, 5 occlusion, 6 diffuse light, 7 specular).
 //
@@ -42,6 +43,15 @@ R"hlsl(// material_pbr.hlsl: dmc4_hook PbrMaterials, the pixel shader of XfMater
 #endif
 #ifndef PBR_REFLECT
 #define PBR_REFLECT 0
+#endif
+#ifndef PBR_SHADOW
+#define PBR_SHADOW 1
+#endif
+#ifndef PBR_CUBE_CONE
+#define PBR_CUBE_CONE 0         // 1: rough reflections averaged over a cone of a mid mip (see cube_radiance)
+#endif
+#ifndef PBR_SHADOW_TAPS
+#define PBR_SHADOW_TAPS 16
 #endif
 
 // ---- subsurface scattering tuning (defaults; the PbrMaterials panel's Tuning sliders override them live) ----
@@ -224,6 +234,9 @@ struct PSIn {
 #else
     float3 nrm  : TC_N0;
 #endif
+#if PBR_SHADOW
+    float2 vpos : VPOS;         // the pixel's screen position: the shadow filter's per-pixel turn
+#endif
 };
 
 // ---- helpers ----
@@ -361,6 +374,133 @@ float3 env_brdf(float3 f0, float rough, float nv) {
     return f0 * ab.x + ab.y;
 }
 
+#ifdef HAS_XfSamplerEnvironmentMap
+// A cube texel: rgb gamma, alpha a linear HDR scale (rgb / a). Converting the decoded value instead turned DefaultCube_CM's
+// hot spots (8 decoded) into 97 and lit the silhouettes in sparkles.
+float3 cube_decode(float4 c) { return to_lin(c.rgb) / max(c.a, 1.0 / 255.0); }
+
+// The cube's light from direction R for a roughness. Its mips blur it, but only down to 16 x 16 per face: D3D9 has no
+// seamless cube filtering and the game's mips are box filtered, so the 1 x 1 .. 4 x 4 mips drew each face as a flat patch
+// with hard edges on rough spheres (the PBR test spheres, 2026-11-14), and a cone of taps on the 8 x 8 mip still showed
+// the texels' edges ("football patches": the engine samples the cube with point filtering; PbrMaterials' Smooth cube
+// filtering makes it linear). Past that mip the blur is 16 taps of the 16 x 16 mip on a spiral (Vogel) disc around R,
+// weighted toward the centre and wider with the roughness (half-angle up to ~68 deg), so it crosses the faces' edges
+// smoothly. lod_range = the cube's last mip (gXfEnvMapFactor with envmap_bias 5).
+float3 cube_radiance(float3 R, float rough, float lod_range) {
+#if !PBR_CUBE_CONE
+    // the plain way (the default since 2026-11-14, a friend of the user's: "just turn on filtering"): the mip for the
+    // roughness, filtered by the sampler (PbrMaterials' Smooth cube filtering makes it trilinear)
+    return cube_decode(texCUBElod(XfSamplerEnvironmentMap, float4(R, rough * lod_range)));
+#endif
+    const float cap = max(lod_range - 4.0, 0.0);            // the 16 x 16 mip
+    const float lod = rough * lod_range;
+    if (lod <= cap) return cube_decode(texCUBElod(XfSamplerEnvironmentMap, float4(R, lod)));
+    const float spread = 2.5 * saturate((lod - cap) / max(lod_range - cap, 1e-3));   // tan of the cone's half-angle
+    const float3 t1 = normalize(cross(R, abs(R.y) < 0.99 ? float3(0, 1, 0) : float3(1, 0, 0)));
+    const float3 t2 = cross(R, t1);
+    float3 sum = 0;
+    float weight = 0;
+    [loop] for (int k = 0; k < 16; ++k) {
+        const float r = sqrt((k + 0.5) / 16.0);
+        float2 sc;
+        sincos(k * 2.3999632, sc.x, sc.y);
+        const float w = 1.0 - 0.6 * r * r;                  // more of the centre, as a lobe has
+        const float3 d = normalize(R + (t1 * sc.y + t2 * sc.x) * (r * spread));
+        sum += w * cube_decode(texCUBElod(XfSamplerEnvironmentMap, float4(d, cap)));
+        weight += w;
+    }
+    return sum / weight;
+}
+#endif
+
+)hlsl"
+R"hlsl(
+// ---- the stage shadow (dmc4_hook Shadows step 3, Vibed\Shadows\README.md) ----
+// The game draws the stage shadow as a pass of its own (tXfMaterialShadowReceiver) that pulls finished pixels toward a flat
+// colour, so highlights and scattered light stayed visible inside shadows. With the Shadows mod's "Shadows in PBR
+// materials" that pass skips these materials (hooks at its two material gates, 0x9F33B6 / 0x5287C2) and the shadow is
+// shaded here: the same three cascade maps (s13-s15, bound by the mod, point sampled), the mod's contact-hardening filter,
+// the stock CASTER receiver's darkening (toward the shadow colour by its darkness; faces turning from the shadow's light
+// darken by XfShadowBorderGradation), and no direct highlights or light through thin parts where it darkens.
+#if PBR_SHADOW
+// [0] light size (penumbra cm per cm of gap), widest penumbra (cm), sharpest edge (texels), 1
+// [1] x 1 = the values below are current, y the maps' size, z border gradation (0 = none), w darkness
+// [2] XfShadowMapRange: where the near, middle, far cascades end (cm), [3] XfShadowMapRangeGrad (the far fade)
+// [4] the shadow colour (XfShadowColorCaster), [5] the shadow's light direction (the way it travels)
+// [6 + 4c .. 9 + 4c] cascade c's u, v, depth, w rows: dot(float4(world, 1), row)
+float4 gPbrShadow[18] : register(c202);
+sampler2D gPbrShadowNear : register(s13);
+sampler2D gPbrShadowMiddle : register(s14);
+sampler2D gPbrShadowFar : register(s15);
+
+float3 shd_project(int c, float3 p) {
+    const float4 P = float4(p, 1.0);
+    const float w = dot(P, gPbrShadow[9 + 4 * c]);
+    return float3(dot(P, gPbrShadow[6 + 4 * c]), dot(P, gPbrShadow[7 + 4 * c]), dot(P, gPbrShadow[8 + 4 * c])) / w;
+}
+
+// map units per cm at p: uv across the light, depth toward it (by differences)
+void shd_scales(int c, float3 p, float3 L, out float uv_cm, out float z_cm) {
+    const float s = 10.0;
+    const float3 a = shd_project(c, p);
+    const float3 t1 = normalize(cross(L, abs(L.y) < 0.9 ? float3(0, 1, 0) : float3(1, 0, 0)));
+    const float3 t2 = cross(L, t1);
+    const float3 b = shd_project(c, p + t1 * s);
+    const float3 d = shd_project(c, p + t2 * s);
+    const float3 e = shd_project(c, p - L * s);
+    uv_cm = 0.5 * (length(b.xy - a.xy) + length(d.xy - a.xy)) / s;
+    z_cm = max(abs(a.z - e.z) / s, 1e-12);
+}
+
+// tap k of n on a Vogel disc, turned by the pixel's angle
+float2 shd_disc(float k, float n, float turn) {
+    float2 sc;
+    sincos(k * 2.3999632 + turn, sc.x, sc.y);
+    return sqrt((k + 0.5) / n) * sc.yx;
+}
+
+// bilinear depth compare: shadowed where the pixel is at or behind the stored depth (the bias is in the cast pass)
+float shd_pcf(sampler2D sm, float2 uv, float z, float size) {
+    const float2 t = uv * size - 0.5;
+    const float2 f = frac(t);
+    const float2 c = (t - f + 0.5) / size;
+    const float e = 1.0 / size;
+    float4 d;
+    d.x = tex2Dlod(sm, float4(c, 0, 0)).r;
+    d.y = tex2Dlod(sm, float4(c + float2(e, 0), 0, 0)).r;
+    d.z = tex2Dlod(sm, float4(c + float2(0, e), 0, 0)).r;
+    d.w = tex2Dlod(sm, float4(c + float2(e, e), 0, 0)).r;
+    const float4 s = step(d, z);
+    return lerp(lerp(s.x, s.y, f.x), lerp(s.z, s.w, f.x), f.y);
+}
+
+// cascade c's shadow at p (0 lit .. 1 shadowed): blocker search, penumbra from the gap, a disc of bilinear compares
+float shd_cascade(int c, sampler2D sm, float3 p, float3 L, float turn, float min_texels) {
+    const float3 q = shd_project(c, p);
+    const float size = gPbrShadow[1].y;
+    const float texel = 1.0 / size;
+    float uv_cm, z_cm;
+    shd_scales(c, p, L, uv_cm, z_cm);
+    const float narrow = min_texels * texel;
+    const float wide = clamp(gPbrShadow[0].y * uv_cm, narrow, 48.0 * texel);
+    float sum = 0, count = 0;
+    [loop] for (int k = 0; k < 16; ++k) {
+        const float d = tex2Dlod(sm, float4(q.xy + shd_disc(k, 16, turn) * wide, 0, 0)).r;
+        const float hit = d < q.z ? 1.0 : 0.0;
+        sum += d * hit;
+        count += hit;
+    }
+    if (count == 0) return 0;
+    const float gap_cm = max(q.z - sum / count, 0) / z_cm;
+    const float radius = clamp(gap_cm * gPbrShadow[0].x * uv_cm, narrow, wide);
+    float s = 0;
+    [loop] for (int j = 0; j < PBR_SHADOW_TAPS; ++j)
+        s += shd_pcf(sm, q.xy + shd_disc(j, PBR_SHADOW_TAPS, turn) * radius, q.z, size);
+    return s / PBR_SHADOW_TAPS;
+}
+#endif
+)hlsl"
+R"hlsl(
 float4 main(PSIn i) : COLOR0 {
     // ---- the material ----
     const float4 base = tex2D(XfSamplerAlbedoMap, i.uv0.xy);
@@ -499,6 +639,35 @@ float4 main(PSIn i) : COLOR0 {
 #endif
     spec *= spec_occ;
 
+    // ---- the stage shadow (see the functions above main) ----
+    float shadow_dark = 0;      // how far the stage shadow darkens this pixel, before its darkness (0 .. 1)
+#if PBR_SHADOW
+    if (gPbrShadow[1].x > 0.5 && dist < gPbrShadow[2].z) {
+        const float3 Ls = gPbrShadow[5].xyz;
+        const float turn = 6.2831853 * frac(52.9829189 * frac(dot(i.vpos, float2(0.06711056, 0.00583715))));
+        float min_texels = gPbrShadow[0].z;
+#if LIGHTING == 4
+        min_texels *= 1.0 + 3.0 * s.wrap;       // skin: the light scattering under it softens the shadow's edge
+#endif
+        // the cascade by distance from the eye (the stock pass uses view depth: a little coarser at the screen's edges)
+        float sh, fade = 1.0;
+        if (dist < gPbrShadow[2].x) {
+            sh = shd_cascade(0, gPbrShadowNear, i.wpos, Ls, turn, min_texels);
+        } else if (dist < gPbrShadow[2].y) {
+            sh = shd_cascade(1, gPbrShadowMiddle, i.wpos, Ls, turn, min_texels);
+        } else {
+            sh = shd_cascade(2, gPbrShadowFar, i.wpos, Ls, turn, min_texels);
+            fade = 1.0 - saturate(dist * gPbrShadow[3].x + gPbrShadow[3].y);
+        }
+        // the stock CASTER receiver: faces turning from the shadow's light darken gradually (none of the light's own)
+        const float ndl = dot(s.Ng, -Ls);
+        if (gPbrShadow[1].z > 0) sh = max(sh, 1.0 - saturate(ndl * gPbrShadow[1].z));
+        else if (ndl < 0) sh = 0;
+        shadow_dark = sh * fade;
+    }
+    spec *= 1.0 - shadow_dark;                  // no highlights where the shadow darkens
+#endif
+
     float3 emit = 0;
 #if LIGHTING == 3 || LIGHTING == 4
     const float add_r = tex2D(XfSamplerAdditionalMap, i.uv2).r;
@@ -511,6 +680,9 @@ float4 main(PSIn i) : COLOR0 {
 #endif
     // THINSH4SPOT: the light coming through, by thinness (1 - AdditionalMap R) and the scatter colour, times the albedo
     emit = back * (1.0 - add_r) * sss_map.g * K_TRANSMISSION * to_lin(lms);
+#if PBR_SHADOW
+    emit *= 1.0 - shadow_dark;                  // nor light through thin parts
+#endif
 #endif
 )hlsl"
 R"hlsl(
@@ -522,6 +694,16 @@ R"hlsl(
 #endif
     const float3 R = I - 2.0 * dot(N, I) * N;
     float3 refl = 0;
+#ifdef HAS_XfSamplerEnvironmentMap
+    // A negative reflection strength (gXfFresnelFactor.w, the record's EnvMapPower) asks for the material's own cube as it
+    // is, whatever PBR_REFLECT says: the PBR test spheres (PbrSpheres.cpp) put a stage cube there, since roughness only
+    // shows in a reflection with detail (the scene's SH, the default, is equally smooth at every roughness).
+    if (knobs.w < 0.0) {
+        refl = cube_radiance(R, rough_aa, lod_range) * env_brdf(s.f0, rough_aa, s.nv) *
+               (-knobs.w * spec_occlusion(s.nv, ao, rough_aa) * spec_occ);
+    } else
+#endif
+    {
     // What reflects. The cube is rarely of the place: every material without one gets DefaultCube_CM, a 64 x 64 daylight
     // sky (decoded mean ~0.6, hot spots up to 8), which made 2B look chrome on any stage.
     //   0: the scene's ambient light (the SH the game gives every SH4SPOT material), read in the reflection direction: the
@@ -531,10 +713,7 @@ R"hlsl(
 #if PBR_REFLECT == 0 && defined(HAS_gXfSHc)
     refl = to_lin(sh(R)) * env_brdf(s.f0, rough_aa, s.nv) * (knobs.w * spec_occlusion(s.nv, ao, rough_aa) * spec_occ);
 #elif defined(HAS_XfSamplerEnvironmentMap)
-    const float4 env = texCUBElod(XfSamplerEnvironmentMap, float4(R, rough_aa * lod_range));
-    // the cube's colour is gamma, its alpha a linear HDR scale (rgb / a): converting the decoded value instead turned
-    // DefaultCube_CM's hot spots (8 decoded) into 97 and lit the silhouettes in sparkles
-    refl = to_lin(env.rgb) / max(env.a, 1.0 / 255.0) * env_brdf(s.f0, rough_aa, s.nv) *
+    refl = cube_radiance(R, rough_aa, lod_range) * env_brdf(s.f0, rough_aa, s.nv) *
            (knobs.w * spec_occlusion(s.nv, ao, rough_aa) * spec_occ);
 #if PBR_REFLECT != 2
     // Relit: the cube over its own mean (its smallest mip, one lookup per face so no seam) times the ambient light this
@@ -550,6 +729,7 @@ R"hlsl(
     refl *= dot(amb, luma) / max(dot(cube_mean / 6.0, luma), 1e-3);
 #endif
 #endif
+    }
 
     refl *= K_REFLECT_STRENGTH;
     const float3 kd = (1.0 - metal) * albedo;
@@ -573,6 +753,11 @@ R"hlsl(
 
     // ---- out: gamma, fog, the "LDR x 2" encoding ----
     col = to_out(col);
+#if PBR_SHADOW && PBR_DEBUG == 0
+    // the stock receiver's blend, here: toward the shadow colour by shadow x darkness (fogged below with the pixel, as the
+    // stock pass fogs its colour by the same factor)
+    col = lerp(col, gPbrShadow[4].rgb, shadow_dark * gPbrShadow[1].w);
+#endif
 #if defined(HAS_gXfFogFactor) && defined(HAS_gXfFogPlane) && defined(HAS_gXfFogColor) && defined(HAS_gXfFogEnable)
     const float f1 = (dist - gXfFogFactor.x) * gXfFogFactor.z;
     const float f2 = dot(gXfFogPlane, float4(i.wpos, 1.0)) * gXfFogFactor.w;

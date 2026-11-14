@@ -22,6 +22,11 @@
 // refuses the draws, the map keeps its clear value and the whole scene reads as shadowed (2026-11-14, first build). So a
 // hook where sRender::dispatchCommands picks that surface (0x8F5A8A) hands such targets a depth surface of our own, made
 // at the map size and released before a device reset.
+//
+// Soft shadows (step 2): ShadowReceiver.hpp replaces the receiver pass's cascade pixel shaders with a contact-hardening
+// filter; its matrix capture hook (0xA775E0) is installed here.
+//
+// Shadows in PBR materials (step 3): PbrShadow.hpp; its two receiver-gate hooks (0x9F33B6, 0x5287C2) are installed here.
 namespace shadows {
 
 enum Field { SPLIT_NEAR, SPLIT_MIDDLE, VIEW_DISTANCE, DEPTH_BIAS, SLOPE_BIAS, DARKNESS, FIELD_COUNT };
@@ -31,9 +36,30 @@ struct Override {
     float value = 0.0f;
 };
 
-extern bool     mod_enabled;
-extern int      map_size;                  // 0 = the game's (1024 with ShadowQuality HIGH), else 2048 / 4096
-extern Override overrides[FIELD_COUNT];
+// The sun's direction (uShadow mInfiniteLightDir +0x40, the way the light travels, game axes, y up). Stock stages put the
+// sun 55-90 deg high (y -0.82 .. -1.0), so their shadows fall on floors: a wall only catches the shadow of something
+// close in front of it, and walls turned from the sun are skipped by the receiver. Lowering it lengthens the shadows
+// onto walls. It also moves the cast pass's bias (casters pushed XfShadowDepthBias cm along it) and the receiver's
+// facing test, which both read the same field. Debug builds only: it moves the shadows away from the stage's lighting,
+// so it's for looking into shadows, not for playing.
+#ifndef NDEBUG
+struct SunOverride {
+    bool  on = false;
+    float elevation = 45.0f;               // degrees above the horizon
+    float azimuth = 0.0f;                  // degrees, the horizontal way the light travels: 0 = +z, 90 = +x
+};
+#endif
+
+extern bool        mod_enabled;
+extern int         map_size;               // 0 = the game's (1024 with ShadowQuality HIGH), else 2048 / 4096
+extern Override    overrides[FIELD_COUNT];
+#ifndef NDEBUG
+extern SunOverride sun;
+
+// a light direction <-> elevation / azimuth in degrees
+void sun_angles(const float dir[3], float& elevation, float& azimuth);
+void sun_direction(float elevation, float azimuth, float dir[3]);
+#endif
 
 struct UnitInfo {
     uintptr_t unit = 0;
@@ -41,6 +67,10 @@ struct UnitInfo {
     uint32_t  pcf = 0;                     // +0xFC: 0 / 1 / 2 = 4 / 9 / 16 depth taps (HIGH: 16 whatever this says)
     uint32_t  size = 0;                    // +0x224
     float     stage[FIELD_COUNT] = {};     // the .sdl's values (what the overrides replace)
+#ifndef NDEBUG
+    float     stage_dir[3] = {};           // the .sdl's mInfiniteLightDir
+    bool      target_light = false;        // mTargetLightEnable with a light: move copies that light's direction over ours
+#endif
 };
 
 struct Status {
@@ -68,4 +98,7 @@ public:
     std::unique_ptr<FunctionHook> hook_move;
     std::unique_ptr<FunctionHook> hook_map_size;
     std::unique_ptr<FunctionHook> hook_depth;
+    std::unique_ptr<FunctionHook> hook_capture;
+    std::unique_ptr<FunctionHook> hook_model_gate;
+    std::unique_ptr<FunctionHook> hook_devil_gate;
 };
