@@ -17,9 +17,22 @@ R"hlsl(// material_pbr.hlsl: dmc4_hook PbrMaterials, the pixel shader of XfMater
 //   gXfFresnelFactor = (roughness scale, metal scale, dielectric F0, reflection strength): the record's FresnelFactor,
 //     FresnelBias, SpecularPow and EnvMapPower (x mColor2.w)
 //   gXfEnvMapFactor = the environment cube's last mip (envmap_bias 5): roughness 1 reads it
+// Subsurface scattering = lighting THINSH4SPOT (LIGHTING 4), the game's own "light through thin surfaces" permutation:
+//   gXfLightMapScale (the record's lightmap_factor, the stock THIN colour) = the scatter colour: its largest channel is how
+//     far light spreads past the shadow line (0 none .. 1 far), its hue (half desaturated) the colour of that light, and
+//     it is the colour of light coming through. Skin ~ (0.5, 0.2, 0.12).
+//   AdditionalMap R = thickness (0 thin: ears, fingers, nostrils, light comes through .. 1 thick: none), G = where it
+//     scatters (0 = plain PBR: nails, eyebrows). No texture = the engine's NullWhite: scatters everywhere, transmits nowhere.
 
 #ifndef PBR_LINEAR
 #define PBR_LINEAR 1
+#endif
+// LIGHT_GAMMA: with Linear lighting on, the exponent textures and light colours are converted with on the way in (and back
+// on the way out). 2.2 = true linear lighting; 1.0 = the game's own gamma-space lighting; in between trades the cleaner
+// light falloff of linear for a closer match with the vanilla models and stages around (the user, 2026-11-14: linear
+// looks better, gamma fits the surroundings better).
+#ifndef LIGHT_GAMMA
+#define LIGHT_GAMMA 2.2
 #endif
 #ifndef PBR_SIMPLE_SPEC
 #define PBR_SIMPLE_SPEC 1
@@ -29,6 +42,33 @@ R"hlsl(// material_pbr.hlsl: dmc4_hook PbrMaterials, the pixel shader of XfMater
 #endif
 #ifndef PBR_REFLECT
 #define PBR_REFLECT 0
+#endif
+
+// ---- subsurface scattering tuning (edit here, then Reload shader in the panel) ----
+// SSS_WIDTH: scales how far light reaches past the shadow line (1 = the material's scatter colour as authored).
+// SSS_SATURATION: how much of the scatter colour's hue the extra light takes (0 = neutral, 1 = the full colour).
+// SSS_STRENGTH: scales the extra light itself (0 = no scattering, plain PBR).
+#ifndef SSS_WIDTH
+#define SSS_WIDTH 0.6
+#endif
+#ifndef SSS_SATURATION
+#define SSS_SATURATION 0.35
+#endif
+#ifndef SSS_STRENGTH
+#define SSS_STRENGTH 0.8
+#endif
+
+// ---- reflection tuning ----
+// REFLECT_STRENGTH: scales every PBR material's reflection of its surroundings (light highlights aren't affected). The
+// stock character shaders reflect nothing (EnvMapPower 0), so in dim places, where nearly all light is ambient, PBR's
+// reflection of that ambient made dark materials look glossy next to vanilla models.
+// VERTEX_AO: how much the per-vertex occlusion (tangent.w, Albam's mtfw_tangent_w; the stock shaders darken direct light
+// by it) also occludes the ambient light and its reflection (0 = direct light only, as the stock shaders).
+#ifndef REFLECT_STRENGTH
+#define REFLECT_STRENGTH 1.0
+#endif
+#ifndef VERTEX_AO
+#define VERTEX_AO 1.0
 #endif
 #ifndef NORMALMAP
 #define NORMALMAP 1
@@ -168,7 +208,7 @@ struct PSIn {
 // ---- helpers ----
 float3 to_lin(float3 c) {
 #if PBR_LINEAR
-    return pow(max(c, 0.0), 2.2);
+    return pow(max(c, 0.0), LIGHT_GAMMA);
 #else
     return c;
 #endif
@@ -176,7 +216,7 @@ float3 to_lin(float3 c) {
 
 float3 to_out(float3 c) {
 #if PBR_LINEAR
-    return pow(max(c, 0.0), 1.0 / 2.2);
+    return pow(max(c, 0.0), 1.0 / LIGHT_GAMMA);
 #else
     return c;
 #endif
@@ -185,6 +225,10 @@ float3 to_out(float3 c) {
 struct Surf {
     float3 N, V, f0;
     float  nv, a, a2;
+    float3 Ng;          // the vertex normal (no normal map)
+    float3 Nb;          // the normal seen by scattered light: the normal map's detail blurred toward Ng
+    float  wrap;        // how far scattered light reaches past the shadow line (0 = Lambert)
+    float3 tint;        // the colour of that extra light (the scatter colour, half desaturated)
 };
 
 // One light: diffuse (before albedo, times 1 - F) and specular into the sums. Lights are in the stock shader's units, where a
@@ -195,7 +239,20 @@ void add_light(inout float3 diff, inout float3 spec, Surf s, float3 L, float3 ra
     const float nh = saturate(dot(s.N, H));
     const float vh = saturate(dot(s.V, H));
     const float3 F = s.f0 + (1.0 - s.f0) * pow(1.0 - vh, 5.0);
+#if LIGHTING == 4
+    // Subsurface scattering, the cheap form of pre-integrated skin: Lambert as for any material, plus the light that
+    // scatters past the shadow line (wrapped Lambert on a blurred normal) where it exceeds Lambert, in the scatter tint.
+    // The first version wrapped and blurred each channel by its own width, so red was lit apart from green and blue on
+    // every shadow edge and normal-map bump, and linear lighting turned that into pink skin (2B, 2026-11-14).
+    // Energy-conserving wrap, / (1 + w)^2: below Lambert on the lit side, so the extra light is only a band around the
+    // shadow line (N.L < w / ((1 + w)^2 - 1), 0.4 for w = 0.5). The plain / (1 + w) form added up to a third of the light
+    // over the whole lit side, and pale skin under a strong light clipped to pink (2B, 2026-11-14).
+    const float lam = saturate(dot(s.N, L));
+    const float scat = saturate((dot(s.Nb, L) + s.wrap) / ((1.0 + s.wrap) * (1.0 + s.wrap)));
+    diff += radiance * (lam + max(scat - lam, 0.0) * SSS_STRENGTH * s.tint) * dfac * (1.0 - F);
+#else
     diff += radiance * (nl * dfac) * (1.0 - F);
+#endif
     if (with_spec) {
         const float d = nh * nh * (s.a2 - 1.0) + 1.0;
         const float D = s.a2 / (PI * d * d);
@@ -203,6 +260,17 @@ void add_light(inout float3 diff, inout float3 spec, Surf s, float3 L, float3 ra
         spec += radiance * (nl * D * Vis * PI) * F;
     }
 }
+)hlsl"
+R"hlsl(
+#if LIGHTING == 4
+// Light coming through from behind (DICE's fast translucency, Barre-Brisebois & Bouchard 2011): strongest where the light
+// shines straight through toward the eye, plus a little from any light behind the surface. Times thinness and the scatter
+// colour in main().
+float transmit(Surf s, float3 L) {
+    const float3 Lt = normalize(L + s.Ng * 0.3);
+    return pow(saturate(dot(s.V, -Lt)), 6.0) * 1.5 + saturate(-dot(s.Ng, L)) * 0.3;
+}
+#endif
 
 #ifdef HAS_gXfLightParam
 // Spot light i (gXfLightParam[4i..4i+3]), as the stock shader attenuates it.
@@ -217,7 +285,7 @@ void spot(inout float3 diff, inout float3 spec, inout float3 back, Surf s, float
     const float3 radiance = to_lin(p0.rgb) * (fall * cone);
     add_light(diff, spec, s, L, radiance, p3.z, true);
 #if LIGHTING == 4
-    back += radiance * saturate(-dot(s.N, L));
+    back += radiance * transmit(s, L);
 #endif
 }
 #endif
@@ -233,7 +301,7 @@ void simple(inout float3 diff, inout float3 spec, inout float3 back, Surf s, flo
     const float3 radiance = to_lin(p0.rgb) * (1.0 - saturate((d2 * inv - p0.w) * p1.w));
     add_light(diff, spec, s, L, radiance, 1.0, PBR_SIMPLE_SPEC != 0);
 #if LIGHTING == 4
-    back += radiance * saturate(-dot(s.N, L));
+    back += radiance * transmit(s, L);
 #endif
 }
 #endif
@@ -254,6 +322,12 @@ float3 ramp(float v) {
     v = saturate(v);
     const float3 c = saturate(1.5 - abs(4.0 * v - float3(3.0, 2.0, 1.0)));   // "jet": dark blue, blue, cyan, green, yellow, red
     return c * 0.18;
+}
+
+// Specular occlusion from ambient occlusion (Lagarde & de Rousiers 2014): occluded places reflect less of the
+// surroundings, rough surfaces more so.
+float spec_occlusion(float nv, float occlusion, float rough) {
+    return saturate(pow(nv + occlusion, exp2(-16.0 * rough - 1.0)) - 1.0 + occlusion);
 }
 
 // Split-sum environment BRDF, Karis' analytic fit (no lookup texture).
@@ -290,7 +364,8 @@ float4 main(PSIn i) : COLOR0 {
 #endif
     const float rough = clamp(orm.g * knobs.x, 0.03, 1.0);
     const float metal = saturate(orm.b * knobs.y);
-    const float ao = orm.r;
+    // ambient occlusion: the ORM map's R and the per-vertex occlusion (tangent.w)
+    const float ao = orm.r * lerp(1.0, saturate(i.uv0.w), VERTEX_AO);
 
     // the normal, decoded as the stock shader does (DXT5nm: x = (2a - 1)(2r - 1.035), y = 2g - 1.02)
 #if NORMALMAP == 1
@@ -320,6 +395,26 @@ float4 main(PSIn i) : COLOR0 {
 
     Surf s;
     s.N = N;
+    s.Ng = normalize(i.nrm);
+    s.Nb = N;
+    s.wrap = 0;
+    s.tint = 1;
+#if LIGHTING == 4
+#ifdef HAS_XfSamplerAdditionalMap
+    const float4 sss_map = tex2D(XfSamplerAdditionalMap, i.uv2);
+#else
+    const float4 sss_map = 1.0;
+#endif
+#ifdef HAS_gXfLightMapScale
+    const float3 scatter = saturate(gXfLightMapScale);
+#else
+    const float3 scatter = float3(0.5, 0.2, 0.12);
+#endif
+    const float scatter_max = max(max(scatter.r, scatter.g), max(scatter.b, 1e-3));
+    s.wrap = scatter_max * SSS_WIDTH * sss_map.g;
+    s.tint = lerp(1.0, scatter / scatter_max, SSS_SATURATION);
+    s.Nb = normalize(lerp(N, s.Ng, 0.5 * sss_map.g));
+#endif
     s.V = -I;
     s.nv = abs(dot(N, s.V)) + 1e-4;                 // normal-mapped pixels that face away: not the grazing extreme
     s.a = sqrt(a2);
@@ -382,8 +477,7 @@ float4 main(PSIn i) : COLOR0 {
 #endif
 #endif
     spec *= spec_occ;
-)hlsl"
-R"hlsl(
+
     float3 emit = 0;
 #if LIGHTING == 3 || LIGHTING == 4
     const float add_r = tex2D(XfSamplerAdditionalMap, i.uv2).r;
@@ -392,11 +486,13 @@ R"hlsl(
     emit = to_lin(add_r * lms);                 // EMITSH4SPOT: emission in light units, times the albedo
 #elif LIGHTING == 4
 #ifdef HAS_gXfSHc
-    back += to_lin(sh(-N));
+    back += to_lin(sh(-s.Ng)) * 0.25;           // a little of the ambient from behind
 #endif
-    emit = back * add_r * to_lin(lms);          // THINSH4SPOT: light through the surface, times the albedo
+    // THINSH4SPOT: the light coming through, by thinness (1 - AdditionalMap R) and the scatter colour, times the albedo
+    emit = back * (1.0 - add_r) * sss_map.g * to_lin(lms);
 #endif
-
+)hlsl"
+R"hlsl(
     // ---- reflections ----
 #ifdef HAS_gXfEnvMapFactor
     const float lod_range = max(gXfEnvMapFactor, 0.0);
@@ -412,12 +508,13 @@ R"hlsl(
     //   1: the cube divided by its own mean and scaled to the ambient light at this point: its shape, the scene's level.
     //   2: the cube as it is (a material with a cube made for its place).
 #if PBR_REFLECT == 0 && defined(HAS_gXfSHc)
-    refl = to_lin(sh(R)) * env_brdf(s.f0, rough_aa, s.nv) * (knobs.w * ao * spec_occ);
+    refl = to_lin(sh(R)) * env_brdf(s.f0, rough_aa, s.nv) * (knobs.w * spec_occlusion(s.nv, ao, rough_aa) * spec_occ);
 #elif defined(HAS_XfSamplerEnvironmentMap)
     const float4 env = texCUBElod(XfSamplerEnvironmentMap, float4(R, rough_aa * lod_range));
     // the cube's colour is gamma, its alpha a linear HDR scale (rgb / a): converting the decoded value instead turned
     // DefaultCube_CM's hot spots (8 decoded) into 97 and lit the silhouettes in sparkles
-    refl = to_lin(env.rgb) / max(env.a, 1.0 / 255.0) * env_brdf(s.f0, rough_aa, s.nv) * (knobs.w * ao * spec_occ);
+    refl = to_lin(env.rgb) / max(env.a, 1.0 / 255.0) * env_brdf(s.f0, rough_aa, s.nv) *
+           (knobs.w * spec_occlusion(s.nv, ao, rough_aa) * spec_occ);
 #if PBR_REFLECT != 2
     // Relit: the cube over its own mean (its smallest mip, one lookup per face so no seam) times the ambient light this
     // point gets (SH / vertex colour / lightmap; in the stock shaders' units a white surface under uniform radiance L
@@ -433,6 +530,7 @@ R"hlsl(
 #endif
 #endif
 
+    refl *= REFLECT_STRENGTH;
     const float3 kd = (1.0 - metal) * albedo;
     float3 col = kd * (diff + amb * ao) + albedo * emit + spec + refl;
 

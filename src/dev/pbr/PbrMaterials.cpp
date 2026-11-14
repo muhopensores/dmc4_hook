@@ -9,6 +9,7 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <memory>
 #include <mutex>
 #include <sstream>
@@ -38,6 +39,8 @@ constexpr uint32_t kRadix[6] = { 7, 5, 4, 5, 8, 7 };
 constexpr uint32_t kStride[6] = { 1, 7, 35, 140, 700, 5600 };
 constexpr uint32_t kRim = 4;
 constexpr char kSourcePath[] = "nativePC\\shader\\pbr\\material_pbr.hlsl";
+constexpr char kCacheDir[] = "nativePC\\shader\\pbr\\cache";   // compiled shaders, by a hash of source + defines
+constexpr char kCacheTag[] = "pbr1 ps_3_0 O3";                    // part of the hash: bump when the compile changes
 
 const char kEmbedded[] =
 #include "material_pbr.inc"
@@ -288,29 +291,64 @@ void start_compile() {
     g_compiling = true;
     const int generation = g_generation;
     std::thread([fn, source, jobs, generation] {
-        std::vector<Result> out;
-        for (size_t i = 0; i < jobs->size(); ++i) {
-            std::vector<Macro> macros;
-            for (const auto& [name, value] : (*jobs)[i]) macros.push_back({ name.c_str(), value.c_str() });
-            macros.push_back({ nullptr, nullptr });
-            Blob* code = nullptr;
-            Blob* errors = nullptr;
-            const HRESULT hr = fn(source->data(), source->size(), "material_pbr.hlsl", macros.data(), nullptr, "main", "ps_3_0",
-                                  kOptimize3, 0, &code, &errors);
-            Result r;
-            r.index = i;
-            if (SUCCEEDED(hr) && code) {
-                const auto* p = static_cast<const uint8_t*>(code->GetBufferPointer());
-                r.code.assign(p, p + code->GetBufferSize());
+        // Each variant (about 0.25 s at O3, 28 of them): from the cache when its source + defines were compiled before,
+        // else compiled on one of several threads (D3DCompile calls are independent) and written to the cache.
+        std::vector<Result> out(jobs->size());
+        std::error_code ec;
+        std::filesystem::create_directories(kCacheDir, ec);
+        std::atomic<size_t> next{ 0 };
+        auto work = [&] {
+            for (size_t i; (i = next++) < jobs->size();) {
+                Result& r = out[i];
+                r.index = i;
+                // FNV-1a 64 over the tag, the source and the defines
+                uint64_t h = 1469598103934665603ull;
+                auto mix = [&h](const std::string& s) {
+                    for (unsigned char ch : s) { h ^= ch; h *= 1099511628211ull; }
+                    h ^= 0xFF;
+                    h *= 1099511628211ull;
+                };
+                mix(kCacheTag);
+                mix(*source);
+                for (const auto& [name, value] : (*jobs)[i]) { mix(name); mix(value); }
+                char file[160];
+                snprintf(file, sizeof file, "%s\\%016llx.cso", kCacheDir, (unsigned long long)h);
+                {
+                    std::ifstream f(file, std::ios::binary);
+                    if (f) {
+                        r.code.assign(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
+                        if (r.code.size() >= 8 && r.code.size() % 4 == 0 && r.code[2] == 0xFF && r.code[3] == 0xFF) continue;
+                        r.code.clear();         // damaged: compile again
+                    }
+                }
+                std::vector<Macro> macros;
+                for (const auto& [name, value] : (*jobs)[i]) macros.push_back({ name.c_str(), value.c_str() });
+                macros.push_back({ nullptr, nullptr });
+                Blob* code = nullptr;
+                Blob* errors = nullptr;
+                const HRESULT hr = fn(source->data(), source->size(), "material_pbr.hlsl", macros.data(), nullptr, "main",
+                                      "ps_3_0", kOptimize3, 0, &code, &errors);
+                if (SUCCEEDED(hr) && code) {
+                    const auto* p = static_cast<const uint8_t*>(code->GetBufferPointer());
+                    r.code.assign(p, p + code->GetBufferSize());
+                }
+                if (errors) {
+                    if (FAILED(hr)) r.error.assign(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize());
+                    errors->Release();
+                }
+                if (code) code->Release();
+                if (r.code.empty() && r.error.empty()) r.error = "compile failed";
+                if (!r.code.empty()) {
+                    std::ofstream f(file, std::ios::binary | std::ios::trunc);
+                    f.write(reinterpret_cast<const char*>(r.code.data()), (std::streamsize)r.code.size());
+                }
             }
-            if (errors) {
-                if (FAILED(hr)) r.error.assign(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize());
-                errors->Release();
-            }
-            if (code) code->Release();
-            if (r.code.empty() && r.error.empty()) r.error = "compile failed";
-            out.push_back(std::move(r));
-        }
+        };
+        const unsigned threads = std::clamp(std::thread::hardware_concurrency(), 1u, 8u);
+        std::vector<std::thread> pool;
+        for (unsigned k = 1; k < threads && k < jobs->size(); ++k) pool.emplace_back(work);
+        work();
+        for (std::thread& th : pool) th.join();
         std::lock_guard<std::mutex> lock(g_mutex);
         g_results = std::move(out);
         g_results_generation = generation;
@@ -473,7 +511,9 @@ void PbrMaterials::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Write Source puts the built-in shader in nativePC\\shader\\pbr\\material_pbr.hlsl. While that file exists it "
                   "is used instead of the built-in one; Reload compiles it again after an edit (a failed compile keeps the "
-                  "previous shaders and shows the error below). Delete the file to go back to the built-in shader."));
+                  "previous shaders and shows the error below). Delete the file to go back to the built-in shader. Compiled "
+                  "shaders are kept in nativePC\\shader\\pbr\\cache, so only a changed source or a new "
+                  "combination of settings compiles again; the folder can be deleted at any time."));
     ImGui::Text(_("Source: %s"), st.from_file ? "nativePC\\shader\\pbr\\material_pbr.hlsl" : _("built in"));
     if (st.max_slots) {
         ImGui::SameLine(0.0f, 24.0f);
