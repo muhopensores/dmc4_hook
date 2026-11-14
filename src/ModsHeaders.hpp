@@ -196,4 +196,5 @@
 #include "dev/file_tracker/FileTracker.hpp"
 #include "dev/unit_packs/UnitPacks.hpp"
 #include "dev/pbr/PbrMaterials.hpp"
+#include "dev/shadows/Shadows.hpp"
 #endif

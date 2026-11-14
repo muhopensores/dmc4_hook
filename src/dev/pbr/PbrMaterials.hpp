@@ -34,6 +34,21 @@ extern int  reflect_mode;      // 0 the scene's ambient light (SH), 1 the cube r
                                // DefaultCube_CM, a day sky: 2B looked chrome)
 extern int  debug_view;        // 0 off, 1 albedo, 2 normal, 3 roughness, 4 metal, 5 occlusion, 6 diffuse light, 7 specular
 
+// The shader's tuning values, live: written to pixel shader registers c200 / c201 (c201.w = 1 = written; no game pixel
+// shader uses a float register above c61) whenever sRender::dispatchCommands binds one of ours (hook at 0x8F4E34), and
+// once a frame. Writing them only once a frame (at Present) didn't reach the draws in the game (2026-11-14). Defaults =
+// the shader's own defines (SSS_WIDTH ...), which apply until the registers are written.
+struct Tuning {
+    float sss_width = 0.7f;         // how far scattered light reaches past the shadow line
+    float sss_saturation = 0.37f;   // how much of the scatter colour that light takes
+    float sss_strength = 1.0f;      // how bright it is
+    float transmission = 1.1f;      // light through thin parts from behind
+    float reflect_strength = 1.0f;  // reflection of the surroundings
+    float vertex_ao = 1.0f;         // how much the per-vertex occlusion also darkens ambient light and reflections
+    float light_gamma = 2.2f;       // with linear lighting: 2.2 true linear .. 1.0 the game's gamma-space lighting
+};
+extern Tuning tuning;
+
 struct Status {
     bool        found = false;      // the technique's records exist
     std::string waiting;            // while not found: which check failed
@@ -45,6 +60,8 @@ struct Status {
     bool        from_file = false;  // the source came from nativePC
     unsigned    max_slots = 0;      // the device's ps_3_0 instruction slots
     std::string error;              // the first compile error
+    bool        tunable = true;     // the running shader's source reads the Tuning registers (older sources don't)
+    int         tune_lost = 0;      // frames on which the Tuning registers no longer held what was written (0 = kept)
 };
 
 Status status();
@@ -61,6 +78,7 @@ public:
 
     std::optional<std::string> on_initialize() override;
     void on_frame(fmilliseconds& dt) override;
+    std::unique_ptr<FunctionHook> hook_bind_ps;
     void on_gui_frame(int display) override;
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;

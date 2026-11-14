@@ -218,6 +218,7 @@ Mods::Mods() {
     ADD_MOD(FileTracker);    // debug: what the game has loaded (files, arcs) and what it loads and drops
     ADD_MOD(UnitPacks);      // stage units' files from their rooms' arcs into the cache, for spawning them anywhere
     ADD_MOD(PbrMaterials);   // GGX shading for Albam's PBR materials (the unused SPECULAR_RIM pixel shaders swapped)
+    ADD_MOD(Shadows);        // stage shadow map size and live overrides of its settings (uShadow)
 #endif
 #endif
 }

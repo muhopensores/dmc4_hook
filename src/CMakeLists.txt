@@ -410,6 +410,8 @@ set(DEV_SRC
   dev/unit_packs/UnitPacks.cpp
   dev/pbr/PbrMaterials.hpp
   dev/pbr/PbrMaterials.cpp
+  dev/shadows/Shadows.hpp
+  dev/shadows/Shadows.cpp
   dev/coop/Coop.hpp
   dev/coop/Coop.cpp
   dev/coop/CoopPads.hpp

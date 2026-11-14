@@ -24,8 +24,11 @@ bool linear_light = true;
 bool simple_specular = true;
 int  reflect_mode = 0;
 int  debug_view = 0;
+Tuning tuning;
 
 namespace {
+
+constexpr UINT kTuneRegister = 200;                // material_pbr.inc gPbrTune0 / gPbrTune1
 
 constexpr uintptr_t kShaderInstance = 0x00E55700;  // sShader::mpInstance
 constexpr uintptr_t kTechniques     = 0x4838;      // sShader: mpTechnique[]
@@ -127,6 +130,44 @@ unsigned            g_max_slots = 0;
 int                 g_failed = 0;
 std::string         g_error;
 std::string         g_waiting = "not looked yet";   // why standard_info() fails, for the panel
+bool                g_tunable = true;               // the compiled source reads gPbrTune0 / gPbrTune1
+float               g_tune_last[8] = {};            // what update() wrote to the Tuning registers last
+bool                g_tune_written = false;
+int                 g_tune_lost = 0;                // frames on which they no longer held it (overwritten by someone)
+
+// read by the bind hook (sRender's thread; update() refreshes them every frame, a stale frame is harmless)
+constexpr int                 kMaxOurs = 64;
+IDirect3DPixelShader9* volatile g_bind_ours[kMaxOurs] = {};
+volatile int                  g_bind_count = 0;
+float                         g_bind_tune[8] = {};
+uintptr_t                     jmp_ret_bind_ps = 0;
+
+// sRender::dispatchCommands is about to bind pixel shader `ps` (a different one from the last): ours gets the Tuning values
+void __stdcall on_bind_ps(IDirect3DDevice9* device, IDirect3DPixelShader9* ps) {
+    const int n = g_bind_count;
+    for (int i = 0; i < n; ++i)
+        if (g_bind_ours[i] == ps) {
+            device->SetPixelShaderConstantF(kTuneRegister, g_bind_tune, 2);
+            return;
+        }
+}
+
+// 0x8F4E34, 10 bytes replaced: `mov edx, [esi]` / `push eax` / `mov [esp+8Ch], eax` (eax = the pixel shader handle from
+// the record, esi = the device; the call to SetPixelShader, vtbl +0x1AC, follows at 0x8F4E3E). Reached only when the
+// handle differs from the one bound last (the jz at 0x8F4E2E skips it otherwise).
+naked void detour_bind_ps() {
+    _asm {
+        pushad
+        push eax
+        push esi
+        call on_bind_ps             // __stdcall: pops its arguments
+        popad
+        mov edx, [esi]
+        push eax
+        mov [esp + 0x8C], eax
+        jmp dword ptr [jmp_ret_bind_ps]
+    }
+}
 
 // worker <-> render thread
 std::mutex          g_mutex;
@@ -272,6 +313,7 @@ void start_compile() {
         return;
     }
     auto source = std::make_shared<std::string>(read_source(g_from_file));
+    g_tunable = source->find("gPbrTune1") != std::string::npos;
     Defines common = {
         { "PBR_LINEAR", linear_light ? "1" : "0" },
         { "PBR_SIMPLE_SPEC", simple_specular ? "1" : "0" },
@@ -411,6 +453,8 @@ Status status() {
     s.from_file = g_from_file;
     s.max_slots = g_max_slots;
     s.error = g_error;
+    s.tunable = g_tunable;
+    s.tune_lost = g_tune_lost;
     for (const Target& t : g_targets)
         if (t.ours && handle_of(t) == t.ours) ++s.replaced;
     return s;
@@ -424,16 +468,33 @@ bool write_source() {
     std::ofstream f(kSourcePath, std::ios::binary | std::ios::trunc);
     if (!f) return false;
     f.write(kEmbedded, (std::streamsize)std::strlen(kEmbedded));
-    return (bool)f;
+    f.close();
+    if (!f) return false;
+    request_compile();      // the running shaders came from the file that was there before
+    return true;
 }
 
 void update() {
     if (!mod_enabled) {
         for (Target& t : g_targets) restore(t);
+        g_bind_count = 0;
         return;
     }
     IDirect3DDevice9* device = g_framework->get_d3d9_device();
     if (!device) return;
+    // the live tuning values; registers keep their value until set again, and nothing else in the game writes these
+    const float tune[8] = { tuning.sss_width, tuning.sss_saturation, tuning.sss_strength, tuning.reflect_strength,
+                            tuning.vertex_ao, std::max(tuning.light_gamma, 0.1f), tuning.transmission, 1.0f };
+    // check that last frame's values were still there (fails quietly on a pure device): if something else writes these
+    // registers, the panel says so
+    float held[8];
+    if (g_tune_written && SUCCEEDED(device->GetPixelShaderConstantF(kTuneRegister, held, 2)) &&
+        std::memcmp(held, g_tune_last, sizeof(held)) != 0)
+        ++g_tune_lost;
+    device->SetPixelShaderConstantF(kTuneRegister, tune, 2);
+    std::memcpy(g_tune_last, tune, sizeof(tune));
+    std::memcpy(g_bind_tune, tune, sizeof(tune));
+    g_tune_written = true;
     if (g_tech) {                               // the technique reloaded: its records are new
         uintptr_t tech = 0;
         if (!standard_info(tech) || tech != g_tech) forget();
@@ -446,14 +507,23 @@ void update() {
     }
     take_results(device);
     if (g_want_compile && !g_compiling && !g_targets.empty()) start_compile();
-    for (Target& t : g_targets) install(t);
+    int n = 0;
+    for (Target& t : g_targets) {
+        install(t);
+        if (t.ours && n < kMaxOurs) g_bind_ours[n++] = t.ours;
+    }
+    g_bind_count = n;
 }
 
 } // namespace pbr_materials
 
 using namespace pbr_materials;
 
-std::optional<std::string> PbrMaterials::on_initialize() { return Mod::on_initialize(); }
+std::optional<std::string> PbrMaterials::on_initialize() {
+    if (!install_hook_absolute(0x8F4E34, hook_bind_ps, &detour_bind_ps, &jmp_ret_bind_ps, 10))
+        spdlog::error("PbrMaterials: failed to hook the pixel shader bind (0x8F4E34); Tuning applies once a frame only");
+    return Mod::on_initialize();
+}
 
 void PbrMaterials::on_frame(fmilliseconds& dt) { update(); }
 
@@ -505,6 +575,67 @@ void PbrMaterials::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Show one input or term of the PBR materials instead of the shaded result, for checking textures from Albam."));
 
+    if (ImGui::TreeNode(_("Tuning"))) {
+        ImGui::SameLine();
+        help_marker(_("Applied live, no recompile. They act on every PBR material at once; a material's own values (roughness, "
+                      "scatter colour, ...) come from Albam."));
+        if (!st.tunable)
+            ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f),
+                               _("The running shader is from an older source and ignores these: Write shader source (or delete "
+                                 "nativePC\\shader\\pbr\\material_pbr.hlsl and Reload)."));
+        if (st.tune_lost)
+            ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f),
+                               _("Something else overwrote the tuning registers on %d frames."), st.tune_lost);
+        ImGui::PushItemWidth(180.0f);
+        ImGui::TextDisabled(_("Subsurface scattering (skin: THIN lighting)"));
+        ImGui::SliderFloat(_("Scatter width"), &tuning.sss_width, 0.0f, 2.0f, "%.2f");
+        ImGui::SameLine();
+        help_marker(_("How far light reaches past the shadow line, times the material's scatter colour. Wider = softer shadow "
+                      "edges."));
+        ImGui::SliderFloat(_("Scatter saturation"), &tuning.sss_saturation, 0.0f, 1.0f, "%.2f");
+        ImGui::SameLine();
+        help_marker(_("How much of the scatter colour's hue that light takes. 0 = neutral, 1 = the full colour (red on skin): "
+                      "lower it if skin looks pink."));
+        ImGui::SliderFloat(_("Scatter strength"), &tuning.sss_strength, 0.0f, 2.0f, "%.2f");
+        ImGui::SameLine();
+        help_marker(_("How bright the scattered light is. 0 = no scattering (plain PBR)."));
+        ImGui::SliderFloat(_("Transmission"), &tuning.transmission, 0.0f, 3.0f, "%.2f");
+        ImGui::SameLine();
+        help_marker(_("Light coming through thin parts (ears, fingers: where the material's additional map R is low) from "
+                      "behind."));
+        ImGui::TextDisabled(_("Reflections and occlusion"));
+        ImGui::SliderFloat(_("Reflection strength"), &tuning.reflect_strength, 0.0f, 2.0f, "%.2f");
+        ImGui::SameLine();
+        help_marker(_("Scales every PBR material's reflection of its surroundings (not the highlights of lights). Lower it if "
+                      "models look glossy in dim places."));
+        ImGui::SliderFloat(_("Vertex occlusion"), &tuning.vertex_ao, 0.0f, 1.0f, "%.2f");
+        ImGui::SameLine();
+        help_marker(_("How much the occlusion baked into the vertices (Albam's Bake Occlusion) also darkens ambient light and "
+                      "reflections. 0 = direct light only, as the game's own shaders. Lower it if hair or creases look too "
+                      "dark."));
+        ImGui::BeginDisabled(!linear_light);
+        ImGui::SliderFloat(_("Light gamma"), &tuning.light_gamma, 1.0f, 2.4f, "%.2f");
+        ImGui::EndDisabled();
+        ImGui::SameLine();
+        help_marker(_("With Linear lighting on: 2.2 = true linear lighting (cleaner falloff), 1.0 = the game's gamma-space "
+                      "lighting (matches vanilla models and stages). In between trades one for the other."));
+        ImGui::PopItemWidth();
+        if (ImGui::Button(_("Defaults"))) tuning = Tuning{};
+        ImGui::SameLine();
+        if (ImGui::Button(_("Copy values"))) {
+            char text[256];
+            std::snprintf(text, sizeof(text),
+                          "SSS_WIDTH %.2f\nSSS_SATURATION %.2f\nSSS_STRENGTH %.2f\nTRANSMISSION %.2f\nREFLECT_STRENGTH %.2f\n"
+                          "VERTEX_AO %.2f\nLIGHT_GAMMA %.2f\n", tuning.sss_width, tuning.sss_saturation, tuning.sss_strength,
+                          tuning.transmission, tuning.reflect_strength, tuning.vertex_ao, tuning.light_gamma);
+            ImGui::SetClipboardText(text);
+        }
+        ImGui::SameLine();
+        help_marker(_("Copy values puts them on the clipboard as the shader's define names, to make them the built-in "
+                      "defaults."));
+        ImGui::TreePop();
+    }
+
     if (ImGui::Button(_("Reload shader"))) request_compile();
     ImGui::SameLine();
     if (ImGui::Button(_("Write shader source"))) write_source();
@@ -535,6 +666,14 @@ void PbrMaterials::on_config_load(const utility::Config& cfg) {
     linear_light = cfg.get<bool>("pbr_linear_light").value_or(true);
     simple_specular = cfg.get<bool>("pbr_simple_specular").value_or(true);
     reflect_mode = std::clamp(cfg.get<int>("pbr_reflect").value_or(0), 0, 2);
+    const Tuning d{};
+    tuning.sss_width = cfg.get<float>("pbr_sss_width").value_or(d.sss_width);
+    tuning.sss_saturation = cfg.get<float>("pbr_sss_saturation").value_or(d.sss_saturation);
+    tuning.sss_strength = cfg.get<float>("pbr_sss_strength").value_or(d.sss_strength);
+    tuning.transmission = cfg.get<float>("pbr_transmission").value_or(d.transmission);
+    tuning.reflect_strength = cfg.get<float>("pbr_reflect_strength").value_or(d.reflect_strength);
+    tuning.vertex_ao = cfg.get<float>("pbr_vertex_ao").value_or(d.vertex_ao);
+    tuning.light_gamma = std::clamp(cfg.get<float>("pbr_light_gamma").value_or(d.light_gamma), 1.0f, 2.4f);
 }
 
 void PbrMaterials::on_config_save(utility::Config& cfg) {
@@ -542,4 +681,11 @@ void PbrMaterials::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("pbr_linear_light", linear_light);
     cfg.set<bool>("pbr_simple_specular", simple_specular);
     cfg.set<int>("pbr_reflect", reflect_mode);
+    cfg.set<float>("pbr_sss_width", tuning.sss_width);
+    cfg.set<float>("pbr_sss_saturation", tuning.sss_saturation);
+    cfg.set<float>("pbr_sss_strength", tuning.sss_strength);
+    cfg.set<float>("pbr_transmission", tuning.transmission);
+    cfg.set<float>("pbr_reflect_strength", tuning.reflect_strength);
+    cfg.set<float>("pbr_vertex_ao", tuning.vertex_ao);
+    cfg.set<float>("pbr_light_gamma", tuning.light_gamma);
 }

@@ -44,18 +44,18 @@ R"hlsl(// material_pbr.hlsl: dmc4_hook PbrMaterials, the pixel shader of XfMater
 #define PBR_REFLECT 0
 #endif
 
-// ---- subsurface scattering tuning (edit here, then Reload shader in the panel) ----
+// ---- subsurface scattering tuning (defaults; the PbrMaterials panel's Tuning sliders override them live) ----
 // SSS_WIDTH: scales how far light reaches past the shadow line (1 = the material's scatter colour as authored).
 // SSS_SATURATION: how much of the scatter colour's hue the extra light takes (0 = neutral, 1 = the full colour).
 // SSS_STRENGTH: scales the extra light itself (0 = no scattering, plain PBR).
 #ifndef SSS_WIDTH
-#define SSS_WIDTH 0.6
+#define SSS_WIDTH 0.7
 #endif
 #ifndef SSS_SATURATION
-#define SSS_SATURATION 0.35
+#define SSS_SATURATION 0.37
 #endif
 #ifndef SSS_STRENGTH
-#define SSS_STRENGTH 0.8
+#define SSS_STRENGTH 1.0
 #endif
 
 // ---- reflection tuning ----
@@ -70,6 +70,27 @@ R"hlsl(// material_pbr.hlsl: dmc4_hook PbrMaterials, the pixel shader of XfMater
 #ifndef VERTEX_AO
 #define VERTEX_AO 1.0
 #endif
+// TRANSMISSION: scales the light coming through thin parts from behind (THINSH4SPOT, AdditionalMap R < 1).
+#ifndef TRANSMISSION
+#define TRANSMISSION 1.1
+#endif
+
+// ---- live tuning ----
+// The PbrMaterials panel's Tuning sliders write the values above into c200 / c201 every frame, with c201.w = 1 (no game
+// pixel shader uses a float register above c61, and the engine uploads each parameter to its own register only, so
+// nothing else touches them). Until it has (a dmc4_hook without the sliders, the first frame after a device reset) the
+// defines above apply.
+float4 gPbrTune0 : register(c200);     // SSS width, SSS saturation, SSS strength, reflection strength
+float4 gPbrTune1 : register(c201);     // vertex occlusion, light gamma, transmission, 1 = written by the panel
+#define TUNE0 (gPbrTune1.w > 0.5 ? gPbrTune0 : float4(SSS_WIDTH, SSS_SATURATION, SSS_STRENGTH, REFLECT_STRENGTH))
+#define TUNE1 (gPbrTune1.w > 0.5 ? gPbrTune1.xyz : float3(VERTEX_AO, LIGHT_GAMMA, TRANSMISSION))
+#define K_SSS_WIDTH        (TUNE0.x)
+#define K_SSS_SATURATION   (TUNE0.y)
+#define K_SSS_STRENGTH     (TUNE0.z)
+#define K_REFLECT_STRENGTH (TUNE0.w)
+#define K_VERTEX_AO        (TUNE1.x)
+#define K_LIGHT_GAMMA      (TUNE1.y)
+#define K_TRANSMISSION     (TUNE1.z)
 #ifndef NORMALMAP
 #define NORMALMAP 1
 #endif
@@ -208,7 +229,7 @@ struct PSIn {
 // ---- helpers ----
 float3 to_lin(float3 c) {
 #if PBR_LINEAR
-    return pow(max(c, 0.0), LIGHT_GAMMA);
+    return pow(max(c, 0.0), K_LIGHT_GAMMA);
 #else
     return c;
 #endif
@@ -216,7 +237,7 @@ float3 to_lin(float3 c) {
 
 float3 to_out(float3 c) {
 #if PBR_LINEAR
-    return pow(max(c, 0.0), 1.0 / LIGHT_GAMMA);
+    return pow(max(c, 0.0), 1.0 / K_LIGHT_GAMMA);
 #else
     return c;
 #endif
@@ -249,7 +270,7 @@ void add_light(inout float3 diff, inout float3 spec, Surf s, float3 L, float3 ra
     // over the whole lit side, and pale skin under a strong light clipped to pink (2B, 2026-11-14).
     const float lam = saturate(dot(s.N, L));
     const float scat = saturate((dot(s.Nb, L) + s.wrap) / ((1.0 + s.wrap) * (1.0 + s.wrap)));
-    diff += radiance * (lam + max(scat - lam, 0.0) * SSS_STRENGTH * s.tint) * dfac * (1.0 - F);
+    diff += radiance * (lam + max(scat - lam, 0.0) * K_SSS_STRENGTH * s.tint) * dfac * (1.0 - F);
 #else
     diff += radiance * (nl * dfac) * (1.0 - F);
 #endif
@@ -365,7 +386,7 @@ float4 main(PSIn i) : COLOR0 {
     const float rough = clamp(orm.g * knobs.x, 0.03, 1.0);
     const float metal = saturate(orm.b * knobs.y);
     // ambient occlusion: the ORM map's R and the per-vertex occlusion (tangent.w)
-    const float ao = orm.r * lerp(1.0, saturate(i.uv0.w), VERTEX_AO);
+    const float ao = orm.r * lerp(1.0, saturate(i.uv0.w), K_VERTEX_AO);
 
     // the normal, decoded as the stock shader does (DXT5nm: x = (2a - 1)(2r - 1.035), y = 2g - 1.02)
 #if NORMALMAP == 1
@@ -411,8 +432,8 @@ float4 main(PSIn i) : COLOR0 {
     const float3 scatter = float3(0.5, 0.2, 0.12);
 #endif
     const float scatter_max = max(max(scatter.r, scatter.g), max(scatter.b, 1e-3));
-    s.wrap = scatter_max * SSS_WIDTH * sss_map.g;
-    s.tint = lerp(1.0, scatter / scatter_max, SSS_SATURATION);
+    s.wrap = scatter_max * K_SSS_WIDTH * sss_map.g;
+    s.tint = lerp(1.0, scatter / scatter_max, K_SSS_SATURATION);
     s.Nb = normalize(lerp(N, s.Ng, 0.5 * sss_map.g));
 #endif
     s.V = -I;
@@ -489,7 +510,7 @@ float4 main(PSIn i) : COLOR0 {
     back += to_lin(sh(-s.Ng)) * 0.25;           // a little of the ambient from behind
 #endif
     // THINSH4SPOT: the light coming through, by thinness (1 - AdditionalMap R) and the scatter colour, times the albedo
-    emit = back * (1.0 - add_r) * sss_map.g * to_lin(lms);
+    emit = back * (1.0 - add_r) * sss_map.g * K_TRANSMISSION * to_lin(lms);
 #endif
 )hlsl"
 R"hlsl(
@@ -530,7 +551,7 @@ R"hlsl(
 #endif
 #endif
 
-    refl *= REFLECT_STRENGTH;
+    refl *= K_REFLECT_STRENGTH;
     const float3 kd = (1.0 - metal) * albedo;
     float3 col = kd * (diff + amb * ao) + albedo * emit + spec + refl;
 

@@ -821,6 +821,7 @@ namespace gui {
 #ifndef PUBLIC_BUILD
                 pmods->on_draw_ui<UnitPacks>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<PbrMaterials>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<Shadows>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<ChainFix>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<SpiderTwerk>(DISPLAY_SYSTEM_A);
 
