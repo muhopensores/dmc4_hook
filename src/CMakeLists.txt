@@ -421,6 +421,8 @@ set(DEV_SRC
   dev/tonemap/ToneMap.hpp
   dev/tonemap/ToneMap.cpp
   dev/ps_bind.hpp
+  dev/shader_file.hpp
+  dev/shader_file.cpp
   dev/coop/Coop.hpp
   dev/coop/Coop.cpp
   dev/coop/CoopPads.hpp

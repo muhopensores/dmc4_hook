@@ -1,6 +1,7 @@
 #include "ShadowReceiver.hpp"
 #include "../../ModFramework.hpp"
 #include "../ps_bind.hpp"
+#include "../shader_file.hpp"
 #include <spdlog/spdlog.h>
 #include <d3d9.h>
 #include <algorithm>
@@ -497,17 +498,8 @@ void release_frame() {
 
 void request_compile() { g_want_compile = true; }
 
-bool write_source() {
-    std::error_code ec;
-    std::filesystem::create_directories(std::filesystem::path(kSourcePath).parent_path(), ec);
-    std::ofstream f(kSourcePath, std::ios::binary | std::ios::trunc);
-    if (!f) return false;
-    f.write(kEmbedded, (std::streamsize)std::strlen(kEmbedded));
-    f.close();
-    if (!f) return false;
-    request_compile();
-    return true;
-}
+// Graphics tab > Shader files
+const bool g_source_listed = shader_file::add({ "Soft shadows", kSourcePath, kEmbedded, &request_compile, 1 });
 
 void update(bool mod_enabled) {
     {

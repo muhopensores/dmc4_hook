@@ -498,14 +498,6 @@ void Shadows::on_gui_frame(int display) {
             if (soft.quality != d.quality || soft.debug != d.debug) shadow_receiver::request_compile();
             soft = d;
         }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Write shader source"))) shadow_receiver::write_source();
-        ImGui::SameLine();
-        if (ImGui::Button(_("Reload"))) shadow_receiver::request_compile();
-        ImGui::SameLine();
-        help_marker(_("Write shader source puts the shader in nativePC\\shader\\shadows\\shadow_receiver.hlsl, which is "
-                      "used from then on instead of the built-in one; Reload compiles it again after an edit (delete the "
-                      "file to go back)."));
     }
 
     // ---- shadows in PBR materials (step 3) ----
@@ -523,8 +515,9 @@ void Shadows::on_gui_frame(int display) {
             ImGui::TextDisabled(_("Off: PBR materials are off."));
         else if (!ps.shader)
             ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f),
-                               _("The PBR shader has no shadow code (an older nativePC\\shader\\pbr\\material_pbr.hlsl? "
-                                 "Write its source again in PbrMaterials): PBR materials keep the game's shadow pass."));
+                               _("The PBR shader has no shadow code (an older nativePC\\shader\\pbr\\material_pbr.hlsl? Shader "
+                                 "files, bottom of this tab: PBR materials, Write file): PBR materials keep the game's "
+                                 "shadow pass."));
         else if (!ps.data)
             ImGui::TextDisabled(_("Waiting for the stage shadow's 3 cascades (Shadow Quality HIGH)."));
         else

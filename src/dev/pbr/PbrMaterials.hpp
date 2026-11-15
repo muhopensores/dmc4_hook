@@ -76,7 +76,6 @@ bool draws_key(uint32_t key);               // any thread: our shader draws this
 bool shader_has_shadows();                  // the running source reads the shadow registers (gPbrShadow)
 
 void request_compile();             // compile again (settings, Reload); any thread
-bool write_source();                // the embedded source -> nativePC\shader\pbr\material_pbr.hlsl
 void update();                      // render thread: find the records, take finished compiles, keep ours installed
 
 } // namespace pbr_materials

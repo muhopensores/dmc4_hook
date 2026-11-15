@@ -2,6 +2,7 @@
 #include "PbrSpheres.hpp"
 #include "../../ModFramework.hpp"
 #include "../ps_bind.hpp"
+#include "../shader_file.hpp"
 #include <spdlog/spdlog.h>
 #include <d3d9.h>
 #include <algorithm>
@@ -481,17 +482,8 @@ Status status() {
 
 void request_compile() { g_want_compile = true; }
 
-bool write_source() {
-    std::error_code ec;
-    std::filesystem::create_directories(std::filesystem::path(kSourcePath).parent_path(), ec);
-    std::ofstream f(kSourcePath, std::ios::binary | std::ios::trunc);
-    if (!f) return false;
-    f.write(kEmbedded, (std::streamsize)std::strlen(kEmbedded));
-    f.close();
-    if (!f) return false;
-    request_compile();      // the running shaders came from the file that was there before
-    return true;
-}
+// Graphics tab > Shader files
+const bool g_source_listed = shader_file::add({ "PBR materials", kSourcePath, kEmbedded, &request_compile, 0 });
 
 // The environment cube's sampler state. sShader keeps one 16-byte record per sampler parameter (+0x5038 + 16 x
 // ParameterDesc.mStateHandle; the descriptors are 20 bytes at +0x838, mStateHandle at +14) that sRender::applySamplerState
@@ -678,8 +670,8 @@ void PbrMaterials::on_gui_frame(int display) {
                       "scatter colour, ...) come from Albam."));
         if (!st.tunable)
             ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f),
-                               _("The running shader is from an older source and ignores these: Write shader source (or delete "
-                                 "nativePC\\shader\\pbr\\material_pbr.hlsl and Reload)."));
+                               _("The running shader is from an older source and ignores these: Shader files at the bottom of "
+                                 "this tab, PBR materials: Write file or Use built in."));
         if (st.tune_lost)
             ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f),
                                _("Something else overwrote the tuning registers on %d frames."), st.tune_lost);
@@ -733,16 +725,10 @@ void PbrMaterials::on_gui_frame(int display) {
         ImGui::TreePop();
     }
 
-    if (ImGui::Button(_("Reload shader"))) request_compile();
+    ImGui::TextDisabled(_("Source: %s (Shader files, bottom of this tab)"),
+                        st.from_file ? "nativePC\\shader\\pbr\\material_pbr.hlsl" : _("built in"));
     ImGui::SameLine();
-    if (ImGui::Button(_("Write shader source"))) write_source();
-    ImGui::SameLine();
-    help_marker(_("Write Source puts the built-in shader in nativePC\\shader\\pbr\\material_pbr.hlsl. While that file exists it "
-                  "is used instead of the built-in one; Reload compiles it again after an edit (a failed compile keeps the "
-                  "previous shaders and shows the error below). Delete the file to go back to the built-in shader. Compiled "
-                  "shaders are kept in nativePC\\shader\\pbr\\cache, so only a changed source or a new "
-                  "combination of settings compiles again; the folder can be deleted at any time."));
-    ImGui::Text(_("Source: %s"), st.from_file ? "nativePC\\shader\\pbr\\material_pbr.hlsl" : _("built in"));
+    help_marker(_("A failed compile keeps the previous shaders and shows the error below."));
     if (st.max_slots) {
         ImGui::SameLine(0.0f, 24.0f);
         ImGui::Text(_("Device: %u ps_3_0 instruction slots"), st.max_slots);

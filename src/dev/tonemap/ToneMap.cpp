@@ -1,6 +1,7 @@
 #include "ToneMap.hpp"
 #include "../../ModFramework.hpp"
 #include "../ps_bind.hpp"
+#include "../shader_file.hpp"
 #include <spdlog/spdlog.h>
 #include <d3d9.h>
 #include <algorithm>
@@ -488,17 +489,9 @@ void update(bool on) {
     g_bind_count = n;
 }
 
-bool write_source() {
-    std::error_code ec;
-    std::filesystem::create_directories(std::filesystem::path(kSourcePath).parent_path(), ec);
-    std::ofstream f(kSourcePath, std::ios::binary | std::ios::trunc);
-    if (!f) return false;
-    f.write(kEmbedded, (std::streamsize)std::strlen(kEmbedded));
-    f.close();
-    if (!f) return false;
-    g_want_compile = true;
-    return true;
-}
+// Graphics tab > Shader files
+const bool g_source_listed =
+    shader_file::add({ "Tone map", kSourcePath, kEmbedded, [] { g_want_compile = true; }, 2 });
 
 } // namespace
 
@@ -557,12 +550,6 @@ void ToneMap::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Brighter or darker than the game's own exposure, in stops (+1 = twice the light)."));
     ImGui::PopItemWidth();
-    if (ImGui::Button(_("Write shader source"))) write_source();
-    ImGui::SameLine();
-    if (ImGui::Button(_("Reload"))) g_want_compile = true;
-    ImGui::SameLine();
-    help_marker(_("Write shader source puts the shader in nativePC\\shader\\tonemap\\tonemap.hlsl, which is used from then "
-                  "on instead of the built-in one; Reload compiles it again after an edit (delete the file to go back)."));
     ImGui::PopID();
     ImGui::Unindent(lineIndent);
 }

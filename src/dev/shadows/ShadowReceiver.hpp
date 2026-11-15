@@ -72,7 +72,6 @@ bool take_frame(Frame& out);
 void release_frame();
 
 void request_compile();             // any thread
-bool write_source();                // embedded source -> nativePC\shader\shadows\shadow_receiver.hlsl
 void update(bool mod_enabled);      // render thread, every frame
 void init();                        // registers the bind listener
 // the matrix capture hook: Shadows installs detour_capture at kCaptureSite (6 bytes) with jmp_ret_capture

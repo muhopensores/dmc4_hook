@@ -38,7 +38,7 @@ int   heavy_sound      = 1;
 bool  heavy_sound_all  = true;
 int   neutral_heavy_sound = 0;
 ShotMove dodges[DIR_COUNT] = {
-    { true,  0, 22.0f, -1.0f, -1.0f, 33.0f, 0, true, 31.0f },   // back (made at 48 fps): the landing at 32.5 (39 frames, the travel ends at 31)
+    { true,  0, 20.0f, -1.0f, -1.0f, 35.0f, 0, true, 35.0f },   // back: 43 frames, the travel ends at 35
     { true,  1,  8.0f, -1.0f, -1.0f, 38.0f, 0, true, 39.0f },   // left: 41 frames, travelling to 39
     { true,  3, 10.0f, -1.0f, -1.0f, 35.0f, 0, true, 34.0f },   // forward (made at 48 fps): 45 frames, the travel ends at 34
     { true,  2,  8.0f, -1.0f, -1.0f, 38.0f, 0, true, 40.0f },   // right: 41 frames, travelling to 40

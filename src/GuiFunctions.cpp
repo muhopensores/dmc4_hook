@@ -12,6 +12,9 @@
 #include "fw-imgui/imgui_impl_dx9.h"
 #include "fw-imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
+#ifndef PUBLIC_BUILD
+#include "dev/shader_file.hpp"
+#endif
 
 #include <shlobj.h>
 
@@ -790,6 +793,9 @@ namespace gui {
 
                 ImGui::SeparatorText(_("Test spheres"));
                 pmods->on_draw_ui<PbrMaterials>(DISPLAY_SYSTEM_C);
+
+                ImGui::SeparatorText(_("Shader files"));
+                shader_file::draw();
 #endif
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
