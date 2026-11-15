@@ -6,6 +6,7 @@
 #include "../sdk/sUnit.hpp"
 #include "../sdk/RimGlow.hpp"
 #include <algorithm>
+#include <intrin.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -20,6 +21,7 @@ float think_speed         = 1.25f;
 float dt_rate             = 2.0f;
 bool  dt_any_difficulty   = false;
 float think_rate          = 1.5f;
+float cancel_chance       = 0.0f;
 bool  counted_only        = false;
 bool  ignore_attack_limit = true;
 bool  targeted            = true;
@@ -74,6 +76,29 @@ constexpr uintptr_t kDtGateImm    = 0x7309A0;
 constexpr uintptr_t kDtGateJump   = 0x7309A1;
 constexpr uintptr_t kDtCountJump  = 0x7309DD;
 
+// Cancels (see the header)
+constexpr uintptr_t kCollMgrVtable = 0xBC78E0;   // uCollisionMgr's vtable (uCollisionMgr::uCollisionMgr 0x50B080)
+constexpr uintptr_t kMgrReport     = 0xD8;       // uCollisionMgr::mpReportActor
+constexpr uintptr_t kMgrLand       = 0x1C;       // uCollisionMgr::mLand
+constexpr uintptr_t kMgrMotType    = 0x298;      // uCollisionMgr::mMotType (the motion layer its events come from)
+constexpr uintptr_t kMgrGroups     = 0x358;      // uCollisionMgr::mppCollisionGroup[32]
+constexpr uintptr_t kGroupAttr     = 0x08;       // cCollisionGroup::mAttr (1 attack, 2 damage, 4 push, 8 grab)
+constexpr uintptr_t kMotions       = 0x330;      // uModel::MotionArray (0xE0 each)
+constexpr uintptr_t kMotionSize    = 0xE0;
+constexpr uintptr_t kMotNo         = 0x04;       // u16, 0xFFFF = none
+constexpr uintptr_t kMotAttrHi     = 0x0A;       // u16: 4 = no loop (clamps and ends), 0x10 = stopped
+constexpr uintptr_t kMotFrame      = 0x18;
+constexpr uintptr_t kMotFrameMax   = 0x1C;
+constexpr uintptr_t kMotEventFrame = 0x2C;       // where updateFrame's event window starts next tick
+constexpr uintptr_t kMotSeqInfo    = 0xC0;       // mpSeqInfo[0]: +0x40 run count, +0x44 runs (u32 value, u32 frames)
+constexpr uintptr_t kMotSequence   = 0xC8;       // mSequence[0]: the event bits on now
+constexpr float     kMinCut        = 2.0f;       // frames worth cutting
+constexpr uintptr_t kMgrDamage     = 0x19;       // uCollisionMgr::mDamage (hit in the last collision pass)
+constexpr float     kAttackWindow  = 240.0f;     // frames after its last hit an attack may still be cut
+constexpr int       kMaxCuts       = 2;          // motions cut per won roll: the hit's own and a recovery of its own
+constexpr int       kRestoreTicks  = 2;          // ticks the root motion of a cut is taken back over
+constexpr uintptr_t kQuat          = 0x40;       // uCoord::mQuat
+
 constexpr int kAuraLine = 1;                  // the unit line the auras run on (AfterImage's copies' line)
 
 // ---- Provoked enemies ----------------------------------------------------------------------------------------------
@@ -85,6 +110,22 @@ struct Entry {
     uintptr_t size = 0;      // its DTI size (which cThinkMgr is its own)
     float left = 0.0f;       // frames, unscaled
     uint32_t seen = 0;
+    uintptr_t coll = 0;      // its main uCollisionMgr (cancels: mLand, mMotType, mDamage), found once
+    uintptr_t colls[4] = {}; // every uCollisionMgr it owns (their groups are its attacks)
+    int ncolls = 0;
+    bool coll_searched = false;
+    bool had_attack = false;        // its attack groups were on, and it hasn't chosen its next move since
+    bool rolled = false;            // the roll for this attack is done
+    bool cutting = false;           // the roll succeeded: cut its motions (cuts_left) until it chooses its next move
+    int cuts_left = 0;
+    int block = 0;                  // why its attack hasn't been rolled for yet (CancelStats::Why)
+    int restore = 0;                // ticks left putting it back where the cut found it
+    float keep_pos[3] = {};
+    float keep_quat[4] = {};
+    bool decided = false;           // cThinkMgr::GetActionNo ran for it (its next move is being chosen)
+    uint32_t attack_slots = 0;      // the event slots its attack groups came from
+    uint32_t body_slots = 0;        // slots seen with attack groups during a looping motion: always-on body hits, not attacks
+    float since = 0.0f;             // frames since its attack groups were last on
 };
 constexpr int kMaxEntries = 64;
 constexpr uint32_t kStaleFrames = 120;
@@ -92,6 +133,12 @@ Entry g_list[kMaxEntries];
 bool g_any = false;                  // any entry live (the hooks' fast way out)
 volatile uint32_t g_frame = 0;       // render frames
 uint32_t g_taunts = 0, g_provoked = 0, g_auras_made = 0, g_permits = 0;   // readout
+struct CancelStats {
+    enum Why { NONE, LOOPING, SHORT_LEFT, AIR, HITS_AHEAD, COUNT };
+    uint32_t attacks, rolls, wins, cuts;
+    uint32_t not_rolled[COUNT];   // attacks that ended before a roll, by what held them back last
+    uint32_t hit, decided, idle, timeout, no_mgr, mgrs, extra_mgrs, body_slots;
+} g_cs{};
 uintptr_t g_unit = 0;                // the unit sUnit::move is running (written by the delta hook)
 
 uintptr_t dti_of(uintptr_t unit) {
@@ -231,6 +278,155 @@ void quicken_dt(uintptr_t e, float scaled) {
     }
 }
 
+// ---- Cancels -------------------------------------------------------------------------------------------------------
+// The enemy's own uCollisionMgrs: each class embeds one at its own offset (uEm000Base +0x1600, uEm010 +0x1970), some
+// maybe more. The main one is the one driven by the enemy's motion (mpSrcModel +0xE0 == the enemy), else the first.
+constexpr uintptr_t kMgrSrcModel = 0xE0;
+void find_colls(Entry& e) {
+    e.ncolls = 0;
+    e.coll = 0;
+    for (uintptr_t off = 0x400; off + kMgrGroups + 32 * 4 <= e.size && e.ncolls < 4; off += 4) {
+        if (at<uintptr_t>(e.enemy, off) != kCollMgrVtable || at<uintptr_t>(e.enemy, off + kMgrReport) != e.enemy) continue;
+        const uintptr_t m = e.enemy + off;
+        e.colls[e.ncolls++] = m;
+        if (!e.coll && at<uintptr_t>(m, kMgrSrcModel) == e.enemy) e.coll = m;
+        off += 0x3EC;   // past this manager (0x3F0 bytes)
+    }
+    if (!e.coll && e.ncolls) e.coll = e.colls[0];
+}
+
+uint32_t g_rng = 0x9E3779B9u;
+float roll100() {
+    g_rng ^= g_rng << 13;
+    g_rng ^= g_rng >> 17;
+    g_rng ^= g_rng << 5;
+    return (g_rng % 10000u) / 100.0f;
+}
+
+// One of the attack's event slots turns on again after `frame`: a hit still to come.
+bool hits_ahead(uintptr_t mot, float frame, uint32_t slots) {
+    const uintptr_t info = at<uintptr_t>(mot, kMotSeqInfo);
+    if (!info) return false;
+    const int n = at<int>(info, 0x40);
+    const uintptr_t runs = at<uintptr_t>(info, 0x44);
+    if (!runs || n <= 0 || n > 4096) return false;
+    const uint32_t now = at<uint32_t>(mot, kMotSequence) & 0xFF;
+    uint32_t later = 0, start = 0;
+    for (int i = 0; i < n; ++i) {
+        if ((float)start > frame) later |= at<uint32_t>(runs, 8 * i) & 0xFF;
+        start += at<uint32_t>(runs, 8 * i + 4);
+    }
+    return (later & ~now & slots) != 0;
+}
+
+// Before a provoked enemy's move. Its attack runs from its attack groups switching on until its AI chooses the next move
+// (GetActionNo, `decided`); after the last hit one roll decides, and a success puts the rest of that attack's motion on
+// its last frame (and a recovery motion of its own after it, kMaxCuts), so the action ends now and its AI picks the
+// next. A frame jump hands the enemy the skipped frames' root motion at once (it warped), so its position (x, z) and
+// rotation are put back for kRestoreTicks ticks after a cut: the skipped travel and turn are dropped instead.
+void cancel_tick(Entry& e, float raw) {
+    const uintptr_t en = e.enemy;
+    if (e.restore > 0) {
+        --e.restore;
+        at<float>(en, kPos + 0) = e.keep_pos[0];
+        at<float>(en, kPos + 8) = e.keep_pos[2];
+        for (int k = 0; k < 4; ++k) at<float>(en, kQuat + 4 * k) = e.keep_quat[k];
+    }
+    if (cancel_chance <= 0.0f) return;
+    if (!e.coll_searched) {
+        find_colls(e);
+        e.coll_searched = true;
+        if (!e.coll) ++g_cs.no_mgr;
+        else {
+            ++g_cs.mgrs;
+            g_cs.extra_mgrs += e.ncolls - 1;
+        }
+    }
+    if (!e.coll) return;
+    const uint32_t layer = at<uint32_t>(e.coll, kMgrMotType);
+    if (layer >= 4) return;
+    const uintptr_t mot = en + kMotions + kMotionSize * layer;
+    if (at<uint16_t>(mot, kMotNo) == 0xFFFF) return;
+    const uint16_t attr = at<uint16_t>(mot, kMotAttrHi);
+    const bool looping = !(attr & 4);
+    // Attack / grab groups the motion's events switched on (mSeqNo = their slot) on the main manager. A slot seen on in
+    // a looping motion (standing, walking) is a body hit that stays on, not an attack: ignored from then on.
+    uint32_t slots = 0;
+    for (int i = 0; i < 32; ++i) {
+        const uintptr_t g = at<uintptr_t>(e.coll, kMgrGroups + 4 * i);
+        if (!g || !(at<uint32_t>(g, kGroupAttr) & 9)) continue;
+        const uint32_t seq = at<uint32_t>(g, 0x00);
+        if (seq < 8) slots |= 1u << seq;
+    }
+    if (looping && (slots & ~e.body_slots)) {
+        g_cs.body_slots += __popcnt(slots & ~e.body_slots);
+        e.body_slots |= slots;
+    }
+    slots &= ~e.body_slots;
+    if (slots) {
+        const bool fresh = !e.had_attack || e.rolled || e.decided;   // a new attack, not the next hit of this one
+        if (fresh) ++g_cs.attacks;
+        if (fresh) e.attack_slots = 0;
+        e.had_attack = true;
+        e.decided = false;
+        e.rolled = false;
+        e.cutting = false;
+        e.block = CancelStats::NONE;
+        e.attack_slots |= slots;
+        e.since = 0.0f;
+        return;
+    }
+    if (!e.had_attack) return;
+    e.since += raw;
+    const bool hit = at<uint8_t>(e.coll, kMgrDamage) != 0;
+    if (e.decided || hit || e.since > kAttackWindow) {   // its next move is chosen, it was hit, or it took too long
+        if (!e.rolled) {
+            ++g_cs.not_rolled[e.block];
+            if (hit) ++g_cs.hit;
+            else if (e.decided) ++g_cs.decided;
+            else ++g_cs.timeout;
+        }
+        e.had_attack = e.cutting = e.decided = false;
+        return;
+    }
+    if (looping) {   // a looping motion after the last hit: it's back to standing or walking, the attack is over
+        if (!e.rolled) {
+            ++g_cs.not_rolled[CancelStats::LOOPING];
+            ++g_cs.idle;
+        }
+        e.had_attack = e.cutting = e.decided = false;
+        return;
+    }
+    if (e.rolled && (!e.cutting || e.cuts_left <= 0)) return;
+    const float frame = at<float>(mot, kMotFrame);
+    const float last = at<float>(mot, kMotFrameMax) - 1.0f;
+    if (attr & 0x10) { e.block = CancelStats::LOOPING; return; }
+    if (frame + kMinCut > last) { e.block = CancelStats::SHORT_LEFT; return; }
+    if (!at<uint8_t>(e.coll, kMgrLand)) { e.block = CancelStats::AIR; return; }
+    if (hits_ahead(mot, frame, e.attack_slots)) { e.block = CancelStats::HITS_AHEAD; return; }
+    if (!e.rolled) {
+        e.rolled = true;
+        ++g_cs.rolls;
+        e.cutting = roll100() < cancel_chance;
+        if (!e.cutting) return;
+        e.cuts_left = kMaxCuts;
+        ++g_cs.wins;
+    }
+    --e.cuts_left;
+    for (int k = 0; k < 3; ++k) e.keep_pos[k] = at<float>(en, kPos + 4 * k);
+    for (int k = 0; k < 4; ++k) e.keep_quat[k] = at<float>(en, kQuat + 4 * k);
+    e.restore = kRestoreTicks;
+    at<float>(mot, kMotFrame) = last;
+    at<float>(mot, kMotEventFrame) = last;
+    ++g_cs.cuts;
+}
+
+// cThinkMgr::GetActionNo ran for `mgr`: if it is a provoked enemy's, that enemy is choosing its next move.
+void note_think(uintptr_t mgr) {
+    for (Entry& e : g_list)
+        if (e.enemy && e.left > 0.0f && mgr >= e.enemy && mgr < e.enemy + e.size) { e.decided = true; return; }
+}
+
 void ensure_aura(uintptr_t enemy);
 void release_aura(uintptr_t enemy);
 
@@ -253,6 +449,7 @@ float __stdcall unit_rate(uintptr_t unit, float raw) {
     }
     const float s = std::clamp(speed, 0.1f, 4.0f);
     quicken_dt(unit, raw * s);
+    cancel_tick(*e, raw);
     if (aura_wanted(unit)) ensure_aura(unit);
     return s;
 }
@@ -640,6 +837,7 @@ int __stdcall think_check(uintptr_t mgr, ThinkRow row) {
 }
 
 int __stdcall get_action_no(uintptr_t mgr, uint32_t mot, float leng, float deg, float height, int lv) {
+    if (provoke::g_any) provoke::note_think(mgr);
     const bool traced = think_trace::begin(mgr, mot, leng, deg, height, lv);
     const int result = reinterpret_cast<GetActionNoFn>(get_action_no_original)(mgr, mot, leng, deg, height, lv);
     if (traced) think_trace::end(result);
@@ -740,6 +938,12 @@ void EnemyAI::on_gui_frame(int display) {
         ImGui::SameLine();
         help_marker(_("In Devil Trigger, how much sooner a provoked enemy may repeat its moves (its decision cooldowns run "
                       "this much faster, on top of Thinking speed)."));
+        ImGui::SliderFloat(_("Cancel chance"), &cancel_chance, 0.0f, 100.0f, "%.0f%%");
+        ImGui::SameLine();
+        help_marker(_("Once a provoked enemy's attack has stopped hitting, the chance that it skips the rest of the "
+                      "attack's recovery and chooses its next move at once, as if the attack had ended (its own AI picks "
+                      "what comes next, waits included). Rolled once per attack, only on the ground, and not while more "
+                      "hits of the same attack are still to come. 0 = never."));
         ImGui::Checkbox(_("Ignores the attack limit"), &ignore_attack_limit);
         ImGui::SameLine();
         help_marker(_("Enemies take turns to attack (only a few at once; Enemy Slotting sets how many) and the rest hang "
@@ -786,6 +990,23 @@ void EnemyAI::on_gui_frame(int display) {
         for (Aura* a : g_auras) auras += (a && a->enemy) ? 1 : 0;
         ImGui::Text(_("Now: %d provoked, %d aura(s) | %u taunts, %u provokes, %u aura set-ups, %u attack turns given | glow %s"),
                     live, auras, g_taunts, g_provoked, g_auras_made, g_permits, glow_ready() ? _("ready") : _("not yet"));
+        ImGui::Text(_("Cancels: %u attacks, %u rolled, %u won, %u motions cut"), g_cs.attacks, g_cs.rolls, g_cs.wins,
+                    g_cs.cuts);
+        ImGui::SameLine();
+        help_marker(_("Attacks: provoked enemies' attacks seen (hitboxes their animations switch on; one that is also on "
+                      "while they stand or walk counts as part of the body, not an attack). Rolled: attacks that reached a point after their last hit "
+                      "where they could be cut, and got their roll. Won: rolls that came up. The next line is the "
+                      "attacks that ended without a roll, by what held them back last."));
+        ImGui::Text(_("  not rolled: no hold-up seen %u, looping / stopped %u, too close to the end %u, in the air %u, hits "
+                      "to come %u | ended by: a hit %u, its next decision %u, back to idle %u, the time limit %u"),
+                    g_cs.not_rolled[CancelStats::NONE], g_cs.not_rolled[CancelStats::LOOPING],
+                    g_cs.not_rolled[CancelStats::SHORT_LEFT], g_cs.not_rolled[CancelStats::AIR],
+                    g_cs.not_rolled[CancelStats::HITS_AHEAD], g_cs.hit, g_cs.decided, g_cs.idle, g_cs.timeout);
+        ImGui::Text(_("  enemies with collision found %u (extra managers %u), without %u | always-on hit slots ignored %u"),
+                    g_cs.mgrs, g_cs.extra_mgrs, g_cs.no_mgr, g_cs.body_slots);
+        if (ImGui::Button(_("Reset cancel counters"))) g_cs = {};
+        ImGui::SameLine();
+        help_marker(_("Sets the cancel counters back to zero, to watch a few attacks."));
         ImGui::Unindent();
     }
 
@@ -822,6 +1043,7 @@ void EnemyAI::on_config_load(const utility::Config& cfg) {
     dt_rate             = cfg.get<float>("provoke_dt_rate").value_or(dt_rate);
     dt_any_difficulty   = cfg.get<bool>("provoke_dt_any_difficulty").value_or(dt_any_difficulty);
     think_rate          = cfg.get<float>("provoke_think_rate").value_or(think_rate);
+    cancel_chance       = cfg.get<float>("provoke_cancel_chance").value_or(cancel_chance);
     counted_only        = cfg.get<bool>("provoke_counted_only").value_or(counted_only);
     ignore_attack_limit = cfg.get<bool>("provoke_ignore_attack_limit").value_or(ignore_attack_limit);
     targeted            = cfg.get<bool>("provoke_targeted").value_or(targeted);
@@ -849,6 +1071,7 @@ void EnemyAI::on_config_save(utility::Config& cfg) {
     cfg.set<float>("provoke_dt_rate", dt_rate);
     cfg.set<bool>("provoke_dt_any_difficulty", dt_any_difficulty);
     cfg.set<float>("provoke_think_rate", think_rate);
+    cfg.set<float>("provoke_cancel_chance", cancel_chance);
     cfg.set<bool>("provoke_counted_only", counted_only);
     cfg.set<bool>("provoke_ignore_attack_limit", ignore_attack_limit);
     cfg.set<bool>("provoke_targeted", targeted);

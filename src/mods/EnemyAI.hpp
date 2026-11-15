@@ -6,7 +6,7 @@
 //
 // Provoke: a taunt provokes the enemies near the player who taunted (or, locked on, his target alone). A provoked enemy
 // moves faster, decides faster, reaches its Devil Trigger sooner and glows at its edges (or only in DT, aura_dt_only),
-// and once in DT picks its next attack sooner again.
+// and once in DT picks its next attack sooner again. With a cancel chance it may cut an attack's recovery short.
 // Plan and the game facts: Vibed\Provoke\README.md; the AI side: Vibed\RE\think_mgr.md.
 //
 // - The taunt: uPlayer::checkProvoke 0x803E40 calls uPlayer::setProvoke 0x7AE9F0 (esi = the player: action 0x17 for
@@ -35,6 +35,23 @@
 //   the copy wraps the enemy instead of z-fighting with it. The game frees enemies without telling anyone (deaths,
 //   aRoom::cleanRoom on a room change), so an aura reads its enemy only while that unit is still linked in a move line
 //   and not being deleted, and a stage end forgets every provoke.
+// - Cancels (`cancel_chance`): enemies only choose their next action when the current animation has ended: each action's
+//   last phase asks uActor::isMotionEnd 0x4AA630 (vtable +0x128: the motion's state bit 1, set by uModel::updateFrame
+//   0x9FCE60 when a non-looping motion steps past mFrameMax - 1) and then runs checkChase and its class's checkAction,
+//   which asks cThinkMgr::GetActionNo for the next action and starts it. A provoked enemy's attack is seen through its
+//   uCollisionMgr (embedded at a per-class offset, found once by its vtable 0xBC78E0 and mpReportActor +0xD8 == the
+//   enemy; the one with mpSrcModel +0xE0 == the enemy): groups with mAttr & 9 (attack, grab) in mppCollisionGroup +0x358
+//   whose mSeqNo (the event slot that made them) is 0-7; a slot also on in a looping motion (standing, walking) is an
+//   always-on body hit and is ignored from then on. The attack
+//   lasts from those groups switching on until GetActionNo runs for the enemy (the anti-air hook notes it), it is hit
+//   (mDamage +0x19) or 240 frames pass, so a recovery in a motion of its own still belongs to it. After the last hit,
+//   on the ground (mLand +0x1C), in a non-looping motion with no attack slot turning on again later (the motion's first
+//   event table, mpSeqInfo[0]: (value, duration) runs), one roll decides; a success puts the motion (uModel
+//   MotionArray[mMotType] +0x330, 0xE0 each: +0x348 mFrame, +0x34C mFrameMax, +0x35C the event window's frame, +0x33A
+//   attr word: 4 = no loop, 0x10 stopped) on its last frame, and one more after it (a recovery of its own), so the
+//   action's own end runs at once and the game's AI chooses the follow-up (its cooldowns, attack turns and Provoke's
+//   speed-ups apply). The skipped frames' events are not fired. Their root motion would arrive in one tick (the enemy
+//   warped), so the enemy's x / z position (+0x30) and rotation (+0x40) are put back for two ticks after a cut.
 namespace provoke {
 
 extern bool  mod_enabled;
@@ -45,6 +62,7 @@ extern float think_speed;         // the provoked enemy's think cooldowns' speed
 extern float dt_rate;             // its DT timer runs this much faster again (on top of the speed)
 extern bool  dt_any_difficulty;   // count provoked enemies' DT timers on every difficulty
 extern float think_rate;          // in DT, its think cooldowns run this much faster again (on top of think_speed)
+extern float cancel_chance;       // percent: a provoked enemy cuts an attack's recovery short and picks its next move
 extern bool  counted_only;        // only taunts that count for style provoke
 extern bool  ignore_attack_limit; // a provoked enemy attacks without waiting for a free attack permit
 extern bool  targeted;            // locked on to an enemy: the taunt provokes it, at any distance
