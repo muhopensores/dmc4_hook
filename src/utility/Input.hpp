@@ -46,6 +46,12 @@ namespace utility
 
         void update();
 
+        // The keyboard as of the last update(): one GetKeyboardState a frame instead of a GetAsyncKeyState per key. Each of
+        // those takes win32k's global lock, and 511 a frame (here and Macro) queued behind other programs' input handling:
+        // 12-30 ms hitches during long Rainstorm holds (trace 2026-11-15, Vibed\RE\light_switch_hitch.md). Every key
+        // reads up while another program's window has focus.
+        static bool key_down(int vkey);
+
         bool is_down(int vkey, bool is_gamepad) const;
         bool went_down(int vkey, bool is_gamepad) const;
         bool went_up(int vkey, bool is_gamepad) const;

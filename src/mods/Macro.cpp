@@ -5523,7 +5523,7 @@ bool is_scannable_vkey(uint32_t vkey) {
 }
 
 bool is_down_vkey(uint32_t vkey) {
-    return (GetAsyncKeyState((int)vkey) & 0x8000) != 0;
+    return utility::Input::key_down((int)vkey);   // this frame's keyboard (one read a frame, utility::Input::update)
 }
 
 bool is_modifier_bind_down(uint32_t vkey) {
@@ -7863,7 +7863,7 @@ void Macro::poll_raw_keyboard(bool trigger_actions) {
     uint32_t clip_hotkey_score = 0;
 
     for (uint32_t vkey = 1; vkey < 256; ++vkey) {
-        const bool is_down = (GetAsyncKeyState((int)vkey) & 0x8000) != 0;
+        const bool is_down = utility::Input::key_down((int)vkey);
         const bool went_down = is_down && !raw_key_down[vkey];
         raw_key_down[vkey] = is_down;
 

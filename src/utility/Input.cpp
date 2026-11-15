@@ -4,6 +4,7 @@
 #include <utility>
 #include <sstream>
 #include <algorithm>
+#include <cstring>
 
 #include "imgui.h"
 #include "glm/trigonometric.hpp" // is this any different that cmath one, no idea
@@ -109,11 +110,37 @@ namespace utility {
         );
     }
 
+    static BYTE g_keys[256] = {};   // bit 0x80 = down, as of the last Input::update
+
+    // GetKeyboardState is the calling thread's view, kept up to date as it takes its window messages: right when update()
+    // runs on the game window's thread (ModFramework::on_frame, from Present: it is). Otherwise (another thread of the game
+    // has the focused window) the old per-key read.
+    static void read_keyboard() {
+        BYTE keys[256] = {};
+        DWORD pid = 0;
+        const HWND fg = GetForegroundWindow();
+        const DWORD thread = fg ? GetWindowThreadProcessId(fg, &pid) : 0;
+        if (fg && pid == GetCurrentProcessId()) {
+            if (thread == GetCurrentThreadId() && GetKeyboardState(keys)) {
+                // the mouse buttons from the device: no mouse messages while the game holds the mouse through DirectInput
+                for (int vk : {VK_LBUTTON, VK_RBUTTON, VK_MBUTTON, VK_XBUTTON1, VK_XBUTTON2})
+                    keys[vk] = GetAsyncKeyState(vk) < 0 ? 0x80 : 0;
+            } else {
+                for (int vk = 1; vk < 256; ++vk) keys[vk] = GetAsyncKeyState(vk) < 0 ? 0x80 : 0;
+            }
+        }
+        std::memcpy(g_keys, keys, sizeof keys);
+    }
+
+    bool Input::key_down(int vkey) {
+        return vkey > 0 && vkey < 256 && (g_keys[vkey] & 0x80) != 0;
+    }
+
     void Input::update() {
+        read_keyboard();
         // keyboard keycode to InputState
         for (size_t i = 0; i < m_status.size(); i++) {
-            bool key_down = GetAsyncKeyState((int)i) < 0;
-            Input::get_state(key_down, m_status[i]);
+            Input::get_state((g_keys[i] & 0x80) != 0, m_status[i]);
         }
         // same but for gamepadfs
         update_gamepads();
