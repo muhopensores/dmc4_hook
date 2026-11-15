@@ -57,13 +57,9 @@ naked void detour(void) { // player in edi
         mov eax, edi // the hooked player; a unit that isn't a player (boss Dante) is left alone
         call player_info::asm_is_player
         jz popcode
-        cmp dword ptr [edi+0x1494], 1 // Nero
-        je GotNero
+        cmp dword ptr [edi+0x1494], 1 // Nero; a Dante (co-op mixes them) has other commands at these records
+        jne popcode
 
-        GotNero:
-        jmp BlueRose
-            
-        BlueRose:
         // lea edx, [eax+0x2420] // unkn
         // lea edx, [eax+0x2434] // 0
         // lea edx, [eax+0x2448] // unkn
@@ -216,10 +212,16 @@ void restore(uintptr_t player, bool live) {
     }
 }
 
+bool input_on(uintptr_t player) { return *reinterpret_cast<uint8_t*>(player + kInputOn) != 0; }
+
 void tick(uintptr_t player) {
     if (!ChargeChecker::keepCharge_enabled || !player || !is_player_class(player)) return;
     Tracked& t = tracked_for(player);
-    const bool live = *reinterpret_cast<uint8_t*>(player + kInputOn) != 0;
+    bool live = input_on(player);
+    // Co-op's players 2-4 are given player 1's input state every frame once they're set up, so a new room's partner
+    // can tick with the constructor's input on while player 1's entry still keeps it off: follow player 1.
+    const uintptr_t p1 = player_info::player(0);
+    if (p1 && p1 != player && is_player_class(p1)) live = live && input_on(p1);
     restore(player, live);
     if (!live) return;                                    // keep what the records held while input was live
     for (int k = 0; k < kCmdCount; ++k) {
