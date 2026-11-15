@@ -153,8 +153,28 @@ static void patch_more_memories() {
     *renderCmdMem = 0x02C00000; // was push 00C00000 (2 x 0x580000 -> 2 x 0x1580000)
     VirtualProtect(renderCmdMem, 4, oldProtect, &oldProtect);
 
+    // sPrim's primitive sort lists (sPrim::sPrim 0xA340E0, from the System heap): 0x10000 entries of 8 bytes (sort key,
+    // the primitive's vertex record) shared out between the job threads' cPrim (sub_A34C00: 8 threads, 8192 each), then
+    // merged into a per-frame output of the same size (sub_A35280, two of them, one per frame in flight). Nothing checks
+    // either (sPrim::submitLine and the other submitters only check the vertex ring): split screen submits every
+    // primitive once per view, and effect-heavy moves (the Dante Cyber Rainstorm: 67,835 entries with 2 views,
+    // 2026-11-15) run each thread's slice into the next (primitives dropped: flicker) and the merged output off its end
+    // into the next System heap block (it trashed sDevil4Collision: access violation in sCollision::setup 0x95B7E1,
+    // hitches). Eight times the room: 0x80000 entries, 0x10000 per thread, three 4 MB buffers (the input's size is its own
+    // push; the outputs are sized from the count). Vibed\RE\light_switch_hitch.md.
+    static UINT* primEntries = (UINT*)0xA3420C; // sPrim::sPrim: mov dword ptr [ebx+1E98h], 10000h
+    static UINT* primInput   = (UINT*)0xA34218; // sPrim::sPrim: push 80000h (the input list, entries x 8)
+
+    VirtualProtect(primEntries, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
+    *primEntries = 0x00080000; // was 0x10000
+    VirtualProtect(primEntries, 4, oldProtect, &oldProtect);
+
+    VirtualProtect(primInput, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
+    *primInput = 0x00400000; // was push 00080000
+    VirtualProtect(primInput, 4, oldProtect, &oldProtect);
+
     VirtualProtect(systemMem, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
-    *systemMem = 0x04E00000; // was push 02E00000 (+ the 0x2000000 the buffers gained)
+    *systemMem = 0x05900000; // was push 02E00000 (+ the 0x2000000 the draw buffers gained, + 0xB00000 for sPrim's lists)
     VirtualProtect(systemMem, 4, oldProtect, &oldProtect);
 }
 

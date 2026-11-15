@@ -420,6 +420,8 @@ set(DEV_SRC
   dev/shadows/PbrShadow.cpp
   dev/tonemap/ToneMap.hpp
   dev/tonemap/ToneMap.cpp
+  dev/lights/LightSwitches.hpp
+  dev/lights/LightSwitches.cpp
   dev/ps_bind.hpp
   dev/shader_file.hpp
   dev/shader_file.cpp

@@ -198,4 +198,5 @@
 #include "dev/pbr/PbrMaterials.hpp"
 #include "dev/shadows/Shadows.hpp"
 #include "dev/tonemap/ToneMap.hpp"
+#include "dev/lights/LightSwitches.hpp"
 #endif

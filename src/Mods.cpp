@@ -220,6 +220,7 @@ Mods::Mods() {
     ADD_MOD(PbrMaterials);   // GGX shading for Albam's PBR materials (the unused SPECULAR_RIM pixel shaders swapped)
     ADD_MOD(Shadows);        // stage shadow map size and live overrides of its settings (uShadow)
     ADD_MOD(ToneMap);        // a filmic curve (ACES / AgX) in place of XfFilter's Reinhard tone map shaders
+    ADD_MOD(LightSwitches);  // light switches always on (off lights zeroed): no driver shader compile when effect lights appear
 #endif
 #endif
 }
