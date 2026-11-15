@@ -1,6 +1,6 @@
 #pragma once
 
-// PBR test spheres (PbrMaterials panel > Test spheres): a row of metal spheres in front of the player, one per roughness
+// PBR test spheres (Graphics tab > Test spheres): a row of metal spheres in front of the player, one per roughness
 // level, for comparing how the PBR shader reads at each roughness. Asked for by another modder (2026-11-14).
 //
 // The model is model\game\pbrtest\pbr_sphere.mod (Albam: a UV sphere, radius 50 cm, sitting on its origin; one PBR material
@@ -49,7 +49,7 @@ constexpr int kCubeCount = (int)(sizeof(kCubes) / sizeof(kCubes[0]));
 // models on every unit line, the game's DefaultCube_CM and the spheres' own left out)
 constexpr int kRoomCube = kCubeCount + 1;
 
-void draw_gui();                // PbrMaterials' panel
+void draw_gui();                // Graphics tab > Test spheres (PbrMaterials display C)
 int  alive();                   // spheres spawned and not yet deleted
 
 } // namespace pbr_spheres

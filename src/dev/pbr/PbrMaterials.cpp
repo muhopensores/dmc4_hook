@@ -613,7 +613,18 @@ void PbrMaterials::on_frame(fmilliseconds& dt) { update(); }
 void draw_scene_buffer();   // below: the scene buffer's format (the PC option HDR)
 void draw_cube_filter();    // below: the environment cube's sampler filters
 
+// Graphics tab: A = the materials (this), B = the scene buffer (Tone mapping section), C = the test spheres
 void PbrMaterials::on_gui_frame(int display) {
+    if (display == DISPLAY_SYSTEM_B) {
+        draw_scene_buffer();
+        return;
+    }
+    if (display == DISPLAY_SYSTEM_C) {
+        if (!mod_enabled)
+            ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f), _("PBR materials are off: the spheres draw with the game's rim light."));
+        pbr_spheres::draw_gui();
+        return;
+    }
     if (display != DISPLAY_SYSTEM_A) return;
     ImGui::Checkbox(_("PBR materials"), &mod_enabled);
     ImGui::SameLine();
@@ -744,8 +755,6 @@ void PbrMaterials::on_gui_frame(int display) {
     }
 
     draw_cube_filter();
-    draw_scene_buffer();
-    pbr_spheres::draw_gui();
 
     ImGui::PopID();
     ImGui::Unindent(lineIndent);
@@ -782,7 +791,6 @@ void draw_scene_buffer() {
     const uint8_t caps = *reinterpret_cast<uint8_t*>(render + 0x1B1D0);
     const char* name = mode == 0 ? "8-bit (HDR LOW)" : mode == 1 ? "10-bit (HDR MEDIUM)" :
                        mode == 3 ? "16-bit float (HDR HIGH)" : "?";
-    ImGui::Separator();
     ImGui::Text(_("Scene buffer: %s"), name);
     ImGui::SameLine();
     Mod::help_marker(_("The format the game draws the scene in before the tone map. 8 and 10-bit hold the scene up to twice "

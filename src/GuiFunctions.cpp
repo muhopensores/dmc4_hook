@@ -764,6 +764,29 @@ namespace gui {
                 ImGui::EndTabItem();
             }
 
+#ifndef PUBLIC_BUILD
+            if (ImGui::BeginTabItem(_("Graphics"))) {
+                ImGui::BeginChild("GraphicsChild");
+
+                ImGui::SeparatorText(_("Materials"));
+                pmods->on_draw_ui<PbrMaterials>(DISPLAY_SYSTEM_A); // PBR shading, tuning, cube filtering
+
+                ImGui::SeparatorText(_("Shadows"));
+                pmods->on_draw_ui<Shadows>(DISPLAY_SYSTEM_A);
+
+                ImGui::SeparatorText(_("Tone mapping"));
+                pmods->on_draw_ui<PbrMaterials>(DISPLAY_SYSTEM_B); // the scene buffer's format (the game's HDR option)
+                pmods->on_draw_ui<ToneMap>(DISPLAY_SYSTEM_A);
+
+                ImGui::SeparatorText(_("Test spheres"));
+                pmods->on_draw_ui<PbrMaterials>(DISPLAY_SYSTEM_C);
+
+                tabHeight += ImGui::GetCursorPosY();
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+#endif
+
             if (ImGui::BeginTabItem(_("Debug"))) {
                 float startCursorY = ImGui::GetCursorPosY();
                 ImGui::BeginChild("DebugChild");
@@ -820,9 +843,6 @@ namespace gui {
                 pmods->on_draw_ui<ViewportWindow>(DISPLAY_SYSTEM_A);
 #ifndef PUBLIC_BUILD
                 pmods->on_draw_ui<UnitPacks>(DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui<PbrMaterials>(DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui<Shadows>(DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui<ToneMap>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<ChainFix>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<SpiderTwerk>(DISPLAY_SYSTEM_A);
 

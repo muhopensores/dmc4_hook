@@ -251,14 +251,12 @@ int alive() {
 
 void draw_gui() {
     ImGui::PushID("PbrSpheres");
-    ImGui::Separator();
-    ImGui::TextUnformatted(_("Test spheres"));
+    ImGui::PushItemWidth(160.0f);
+    ImGui::SliderInt(_("Spheres"), &settings.count, 1, kMax);
     ImGui::SameLine();
     Mod::help_marker(_("A row of metal spheres in front of you, roughness going from the first value to the second, to compare "
                   "the PBR shading at each level. The sliders apply live. Needs the pbr_test package "
                   "(model\\game\\pbrtest\\pbr_sphere.mod). The spheres go away with Remove or a change of area."));
-    ImGui::PushItemWidth(160.0f);
-    ImGui::SliderInt(_("Spheres"), &settings.count, 1, kMax);
     ImGui::SliderFloat(settings.count > 1 ? _("Roughness from") : _("Roughness"), &settings.rough_from, 0.0f, 1.0f, "%.2f");
     if (settings.count > 1) ImGui::SliderFloat(_("Roughness to"), &settings.rough_to, 0.0f, 1.0f, "%.2f");
     ImGui::SliderFloat(_("Metal"), &settings.metal, 0.0f, 1.0f, "%.2f");

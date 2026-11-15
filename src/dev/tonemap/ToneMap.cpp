@@ -533,7 +533,7 @@ void ToneMap::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Replaces the game's tone map (how the scene's light becomes screen colours) with a filmic curve: bright "
                   "colours roll off toward white instead of flattening and shifting hue. The game's exposure, bloom, "
-                  "afterimage blend and night-time blue shift stay as they are. Best with PbrMaterials' Scene buffer at "
+                  "afterimage blend and night-time blue shift stay as they are. Best with the Scene buffer above at "
                   "16-bit float, which keeps light above white for the curve to work with."));
     if (!settings.on) return;
     ImGui::Indent(lineIndent);

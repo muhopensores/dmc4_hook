@@ -22,7 +22,7 @@
 // blend's alpha form, the adaptation texel read as .y = TONE 2's extended Reinhard): exactly the 207 in the DX9 bfx
 // (scratch tonemap\classify2.py).
 //
-// It matters most with a 16-bit float scene buffer (PbrMaterials > Scene buffer: Use 16-bit float): 8 and 10-bit buffers
+// It matters most with a 16-bit float scene buffer (Graphics tab > Tone mapping > Scene buffer: Use 16-bit float): 8 and 10-bit buffers
 // hold the scene only up to twice white.
 namespace tone_map {
 
