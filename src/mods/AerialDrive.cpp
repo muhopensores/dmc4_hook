@@ -255,8 +255,7 @@ static void register_boss_move() {
     m.where = WHERE_AIR;
     m.min_dist = 600.0f; m.max_dist = 2500.0f;
     m.min_rise = -400.0f; m.max_rise = 300.0f;
-    m.stands_in = bit(ACTION_ATK_SHOOT_DOWN) | bit(ACTION_ATK_SHOOT_DOWN_F) | bit(ACTION_ATK_SHOOT_DOWN_B) |
-                  bit(ACTION_ATK_SHOOT_DOWN_L) | bit(ACTION_ATK_SHOOT_DOWN_R) | bit(ACTION_ATK_KABUTO);
+    m.stands_in = AIR_ATTACKS;
     m.chance = 0.3f; m.cooldown = 480.0f;
     m.check = &drive_native_row;
     add(m);

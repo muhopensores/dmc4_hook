@@ -133,25 +133,6 @@ constexpr uint32_t GAMEPAD_HOTKEY_COUNT = 7;
 constexpr uint32_t PLAYBACK_SLOT_MAIN = 0;
 constexpr uint32_t PLAYBACK_SLOT_CUSTOM = UINT32_MAX;
 constexpr uint32_t INVALID_CLIP_INDEX = UINT32_MAX;
-constexpr uint32_t MACRO_WAIT_NONE = 0;
-constexpr uint32_t MACRO_WAIT_ENEMY_STEP = 1;
-constexpr uint32_t MACRO_WAIT_GROUNDED = 2;
-constexpr uint32_t MACRO_WAIT_AIRBORNE = 3;
-constexpr uint32_t MACRO_WAIT_STYLE = 4;
-constexpr uint32_t MACRO_WAIT_CAN_EXCEED = 5;
-constexpr uint32_t MACRO_WAIT_HITSTOP = 6;
-constexpr uint32_t MACRO_WAIT_LOCKED_ON = 7;
-constexpr uint32_t MACRO_WAIT_HIT_CONFIRMED = 8;
-constexpr uint32_t MACRO_WAIT_ANIM_FRAME = 9;
-constexpr uint32_t MACRO_WAIT_MOVEID2 = 10;
-constexpr uint32_t MACRO_WAIT_MOVEID2_CHANGED = 11;
-constexpr uint32_t MACRO_WAIT_FRAME_REACHED_MAX = 12;
-constexpr uint32_t MACRO_WAIT_COMPARE_EQ = 1;
-constexpr uint32_t MACRO_WAIT_COMPARE_NE = 2;
-constexpr uint32_t MACRO_WAIT_COMPARE_GT = 3;
-constexpr uint32_t MACRO_WAIT_COMPARE_GTE = 4;
-constexpr uint32_t MACRO_WAIT_COMPARE_LT = 5;
-constexpr uint32_t MACRO_WAIT_COMPARE_LTE = 6;
 constexpr uint32_t DEFAULT_SNAPSHOT_PLAY_DELAY_TICKS = 30;
 constexpr uint32_t DEFAULT_WAIT_UNTIL_TIMEOUT_TICKS = 120;
 constexpr uint32_t MAX_SNAPSHOT_PLAY_DELAY_TICKS = 6000;
@@ -6523,50 +6504,20 @@ static bool load_clip_into_playback_state(uint32_t clip_index) {
     return !Macro::playback_frames.empty();
 }
 
-bool Macro::load_playback_file() {
-    playback_frames.clear();
-    playback_source_lines.clear();
-    playback_clips.clear();
-    playback_frame_index = 0;
-    playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
-    loaded_clip_index = INVALID_CLIP_INDEX;
-    playback_character_role = MACRO_CHARACTER_INVALID;
-    playback_switch_character_mode = false;
-    loaded_playback_path[0] = '\0';
-    macro_setup = {};
-
-    const std::string file_path = resolve_playback_path();
-    std::ifstream file{ utility::widen(file_path) };
-    if (!file) {
-        set_playback_status("Could not open Macro file.");
-        return false;
-    }
-
-    auto clear_failed_load = [&]() {
-        playback_frames.clear();
-        playback_source_lines.clear();
-        playback_clips.clear();
-        playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
-        loaded_clip_index = INVALID_CLIP_INDEX;
-        playback_character_role = MACRO_CHARACTER_INVALID;
-        playback_switch_character_mode = false;
-        loaded_playback_path[0] = '\0';
-        macro_setup = {};
-    };
-
+// Reads a Macro file's clips and Setup block. On failure `error` says what and where.
+static bool parse_macro_stream(std::istream& file, std::vector<MacroClip>& playback_clips, MacroScenarioSetup& macro_setup,
+    std::string& error) {
     auto fail_with_message = [&](const char* format, uint32_t value) {
         char message[256]{};
         std::snprintf(message, sizeof(message), format, value);
-        set_playback_status(message);
-        clear_failed_load();
+        error = message;
         return false;
     };
 
     auto fail_with_text = [&](uint32_t line, const std::string& text) {
         char message[256]{};
         std::snprintf(message, sizeof(message), "Line %u: %s.", line, text.c_str());
-        set_playback_status(message);
-        clear_failed_load();
+        error = message;
         return false;
     };
 
@@ -6772,8 +6723,7 @@ bool Macro::load_playback_file() {
 
             frame.source_line_index = add_macro_source_line(current_clip, line_number, line);
             if (!append_playback_frames(current_clip.frames, frame_count, frame)) {
-                set_playback_status("Macro file is too long.");
-                clear_failed_load();
+                error = "Macro file is too long.";
                 return false;
             }
 
@@ -6791,8 +6741,7 @@ bool Macro::load_playback_file() {
             auto frame = frame_from_held(held_input);
             frame.source_line_index = add_macro_source_line(current_clip, line_number, line);
             if (!append_playback_frames(current_clip.frames, frame_count, frame)) {
-                set_playback_status("Macro file is too long.");
-                clear_failed_load();
+                error = "Macro file is too long.";
                 return false;
             }
 
@@ -6813,8 +6762,7 @@ bool Macro::load_playback_file() {
             auto frame = frame_from_wait_condition(held_input, condition, arg, compare, value, value_u32, max_ticks);
             frame.source_line_index = add_macro_source_line(current_clip, line_number, line);
             if (!append_playback_frames(current_clip.frames, 1, frame)) {
-                set_playback_status("Macro file is too long.");
-                clear_failed_load();
+                error = "Macro file is too long.";
                 return false;
             }
 
@@ -6877,8 +6825,7 @@ bool Macro::load_playback_file() {
                     ticks,
                     current_clip.character_role,
                     current_clip.switch_character_mode)) {
-                set_playback_status("Macro file is too long or TAP input is invalid.");
-                clear_failed_load();
+                error = "Macro file is too long or TAP input is invalid.";
                 return false;
             }
             tag_appended_frames(current_clip.frames, first_frame, source_line_index);
@@ -6907,8 +6854,7 @@ bool Macro::load_playback_file() {
                     ticks,
                     current_clip.character_role,
                     current_clip.switch_character_mode)) {
-                set_playback_status("Macro file is too long or DIR input is invalid.");
-                clear_failed_load();
+                error = "Macro file is too long or DIR input is invalid.";
                 return false;
             }
             tag_appended_frames(current_clip.frames, first_frame, source_line_index);
@@ -6936,8 +6882,7 @@ bool Macro::load_playback_file() {
                     input_expression,
                     current_clip.character_role,
                     current_clip.switch_character_mode)) {
-                set_playback_status("Macro file is too long or BACK_FORWARD input is invalid.");
-                clear_failed_load();
+                error = "Macro file is too long or BACK_FORWARD input is invalid.";
                 return false;
             }
             tag_appended_frames(current_clip.frames, first_frame, source_line_index);
@@ -6958,8 +6903,7 @@ bool Macro::load_playback_file() {
             auto frame = frame_from_input(input);
             frame.source_line_index = add_macro_source_line(current_clip, line_number, line);
             if (!append_playback_frames(current_clip.frames, 1, frame)) {
-                set_playback_status("Macro file is too long.");
-                clear_failed_load();
+                error = "Macro file is too long.";
                 return false;
             }
 
@@ -6976,8 +6920,7 @@ bool Macro::load_playback_file() {
             auto frame = frame_from_character_switch();
             frame.source_line_index = add_macro_source_line(current_clip, line_number, line);
             if (!append_playback_frames(current_clip.frames, 1, frame)) {
-                set_playback_status("Macro file is too long.");
-                clear_failed_load();
+                error = "Macro file is too long.";
                 return false;
             }
 
@@ -7011,11 +6954,17 @@ bool Macro::load_playback_file() {
             auto frame = frame_from_one_hit_kill(toggle, value);
             frame.source_line_index = add_macro_source_line(current_clip, line_number, line);
             if (!append_playback_frames(current_clip.frames, 1, frame)) {
-                set_playback_status("Macro file is too long.");
-                clear_failed_load();
+                error = "Macro file is too long.";
                 return false;
             }
 
+            continue;
+        }
+
+        if (command == "BOSS") {
+            std::string directive{};
+            std::getline(stream, directive);
+            current_clip.directives.push_back(trim_copy(directive));
             continue;
         }
 
@@ -7042,6 +6991,75 @@ bool Macro::load_playback_file() {
         return fail_with_text(line_number, "Setup block is missing [/Setup]");
     }
 
+    if (!playback_clips.empty()) {
+        auto& last_clip = playback_clips.back();
+        if (last_clip.frames.empty()) {
+            return fail_with_message("Line %u: section has no playback ticks.", last_clip.header_line);
+        }
+        for (uint32_t clip_index = 0; clip_index < playback_clips.size(); ++clip_index) {
+            ensure_clip_name(playback_clips[clip_index], clip_index);
+        }
+    }
+    return true;
+}
+
+bool Macro::parse_clip_file(const std::string& path, std::vector<MacroClip>& clips, std::string& error) {
+    clips.clear();
+    std::ifstream file{ utility::widen(resolve_playback_path_text(path.c_str())) };
+    if (!file) {
+        error = "could not open the file";
+        return false;
+    }
+    MacroScenarioSetup setup{};
+    if (!parse_macro_stream(file, clips, setup, error)) {
+        clips.clear();
+        return false;
+    }
+    return true;
+}
+
+uint32_t Macro::frame_pad_buttons(const MacroFrame& frame, uint32_t role) {
+    return frame.buttons | resolve_action_buttons(frame.actions, role);
+}
+
+bool Macro::load_playback_file() {
+    playback_frames.clear();
+    playback_source_lines.clear();
+    playback_clips.clear();
+    playback_frame_index = 0;
+    playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
+    loaded_clip_index = INVALID_CLIP_INDEX;
+    playback_character_role = MACRO_CHARACTER_INVALID;
+    playback_switch_character_mode = false;
+    loaded_playback_path[0] = '\0';
+    macro_setup = {};
+
+    const std::string file_path = resolve_playback_path();
+    std::ifstream file{ utility::widen(file_path) };
+    if (!file) {
+        set_playback_status("Could not open Macro file.");
+        return false;
+    }
+
+    auto clear_failed_load = [&]() {
+        playback_frames.clear();
+        playback_source_lines.clear();
+        playback_clips.clear();
+        playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
+        loaded_clip_index = INVALID_CLIP_INDEX;
+        playback_character_role = MACRO_CHARACTER_INVALID;
+        playback_switch_character_mode = false;
+        loaded_playback_path[0] = '\0';
+        macro_setup = {};
+    };
+
+    std::string parse_error{};
+    if (!parse_macro_stream(file, playback_clips, macro_setup, parse_error)) {
+        set_playback_status(parse_error);
+        clear_failed_load();
+        return false;
+    }
+
     if (playback_clips.empty()) {
         if (!macro_setup.valid) {
             set_playback_status("Macro file has no clips or Setup block.");
@@ -7056,15 +7074,6 @@ bool Macro::load_playback_file() {
         strncpy_s(loaded_playback_path, file_path.c_str(), _TRUNCATE);
         remember_macro_file_write_time(file_path);
         return true;
-    }
-
-    auto& last_clip = playback_clips.back();
-    if (last_clip.frames.empty()) {
-        return fail_with_message("Line %u: section has no playback ticks.", last_clip.header_line);
-    }
-
-    for (uint32_t clip_index = 0; clip_index < playback_clips.size(); ++clip_index) {
-        ensure_clip_name(playback_clips[clip_index], clip_index);
     }
 
     if (selected_clip_index >= playback_clips.size()) {

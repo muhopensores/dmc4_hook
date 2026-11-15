@@ -92,7 +92,7 @@ static void register_boss_move() {
     m.where = WHERE_AIR;
     m.min_dist = 150.0f; m.max_dist = 900.0f;
     m.min_rise = -300.0f; m.max_rise = 200.0f;
-    m.stands_in = bit(ACTION_ATK_KABUTO) | bit(ACTION_ATK_DECENT_KICK);
+    m.stands_in = AIR_ATTACKS;
     m.chance = 0.3f; m.cooldown = 480.0f;
     add(m);
 }

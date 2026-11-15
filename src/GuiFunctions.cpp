@@ -234,8 +234,17 @@ namespace gui {
             pmods->on_config_save();
         }
         
-        if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyMask_ ^ ImGuiTabBarFlags_FittingPolicyScroll)) {
+        if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyScroll)) {
             uiHeight = ImGui::GetCursorPosY();
+            // the mouse wheel over the tabs scrolls them (ImGui itself only takes the horizontal wheel / Shift + wheel there);
+            // the far end is clamped by the tab bar's own layout
+            if (ImGuiTabBar* bar = ImGui::GetCurrentTabBar()) {
+                if (io.MouseWheel != 0.0f && !io.KeyShift && ImGui::IsWindowHovered() &&
+                    ImGui::IsMouseHoveringRect(bar->BarRect.Min, bar->BarRect.Max)) {
+                    bar->ScrollingTarget = ImMax(0.0f, bar->ScrollingTarget - io.MouseWheel * bar->BarRect.GetWidth() / 3.0f);
+                    bar->ScrollingTargetDistToVisibility = 0.0f;
+                }
+            }
             if (ImGui::BeginTabItem(_("Training"))) {
                 ImGui::BeginChild("TrainingChild");
 
@@ -709,10 +718,6 @@ namespace gui {
                 ImGui::SameLine(sameLineWidth);
                 pmods->on_draw_ui<SlowWalk>(DISPLAY_SYSTEM_A);
 
-                ImGui::SeparatorText(_("Graphics"));
-
-                pmods->on_draw_ui<GraphicsSettings>(DISPLAY_SYSTEM_A);
-
                 ImGui::SeparatorText(_("Cutscenes"));
 
                 pmods->on_draw_ui<CutsceneSkip>(DISPLAY_SYSTEM_A);
@@ -764,28 +769,32 @@ namespace gui {
                 ImGui::EndTabItem();
             }
 
-#ifndef PUBLIC_BUILD
             if (ImGui::BeginTabItem(_("Graphics"))) {
                 ImGui::BeginChild("GraphicsChild");
 
+                ImGui::SeparatorText(_("Game"));
+                pmods->on_draw_ui<GraphicsSettings>(DISPLAY_SYSTEM_A); // prop / casing fade, shadow / water resolution, bloom, light shafts
+#ifndef PUBLIC_BUILD
                 ImGui::SeparatorText(_("Materials"));
                 pmods->on_draw_ui<PbrMaterials>(DISPLAY_SYSTEM_A); // PBR shading, tuning, cube filtering
-
+#endif
                 ImGui::SeparatorText(_("Shadows"));
+#ifndef PUBLIC_BUILD
                 pmods->on_draw_ui<Shadows>(DISPLAY_SYSTEM_A);
-
+#endif
+                pmods->on_draw_ui<PlayerTracker>(DISPLAY_SYSTEM_B); // the stage shadow unit's raw values
+#ifndef PUBLIC_BUILD
                 ImGui::SeparatorText(_("Tone mapping"));
                 pmods->on_draw_ui<PbrMaterials>(DISPLAY_SYSTEM_B); // the scene buffer's format (the game's HDR option)
                 pmods->on_draw_ui<ToneMap>(DISPLAY_SYSTEM_A);
 
                 ImGui::SeparatorText(_("Test spheres"));
                 pmods->on_draw_ui<PbrMaterials>(DISPLAY_SYSTEM_C);
-
+#endif
                 tabHeight += ImGui::GetCursorPosY();
                 ImGui::EndChild();
                 ImGui::EndTabItem();
             }
-#endif
 
             if (ImGui::BeginTabItem(_("Debug"))) {
                 float startCursorY = ImGui::GetCursorPosY();
@@ -824,8 +833,6 @@ namespace gui {
                 pmods->on_draw_ui<MutatorSelfAdvertisement>(DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui<EffectColours>(DISPLAY_SYSTEM_A);
-
-                pmods->on_draw_ui<PlayerTracker>(DISPLAY_SYSTEM_B); // shadow settings
 
                 pmods->on_draw_ui<BrainrotPalace>(DISPLAY_SYSTEM_A);
 

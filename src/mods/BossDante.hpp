@@ -15,13 +15,22 @@
 // - Actions beyond the game's 60: the dispatch reads a dmc4_hook copy of the table (the instruction's disp32 at
 //   0x7C0B72 repointed), whose entries from 60 on run the moves Dante mods register (sdk/BossMoves.hpp); his think's
 //   picks go through uPlayerDanteBoss::setBossAction 0x7C8940, where a registered move may stand in for his own.
+// - Clips: Macro files (mods/Macro.hpp, the same parser) in nativePC\boss_dante. Each [Dante] section with a BOSS line
+//   is a boss action after the registered moves: the line says when he may play it (which of his picks it replaces,
+//   ground / air, distance and height to his target, style, weapons, chance, cooldown), and the clip's frames become
+//   his buttons (through the game's own button map, uPlayer::getInterfaceBtnInfo 0x7A96D0) and his stick (the clip's
+//   forward = toward his target). WAIT_UNTIL lines are checked on him. A hit ends the clip as it ends any of his actions
+//   (his damage action replaces it).
 namespace boss_dante {
 
 enum Mode : int { MODE_VANILLA = 0, MODE_ENHANCED = 1 };
 extern int mode;
 extern bool jump_cancels;   // Enhanced: he enemy-steps off the players (sdk/EnemyStep.hpp)
 extern float jc_chance;     // rolled once per opening
+extern float move_rate;     // Enhanced: multiplies every registered move's chance
 extern bool take_control;   // test: player 1's pad drives the boss, Nero holds still
+extern bool use_clips;      // Enhanced: Macro clips from kClipFolder are boss actions too
+constexpr const char* kClipFolder = "nativePC\\boss_dante";
 
 constexpr uintptr_t kBossVtable = 0xBE4440;
 
@@ -29,14 +38,14 @@ constexpr uintptr_t kBossVtable = 0xBE4440;
 bool is_boss(uintptr_t unit);
 
 constexpr int kGameActions = 60;   // DANTE_BOSS ACTION_WAIT .. ACTION_RESET_TUTO_SUCC
-constexpr int kMaxActions  = 128;
+constexpr int kMaxActions  = 192;   // the game's 60, registered moves (60), clips (72)
 
 // What an action works with, as the game's own actions do.
 namespace act {
 // Interface bits (uPlayer::getInterfaceBtnInfo 0x7A96D0, Dante)
 constexpr uint32_t BTN_MELEE = 0x1, BTN_GUN = 0x2, BTN_JUMP = 0x4, BTN_TAUNT = 0x8, BTN_LOCK_ON = 0x10,
                    BTN_STYLE = 0x200, BTN_DT = 0x400;
-constexpr uint32_t POW_RUN = 2;                    // cInterface::POW_MODE PMODE_RUN
+constexpr uint32_t POW_WALK = 1, POW_RUN = 2;      // cInterface::POW_MODE PMODE_WALK / PMODE_RUN
 
 uint32_t& phase(uintptr_t boss);                   // mActionRno0: 0 when the action starts
 float usr_param(uintptr_t boss, int i);            // mThinkUsrParam[i] (the picking row's fusr_param)

@@ -11,8 +11,9 @@
 // which of his own actions it may stand in for, chance, cooldown). The registry is plain data, like MoveTable's rows
 // and MoveDef's files; BossDante (mods/BossDante.cpp) runs it in Enhanced mode:
 // - every move becomes a boss action after the game's 60, run by one generic action;
-// - when his think picks one of his own actions (uPlayerDanteBoss::setBossAction 0x7C8940), each move that may stand
-//   in for it and whose situation holds rolls its chance; the first that passes is played instead.
+// - when his think picks one of his own actions (uPlayerDanteBoss::setBossAction 0x7C8940), the moves that may stand
+//   in for it and whose situation holds roll their chance (x BossDante's move rate) in a random order; the first that
+//   passes is played instead.
 //
 // A mod registers once, from its on_initialize, and points `enabled` at its own switch:
 //     boss_moves::Move m;
@@ -39,6 +40,17 @@ enum Action : int {
     ACTION_NUM
 };
 constexpr uint64_t bit(Action a) { return 1ull << a; }
+// His air attacks, for stands_in. In the air his think mostly picks a shot (one pick per shot), so an air move that
+// should come up in play stands in for AIR_SHOTS, not only for Helm Breaker (ATK_KABUTO) and the descent kick.
+constexpr uint64_t AIR_SHOTS = bit(ACTION_ATK_SHOOT_DOWN) | bit(ACTION_ATK_SHOOT_DOWN_F) | bit(ACTION_ATK_SHOOT_DOWN_B) |
+                               bit(ACTION_ATK_SHOOT_DOWN_L) | bit(ACTION_ATK_SHOOT_DOWN_R);
+constexpr uint64_t AIR_ATTACKS = AIR_SHOTS | bit(ACTION_ATK_KABUTO) | bit(ACTION_ATK_DECENT_KICK);
+constexpr uint64_t GROUND_ATTACKS = bit(ACTION_ATK_SHORT_NML0) | bit(ACTION_ATK_SHORT_NML1) | bit(ACTION_ATK_SHORT_NML2) |
+                                    bit(ACTION_ATK_LONG) | bit(ACTION_ATK_LONG_SHOT_GUN) | bit(ACTION_ATK_LONG_PANDORA3) |
+                                    bit(ACTION_ATK_PANDORA_BOX) | bit(ACTION_ATK_HIGHTIME) | bit(ACTION_ATK_STINGER) |
+                                    bit(ACTION_ATK_STYLE) | bit(ACTION_ATK_STYLE_HIGHTIME) | bit(ACTION_ATK_STYLE_STINGER) |
+                                    bit(ACTION_ATK_STYLE_AND_SHORT);
+constexpr uint64_t STEPS = bit(ACTION_STEP_F) | bit(ACTION_STEP_B) | bit(ACTION_STEP_L) | bit(ACTION_STEP_R);
 
 // Interface buttons (uPlayer::getInterfaceBtnInfo 0x7A96D0, Dante).
 constexpr uint32_t BTN_MELEE = 0x1, BTN_GUN = 0x2, BTN_JUMP = 0x4, BTN_TAUNT = 0x8, BTN_LOCK_ON = 0x10,

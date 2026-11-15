@@ -14,6 +14,27 @@ constexpr uint32_t MACRO_CHARACTER_NERO = 0;
 constexpr uint32_t MACRO_CHARACTER_DANTE = 1;
 constexpr uint32_t MACRO_CHARACTER_INVALID = 0xFFFFFFFFu;
 
+// MacroFrame::wait_condition (WAIT_UNTIL lines) and wait_compare.
+constexpr uint32_t MACRO_WAIT_NONE = 0;
+constexpr uint32_t MACRO_WAIT_ENEMY_STEP = 1;
+constexpr uint32_t MACRO_WAIT_GROUNDED = 2;
+constexpr uint32_t MACRO_WAIT_AIRBORNE = 3;
+constexpr uint32_t MACRO_WAIT_STYLE = 4;
+constexpr uint32_t MACRO_WAIT_CAN_EXCEED = 5;
+constexpr uint32_t MACRO_WAIT_HITSTOP = 6;
+constexpr uint32_t MACRO_WAIT_LOCKED_ON = 7;
+constexpr uint32_t MACRO_WAIT_HIT_CONFIRMED = 8;
+constexpr uint32_t MACRO_WAIT_ANIM_FRAME = 9;
+constexpr uint32_t MACRO_WAIT_MOVEID2 = 10;
+constexpr uint32_t MACRO_WAIT_MOVEID2_CHANGED = 11;
+constexpr uint32_t MACRO_WAIT_FRAME_REACHED_MAX = 12;
+constexpr uint32_t MACRO_WAIT_COMPARE_EQ = 1;
+constexpr uint32_t MACRO_WAIT_COMPARE_NE = 2;
+constexpr uint32_t MACRO_WAIT_COMPARE_GT = 3;
+constexpr uint32_t MACRO_WAIT_COMPARE_GTE = 4;
+constexpr uint32_t MACRO_WAIT_COMPARE_LT = 5;
+constexpr uint32_t MACRO_WAIT_COMPARE_LTE = 6;
+
 struct MacroFrame {
     uint32_t buttons = 0;
     uint32_t global_buttons = 0;
@@ -57,6 +78,7 @@ struct MacroClip {
     uint32_t character_role = MACRO_CHARACTER_INVALID;
     bool switch_character_mode = false;
     uint32_t header_line = 0;
+    std::vector<std::string> directives{};   // the text after each BOSS line (BossDante's clip conditions); playback ignores them
 };
 
 class Macro : public Mod {
@@ -106,6 +128,12 @@ public:
     static void __stdcall on_pad_update_tick(cPeripheral* peripheral);
     static void __stdcall on_player_pad_update(cPeripheral* peripheral);
     static void set_pad_update_fallback(PadUpdateFallback fallback);
+
+    // A Macro file's clips, for other mods (BossDante's clip library): the same parser as playback, nothing loaded into
+    // playback. `path` is absolute or relative to the game folder.
+    static bool parse_clip_file(const std::string& path, std::vector<MacroClip>& clips, std::string& error);
+    // The pad buttons a frame holds: its own buttons and its actions through the action button map of `role`.
+    static uint32_t frame_pad_buttons(const MacroFrame& frame, uint32_t role);
 
     std::optional<std::string> on_initialize() override;
     void on_frame(fmilliseconds& dt) override;
