@@ -400,6 +400,32 @@ void hold_still(uintptr_t pl) {
     at<bool>(pl, pl::mIsAddSpeed) = false;
 }
 
+// The ground moves follow the floor as the game's own attacks do (Stinger, the combos, the shots all turn this on as
+// they start; the attack action's row has it off): mActLimit.fall is the ground snap, uPlayer::main pressing Nero down
+// by mFallHeight (20 cm a frame) before the collision, and updateCollisionCorrectScr handing it back when no floor
+// caught him. Without it a dodge stays at the height it started from and a slope or step down leaves it off the ground.
+constexpr uintptr_t kScrClsnRslt  = 0x2008;   // uPlayer::mScrClsnRslt: updateSctClsnInfo's floor ray, 100 cm above to 100 below his feet
+constexpr uintptr_t kScrClsnTri   = 0x201C;   // the triangle it hit (+8 its attributes)
+constexpr uint32_t  kWallChannels = 0x7F0000;
+constexpr int       kAirTicks     = 4;          // ticks over no floor before a ground move turns into a fall (a ledge behind)
+
+void follow_floor(uintptr_t pl) { at<uint32_t>(pl, pl::mActLimit) |= 1u; }
+
+// And they drop only where the game would make a standing Nero fall (uPlayer::checkFloor 0x803D60): off the ground
+// with no floor within a metre below, or only a wall there, for more than kAirTicks ticks. Over a dip, a slope or a
+// step the snap brings him down and the move plays on.
+bool left_floor(uintptr_t pl, int& air_ticks) {
+    follow_floor(pl);
+    const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
+    bool over_nothing = coll && !at<bool>(coll, 0x1C);                  // mLand
+    if (over_nothing && at<uint32_t>(pl, kScrClsnRslt)) {
+        const uintptr_t tri = at<uintptr_t>(pl, kScrClsnTri);
+        over_nothing = tri && (at<uint32_t>(tri, 8) & kWallChannels);
+    }
+    air_ticks = over_nothing ? air_ticks + 1 : 0;
+    return air_ticks > kAirTicks;
+}
+
 bool lmt_file_exists(const char* game_path) {
     if (!game_path || !*game_path) return false;
     return std::filesystem::exists(std::string(".\\nativePC\\") + game_path + ".lmt");
@@ -410,7 +436,6 @@ constexpr int PHASE_DODGE = 1;
 constexpr int PHASE_AIR   = 1;     // the air shot's (its own move id)
 constexpr int PHASE_GROUND = 1;    // the neutral ground shot's (its own move id)
 constexpr int PHASE_SPIN  = 2;     // the neutral shot held: the spin
-constexpr int kAirTicks   = 4;     // ticks off the ground before the dodge turns into a fall (a ledge behind)
 
 constexpr int kPlayerSlots = 8;
 static ctn::Script g_cancel_scripts[kPlayerSlots];   // the bytes outlive the motion: static
@@ -736,6 +761,7 @@ static void ground_move(uintptr_t pl, State& s, int& phase) {
         }
         if (face_target) face_lock_target(pl);
         hold_still(pl);
+        follow_floor(pl);
         devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
         request_motion(pl, motion, root_motion ? 0u : (uint32_t)A_NULL_TRANS_OFF, blend_frames);
         s.script_set = false;                                               // the cancel script goes in next tick
@@ -753,9 +779,7 @@ static void ground_move(uintptr_t pl, State& s, int& phase) {
         hold_still(pl);
         after_images(pl, ground_shot);
         fire_fan(pl, s);
-        const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
-        s.air_ticks = (coll && !at<bool>(coll, 0x1C)) ? s.air_ticks + 1 : 0;   // mLand
-        if (s.air_ticks > kAirTicks) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }
+        if (left_floor(pl, s.air_ticks)) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }
         if (!(at<uint32_t>(pl, pl::mBtnOn) & input_commands::BTN_STYLE)) s.held = false;
         if (s.held && spin.enabled && s.fan_next >= std::clamp(fan_shots, 1, FAN_MAX) &&
             at<float>(pl, pl::mMotionFrame0) >= spin.from_frame) {
@@ -784,9 +808,7 @@ static void ground_move(uintptr_t pl, State& s, int& phase) {
         s.spin_time += at<float>(pl, pl::m_delta_time);
         g_spin_frames = s.spin_time;
         charge_update(pl, s);
-        const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
-        s.air_ticks = (coll && !at<bool>(coll, 0x1C)) ? s.air_ticks + 1 : 0;   // mLand
-        if (s.air_ticks > kAirTicks) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }
+        if (left_floor(pl, s.air_ticks)) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }
         if (!(at<uint32_t>(pl, pl::mBtnOn) & input_commands::BTN_STYLE)) {     // let go: the charge shot of the level reached
             const int level = s.charge_level;
             charge_end(pl, s);
@@ -832,6 +854,7 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
         }
         if (face_target) face_lock_target(pl);
         hold_still(pl);
+        follow_floor(pl);
         devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
         request_motion(pl, motion, root_motion ? 0u : (uint32_t)A_NULL_TRANS_OFF, blend_frames);
         s.script_set = false;                                               // the cancel script goes in next tick
@@ -849,9 +872,7 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
         hold_still(pl);
         after_images(pl, dodges[s.dir]);
         fire_due(pl, s, dodges[s.dir]);
-        const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
-        s.air_ticks = (coll && !at<bool>(coll, 0x1C)) ? s.air_ticks + 1 : 0;   // mLand
-        if (s.air_ticks > kAirTicks) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }
+        if (left_floor(pl, s.air_ticks)) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }
         if (at<bool>(pl, pl::mMotionFrameEnd0)) { set_action_footwork(pl, 10.0f, 1); return; }
         return;
     }
