@@ -858,6 +858,7 @@ namespace gui {
                 pmods->on_draw_ui<FileTracker>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<ViewportWindow>(DISPLAY_SYSTEM_A);
 #ifndef PUBLIC_BUILD
+                pmods->on_draw_ui<Plugins>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<UnitPacks>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<ChainFix>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<SpiderTwerk>(DISPLAY_SYSTEM_A);

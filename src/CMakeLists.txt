@@ -422,6 +422,13 @@ set(DEV_SRC
   dev/tonemap/ToneMap.cpp
   dev/lights/LightSwitches.hpp
   dev/lights/LightSwitches.cpp
+  dev/plugins/PluginHost.hpp
+  dev/plugins/PluginHost.cpp
+  dev/plugins/PluginGame.hpp
+  dev/plugins/PluginGame.cpp
+  dev/plugins/Plugins.hpp
+  dev/plugins/Plugins.cpp
+  ../plugin_sdk/include/dmc4_plugin.h
   dev/ps_bind.hpp
   dev/shader_file.hpp
   dev/shader_file.cpp

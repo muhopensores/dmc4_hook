@@ -199,4 +199,5 @@
 #include "dev/shadows/Shadows.hpp"
 #include "dev/tonemap/ToneMap.hpp"
 #include "dev/lights/LightSwitches.hpp"
+#include "dev/plugins/Plugins.hpp"
 #endif
