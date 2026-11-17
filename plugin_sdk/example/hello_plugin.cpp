@@ -1,6 +1,7 @@
 // hello_plugin.cpp: a small dmc4_hook plugin, showing the plugin API except hooks: init and its info, a frame callback,
-// a menu panel, a saved setting, the log, and (API version 2) reading the game through api->game.
-// Build: build_example.bat (32-bit MSVC). Install: copy hello_plugin.dll into the game folder's dmc4_hook_plugins\.
+// a menu panel, a saved setting, the log, reading the game through api->game (version 2) and the players through
+// api->players (version 3: co-op can have up to four).
+// Build: build_example.bat (32-bit MSVC). Install: copy hello_plugin.dll into the game folder's plugins\.
 #include "dmc4_plugin.h"
 #include "imgui.h"
 #include <cstdio>
@@ -12,6 +13,7 @@ static bool log_frames = true;
 static uint64_t frames = 0;
 static bool in_gameplay = false;   // read on the game thread, shown in the panel
 static float style = 0.0f;
+static int players = 0;
 
 // the game thread, once per game frame
 static void on_frame(void*) {
@@ -20,6 +22,7 @@ static void on_frame(void*) {
         in_gameplay = api->game->in_gameplay() != 0;
         style = api->game->style_rank();
     }
+    if (api->version >= 3) players = api->players->count();
     if (log_frames && frames % 600 == 0) {
         char line[96];
         snprintf(line, sizeof line, "%llu frames seen (the hook counts %llu)", (unsigned long long)frames,
@@ -34,6 +37,7 @@ static void on_panel(void*) {
     if (ImGui::Checkbox("Log every 600 frames", &log_frames)) api->config_set(self, "log_frames", log_frames ? "1" : "0");
     ImGui::Text("Frames seen: %llu", (unsigned long long)frames);
     if (api->version >= 2) ImGui::Text("In gameplay: %s, style rank %.0f", in_gameplay ? "yes" : "no", style);
+    if (api->version >= 3) ImGui::Text("Players: %d", players);
 }
 
 DMC4_PLUGIN_ABI_EXPORT()

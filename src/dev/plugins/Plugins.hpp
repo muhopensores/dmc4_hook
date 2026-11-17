@@ -2,7 +2,7 @@
 
 #include "../../mod.hpp"
 
-// Plugins: loads plugin DLLs from the game folder's dmc4_hook_plugins\ at startup and gives them the plugin API
+// Plugins: loads plugin DLLs from the game folder's plugins\ at startup and gives them the plugin API
 // (plugin_sdk\include\dmc4_plugin.h; plan Vibed\Plugins\README.md). The loader and the api are PluginHost.cpp.
 //
 // Their frame callbacks run from a hook in sDevil4Main::move right after sCollisionGame::checkAttackMain (0x8AF03F,

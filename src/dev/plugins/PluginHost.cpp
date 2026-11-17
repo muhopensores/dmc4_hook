@@ -1,5 +1,6 @@
 #include "PluginHost.hpp"
 #include "PluginGame.hpp"
+#include "PluginPlayers.hpp"
 #include "../../../plugin_sdk/include/dmc4_plugin.h"
 #include "../../mod.hpp"
 #include "imgui/imgui_internal.h"
@@ -270,6 +271,7 @@ const dmc4_api g_api = {
     api_hook,
     api_hook_at,
     game_api(),
+    players_api(),
 };
 
 // ---- loading ----
@@ -408,6 +410,18 @@ void load_all(const char* folder, const utility::Config& cfg) {
     spdlog::info("Plugins: {} plugin DLL(s) in {}", g_plugins.size(), g_folder);
 }
 
+bool run_guarded(dmc4_plugin* self, dmc4_callback fn, void* user, const char* what) {
+    if (!self || !fn) return false;
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        if (self->state != State::Running) return false;
+    }
+    Crash crash;
+    if (guarded_call(fn, user, &crash)) return true;
+    stop(*self, State::Stopped, std::string("crashed in ") + what + ": " + describe(crash));
+    return false;
+}
+
 void frame() {
     ++g_frame;
     run(true);
@@ -420,7 +434,7 @@ void draw() {
         return;
     }
     if (g_plugins.empty()) {
-        ImGui::TextDisabled(_("no plugin DLLs in %s"), g_folder.empty() ? "dmc4_hook_plugins" : g_folder.c_str());
+        ImGui::TextDisabled(_("no plugin DLLs in %s"), g_folder.empty() ? "plugins" : g_folder.c_str());
         return;
     }
     for (auto& up : g_plugins) {

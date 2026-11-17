@@ -1,7 +1,7 @@
 /*
  * dmc4_plugin.h: the dmc4_hook plugin API (DLL plugins for Devil May Cry 4 DX9, 32-bit).
  *
- * A plugin is a 32-bit DLL in the game folder's dmc4_hook_plugins\ folder. dmc4_hook loads every DLL there at startup
+ * A plugin is a 32-bit DLL in the game folder's plugins\ folder. dmc4_hook loads every DLL there at startup
  * (before the game's window opens, in file-name order), checks its ABI, and calls its dmc4_plugin_init. From then on
  * the plugin works through the dmc4_api table it was given: callbacks on the game frame and in the hook's menu, its own
  * log, settings saved in dmc4_hook.cfg, and hooks on the game's code.
@@ -20,6 +20,10 @@
  *   so a crash can still leave the game in a bad state. Restart the game after fixing it.
  * - Hooks go through api->hook / api->hook_at, not a MinHook of the plugin's own: two copies of MinHook in one process
  *   don't know about each other's hooks. Install them in dmc4_plugin_init, before the game runs.
+ * - Co-op: up to four players can play at once (dmc4_hook's split-screen co-op). Never assume one player: get them from
+ *   api->players, and do per-player work for each of them. Most game code reads "the player" from sMediator::mpPlayer;
+ *   co-op points it at player 2-4 while their units update, so the same game function acts for whoever is in there.
+ *   To act for a particular player from a frame callback, wrap the work in api->players->run_as.
  *
  * A plugin exports two functions (DMC4_PLUGIN_ABI_EXPORT() writes the first):
  *     uint32_t dmc4_plugin_abi(void);   returns DMC4_PLUGIN_ABI
@@ -39,7 +43,7 @@ extern "C" {
 #endif
 
 #define DMC4_PLUGIN_ABI 1          /* breaking changes: a plugin built for another ABI isn't loaded */
-#define DMC4_PLUGIN_API_VERSION 2  /* additions: functions appended to dmc4_api (and to the tables it points to) */
+#define DMC4_PLUGIN_API_VERSION 3  /* additions: functions appended to dmc4_api (and to the tables it points to) */
 
 #define DMC4_PLUGIN_EXPORT DMC4_EXTERN_C __declspec(dllexport)
 #define DMC4_PLUGIN_ABI_EXPORT() DMC4_PLUGIN_EXPORT uint32_t dmc4_plugin_abi(void) { return DMC4_PLUGIN_ABI; }
@@ -73,7 +77,9 @@ enum dmc4_object {
     DMC4_OBJ_UNIT = 1,           /* sUnit: the 32 unit lines */
     DMC4_OBJ_RENDER = 2,         /* sRender */
     DMC4_OBJ_MEDIATOR = 3,       /* sMediator: mission, player, cameras */
-    DMC4_OBJ_LOCAL_PLAYER = 4,   /* the local player (uPlayer), NULL outside a stage */
+    DMC4_OBJ_LOCAL_PLAYER = 4,   /* sMediator's player (uPlayer), NULL outside a stage. NOT "the" player in co-op: player 1
+                                  * in a frame callback, but whoever's update is running inside a hook on game code. Use
+                                  * api->players (version 3) to go through the players. */
     DMC4_OBJ_LOCAL_CAMERA = 5,   /* uCameraCtrl */
     DMC4_OBJ_PLAYER_CAMERA = 6,  /* cCameraPlayer */
     DMC4_OBJ_STYLISH_COUNT = 7,  /* sStylishCount: the style meter */
@@ -145,6 +151,28 @@ typedef struct dmc4_game_api {
     void (*install_ctn_script)(void* player, const void* script);
 } dmc4_game_api;
 
+/* ---- the players (api->players, version 3): which player is which, with and without co-op ---- */
+typedef struct dmc4_players_api {
+    uint32_t size;   /* sizeof(dmc4_players_api) in the hook: functions are only appended */
+
+    /* ---- version 3 ---- */
+
+    int (*count)(void);                    /* players in the stage: 1 without co-op, up to 4 with it, 0 outside a stage */
+    void* (*get)(int index);               /* that player's uPlayer (0 = player 1 ... 3), NULL = none */
+    int (*index_of)(void* unit);           /* 0-3 for a player, -1 for anything else */
+    int (*has_keyboard)(void* player);     /* the keyboard's keys are this player's (co-op lets any player have them) */
+    void* (*keyboard_player)(void);        /* the player who has the keyboard, NULL = nobody / not in a stage */
+    /* where that player's view is on the game's screen, as fractions (left, top, right, bottom); 0 when he has none
+     * there (without split screen only player 1's view shows, the whole screen) */
+    int (*view_rect)(int index, float* rect4);
+    void* (*current)(void);                /* sMediator's player right now: whose context game code is running in */
+    /* fn(user) with `player` as the game's player (sMediator::mpPlayer, his camera, pad and lock-on values), for game
+     * functions that act on "the player". Returns 1 when fn ran in his context. 0 = fn wasn't called: not a player, or
+     * another player's context is active (inside a hook on a player's update: there, the running player is current()).
+     * Game thread only. A crash in fn stops the plugin and still puts the context back. */
+    int (*run_as)(dmc4_plugin* self, void* player, dmc4_callback fn, void* user);
+} dmc4_players_api;
+
 typedef struct dmc4_api {
     uint32_t abi;             /* DMC4_PLUGIN_ABI of the hook */
     uint32_t version;         /* DMC4_PLUGIN_API_VERSION of the hook: the functions up to that version are present */
@@ -194,6 +222,11 @@ typedef struct dmc4_api {
 
     /* the game: singletons, state, units, resources, effects, sounds, motions (dmc4_game_api above) */
     const dmc4_game_api* game;
+
+    /* ---- version 3 ---- */
+
+    /* the players: count, each one, who has the keyboard, running code in a player's context (dmc4_players_api above) */
+    const dmc4_players_api* players;
 } dmc4_api;
 
 #ifdef __cplusplus

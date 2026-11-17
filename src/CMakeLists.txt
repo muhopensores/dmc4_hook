@@ -426,6 +426,8 @@ set(DEV_SRC
   dev/plugins/PluginHost.cpp
   dev/plugins/PluginGame.hpp
   dev/plugins/PluginGame.cpp
+  dev/plugins/PluginPlayers.hpp
+  dev/plugins/PluginPlayers.cpp
   dev/plugins/Plugins.hpp
   dev/plugins/Plugins.cpp
   ../plugin_sdk/include/dmc4_plugin.h

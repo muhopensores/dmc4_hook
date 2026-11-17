@@ -12,7 +12,7 @@ namespace {
 constexpr uintptr_t kFrameSite = 0x8AF03F;   // sDevil4Main::move, after call sCollisionGame::checkAttackMain
 constexpr uint8_t kFrameBytes[6] = {0x8B, 0x8D, 0x64, 0x03, 0x01, 0x00};   // mov ecx, [ebp+0x10364]
 uintptr_t jmp_ret_frame = 0;
-const char* const folder = "dmc4_hook_plugins";
+const char* const folder = "plugins";
 
 void __stdcall on_game_frame() { plugins::frame(); }
 
@@ -45,7 +45,7 @@ void Plugins::on_gui_frame(int display) {
     ImGui::PushID("Plugins");
     ImGui::Checkbox(_("Plugin DLLs (Plugins)"), &mod_enabled);
     ImGui::SameLine();
-    help_marker(_("Loads the plugin DLLs in the game folder's dmc4_hook_plugins folder when the game starts (turning this off "
+    help_marker(_("Loads the plugin DLLs in the game folder's plugins folder when the game starts (turning this off "
                   "takes effect at the next start). Plugins are code, like dmc4_hook itself: only use ones you trust. A plugin "
                   "that crashes is stopped and shows where; restart the game after fixing it. Making one: "
                   "plugin_sdk\\include\\dmc4_plugin.h and plugin_sdk\\example in the hook's repo."));
