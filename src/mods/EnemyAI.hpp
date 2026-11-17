@@ -35,6 +35,12 @@
 //   the copy wraps the enemy instead of z-fighting with it. The game frees enemies without telling anyone (deaths,
 //   aRoom::cleanRoom on a room change), so an aura reads its enemy only while that unit is still linked in a move line
 //   and not being deleted, and a stage end forgets every provoke.
+// - Orb flash (`orb_flash`): the red orb pickup effect on a provoked enemy, as uOrb00 (sub_79ACE0 0x79CCC2) plays it on
+//   the player: sDevil4Effect::setEffectConst(list 0, file 3 = effect\efl\com\ec032_90v0, the unit, group 0x20 (its
+//   records 11-15, on joint 2, about 20 frames), material -1, line 0x14, owner the unit). When a taunt provokes it, then
+//   every orb_flash_every seconds while it stays provoked; at least 30 frames apart (the game's own gap between two
+//   pickups' flashes), not on a dead enemy. uModel::getWorldMatrix (vtable +0x3C) answers a missing joint with the
+//   model's own matrix, and uDevil4Effect::move finishes an effect whose parent is no longer a live unit.
 // - Cancels (`cancel_chance`): enemies only choose their next action when the current animation has ended: each action's
 //   last phase asks uActor::isMotionEnd 0x4AA630 (vtable +0x128: the motion's state bit 1, set by uModel::updateFrame
 //   0x9FCE60 when a non-looping motion steps past mFrameMax - 1) and then runs checkChase and its class's checkAction,
@@ -73,6 +79,8 @@ extern float aura_color[3];
 extern float aura_brightness;
 extern float aura_reach;
 extern float aura_scale;          // the copy's size: each joint's matrix scaled about its own origin
+extern bool  orb_flash;           // the red orb pickup flash on a provoked enemy
+extern float orb_flash_every;     // seconds between flashes while provoked (0 = only when a taunt provokes it)
 
 // The player who provoked `enemy`, 0 when it isn't provoked (Coop moves its aggro to him).
 uintptr_t provoker(uintptr_t enemy);

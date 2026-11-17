@@ -5,6 +5,8 @@
 #include "../sdk/MtDTI.hpp"
 #include "../sdk/sUnit.hpp"
 #include "../sdk/RimGlow.hpp"
+#include "../sdk/uDamage.hpp"
+#include "EnemyTracker.hpp"
 #include <algorithm>
 #include <intrin.h>
 #include <cmath>
@@ -15,9 +17,9 @@ namespace provoke {
 
 bool  mod_enabled         = false;
 float radius              = 1500.0f;
-float duration            = 8.0f;
-float speed               = 1.25f;
-float think_speed         = 1.25f;
+float duration            = 30.0f;
+float speed               = 1.5f;
+float think_speed         = 2.0f;
 float dt_rate             = 2.0f;
 bool  dt_any_difficulty   = false;
 float think_rate          = 1.5f;
@@ -32,6 +34,8 @@ float aura_color[3]       = { 1.0f, 0.25f, 0.1f };
 float aura_brightness     = 1.0f;
 float aura_reach          = 0.3f;
 float aura_scale          = 1.03f;
+bool  orb_flash           = true;
+float orb_flash_every     = 1.0f;
 
 namespace {
 
@@ -61,6 +65,7 @@ constexpr uintptr_t kDtTimerOn    = 0x148D;   // mDevilTriggerTimerEnable
 constexpr uintptr_t kDtOn         = 0x148E;   // mDevilTrigger
 constexpr uintptr_t kDtSign       = 0x148F;   // mDevilTriggerSign
 constexpr uintptr_t kSetDtSign    = 0x13C;    // vtable: setDevilTriggerSign
+constexpr uintptr_t kEnemyId      = 0x1410;   // ENEMY_ID (EnemyTracker::get_enemy_specific_damage_offset finds its uDamage)
 constexpr float     kDtSignAt     = 900.0f;
 // sMediator
 constexpr uintptr_t kDifficulty   = 0x140;    // 3 = Dante Must Die
@@ -101,6 +106,13 @@ constexpr uintptr_t kQuat          = 0x40;       // uCoord::mQuat
 
 constexpr int kAuraLine = 1;                  // the unit line the auras run on (AfterImage's copies' line)
 
+// The red orb pickup flash (uOrb00, sub_79ACE0 0x79CCC2: setEffectConst(0, 3, player, 0x20, -1, 0x14, player)).
+constexpr int      kOrbList   = 0;               // the effect list
+constexpr int      kOrbFile   = 3;               // effect\efl\com\ec032_90v0
+constexpr uint32_t kOrbGroup  = 0x20;            // its pickup records (on joint 2)
+constexpr int      kOrbLine   = 0x14;
+constexpr float    kOrbGap    = 30.0f;           // frames: the game's own gap between two pickups' flashes
+
 // ---- Provoked enemies ----------------------------------------------------------------------------------------------
 // Written on the game thread only (the taunt and the unit delta); seen is the render thread's frame count when the enemy
 // last ticked, so an entry whose enemy is gone (killed, the room left) is reused after a while.
@@ -126,13 +138,15 @@ struct Entry {
     uint32_t attack_slots = 0;      // the event slots its attack groups came from
     uint32_t body_slots = 0;        // slots seen with attack groups during a looping motion: always-on body hits, not attacks
     float since = 0.0f;             // frames since its attack groups were last on
+    float flash_in = 0.0f;          // frames to its next orb flash
+    float since_flash = kOrbGap;    // frames since its last one
 };
 constexpr int kMaxEntries = 64;
 constexpr uint32_t kStaleFrames = 120;
 Entry g_list[kMaxEntries];
 bool g_any = false;                  // any entry live (the hooks' fast way out)
 volatile uint32_t g_frame = 0;       // render frames
-uint32_t g_taunts = 0, g_provoked = 0, g_auras_made = 0, g_permits = 0;   // readout
+uint32_t g_taunts = 0, g_provoked = 0, g_auras_made = 0, g_permits = 0, g_flashes = 0;   // readout
 struct CancelStats {
     enum Why { NONE, LOOPING, SHORT_LEFT, AIR, HITS_AHEAD, COUNT };
     uint32_t attacks, rolls, wins, cuts;
@@ -199,6 +213,7 @@ void provoke_one(uintptr_t enemy, uintptr_t by) {
     }
     e->by = by;
     e->left = std::max(duration, 0.0f) * 60.0f;
+    e->flash_in = 0.0f;
     e->seen = g_frame;
     g_any = true;
 }
@@ -435,6 +450,30 @@ bool aura_wanted(uintptr_t enemy) {
     return aura && (!aura_dt_only || at<uint8_t>(enemy, kDtOn));
 }
 
+// Its uDamage says it is dead (an enemy class EnemyTracker doesn't know: never).
+bool dead(const Entry& e) {
+    const int off = EnemyTracker::get_enemy_specific_damage_offset(at<int>(e.enemy, kEnemyId));
+    if (off <= 0 || off + sizeof(uDamage_Old) > e.size) return false;
+    const uDamage_Old* d = reinterpret_cast<const uDamage_Old*>(e.enemy + off);
+    return d->isDead || d->HP <= 0.0f;
+}
+
+// The red orb pickup flash: when a taunt provokes the enemy, then every orb_flash_every seconds, kOrbGap apart.
+void orb_flash_tick(Entry& e, float raw) {
+    e.since_flash += raw;
+    e.flash_in -= raw;
+    if (!orb_flash || e.flash_in > 0.0f) return;
+    if (e.since_flash < kOrbGap) {
+        e.flash_in = kOrbGap - e.since_flash;
+        return;
+    }
+    e.flash_in = orb_flash_every > 0.0f ? std::max(orb_flash_every * 60.0f, kOrbGap) : 1e30f;
+    if (dead(e)) return;
+    if (devil4_sdk::effect_const(kOrbList, kOrbFile, (void*)e.enemy, kOrbGroup, 0xFFFFFFFFu, kOrbLine, (void*)e.enemy))
+        ++g_flashes;
+    e.since_flash = 0.0f;
+}
+
 // sUnit::move, every unit, before its move: the factor its delta is multiplied by.
 float __stdcall unit_rate(uintptr_t unit, float raw) {
     Entry* e = find(unit);
@@ -450,6 +489,7 @@ float __stdcall unit_rate(uintptr_t unit, float raw) {
     const float s = std::clamp(speed, 0.1f, 4.0f);
     quicken_dt(unit, raw * s);
     cancel_tick(*e, raw);
+    orb_flash_tick(*e, raw);
     if (aura_wanted(unit)) ensure_aura(unit);
     return s;
 }
@@ -915,7 +955,7 @@ void EnemyAI::on_gui_frame(int display) {
         ImGui::SliderFloat(_("Radius"), &radius, 100.0f, 5000.0f, "%.0f cm");
         ImGui::SameLine();
         help_marker(_("How far from you an enemy can be and still be provoked (100 cm = 1 m)."));
-        ImGui::SliderFloat(_("Duration"), &duration, 1.0f, 30.0f, "%.1f s");
+        ImGui::SliderFloat(_("Duration"), &duration, 1.0f, 60.0f, "%.1f s");
         ImGui::SameLine();
         help_marker(_("How long an enemy stays provoked. Taunting again while it is near starts it again; it doesn't add up."));
         ImGui::SliderFloat(_("Animation speed"), &speed, 1.0f, 2.0f, "x%.2f");
@@ -985,11 +1025,23 @@ void EnemyAI::on_gui_frame(int display) {
                           "Too close to x1 and the glow flickers against the enemy's own surface; too big and it floats "
                           "off thin parts."));
         }
+        ImGui::Checkbox(_("Orb flash"), &orb_flash);
+        ImGui::SameLine();
+        help_marker(_("Provoked enemies flash with the red glow you get when you pick up red orbs: when a taunt provokes "
+                      "them, then again every so often while they stay provoked."));
+        if (orb_flash) {
+            ImGui::SliderFloat(_("Flash every"), &orb_flash_every, 0.0f, 5.0f, "%.1f s");
+            ImGui::SameLine();
+            help_marker(_("Seconds between flashes while an enemy stays provoked. 0 = only when a taunt provokes it. "
+                          "Never closer than half a second, the game's own gap between two orb pickups' flashes."));
+        }
         int live = 0, auras = 0;
         for (const Entry& e : g_list) live += (e.enemy && e.left > 0.0f) ? 1 : 0;
         for (Aura* a : g_auras) auras += (a && a->enemy) ? 1 : 0;
-        ImGui::Text(_("Now: %d provoked, %d aura(s) | %u taunts, %u provokes, %u aura set-ups, %u attack turns given | glow %s"),
-                    live, auras, g_taunts, g_provoked, g_auras_made, g_permits, glow_ready() ? _("ready") : _("not yet"));
+        ImGui::Text(_("Now: %d provoked, %d aura(s) | %u taunts, %u provokes, %u aura set-ups, %u orb flashes, %u attack "
+                      "turns given | glow %s"),
+                    live, auras, g_taunts, g_provoked, g_auras_made, g_flashes, g_permits,
+                    glow_ready() ? _("ready") : _("not yet"));
         ImGui::Text(_("Cancels: %u attacks, %u rolled, %u won, %u motions cut"), g_cs.attacks, g_cs.rolls, g_cs.wins,
                     g_cs.cuts);
         ImGui::SameLine();
@@ -1056,6 +1108,8 @@ void EnemyAI::on_config_load(const utility::Config& cfg) {
     aura_brightness     = cfg.get<float>("provoke_aura_brightness").value_or(aura_brightness);
     aura_reach          = cfg.get<float>("provoke_aura_width").value_or(aura_reach);
     aura_scale          = cfg.get<float>("provoke_aura_scale").value_or(aura_scale);
+    orb_flash           = cfg.get<bool>("provoke_orb_flash").value_or(orb_flash);
+    orb_flash_every     = cfg.get<float>("provoke_orb_flash_every").value_or(orb_flash_every);
     anti_air::enabled       = cfg.get<bool>("anti_air").value_or(false);
     anti_air::window_factor = cfg.get<float>("anti_air_window").value_or(anti_air::window_factor);
     anti_air::win_roll      = cfg.get<bool>("anti_air_win_roll").value_or(anti_air::win_roll);
@@ -1084,6 +1138,8 @@ void EnemyAI::on_config_save(utility::Config& cfg) {
     cfg.set<float>("provoke_aura_brightness", aura_brightness);
     cfg.set<float>("provoke_aura_width", aura_reach);
     cfg.set<float>("provoke_aura_scale", aura_scale);
+    cfg.set<bool>("provoke_orb_flash", orb_flash);
+    cfg.set<float>("provoke_orb_flash_every", orb_flash_every);
     cfg.set<bool>("anti_air", anti_air::enabled);
     cfg.set<float>("anti_air_window", anti_air::window_factor);
     cfg.set<bool>("anti_air_win_roll", anti_air::win_roll);
