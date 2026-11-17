@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 class aGame;
 class currentMission {
 public:

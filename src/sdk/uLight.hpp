@@ -1,5 +1,9 @@
 #pragma once
 
+#include "cUnit.hpp"
+#include "MtMath.hpp"
+#include "uCoord.hpp"
+
 enum LIGHT_ATTR : unsigned char {
     ATTR_FADEOUT   = 1,
     ATTR_SH        = 2,

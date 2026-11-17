@@ -15,6 +15,18 @@ settings saved in `dmc4_hook.cfg`, and hooks on the game's code through the hook
 4. Copy it to `<game folder>\dmc4_hook_plugins\` and start the game. The hook's menu lists it under Plugins, with its
    status, log and panel.
 
+## The game's types
+
+`include\dmc4_game.hpp` brings in dmc4_hook's SDK headers that describe the game's memory: MT Framework basics
+(`MtObject`, `MtDTI`, `MtMath` ...), the systems (`sMediator`, `sUnit`, `sArea`, `sRender` ...), units and players
+(`cUnit`, `uActor`, `uPlayer`, `uPlayerDante`, `uEnemy`, `uLight` ...). Cast the `void*` from `api->game` to them. They
+are the same files the hook compiles against (`src\sdk`), and the game's layouts never change, so a plugin built
+against an older copy keeps working. The hook's services (`src\sdk\*.cpp`) aren't included: they go through
+`dmc4_plugin.h`.
+
+Include paths: `plugin_sdk\include`, `src`, `src\sdk` and `dependencies\glm` of the dmc4_hook repo. MSVC, 32-bit,
+C++20. Never construct these classes or define their virtual functions; read and write them from `on_frame` or a hook.
+
 ## Rules
 
 - **C interface only:** no C++ types across the boundary, and no C++ exception may leave a callback.

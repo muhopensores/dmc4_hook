@@ -17,9 +17,11 @@ using Vector4 = glm::vec4;
 
 #include <vector>
 #include <string>
+#ifndef DMC4_PLUGIN_SDK   // the hook's translation macro; plugin builds (plugin_sdk/include/dmc4_game.hpp) have no utility/
 #include ".\utility\MoFile.hpp"
-#include "MtMath.hpp"
 #define _(string) utility::text_lookup(string)
+#endif
+#include "MtMath.hpp"
 #define __(str) str
 
 #if 0 // moved to sMediator

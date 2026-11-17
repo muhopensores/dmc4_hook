@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cSystem.hpp"
+#include "Math.hpp"
 
 struct IDirect3DDevice9;
 
