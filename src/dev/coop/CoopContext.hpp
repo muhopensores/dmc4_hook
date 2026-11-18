@@ -29,6 +29,9 @@
 // calls the enemy's grab / Snatch messages; those start the grab from mpPlayer (uEm000Base::setGrabBlown 0x552B40 takes
 // the Snatch's end from mpPlayer's right hand mRetPos +0x33E0: player 1's is zero, so the room origin). Coop wraps that
 // call in the context of the hand's Nero (uPlWpRightHand::mpParentPl +0x2F34 = the collision controller +0x1B84).
+// - A Grim Grip (stage sets on line 9): its base as the nearest Nero, its point as the base's player while idle and as
+//   the Nero who snatched it until it is idle again (both read only mpPlayer; CoopContext.cpp kGripPointDti). Each
+//   player keeps his own sMediator +0x122 (the snatch-jump camera flag the point sets), swapped in with him.
 
 namespace coop_context {
 

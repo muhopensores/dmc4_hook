@@ -13,6 +13,8 @@
 #include "../../mods/DebugCam.hpp" // REGION_* viewport modes; the free camera (Gameplay Cam off) takes the screen
 #include "../../mods/Macro.hpp"
 #include "../../mods/ViewportWindow.hpp"
+#include "../../Console.hpp"
+#include <atomic>
 #include <cstring>
 
 #pragma push_macro("naked")
@@ -542,7 +544,39 @@ void sync_control() {
     }
 }
 
+// The console's tp / tp_player: players 2-4 to player 1's spot (Coop's push moves them apart), done on the game thread.
+// The request: -1 none, 0 every player 2-4, 1-3 that one. uPlayer::mPosOld (+0x14A0) goes along, so nothing reads the
+// move as a step through the room; the speeds are cleared.
+constexpr uintptr_t kTpPos = 0x30, kTpPosOld = 0x14A0, kTpVel = 0xEC0, kTpAcc = 0xED0, kTpMoveVel = 0x1E1C,
+                    kTpAddSpd = 0x1E30, kTpIsAddSpeed = 0x1E40;
+std::atomic<int> teleport_request{-1};
+
+void apply_teleport() {
+    const int which = teleport_request.exchange(-1);
+    const uintptr_t p1 = players[0].unit;
+    if (which < 0 || !set_up(p1)) {
+        return;
+    }
+    int moved = 0;
+    for (int i = 1; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
+        const uintptr_t pl = players[i].unit;
+        if ((which != 0 && which != i) || !set_up(pl)) continue;
+        for (int k = 0; k < 3; k++) {
+            field(pl, kTpPos + 4 * k) = field(p1, kTpPos + 4 * k);
+            field(pl, kTpPosOld + 4 * k) = field(p1, kTpPos + 4 * k);
+            field(pl, kTpVel + 4 * k) = 0.0f;
+            field(pl, kTpAcc + 4 * k) = 0.0f;
+            field(pl, kTpAddSpd + 4 * k) = 0.0f;
+        }
+        field(pl, kTpMoveVel) = 0.0f;
+        *reinterpret_cast<bool*>(pl + kTpIsAddSpeed) = false;
+        ++moved;
+    }
+    spdlog::info("Coop: moved {} player(s) to player 1", moved);
+}
+
 void __stdcall coop_game_tick() {
+    apply_teleport();
     check_units();
     update_split();
     apply_carry();
@@ -1171,6 +1205,16 @@ std::optional<std::string> Coop::on_initialize() {
         return err;
     }
     Macro::set_pad_update_fallback(&pad_update_fallback);
+    console->system().RegisterCommand("tp", "Co-op: move players 2-4 to player 1", []() {
+        teleport_request = 0;
+    });
+    console->system().RegisterCommand("tp_player", "Co-op: move one player (2-4) to player 1", [](int value) {
+        if (value >= 2 && value <= kMaxPlayers) {
+            teleport_request = value - 1;
+        } else {
+            spdlog::error("tp_player: a player number from 2 to {}", kMaxPlayers);
+        }
+    }, csys::Arg<int>("2-4"));
     return Mod::on_initialize();
 }
 

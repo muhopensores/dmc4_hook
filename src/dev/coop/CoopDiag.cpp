@@ -17,8 +17,9 @@ constexpr uintptr_t kDevil4Main      = 0xE5574C; // sDevil4Main::mpInstance
 constexpr uintptr_t kJobThreadNum    = 0x8C;     // sMain::mJobThreadNum
 constexpr uintptr_t kNextJobThreadNum = 0x94;    // sMain::mNextJobThreadNum
 
-// Move lines whose units read sMediator's player / camera: players, stand, enemies (and shells on 18), camera, HUD.
-constexpr int kContextLines[] = {13, 14, 15, 16, 18, 23, 25};
+// Move lines whose units read sMediator's player / camera: stage sets (Grim Grips), players, stand, enemies (and shells
+// on 18), camera, HUD.
+constexpr int kContextLines[] = {9, 13, 14, 15, 16, 18, 23, 25};
 
 int  saved_parallel[32];
 bool saved_valid = false;

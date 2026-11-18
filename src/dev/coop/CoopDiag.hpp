@@ -5,8 +5,8 @@
 //
 // sUnit runs its 32 move lines through the job threads when a line's mParallel bit is set (sUnit::sUnit 0x8DBF20 sets it
 // on every line; RE note Vibed\RE\sunit_moveline_findings.md). Swapping sMediator's mpPlayer / mpCamera around each
-// unit's move is only safe on lines that run serially, so the toggle clears mParallel on the context lines (players 13,
-// stand 14, enemies 15 / 16 / 18, camera 23, HUD 25) and puts the saved bits back when turned off. The readout shows the
+// unit's move is only safe on lines that run serially, so the toggle clears mParallel on the context lines (stage sets 9,
+// players 13, stand 14, enemies 15 / 16 / 18, camera 23, HUD 25) and puts the saved bits back when turned off. The readout shows the
 // job thread count (sMain mJobThreadNum +0x8C / mNextJobThreadNum +0x94, sDevil4Main 0xE5574C), every line's flags and
 // unit count, and the frame time, to compare serial against parallel.
 

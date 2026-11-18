@@ -60,6 +60,30 @@ constexpr uintptr_t kHeldState    = 0x14;     // cUnit state byte
 constexpr uint8_t   kFollowsHand  = 0x8F;     // held: follows the Nero's Devil Bringer
 constexpr uintptr_t kStand        = 0xCDF8;   // uPlayerNero::mpDevilStand
 
+// Grim Grips (stage sets on move line 9, from the room's .pla): a base (uStageSetSnatchBase, its update 0x88FB40) and
+// the point above it (uStageSetSnatch, update 0x88EBD0, its base at +0x1820). Both read sMediator::mpPlayer only:
+// - the base turns active (+0x1380) while mpPlayer is a Nero who has the Snatch, standing within 100 cm across and
+//   50 cm up or down of it;
+// - an idle point (state +0x14 = 0) whose base is active hands mpPlayer the point as his Snatch target (+0x1430 /
+//   +0x1434 = 12);
+// - the Snatch hit (grabMessage 0x88F7D0, run in the hand's player's context) sets state 2, or 1 for a point without a
+//   base. From 2 the point waits for mpPlayer's long grab approach (action 12, attack 3: uPlayerNero::isLongGrabApproach
+//   0x88E2C0) -> 3, for him in the landing area (cEventHit::checkInPl reads mpPlayer's position) -> 4, for his action 1
+//   -> 1, setting his flags +0x1509 .. +0x150F and sMediator +0x122 (the snatch-jump camera) on the way. In states 1-4
+//   its sub-state +0x15 follows mpPlayer's approach (1 when it starts, 2 when it ends), then a timer shows it again.
+// Running as player 1, a grip never gave players 2-4 its target, and one they snatched waited for player 1's approach.
+// So a base runs as the nearest Nero, an idle point as its base's player, and a snatched point as the Nero who snatched
+// it until it is idle again.
+constexpr uintptr_t kGripPointDti = 0xE5BC10;   // uStageSetSnatch::DTI
+constexpr uintptr_t kGripBaseDti  = 0xE5BBF0;   // uStageSetSnatchBase::DTI
+constexpr uintptr_t kGripState    = 0x14;       // point: 0 idle, 1 used (shown again after a timer), 2 snatched, 3 on the way, 4 arrived
+constexpr uintptr_t kGripSubState = 0x15;       // point: 0 after the hit, 1 while the approach runs, 2 after it
+constexpr uintptr_t kGripBase     = 0x1820;     // point: its base, 0 = none
+constexpr uintptr_t kPlayerId     = 0x1494;     // uPlayer::mPlayerID (1 = Nero)
+constexpr uintptr_t kBodyAction   = 0x14F0;     // uPlayer::mBdyAction[0].no (isLongGrabApproach reads it)
+constexpr uint32_t  kGrabApproach = 3;          // mAtckId of the long grab approach
+constexpr int       kMaxGrips     = 32;
+
 struct Hold { uintptr_t enemy = 0; int ticks = 0; };
 
 // Which player an enemy is after (step 4a). Picked once per game tick: the nearest player, switching only to one at
@@ -154,10 +178,19 @@ GrabDiag  grab_diag;
 StandDiag stand_diag[kMaxPlayers];
 Hold      holds[kMaxPlayers];
 Aggro     aggro[kMaxAggro];
+struct Grip { uintptr_t unit = 0; int slot = -1; uint32_t frame = 0; };   // a base's player, a snatched point's Nero
+Grip      grips[kMaxGrips];
 uintptr_t enemy_swapped = 0;   // the enemy (or its shell) whose update runs in another player's context now
 struct AggroDiag { int per_slot[kMaxPlayers] = {}; uint32_t hits = 0, hit_swaps = 0; int last_attacker = -1, last_target = -1; };
 AggroDiag aggro_diag;
 uintptr_t saved_player = 0, saved_camera = 0, saved_pad = 0;
+// sMediator +0x122 (mSnatchJumpCamera: a Grim Grip jump runs, read by uCameraCtrl::sync 0x4F913D / 0x4F91FC and
+// getInitNowArea) per player: a swap to a player 2-4 puts his own in and takes it back out, so player 1's camera
+// doesn't follow another player's jump.
+constexpr uintptr_t kMedSnatchCamera = 0x122;
+uint8_t   snatch_camera[kMaxPlayers] = {};
+uint8_t   saved_snatch_camera = 0;
+int       snatch_camera_slot = -1;
 bool      swapped = false, camera_swapped = false, pad_swapped = false;
 uint32_t  swaps = 0, swaps_shown = 0;
 
@@ -542,6 +575,77 @@ void refresh_player1_lock(uintptr_t enemy) {
     }
 }
 
+Grip& grip_entry(uintptr_t unit) {
+    Grip* slot = nullptr;
+    for (Grip& g : grips) {
+        if (g.unit == unit) return g;
+        if (!slot && (!g.unit || g_frame - g.frame > kStale)) slot = &g;
+    }
+    if (!slot) {   // the one seen longest ago
+        slot = &grips[0];
+        for (Grip& g : grips) {
+            if (g.frame < slot->frame) slot = &g;
+        }
+    }
+    *slot = Grip{};
+    slot->unit = unit;
+    return *slot;
+}
+
+bool grip_user(int i) {   // a Nero set up and standing
+    const uintptr_t pl = players[i].unit;
+    return ready(pl) && at<uint32_t>(pl, kPlayerId) == 1 && !at<uint8_t>(pl, kIsDead);
+}
+
+// The player (0-3) a Grim Grip's base or point runs as, -1 for none (player 1, as the game has it), -2 if `unit` is
+// neither (see kGripPointDti).
+int grip_owner(uintptr_t unit) {
+    const uintptr_t dti = dti_of(unit);
+    if (dti != kGripPointDti && dti != kGripBaseDti) {
+        return -2;
+    }
+    const int n = (int)Coop::player_num < kMaxPlayers ? (int)Coop::player_num : kMaxPlayers;
+    Grip& g = grip_entry(unit);
+    g.frame = g_frame;
+    if (dti == kGripBaseDti) {   // the nearest Nero: the one it can turn active for
+        int best = -1;
+        float best_d = 0.0f;
+        for (int i = 0; i < n; i++) {
+            if (!grip_user(i)) continue;
+            const float d = dist2(unit, players[i].unit);
+            if (best < 0 || d < best_d) { best = i; best_d = d; }
+        }
+        g.slot = best;
+        return best;
+    }
+    // the Nero whose Snatch or approach is on it now
+    for (int i = 0; i < n; i++) {
+        const uintptr_t pl = players[i].unit;
+        if (!grip_user(i) || at<uintptr_t>(pl, kGrabActor) != unit) continue;
+        const uint32_t id = at<uint32_t>(pl, kAtckId);
+        const bool attacking = at<uint32_t>(pl, kLowerAction) == kActionAttack || at<uint32_t>(pl, kBodyAction) == kActionAttack;
+        if (attacking && (grab_attack(id) || id == kGrabApproach)) {
+            g.slot = i;
+            return i;
+        }
+    }
+    // in use: the one who snatched it, until it is idle again
+    const uint8_t state = at<uint8_t>(unit, kGripState);
+    if (g.slot >= 0 && players[g.slot].unit && (state >= 2 || (state == 1 && at<uint8_t>(unit, kGripSubState) < 2))) {
+        return g.slot;
+    }
+    g.slot = -1;
+    // idle: its base's player gets its target
+    if (state == 0) {
+        if (const uintptr_t base = at<uintptr_t>(unit, kGripBase)) {
+            for (const Grip& b : grips) {
+                if (b.unit == base && g_frame - b.frame <= 1) return b.slot;
+            }
+        }
+    }
+    return -1;
+}
+
 } // namespace
 
 namespace coop_context {
@@ -693,6 +797,11 @@ bool swap_for(int slot, uintptr_t camera = 0, bool lock = true) {
     if (!swap_to(players[slot].unit, camera, (uintptr_t)coop_pads::pad_for(slot))) {
         return false;
     }
+    if (const uintptr_t med = at<uintptr_t>(kMediator, 0); med && slot >= 1) {
+        saved_snatch_camera = at<uint8_t>(med, kMedSnatchCamera);
+        at<uint8_t>(med, kMedSnatchCamera) = snatch_camera[slot];
+        snatch_camera_slot = slot;
+    }
     view_slot = slot >= 1 ? slot : -1;
     if (lock) {
         apply_lock(slot, players[slot].unit);
@@ -723,6 +832,15 @@ bool enter(uintptr_t unit) {
         return swap_for(own);
     }
     if (!any_extra()) {
+        return false;
+    }
+    // a Grim Grip's base or point: as the player using it (player 1: no swap); the point's target values for player 1
+    // are computed again after, as for an enemy
+    if (const int grip = grip_owner(unit); grip != -2) {
+        if (grip >= 1 && ready(players[grip].unit) && swap_for(grip, 0, false)) {
+            enemy_swapped = unit;
+            return true;
+        }
         return false;
     }
     // a held enemy: the holding player (player 1 too: no swap), the aggro follows
@@ -759,7 +877,12 @@ void leave() {
         if (camera_swapped) {
             at<uintptr_t>(med, kMedCamera) = saved_camera;
         }
+        if (snatch_camera_slot >= 1) {
+            snatch_camera[snatch_camera_slot] = at<uint8_t>(med, kMedSnatchCamera);
+            at<uint8_t>(med, kMedSnatchCamera) = saved_snatch_camera;
+        }
     }
+    snatch_camera_slot = -1;
     if (pad_swapped) {
         at<uintptr_t>(kPadInstance, 0) = saved_pad;
     }
@@ -856,6 +979,13 @@ void reset() {
     for (Aggro& a : aggro) {
         a = Aggro{};
     }
+    for (Grip& g : grips) {
+        g = Grip{};
+    }
+    for (uint8_t& c : snatch_camera) {
+        c = 0;
+    }
+    snatch_camera_slot = -1;
     enemy_swapped = 0;
     cam_held_n = 0;   // the room's rDevilCamera goes with it
     for (int i = 0; i < kMaxPlayers; i++) {
