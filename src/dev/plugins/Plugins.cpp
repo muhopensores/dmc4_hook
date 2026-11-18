@@ -1,5 +1,6 @@
 #include "Plugins.hpp"
 #include "PluginHost.hpp"
+#include "../../sdk/FrameHooks.hpp"
 #include <spdlog/spdlog.h>
 #include <shellapi.h>
 #include <cstring>
@@ -9,32 +10,17 @@ bool Plugins::mod_enabled = true;
 
 namespace {
 
-constexpr uintptr_t kFrameSite = 0x8AF03F;   // sDevil4Main::move, after call sCollisionGame::checkAttackMain
-constexpr uint8_t kFrameBytes[6] = {0x8B, 0x8D, 0x64, 0x03, 0x01, 0x00};   // mov ecx, [ebp+0x10364]
-uintptr_t jmp_ret_frame = 0;
 const char* const folder = "plugins";
 
-void __stdcall on_game_frame() { plugins::frame(); }
-
-naked void detour_frame() {
-    _asm {
-        pushad
-        call on_game_frame
-        popad
-        mov ecx, [ebp+0x10364]
-        jmp dword ptr [jmp_ret_frame]
-    }
-}
+void on_game_frame(void*) { plugins::frame(); }
 
 } // namespace
 
+// The frame hook is the shared one (sdk/FrameHooks, FRAME_END = sDevil4Main::move after checkAttackMain 0x8AF03F):
+// the debug server runs its game-thread jobs from the same site.
 std::optional<std::string> Plugins::on_initialize() {
-    if (std::memcmp(reinterpret_cast<const void*>(kFrameSite), kFrameBytes, sizeof kFrameBytes) != 0) {
-        spdlog::error("Plugins: unexpected code at 0x{:X}; plugins' frame callbacks won't run", kFrameSite);
-        return "Failed to init Plugins (frame hook site)";
-    }
-    if (!install_hook_absolute(kFrameSite, hook_frame, &detour_frame, &jmp_ret_frame, 6)) {
-        spdlog::error("Plugins: failed to hook sDevil4Main::move (0x{:X})", kFrameSite);
+    if (!frame_hooks::install() || !frame_hooks::add(frame_hooks::FRAME_END, on_game_frame, nullptr, "Plugins")) {
+        spdlog::error("Plugins: no frame hook; plugins' frame callbacks won't run");
         return "Failed to init Plugins (frame hook)";
     }
     return Mod::on_initialize();

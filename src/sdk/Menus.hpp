@@ -296,6 +296,10 @@ constexpr uintptr_t kMessageCreate = 0x497290;      // thiscall createMessage(sM
 constexpr int kMessageSlots = 12;
 constexpr uintptr_t kSlotStride = 0x340;
 constexpr uintptr_t kSlotEnabled = 0x2F4;           // bool, sMessage + slot * 0x340 + 0x2F4 (printf's check)
+constexpr int kDebugFontSlot = 11;                  // id\message\msg_debug (dmc4_cmn, ASCII 0x20-0x7A, 12 x 24 cells),
+                                                    // loaded at startup: the default slot for print
+constexpr int kSystemFontSlot = 7;                  // id\sysFont\sys (rom\id\sysFont.arc, 16 x 32): only while the
+                                                    // screens that load it are up (area name, benchmark, PC screens)
 
 // A slot holds a message file the game can draw from. Slots in use by the game: 2 game, 3 room, 4+ layout labels,
 // 5 title / 7 / 8 the system font (id\sysfont\sys), 6 mission start, 11 the debug font (loaded at startup).

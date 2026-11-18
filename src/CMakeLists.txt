@@ -434,6 +434,12 @@ set(DEV_SRC
   dev/plugins/Plugins.cpp
   dev/rooms/Rooms.hpp
   dev/rooms/Rooms.cpp
+  dev/debug_server/DebugServer.hpp
+  dev/debug_server/DebugServer.cpp
+  dev/debug_server/Server.hpp
+  dev/debug_server/Server.cpp
+  dev/debug_server/Tools.hpp
+  dev/debug_server/Tools.cpp
   ../plugin_sdk/include/dmc4_plugin.h
   dev/ps_bind.hpp
   dev/shader_file.hpp
@@ -509,6 +515,8 @@ set(SDK_SRC
     sdk/EventScript.cpp
     sdk/Menus.hpp
     sdk/Menus.cpp
+    sdk/FrameHooks.hpp
+    sdk/FrameHooks.cpp
     sdk/ArcRows.hpp
     sdk/ArcRows.cpp
     sdk/MtMemoryStream.hpp
@@ -690,7 +698,9 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME dinput8)
 target_precompile_headers(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ModPCH.hpp")
-target_link_libraries(${PROJECT_NAME} imgui minhook glm_static shlwapi D3dx9 d3d9 csys::csys Winmm spdlog ImGuizmo pugixml)
+target_link_libraries(${PROJECT_NAME} imgui minhook glm_static shlwapi D3dx9 d3d9 csys::csys Winmm spdlog ImGuizmo pugixml ws2_32)
+# header-only: cpp-httplib (the debug server's HTTP), nlohmann/json
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../dependencies/httplib ${CMAKE_CURRENT_SOURCE_DIR}/../dependencies/nlohmann_json)
 target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_20)
 
 include_directories(${CMAKE_PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})

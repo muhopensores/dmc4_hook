@@ -5,8 +5,9 @@
 // Plugins: loads plugin DLLs from the game folder's plugins\ at startup and gives them the plugin API
 // (plugin_sdk\include\dmc4_plugin.h; plan Vibed\Plugins\README.md). The loader and the api are PluginHost.cpp.
 //
-// Their frame callbacks run from a hook in sDevil4Main::move right after sCollisionGame::checkAttackMain (0x8AF03F,
-// mov ecx, [ebp+0x10364]): the game thread, once per game frame, every unit ticked and the frame's hits resolved.
+// Their frame callbacks run from the shared frame hook (sdk/FrameHooks FRAME_END: sDevil4Main::move right after
+// sCollisionGame::checkAttackMain, 0x8AF03F): the game thread, once per game frame, every unit ticked and the frame's
+// hits resolved.
 class Plugins : public Mod {
 public:
     Plugins() = default;
@@ -19,7 +20,4 @@ public:
     void on_gui_frame(int display) override;
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
-
-private:
-    std::unique_ptr<FunctionHook> hook_frame;
 };
