@@ -1,6 +1,7 @@
 #include "PluginHost.hpp"
 #include "PluginGame.hpp"
 #include "PluginPlayers.hpp"
+#include "PluginRooms.hpp"
 #include "../../../plugin_sdk/include/dmc4_plugin.h"
 #include "../../mod.hpp"
 #include "imgui/imgui_internal.h"
@@ -272,6 +273,7 @@ const dmc4_api g_api = {
     api_hook_at,
     game_api(),
     players_api(),
+    rooms_api(),
 };
 
 // ---- loading ----
@@ -421,6 +423,12 @@ bool run_guarded(dmc4_plugin* self, dmc4_callback fn, void* user, const char* wh
     stop(*self, State::Stopped, std::string("crashed in ") + what + ": " + describe(crash));
     return false;
 }
+
+void plugin_log(dmc4_plugin* self, int level, const std::string& text) {
+    if (self) add_log(*self, level, text);
+}
+
+std::string plugin_file(const dmc4_plugin* self) { return self ? self->file : std::string(); }
 
 void frame() {
     ++g_frame;

@@ -428,6 +428,8 @@ set(DEV_SRC
   dev/plugins/PluginGame.cpp
   dev/plugins/PluginPlayers.hpp
   dev/plugins/PluginPlayers.cpp
+  dev/plugins/PluginRooms.hpp
+  dev/plugins/PluginRooms.cpp
   dev/plugins/Plugins.hpp
   dev/plugins/Plugins.cpp
   dev/rooms/Rooms.hpp

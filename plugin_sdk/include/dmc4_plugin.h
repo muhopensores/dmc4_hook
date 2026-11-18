@@ -43,7 +43,7 @@ extern "C" {
 #endif
 
 #define DMC4_PLUGIN_ABI 1          /* breaking changes: a plugin built for another ABI isn't loaded */
-#define DMC4_PLUGIN_API_VERSION 3  /* additions: functions appended to dmc4_api (and to the tables it points to) */
+#define DMC4_PLUGIN_API_VERSION 4 /* additions: functions appended to dmc4_api (and to the tables it points to) */
 
 #define DMC4_PLUGIN_EXPORT DMC4_EXTERN_C __declspec(dllexport)
 #define DMC4_PLUGIN_ABI_EXPORT() DMC4_PLUGIN_EXPORT uint32_t dmc4_plugin_abi(void) { return DMC4_PLUGIN_ABI; }
@@ -173,6 +173,66 @@ typedef struct dmc4_players_api {
     int (*run_as)(dmc4_plugin* self, void* player, dmc4_callback fn, void* user);
 } dmc4_players_api;
 
+/* ---- rooms (api->rooms, version 4): new room classes, derived from the game's ----
+ *
+ * The game finds a room by class name: a room number n makes it create class "aRoom<n>" (three digits at least), and
+ * the room loads rom\room\st<n>.arc (optional for these rooms: loose files work) and its files scr\st<stage>\... A
+ * plugin registers classes while it starts (in dmc4_plugin_init; the hook makes them right before the game records its
+ * area classes, and they can't be removed afterwards). A class derives from a vanilla room ("aRoom200": its files,
+ * scripts and behaviour) or the bare "aRoom", or from a class registered before it, and may add:
+ *   - callbacks around the room's own steps (each gets a dmc4_room_call; call api->rooms->base(call) to run the step it
+ *     replaces: init must, final should);
+ *   - event scripts as text (doors, enemy waves, fades: the format is in dmc4_hook's src/sdk/EventScript.hpp,
+ *     Vibed/RE/event_script.md), and the file names they use by index;
+ *   - its own memory in every instance (fields_size bytes, zeroed).
+ * Room numbers 900-999 are free (no vanilla class); a vanilla room's number is refused. Enter a room with enter().
+ * A plugin that is stopped (a crash) leaves its rooms running as their base class. Plan: Vibed/Rooms/README.md. */
+typedef struct dmc4_room_call {
+    void* room;      /* the room (an aRoom, sdk/sArea.hpp) */
+    void* fields;    /* this class's fields_size bytes in it */
+    void* user;      /* dmc4_room_class.user */
+    void* internal;  /* the hook's: pass the call to base() */
+} dmc4_room_call;
+
+typedef struct dmc4_room_class {
+    uint32_t size;              /* sizeof(dmc4_room_class) where the plugin was built */
+    int room;                   /* the room number (900-999) */
+    const char* base;           /* the base class: "aRoom200", "aRoom", or a room class registered before; NULL = "aRoom" */
+    int stage;                  /* the files' stage number, -1 = the base's */
+    uint32_t fields_size;       /* bytes of the plugin's own per-room memory */
+    void* user;                 /* passed back in dmc4_room_call.user */
+    void (*create)(const dmc4_room_call* call);   /* after construction */
+    void (*destroy)(const dmc4_room_call* call);  /* before the base destructor */
+    int (*load)(const dmc4_room_call* call);      /* each frame while loading: nonzero = loaded (return base(call)) */
+    void (*init)(const dmc4_room_call* call);     /* once loaded: call base(call) (builds the room), then add units */
+    void (*move)(const dmc4_room_call* call);     /* every frame */
+    void (*final)(const dmc4_room_call* call);    /* leaving: call base(call) (saves the player, frees the room's units) */
+    const char* script;         /* event script text run once while the room loads; NULL = the base's */
+    const char* after_script;   /* event script text run every frame (restarted at its end); NULL = the base's */
+    const char* const* names;   /* the scripts' files by index (.pla, .sbc, scheduler names...); NULL = the base's */
+    int name_count;
+} dmc4_room_class;
+
+typedef struct dmc4_rooms_api {
+    uint32_t size;   /* sizeof(dmc4_rooms_api) in the hook: functions are only appended */
+
+    /* ---- version 4 ---- */
+
+    /* adds a room class; only in dmc4_plugin_init. 1 = added, 0 = refused (the reason goes to the plugin's log: a taken
+     * room number, a bad script with its line, no such base class...). Strings and the names array are copied. */
+    int (*register_class)(dmc4_plugin* self, const dmc4_room_class* desc);
+    /* runs the step a callback replaces (the base class's); its result (load: nonzero = loaded) */
+    int (*base)(const dmc4_room_call* call);
+    void* (*current)(void);                   /* the room now (any class), NULL = none */
+    int (*room_number)(void* room);           /* aRoom +0x28, -1 for NULL */
+    int (*stage_number)(void* room);          /* aRoom +0x2C, -1 for NULL */
+    void* (*fields)(void* room);              /* the fields of a registered class's room, NULL for other rooms */
+    /* starts going to room n (a vanilla room or a registered one), as AreaJump does; 1 = started. Game thread, in a stage */
+    int (*enter)(int room);
+    /* checks event script text without registering anything: 1 = fine; else 0 and the error (with the line) in error */
+    int (*check_script)(const char* text, char* error, uint32_t error_size);
+} dmc4_rooms_api;
+
 typedef struct dmc4_api {
     uint32_t abi;             /* DMC4_PLUGIN_ABI of the hook */
     uint32_t version;         /* DMC4_PLUGIN_API_VERSION of the hook: the functions up to that version are present */
@@ -227,6 +287,11 @@ typedef struct dmc4_api {
 
     /* the players: count, each one, who has the keyboard, running code in a player's context (dmc4_players_api above) */
     const dmc4_players_api* players;
+
+    /* ---- version 4 ---- */
+
+    /* room classes derived from the game's: new rooms with their own code, scripts and memory (dmc4_rooms_api above) */
+    const dmc4_rooms_api* rooms;
 } dmc4_api;
 
 #ifdef __cplusplus

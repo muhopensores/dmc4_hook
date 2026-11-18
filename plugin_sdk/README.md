@@ -39,6 +39,10 @@ C++20. Never construct these classes or define their virtual functions; read and
 - **Co-op:** up to four players. Get them from `api->players`, never treat `DMC4_OBJ_LOCAL_PLAYER` as the only
   one, and run game code meant for player 2-4 inside `api->players->run_as` (it puts that player where the
   game's "the player" reads are, and back afterwards).
+- **Rooms** (`api->rooms`, version 4): register room classes only in `dmc4_plugin_init` (the hook makes them before
+  the game records its area classes; later is too late). Use room numbers 900-999. A room callback that replaces a
+  step (`init`, `final`, `load`) calls `api->rooms->base` to run the room's own step. Event script text is checked
+  with `api->rooms->check_script`. The example registers room 901.
 - **Crashes:** a plugin that crashes in a callback is stopped and the menu shows where (module + offset). Its DLL
   stays loaded, so restart the game after fixing it.
 - **Versions:** `api->version` tells which functions exist (each one says the version that added it in the header).

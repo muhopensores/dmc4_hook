@@ -26,4 +26,8 @@ void save_config(utility::Config& cfg);
 // (its callbacks go, the reason is logged with `what`) and returns false.
 bool run_guarded(dmc4_plugin* self, dmc4_callback fn, void* user, const char* what);
 
+// For the api tables in other files: a line in the plugin's log (as api->log), and its DLL's file name.
+void plugin_log(dmc4_plugin* self, int level, const std::string& text);
+std::string plugin_file(const dmc4_plugin* self);
+
 } // namespace plugins
