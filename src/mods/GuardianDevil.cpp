@@ -27,42 +27,58 @@ int   trigger_source       = TRIG_PAD;
 int   trigger_pad          = 0x100;
 int   trigger_key          = 0x54;    // T
 int   trigger_game         = 0x100;
-float cooldown_frames      = 30.0f;
-bool  cancel_on_hit        = false;
-bool  rush_effect          = true;
-float height_offset        = 0.0f;
-bool  hold_stays_put       = false;
-bool  dt_cancel_keeps_hold = false;
-bool  taunt_mimic          = true;
-char  taunt_lmt[128]       = "motion\\pl020\\pl020_guardian_ex";
-char  taunt_arm_lmt[128]   = "motion\\wp024\\wp024_guardian_ex";
-float taunt_back           = 80.0f;
-float taunt_side           = 0.0f;
 bool  guard_enabled        = true;
-float guard_window         = 5.0f;
-bool  guard_effects        = true;
-bool  guard_style          = true;
-bool  guard_dt             = true;
-float guard_dt_gain        = -1.0f;
-float guard_recovery       = 15.0f;
-float reguard_time         = 45.0f;
 bool  dt_cost              = false;
-float cost_neutral         = 500.0f;   // half a bar per move
-float cost_forward         = 500.0f;
-float cost_back            = 500.0f;
-float cost_rush            = 500.0f;
-float cost_guard           = 0.0f;
-float rush_drain           = 500.0f;
-float cost_in_dt           = 0.5f;    // in Devil Trigger every cost and the drain are halved
-static const ActionSet kDefaultSet = { true, 0x31C, 0x317, 0x330, 0x35F, 135.0f, 170.0f, 172.0f, 150.0f, 0x302, 0.0f,
-                                           -1, -1, -1, -1, 0, 3 };   // the guard plays block 0, 1 or 2 of the stand LMT (guardian_ex)
-ActionSet sets[nero_style::kSlots] = { kDefaultSet, kDefaultSet, kDefaultSet, kDefaultSet };
+bool  cancel_on_hit        = false;
 
 namespace {
+
+// ---- The fixed values ------------------------------------------------------------------------------------------------
+// The stand's actions, the same in every NeroStyle slot: a motion of an action is its vanilla stand motion number, or a
+// block of the stand LMT when its block isn't -1 (motion_registry::word; the vanilla motion while the set isn't on the
+// stand yet).
+struct ActionSet {
+    int   neutral;        // the trigger alone (0x31C)
+    int   forward;        // lock-on + forward + the trigger (0x317, Streak)
+    int   back;           // lock-on + back + the trigger (0x330)
+    int   rush;           // lock-on + back, forward + the trigger (0x35F, the punch rush)
+    float rush_start;     // the rush motion's start frame (its wind-up skipped: 135)
+    float loop_from;      // while the trigger is held, a rush frame in [loop_from, loop_to] jumps back to loop_dest
+    float loop_to;
+    float loop_dest;
+    int   guard;          // the guard's motion (0x302, the stand's sword clash)
+    float guard_start;    // its start frame
+    int   neutral_block;
+    int   forward_block;
+    int   back_block;
+    int   rush_block;
+    int   guard_block;    // block 0 of the stand LMT (the guardian_ex package's guard)
+    int   guard_blocks;   // each guard picks one of this many blocks from guard_block on at random (blocks 0-2)
+};
+constexpr ActionSet kSet = { 0x31C, 0x317, 0x330, 0x35F, 135.0f, 170.0f, 172.0f, 150.0f, 0x302, 0.0f, -1, -1, -1, -1, 0, 3 };
+// The stand LMT block played when Nero switches into a NeroStyle slot (-1 = none): slots 0 / 1 / 3 are the Devil Bringer,
+// Gerbera and Gunslinger, whose poses are blocks 10, 12 and 11 of guardian_ex.
+constexpr int kSwitchBlock[nero_style::kSlots] = { 10, 12, -1, 11 };
+
+constexpr float kCooldown      = 30.0f;    // frames between starts
+constexpr float kTauntBack     = 80.0f;    // the taunt mimic's stand: cm behind Nero along his facing
+constexpr float kGuardWindow   = 5.0f;     // frames after a press in which a hit is guarded (Dante's Just Block window)
+constexpr float kGuardRecovery = 15.0f;    // frames after a guard before the next stand attack
+constexpr float kReguardTime   = 45.0f;    // frames after a guard in which a press guards again instead of attacking
+constexpr float kActionCost    = 500.0f;   // with dt_cost: DT each start takes (half a bar; the guard is free)
+constexpr float kRushDrain     = 500.0f;   // with dt_cost: DT per second while the rush is held past its wind-up
+constexpr float kCostInDt      = 0.5f;     // the cost and the drain while Nero is in Devil Trigger
+// The stand LMT pair (Nero's taunts retargeted at his block numbers, the custom stand moves in the free blocks), loose
+// files under nativePC: mod-manager package guardian_ex.
+const char* const kStandLmt    = "motion\\pl020\\pl020_guardian_ex";
+const char* const kStandArmLmt = "motion\\wp024\\wp024_guardian_ex";
 
 // ---- The game ---------------------------------------------------------------------------------------------------
 char* const kRushEffectRun = "effect\\efl\\vie\\vi020_00v0";   // while the rush runs
 char* const kRushEffectEnd = "effect\\efl\\vie\\vi020_00v1";   // when it ends
+char* const kSwitchEffect  = "effect\\efl\\com\\ec024_60v0";   // a switch pose: Nero's DT-on flash (list 1 index 0x40,
+                                                               // uPlayerNero::setDevilTriggerCommon's), on the stand
+constexpr int kSwitchSe = 41;                                  // with BringerAppear (pl000_style00 request 41)
 // A guard's feedback is the vanilla stand block's (uPlayerNero::procBeforeDamageCalc 0x7E6620): the stay effect list 0 /
 // 0x28 (effect\efl\com\ec032_00v1) and SE 69 on the player's second sound bank (uPlayer +0x1D64 = pl000_style00), with
 // the pad rumble uPlayer::reverseMessage gives a clash (setPadVibration 1).
@@ -95,7 +111,6 @@ uintptr_t           kGateCancel     = 0x82A9D5;   //   the cancel branch (arm ca
 constexpr uintptr_t kPhase0Site     = 0x82A8A5;   // moveActYamato phase 0: `cmp byte [edx+0CDF4h],1; jnz 82AA6F` (13 bytes)
 uintptr_t           kPhase0Wait     = 0x82AA6F;   //   Nero's mimic event not set yet: wait
 uintptr_t           kPhase0Tail     = 0x82A93E;   //   past the trace / detach placement: flags, arm reset, setMotion(mYamatoParam)
-constexpr uintptr_t kPositionSite   = 0x8292E3;   // uPlNeroDevil::updatePosition: `cmp byte [esi+22C8h],1` (7 bytes), right after moveMotion; esi = stand
 constexpr uintptr_t kFollowSite     = 0x828DC3;   // moveEx, not tracing: `movss xmm1,[eax+0D650h]` (8 bytes), Nero's push-back
 uintptr_t           kFollowEnd      = 0x828E85;   //   after the push-back / ground height / yaw -> quat block (the DT read)
 constexpr uintptr_t kDtRequestSite  = 0x7E6E2C;   // uPlayerNero::setRedQueenMotion: `cmp al,1; jnz 7E6E8D; push edi` (5 bytes), al = isDevilTrigger
@@ -106,11 +121,6 @@ constexpr uintptr_t kSwordParentJoint = 0x13AC;  // the sword model's parent joi
                                                  // hand) while the stand's motion has event bit 31 (kMotSeqParam 0xC3D6C8), else 151 (sheath)
 constexpr uintptr_t kDisappearSite  = 0x829B39;   // uPlNeroDevil::checkDevilDisappear: `cmp byte [eax+22C9h],1` (7 bytes), then `jz` the DT test
 uintptr_t           kDisappearDT    = 0x829B70;   //   the DT test (event bit 10)
-constexpr uintptr_t kDtAtOnceSite   = 0x7E5316;   // uPlayerNero::checkActionDevilTrgAtOnce: `cmp dword [eax+22A8h],7; jz 7E5338` (9 bytes), eax = stand
-uintptr_t           kDtAtOnceRefuse = 0x7E5338;   //   `xor al,al; retn`
-constexpr uintptr_t kDtAppearSite   = 0x7F8DF0;   // uPlayerNero::moveActDevilTrg phase 0: `call uPlNeroDevil::setAction` (5 bytes), eax = 1 Appear, edi = stand
-constexpr uintptr_t kDtAppearAirSite = 0x7F90B6;  // uPlayerNero::moveActDevilTrgAir: the same call
-uintptr_t           kSetAction      = st::fn_setAction;
 
 // The stand's DT reads that become kShown reads: the low byte of each `[reg+22C9h]` displacement -> 0xD3.
 constexpr uintptr_t kShownPatches[10] = {
@@ -126,12 +136,12 @@ constexpr uintptr_t kShownPatches[10] = {
     0x82A84B,   // moveActYamato: the mimic's DT gate
 };
 
-uint8_t g_dt_cancel = 0;   // mod_enabled && dt_cancel_keeps_hold, for the detours
 bool g_test_guard = false; // the GUI's Play Guard Motion: the local Nero's next tick plays the style's guard motion
 
 // ---- Per-player state ---------------------------------------------------------------------------------------------
 constexpr int kPlayerSlots = 8;
 enum Phase : int { IDLE = 0, ATTACK = 1, FADE = 2 };
+enum Kind : int { KIND_ATTACK = 0 /* an input's attack or a guard */, KIND_TAUNT = 1 /* the taunt mimic */, KIND_SWITCH = 2 /* a style switch pose */ };
 
 struct State {
     uintptr_t   player = 0;
@@ -139,23 +149,26 @@ struct State {
     int         phase = IDLE;
     float       cooldown = 0.0f;
     int         motion = -1;          // the running attack's motion
-    int         slot = 0;             // its style slot
     uintptr_t   effect = 0;           // the rush's running effect
     bool        effect_ended = false; // its end effect played (the button let go in the loop window)
     bool        drained = false;      // the rush ran the DT gauge dry: it stops looping
-    bool        hold_detached = false;// hold_stays_put took the stand off Nero
-    float       hold_pos[3] = {};     // where it was when the hold began (the hold motions' root motion is undone to it)
     bool        held = false;         // the pad / key trigger was down last tick (the press edge)
     bool        taunting = false;     // the running attack is a taunt mimic (ends with Nero's taunt)
     bool        rushing = false;      // the running attack is the rush (its loop and effects)
     bool        taunt_tried = false;  // this taunt of Nero's was answered (or refused) already
+    bool        switching = false;    // the running action is a style switch pose
+    bool        pose_stopped = false; // the pose's motions are stopped on their last frame (A_STOP set by us)
+    bool        pose_held = false;    // the pose has had its hold
+    float       pose_hold = 0.0f;     // frames held so far
+    bool        switches_known = false;// seen_switches holds NeroStyle's count for this Nero
+    uint32_t    seen_switches = 0;    // NeroStyle's switch count last tick (a higher one = a switch)
     bool        window = false;       // a guard window is open: an attack's press or a re-guard opened it
     float       guard_timer = 0.0f;   // frames since that press (delta time, as Dante's Just Block counter)
     bool        window_blocked = false;// the open window caught a hit
     bool        guard_pending = false;// a hit was guarded: the stand turns to the guard on the next tick
     bool        guarding = false;     // the running action is the guard
     bool        reguard_ok = true;    // a press may guard again (off after a re-guard caught nothing)
-    float       reguard_left = 0.0f;  // frames left in which a press re-guards (reguard_time from each guard)
+    float       reguard_left = 0.0f;  // frames left in which a press re-guards (kReguardTime from each guard)
     bool        reguard_window = false;// the open window is a re-guard's (it guards whatever the stand does)
     uint32_t    guards = 0, blocked = 0;
     uint32_t    starts = 0, refused = 0;
@@ -253,17 +266,17 @@ void stop_effect(State& s) {
 void write_bytes(uintptr_t stand, const State& s) {
     uint8_t mod = 0;
     if (s.phase == ATTACK)  mod |= st::MOD_ATTACK;
-    if (s.hold_detached)    mod |= st::MOD_HOLD;
     if (s.phase != IDLE)    mod |= st::MOD_PLACED;
     if (s.phase == ATTACK && s.guarding) mod |= st::MOD_GUARD;
     at<uint8_t>(stand, st::kMod) = mod;
     at<uint8_t>(stand, st::kShown) = (at<uint8_t>(stand, st::mIsDevilTrigger) || s.phase != IDLE) ? 1 : 0;
 }
 
-// The start: what setRedQueenMotion does in DT, on a stand placed on Nero (`back` / `side` cm from him along his
-// facing) and detached, fading in at once. `taunt`: the motion is Nero's taunt (no lock-out on his taunt action).
-// `guard`: a guarded hit turns the running attack into the style's guard motion from its start frame (the attack's
-// window stays as it is) and the guard's recovery starts. Any other attack opens a guard window.
+// The start: what setRedQueenMotion does in DT, on a stand placed on Nero (`back` cm behind him along his facing) and
+// detached, fading in at once. `kind`: an attack (or guard), the taunt mimic, or a style switch pose (neither
+// opens a guard window; a pose sets no cooldown).
+// `guard`: a guarded hit turns the running attack into the guard motion from its start frame (the attack's window stays
+// as it is) and the guard's recovery starts. Any other attack opens a guard window.
 // `cost`: the DT it takes (with dt_cost on; refused when the gauge has less).
 // A motion of an action set: the stand LMT block's registry word when it has one and the set is on the stand, else the
 // vanilla motion number.
@@ -296,6 +309,26 @@ std::string sword_event_debug(uintptr_t stand) {
     return buf;
 }
 
+// A switch pose holds its last frame for kPoseHold frames before the stand ends it and fades: motion slot 0 of the stand
+// and of its arm gets uModel's A_STOP (attr word +0x33A bit 0x10: uModel::updateFrame doesn't advance the frame, so the
+// motion doesn't step past mFrameMax - 1 and isn't ended), then the bit is cleared and the motion ends on its next step.
+constexpr float     kPoseHold     = 10.0f;
+constexpr uintptr_t kMotAttr0     = 0x33A;    // MotionArray[0].mAttr (u16)
+constexpr uintptr_t kMotFrameMax0 = 0x34C;    // MotionArray[0].mFrameMax (float, the clip's frame count)
+constexpr uint16_t  kMotStop      = 0x10;     // A_STOP
+
+void stop_motion(uintptr_t model, bool on) {
+    if (!model) return;
+    uint16_t& attr = at<uint16_t>(model, kMotAttr0);
+    attr = on ? (attr | kMotStop) : (attr & ~kMotStop);
+}
+void unstop_pose(uintptr_t stand, State& s) {
+    if (!s.pose_stopped) return;
+    stop_motion(stand, false);
+    stop_motion(st::hand_of(stand), false);
+    s.pose_stopped = false;
+}
+
 int resolve_motion(uintptr_t pl, int motion, int block) {
     if (block < 0) { g_motion_source = "vanilla (LMT block -1)"; return motion; }
     if (g_taunt_set < 0) { g_motion_source = "vanilla: no stand LMT path"; return motion; }
@@ -311,69 +344,71 @@ int resolve_motion(uintptr_t pl, int motion, int block) {
 
 // The guard's motion: a random block of guard_block .. guard_block + guard_blocks - 1 (one the stand LMT lacks falls back to the
 // first).
-int guard_motion(uintptr_t pl, const ActionSet& set) {
+int guard_motion(uintptr_t pl) {
     static std::minstd_rand rng(GetTickCount());
-    int block = set.guard_block;
-    if (block >= 0 && set.guard_blocks > 1) {
-        const int pick = block + (int)(rng() % (uint32_t)set.guard_blocks);
+    int block = kSet.guard_block;
+    if (block >= 0 && kSet.guard_blocks > 1) {
+        const int pick = block + (int)(rng() % (uint32_t)kSet.guard_blocks);
         if (g_taunt_set < 0 || !motion_registry::ready(g_taunt_set, pl) || motion_registry::word(g_taunt_set, pl, pick) >= 0) block = pick;
     }
-    return resolve_motion(pl, set.guard, block);
+    return resolve_motion(pl, kSet.guard, block);
 }
 
-void start(uintptr_t pl, uintptr_t stand, State& s, int slot, int motion, bool taunt = false, float back = 0.0f, float side = 0.0f,
-           bool guard = false, float cost = 0.0f, bool rush = false) {
-    const ActionSet& set = sets[slot];
+void start(uintptr_t pl, uintptr_t stand, State& s, int motion, Kind kind = KIND_ATTACK, float back = 0.0f, bool guard = false,
+           float cost = 0.0f, bool rush = false) {
     const char* why = nullptr;
     const int action = at<int>(stand, st::mActionNo);
     if (!dt_cost) cost = 0.0f;
-    else if (at<uint8_t>(stand, st::mIsDevilTrigger)) cost *= cost_in_dt;   // Nero's DT state is the stand's
-    if (!set.enabled)                                            why = "no stand in this style";
-    else if (cost > 0.0f && at<float>(pl, kDevilTrgNow) < cost)  why = "not enough DT";
-    else if (motion < 0)                                         why = taunt ? "the taunt LMTs aren't on the stand yet" : "no motion for this input";
+    else if (at<uint8_t>(stand, st::mIsDevilTrigger)) cost *= kCostInDt;   // Nero's DT state is the stand's
+    if (cost > 0.0f && at<float>(pl, kDevilTrgNow) < cost)       why = "not enough DT";
+    else if (motion < 0)                                         why = kind == KIND_TAUNT  ? "the taunt LMTs aren't on the stand yet"
+                                                                     : kind == KIND_SWITCH ? "the switch pose's LMT block isn't on the stand"
+                                                                     :                       "no motion for this input";
     else if (action != st::ACT_NONE && action != st::ACT_YAMATO) why = "the stand is busy";
     else if (at<uint8_t>(stand, st::mIsDevilTriggerReserve))     why = "a DT change is pending";
     else nero_locked_out(pl, &why);
     if (why) { ++s.refused; s.last_refusal = why; return; }
 
     std::memcpy(&at<float>(stand, st::mPos), &at<float>(pl, pl::mPos), 12);
-    at<float>(stand, st::mPos + 4) += height_offset;
-    if (back != 0.0f || side != 0.0f) {                          // game axes: forward = (sin yaw, 0, cos yaw), right = (-cos, 0, sin)
+    if (back != 0.0f) {                                          // game axes: forward = (sin yaw, 0, cos yaw)
         const float yaw = at<float>(pl, st::pl_mFacingYaw);
-        at<float>(stand, st::mPos)     += -std::sin(yaw) * back - std::cos(yaw) * side;
-        at<float>(stand, st::mPos + 8) += -std::cos(yaw) * back + std::sin(yaw) * side;
+        at<float>(stand, st::mPos)     -= std::sin(yaw) * back;
+        at<float>(stand, st::mPos + 8) -= std::cos(yaw) * back;
     }
     std::memcpy(&at<float>(stand, st::mQuat), &at<float>(pl, pl::mQuat), 16);
     at<float>(stand, st::mAnglY) = at<float>(pl, st::pl_mFacingYaw);
     at<uint8_t>(stand, st::mIsTraceParent) = 0;
+    unstop_pose(stand, s);
     st::set_action(stand, st::ACT_YAMATO);
-    st::yamato_param(stand, motion, 4, guard ? set.guard_start : rush ? set.rush_start : 0.0f);
+    st::yamato_param(stand, motion, 4, guard ? kSet.guard_start : rush ? kSet.rush_start : 0.0f);
     at<int>(stand, st::mTpPhase) = st::TP_FADE_IN;
     if (const uintptr_t target = at<uintptr_t>(pl, st::pl_mLockOnTarget)) st::set_snatch_param(stand, target);
 
     if (cost > 0.0f) at<float>(pl, kDevilTrgNow) -= cost;
     stop_effect(s);
-    if (rush && rush_effect) s.effect = (uintptr_t)devil4_sdk::effect_generator(kRushEffectRun, (void*)stand, 0x14);
+    if (rush) s.effect = (uintptr_t)devil4_sdk::effect_generator(kRushEffectRun, (void*)stand, 0x14);
     s.effect_ended = false;
     s.drained = false;
     s.phase = ATTACK;
     s.motion = motion;
-    s.slot = slot;
-    s.taunting = taunt;
+    s.taunting = kind == KIND_TAUNT;
+    s.switching = kind == KIND_SWITCH;
+    s.pose_held = false;
+    s.pose_hold = 0.0f;
     s.rushing = rush;
     s.guarding = guard;
     s.guard_pending = false;
     if (guard) {
         s.reguard_ok = true;
-        s.reguard_left = reguard_time;
-    } else {
-        s.window = guard_enabled && !taunt;
+        s.reguard_left = kReguardTime;
+    } else if (kind != KIND_SWITCH) {                            // a pose leaves the guard state (re-guards) as it is
+        s.window = guard_enabled && kind == KIND_ATTACK;
         s.guard_timer = 0.0f;
         s.window_blocked = false;
         s.reguard_window = false;
         s.reguard_left = 0.0f;
     }
-    s.cooldown = guard ? guard_recovery : cooldown_frames;
+    if (kind != KIND_SWITCH) s.cooldown = guard ? kGuardRecovery : kCooldown;
     ++s.starts;
     if (guard) ++s.guards;
     write_bytes(stand, s);
@@ -385,6 +420,7 @@ void end_attack(uintptr_t stand, State& s) {
     stop_effect(s);
     s.phase = FADE;
     s.taunting = false;
+    s.switching = false;
     s.guarding = false;
 }
 
@@ -398,13 +434,61 @@ void taunt_tick(uintptr_t pl, uintptr_t stand, State& s) {
         s.taunting = false;
         return;
     }
-    if (!taunt_mimic || !provoking || s.taunt_tried || s.phase == ATTACK) return;
+    if (!provoking || s.taunt_tried || s.phase == ATTACK) return;
     const uint32_t motion = at<uint32_t>(pl, pl::mMotionCtrl0No);
     if (!is_taunt_motion(motion)) return;                        // the taunt motion is requested a tick after the action starts
     s.taunt_tried = true;
     int word = -1;
     if (g_taunt_set >= 0 && motion_registry::ready(g_taunt_set, pl)) word = motion_registry::word(g_taunt_set, pl, (int)motion);
-    start(pl, stand, s, slot_for(pl), word, true, taunt_back, taunt_side);
+    start(pl, stand, s, word, KIND_TAUNT, kTauntBack);
+}
+
+// The switch pose's start: the DT-on flash on the stand and the Devil Bringer's appear sound, from the stand's place.
+void switch_feedback(uintptr_t pl, uintptr_t stand) {
+    devil4_sdk::effect_generator(kSwitchEffect, (void*)stand, 0x14);
+    const uintptr_t inst = *(uintptr_t*)kSoundInstance;
+    const uintptr_t bank = at<uintptr_t>(pl, kSeBanks + 4);
+    if (inst && bank)
+        ((void(__stdcall*)(uintptr_t, uintptr_t, int, uintptr_t, const float*, int, int, uintptr_t))fn_requestSe)(
+            inst, bank, kSwitchSe, pl, &at<float>(stand, st::mPos), 1, 1, fn_sePositionCb);
+}
+
+// NeroStyle switched Nero's style: the stand plays the new style's switch pose (its kSwitchBlock), on Nero, with
+// switch_feedback, unless an attack or a guard runs (a pose or a taunt is replaced). Clearing the style (no style) plays
+// nothing.
+void switch_tick(uintptr_t pl, uintptr_t stand, State& s) {
+    int style = nero_style::NONE;
+    const uint32_t count = nero_style::switches(pl, &style);
+    const bool switched = s.switches_known && count > s.seen_switches;   // a lower count: NeroStyle started over for this Nero
+    s.seen_switches = count;
+    s.switches_known = true;
+    if (!switched) return;
+    const int slot = style - nero_style::BASE;
+    if (slot < 0 || slot >= nero_style::kSlots || kSwitchBlock[slot] < 0) return;
+    if (s.phase == ATTACK && !s.taunting && !s.switching) { ++s.refused; s.last_refusal = "style switch: the stand is attacking"; return; }
+    const uint32_t starts = s.starts;
+    start(pl, stand, s, resolve_motion(pl, -1, kSwitchBlock[slot]), KIND_SWITCH);
+    if (s.starts != starts) switch_feedback(pl, stand);
+}
+
+// The pose's hold: a tick before the stand's motion would reach its last frame (this tick runs before the stand's update),
+// put it on that frame and stop it (and the arm's), kPoseHold frames, then let it end. Anything that ends or replaces the
+// pose first lets the motions go.
+void pose_hold_tick(uintptr_t stand, State& s, float dt) {
+    if (s.phase != ATTACK || !s.switching) { unstop_pose(stand, s); return; }
+    if (s.pose_stopped) {
+        s.pose_hold += dt;
+        if (s.pose_hold >= kPoseHold) { unstop_pose(stand, s); s.pose_held = true; }
+        return;
+    }
+    if (s.pose_held) return;
+    const float last = at<float>(stand, kMotFrameMax0) - 1.0f;
+    if (last < 0.0f || at<float>(stand, st::mFrame0) < last - 1.0f) return;
+    at<float>(stand, st::mFrame0) = last;
+    stop_motion(stand, true);
+    stop_motion(st::hand_of(stand), true);   // a shorter arm motion has already stopped on its own last frame
+    s.pose_stopped = true;
+    s.pose_hold = 0.0f;
 }
 void end_fade(uintptr_t stand, State& s) {
     at<uint8_t>(stand, st::mIsTraceParent) = 1;
@@ -414,24 +498,23 @@ void end_fade(uintptr_t stand, State& s) {
 // The rush: while the trigger is held, a frame in the loop window jumps back; let go, the end effect plays once. With
 // dt_cost, holding it past the wind-up (from the loop's target frame) drains the gauge; dry, it stops looping.
 void rush_loop(uintptr_t pl, uintptr_t stand, State& s) {
-    const ActionSet& set = sets[s.slot];
     const float frame = at<float>(stand, st::mFrame0);
     if (s.rushing) {
         bool held = trigger_down(pl) && !s.drained && !s.effect_ended;
-        if (held && dt_cost && rush_drain > 0.0f && frame >= set.loop_dest) {
+        if (held && dt_cost && frame >= kSet.loop_dest) {
             float& gauge = at<float>(pl, kDevilTrgNow);
-            const float rate = at<uint8_t>(stand, st::mIsDevilTrigger) ? rush_drain * cost_in_dt : rush_drain;
+            const float rate = at<uint8_t>(stand, st::mIsDevilTrigger) ? kRushDrain * kCostInDt : kRushDrain;
             const float take = rate * at<float>(pl, pl::m_delta_time) / 60.0f;
             if (gauge >= take) gauge -= take;
             else { gauge = 0.0f; s.drained = true; held = false; }
         }
-        if (frame < set.loop_from || frame > set.loop_to) return;
+        if (frame < kSet.loop_from || frame > kSet.loop_to) return;
         if (held) {
-            at<float>(stand, st::mFrame0) = set.loop_dest;
-            if (const uintptr_t hand = st::hand_of(stand)) at<float>(hand, st::mFrame0) = set.loop_dest;
+            at<float>(stand, st::mFrame0) = kSet.loop_dest;
+            if (const uintptr_t hand = st::hand_of(stand)) at<float>(hand, st::mFrame0) = kSet.loop_dest;
         } else if (!s.effect_ended) {
             stop_effect(s);
-            if (rush_effect) devil4_sdk::effect_generator(kRushEffectEnd, (void*)stand, 0x14);
+            devil4_sdk::effect_generator(kRushEffectEnd, (void*)stand, 0x14);
             s.effect_ended = true;
         }
     } else if (s.effect && frame >= 2.0f) {
@@ -450,7 +533,6 @@ void pad_vibration(uintptr_t pl, int id) {
     }
 }
 void guard_feedback(uintptr_t pl) {
-    if (!guard_effects) return;
     float pos[4];
     std::memcpy(pos, &at<float>(pl, pl::mPos), 12);
     pos[1] += kGuardEffectHeight;
@@ -464,9 +546,8 @@ void guard_feedback(uintptr_t pl) {
     pad_vibration(pl, kGuardVibration);
 }
 
-// The vanilla block's style for a guard, without its DT bonus (the guard can cost DT instead).
+// The vanilla block's style for a guard, without its DT bonus (add_guard_dt adds that).
 void add_guard_style(uintptr_t pl) {
-    if (!guard_style) return;
     const uintptr_t prm = at<uintptr_t>(pl, kPlayerParam);
     if (!prm) return;
     const float style_a = at<float>(prm, 0x44), style_b = at<float>(prm, 0x40), dt_bonus = 0.0f;
@@ -483,23 +564,22 @@ void add_guard_style(uintptr_t pl) {
     }
 }
 
-// The DT a guard adds: the vanilla stand block's bonus (player params +0x48, what procBeforeDamageCalc hands addComboGauge)
-// unless guard_dt_gain sets one. Added here rather than through addComboGauge, which skips it while a recent guard is
-// still in sStylishCount's list; like addComboGauge, nothing while Nero is in Devil Trigger.
+// The DT a guard adds: the vanilla stand block's bonus (player params +0x48, what procBeforeDamageCalc hands addComboGauge).
+// Added here rather than through addComboGauge, which skips it while a recent guard is still in sStylishCount's list; like
+// addComboGauge, nothing while Nero is in Devil Trigger.
 float guard_dt_amount(uintptr_t pl) {
-    if (guard_dt_gain >= 0.0f) return guard_dt_gain;
     const uintptr_t prm = at<uintptr_t>(pl, kPlayerParam);
     return prm ? at<float>(prm, 0x48) : 0.0f;
 }
 void add_guard_dt(uintptr_t pl, uintptr_t stand) {
-    if (!guard_dt || at<uint8_t>(stand, st::mIsDevilTrigger)) return;
+    if (at<uint8_t>(stand, st::mIsDevilTrigger)) return;
     float& now = at<float>(pl, kDevilTrgNow);
     now = std::min(now + guard_dt_amount(pl), at<float>(pl, kDevilTrgNow + 4));   // mDevilTrg.max
 }
 
 // A Guardian action press after a guard: a new window, once the last one has closed, unless a re-guard missed.
 void reguard(State& s) {
-    if (!guard_enabled || !s.reguard_ok || (s.window && s.guard_timer <= guard_window)) return;
+    if (!guard_enabled || !s.reguard_ok || (s.window && s.guard_timer <= kGuardWindow)) return;
     s.window = true;
     s.guard_timer = 0.0f;
     s.window_blocked = false;
@@ -509,10 +589,11 @@ void reguard(State& s) {
 // The mod turned off (or never on) for a player whose stand still carries our state: give the stand back.
 void release(uintptr_t stand, State& s) {
     stop_effect(s);
-    if (s.phase != IDLE || s.hold_detached) at<uint8_t>(stand, st::mIsTraceParent) = 1;
+    if (s.phase != IDLE) at<uint8_t>(stand, st::mIsTraceParent) = 1;
     s.phase = IDLE;
-    s.hold_detached = false;
+    unstop_pose(stand, s);
     s.taunting = false;
+    s.switching = false;
     s.guarding = false;
     s.window = false;
     s.window_blocked = false;
@@ -521,12 +602,6 @@ void release(uintptr_t stand, State& s) {
     s.guard_pending = false;
     at<uint8_t>(stand, st::kMod) = 0;
     at<uint8_t>(stand, st::kShown) = at<uint8_t>(stand, st::mIsDevilTrigger);
-}
-
-// updatePosition, right after moveMotion applied the motion's root motion: a held stand goes back to where the hold began.
-void __stdcall hold_pin(uintptr_t stand) {
-    const State* s = find_state(at<uintptr_t>(stand, st::mpParent));
-    if (s && s->hold_detached) std::memcpy(&at<float>(stand, st::mPos), s->hold_pos, 12);
 }
 
 // ---- The guard -------------------------------------------------------------------------------------------------------
@@ -557,9 +632,7 @@ char __fastcall guard_before_damage(uintptr_t pl, void*, uintptr_t attacker_grou
 
 // ---- The detours -------------------------------------------------------------------------------------------------------
 // Every hook tests the stand's kMod byte (edi / esi / eax / ecx = the stand at its site) and does nothing while it is 0.
-uintptr_t jmp_ret_disappear = 0;
-uintptr_t jmp_ret_gate = 0, jmp_ret_phase0 = 0, jmp_ret_follow = 0, jmp_ret_position = 0, jmp_ret_dt_request = 0, jmp_ret_kabuto = 0,
-          jmp_ret_dt_at_once = 0, jmp_ret_dt_appear = 0, jmp_ret_dt_appear_air = 0;
+uintptr_t jmp_ret_gate = 0, jmp_ret_phase0 = 0, jmp_ret_follow = 0, jmp_ret_dt_request = 0, jmp_ret_kabuto = 0, jmp_ret_disappear = 0;
 
 // moveActYamato's gate: a guardian attack keeps going whatever Nero does (checkPlayerAction only allows Red Queen attacks).
 naked void detour_gate() {
@@ -594,7 +667,7 @@ naked void detour_phase0() {
 }
 
 // moveEx, the stand not tracing Nero: the follow block (Nero's push-back, his ground height, his yaw into the quat) is
-// skipped while the mod holds the stand somewhere (an attack, or a held hold).
+// skipped while the mod holds the stand where it placed it (an attack, and its fade-out).
 naked void detour_follow() {
     _asm {
         cmp byte ptr [esi + 0x22D9], 0
@@ -603,21 +676,6 @@ naked void detour_follow() {
         jmp dword ptr [jmp_ret_follow]
     skip:
         jmp dword ptr [kFollowEnd]
-    }
-}
-
-// updatePosition: a held stand is pinned (the original compare of mIsTraceParent follows, its jnz is at the resume address).
-naked void detour_position() {
-    _asm {
-        test byte ptr [esi + 0x22D9], 2
-        jz orig
-        pushad
-        push esi
-        call hold_pin
-        popad
-    orig:
-        cmp byte ptr [esi + 0x22C8], 1
-        jmp dword ptr [jmp_ret_position]
     }
 }
 
@@ -666,47 +724,6 @@ naked void detour_disappear() {
     }
 }
 
-// checkActionDevilTrgAtOnce: with the option, a stand holding an enemy no longer refuses the instant DT activation.
-naked void detour_dt_at_once() {
-    _asm {
-        cmp byte ptr [g_dt_cancel], 0
-        jne pass
-        cmp dword ptr [eax + 0x22A8], 7
-        jz refuse
-    pass:
-        jmp dword ptr [jmp_ret_dt_at_once]
-    refuse:
-        jmp dword ptr [kDtAtOnceRefuse]
-    }
-}
-
-// moveActDevilTrg / moveActDevilTrgAir: the Appear call (setAction(1), eax = 1, edi = stand) is skipped while the stand
-// holds an enemy and the option is on; the activation's effects on Nero still play.
-naked void detour_dt_appear() {
-    _asm {
-        cmp byte ptr [g_dt_cancel], 0
-        je call_it
-        cmp dword ptr [edi + 0x22A8], 7
-        je skip
-    call_it:
-        call dword ptr [kSetAction]
-    skip:
-        jmp dword ptr [jmp_ret_dt_appear]
-    }
-}
-naked void detour_dt_appear_air() {
-    _asm {
-        cmp byte ptr [g_dt_cancel], 0
-        je call_it
-        cmp dword ptr [edi + 0x22A8], 7
-        je skip
-    call_it:
-        call dword ptr [kSetAction]
-    skip:
-        jmp dword ptr [jmp_ret_dt_appear_air]
-    }
-}
-
 bool g_file_exists = false;
 void check_data_file() {
     g_file_exists = std::filesystem::exists(kDataFile);
@@ -729,12 +746,8 @@ bool active(uintptr_t pl) {
 bool guarding(uintptr_t pl) {
     if (!mod_enabled || !guard_enabled) return false;
     const State* s = find_state(pl);
-    if (!s || !s->window || s->guard_timer > guard_window) return false;
-    if (s->phase != ATTACK && !s->reguard_window) return false;    // an attack's window ends with it; a re-guard's doesn't
-    if (!dt_cost || s->window_blocked) return true;               // the guard's cost is taken once per window, by its first hit
-    const uintptr_t stand = st::stand_of(pl);
-    const float cost = (stand && at<uint8_t>(stand, st::mIsDevilTrigger)) ? cost_guard * cost_in_dt : cost_guard;
-    return at<float>(pl, kDevilTrgNow) >= cost;
+    if (!s || !s->window || s->guard_timer > kGuardWindow) return false;
+    return s->phase == ATTACK || s->reguard_window;               // an attack's window ends with it; a re-guard's doesn't
 }
 
 uint32_t trigger_bit() { return trigger_source == TRIG_GAME ? (uint32_t)trigger_game : kVirtualButton; }
@@ -743,10 +756,10 @@ void register_taunt_set() {
     motion_registry::SetDesc d;
     d.owner = "GuardianDevil taunt";
     d.target = motion_registry::STAND;
-    d.stand = taunt_lmt;
-    d.stand_sub = taunt_arm_lmt;
+    d.stand = kStandLmt;
+    d.stand_sub = kStandArmLmt;
     const int old = g_taunt_set;
-    g_taunt_set = taunt_lmt[0] ? motion_registry::add(d) : -1;
+    g_taunt_set = motion_registry::add(d);
     if (old >= 0) motion_registry::remove(old);
 }
 
@@ -758,7 +771,6 @@ void rebuild_commands() {
 }
 
 void pre_tick(uintptr_t pl) {
-    g_dt_cancel = (mod_enabled && dt_cancel_keeps_hold) ? 1 : 0;
     if (!is_nero(pl)) return;
     const uintptr_t stand = st::stand_of(pl);
     if (!stand) return;
@@ -772,7 +784,7 @@ void pre_tick(uintptr_t pl) {
     if (s.reguard_left > 0.0f) s.reguard_left = std::max(0.0f, s.reguard_left - dt);
     if (s.window) {
         s.guard_timer += dt;
-        if (s.guard_timer > guard_window) {                      // closed: a re-guard that caught nothing ends the re-guards
+        if (s.guard_timer > kGuardWindow) {                      // closed: a re-guard that caught nothing ends the re-guards
             if (s.reguard_window && !s.window_blocked) {
                 s.reguard_ok = false;
                 s.reguard_left = 0.0f;
@@ -782,41 +794,32 @@ void pre_tick(uintptr_t pl) {
         }
     }
 
-    const int action = at<int>(stand, st::mActionNo);
     if (s.phase == ATTACK) {
         const char* why = nullptr;
-        if (action != st::ACT_YAMATO) end_attack(stand, s);
+        if (at<int>(stand, st::mActionNo) != st::ACT_YAMATO) end_attack(stand, s);
         else if (cancel_on_hit && nero_locked_out(pl, &why)) { stop_effect(s); s.phase = FADE; }   // the game's gate cancels it next tick
     }
     if (s.phase == FADE && (at<int>(stand, st::mTpPhase) == st::TP_HIDDEN || at<uint8_t>(stand, st::mIsDevilTrigger))) end_fade(stand, s);
-
-    if (hold_stays_put && action == st::ACT_EM_BLOCK) {
-        if (!s.hold_detached) std::memcpy(s.hold_pos, &at<float>(stand, st::mPos), 12);
-        at<uint8_t>(stand, st::mIsTraceParent) = 0;
-        s.hold_detached = true;
-    } else if (s.hold_detached) {
-        at<uint8_t>(stand, st::mIsTraceParent) = 1;
-        s.hold_detached = false;
-    }
 
     // a guarded hit: the stand turns to the guard (back on Nero in its clash pose), with the block's effect and sound
     if (s.guard_pending) {
         guard_feedback(pl);
         add_guard_style(pl);
-        start(pl, stand, s, s.slot, guard_motion(pl, sets[s.slot]), false, 0.0f, 0.0f, true, cost_guard);
+        start(pl, stand, s, guard_motion(pl), KIND_ATTACK, 0.0f, true);
         add_guard_dt(pl, stand);
     }
     s.guard_pending = false;
-    // the GUI's test: the style's guard motion as a guard plays it, without a hit (no effect, style or cost)
+    // the GUI's test: the guard motion as a guard plays it, without a hit (no effect, style or DT)
     if (g_test_guard && pl == (uintptr_t)devil4_sdk::get_local_player()) {
         g_test_guard = false;
-        const int slot = slot_for(pl);
-        start(pl, stand, s, slot, guard_motion(pl, sets[slot]), false, 0.0f, 0.0f, true, 0.0f);
+        start(pl, stand, s, guard_motion(pl), KIND_ATTACK, 0.0f, true);
     }
 
+    switch_tick(pl, stand, s);
     taunt_tick(pl, stand, s);
+    pose_hold_tick(stand, s, dt);
     write_bytes(stand, s);
-    if (s.phase == ATTACK && !s.taunting && !s.guarding) rush_loop(pl, stand, s);
+    if (s.phase == ATTACK && !s.taunting && !s.switching && !s.guarding) rush_loop(pl, stand, s);
 
     // the trigger's bit for the commands that run after this tick: the pad buttons and the key as the virtual button; with a
     // game input the pad sets that bit itself, so the key sets it too. Each player's own pad, the key for the player who
@@ -841,18 +844,15 @@ void post_command_tick(uintptr_t pl) {
     const uintptr_t stand = st::stand_of(pl);
     if (!stand) return;
     State& s = state_for(pl);
-    if (s.reguard_left > 0.0f) { reguard(s); return; }             // after a guard a press guards again (reguard_time)
+    if (s.reguard_left > 0.0f) { reguard(s); return; }             // after a guard a press guards again (kReguardTime)
     if (s.cooldown > 0.0f) return;
-    const int slot = slot_for(pl);
-    const ActionSet& set = sets[slot];
     const int cmd = (fired & (1u << CMD_RUSH)) ? CMD_RUSH : (fired & (1u << CMD_FORWARD)) ? CMD_FORWARD
                   : (fired & (1u << CMD_BACK)) ? CMD_BACK : CMD_NEUTRAL;
-    const int motion = cmd == CMD_RUSH    ? resolve_motion(pl, set.rush, set.rush_block)
-                     : cmd == CMD_FORWARD ? resolve_motion(pl, set.forward, set.forward_block)
-                     : cmd == CMD_BACK    ? resolve_motion(pl, set.back, set.back_block)
-                     :                      resolve_motion(pl, set.neutral, set.neutral_block);
-    const float cost = cmd == CMD_RUSH ? cost_rush : cmd == CMD_FORWARD ? cost_forward : cmd == CMD_BACK ? cost_back : cost_neutral;
-    start(pl, stand, s, slot, motion, false, 0.0f, 0.0f, false, cost, cmd == CMD_RUSH);
+    const int motion = cmd == CMD_RUSH    ? resolve_motion(pl, kSet.rush, kSet.rush_block)
+                     : cmd == CMD_FORWARD ? resolve_motion(pl, kSet.forward, kSet.forward_block)
+                     : cmd == CMD_BACK    ? resolve_motion(pl, kSet.back, kSet.back_block)
+                     :                      resolve_motion(pl, kSet.neutral, kSet.neutral_block);
+    start(pl, stand, s, motion, KIND_ATTACK, 0.0f, false, kActionCost, cmd == CMD_RUSH);
 }
 
 } // namespace guardian_devil
@@ -922,13 +922,9 @@ std::optional<std::string> GuardianDevil::on_initialize() {
         { kGateSite,        &hook_gate,          &detour_gate,          &jmp_ret_gate,          8,  "moveActYamato gate" },
         { kPhase0Site,      &hook_phase0,        &detour_phase0,        &jmp_ret_phase0,        13, "moveActYamato phase 0" },
         { kFollowSite,      &hook_follow,        &detour_follow,        &jmp_ret_follow,        8,  "moveEx follow block" },
-        { kPositionSite,    &hook_position,      &detour_position,      &jmp_ret_position,      7,  "updatePosition" },
         { kDtRequestSite,   &hook_dt_request,    &detour_dt_request,    &jmp_ret_dt_request,    5,  "setRedQueenMotion" },
         { kKabutoSite,      &hook_kabuto,        &detour_kabuto,        &jmp_ret_kabuto,        7,  "setYamatoMotionStop" },
         { kDisappearSite,   &hook_disappear,     &detour_disappear,     &jmp_ret_disappear,     7,  "checkDevilDisappear" },
-        { kDtAtOnceSite,    &hook_dt_at_once,    &detour_dt_at_once,    &jmp_ret_dt_at_once,    9,  "checkActionDevilTrgAtOnce" },
-        { kDtAppearSite,    &hook_dt_appear,     &detour_dt_appear,     &jmp_ret_dt_appear,     5,  "moveActDevilTrg Appear" },
-        { kDtAppearAirSite, &hook_dt_appear_air, &detour_dt_appear_air, &jmp_ret_dt_appear_air, 5,  "moveActDevilTrgAir Appear" },
     };
     for (const Site& site : sites) {
         if (!install_hook_absolute(site.addr, *site.hook, site.detour, site.ret, site.len)) {
@@ -951,96 +947,6 @@ std::optional<std::string> GuardianDevil::on_initialize() {
 }
 
 namespace {
-
-void hex_input(const char* label, int& value, const char* help) {
-    ImGui::PushItemWidth(80.0f);
-    ImGui::InputScalar(label, ImGuiDataType_S32, &value, nullptr, nullptr, "%03X", ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::PopItemWidth();
-    ImGui::SameLine();
-    Mod::help_marker(help);
-}
-
-// The stand LMT block a motion plays instead of its vanilla number (-1 = the vanilla one).
-void block_input(const char* id, int& block) {
-    ImGui::Indent(Mod::lineIndent);
-    ImGui::PushID(id);
-    ImGui::PushItemWidth(90.0f);
-    ImGui::InputInt(_("LMT block"), &block, 1, 10);
-    ImGui::PopItemWidth();
-    ImGui::PopID();
-    ImGui::Unindent(Mod::lineIndent);
-    if (block < -1) block = -1;
-    if (block > 255) block = 255;
-    ImGui::SameLine();
-    Mod::help_marker(_("-1: the vanilla motion number on the left. 0 or more: that block (slot) of the stand LMT (the files under "
-                       "Taunt mimic, made in Albam), which plays instead; until those files are on the stand the vanilla motion "
-                       "plays."));
-}
-
-void action_set_editor(int slot) {
-    ActionSet& set = sets[slot];
-    ImGui::PushID(slot);
-    ImGui::Checkbox(_("Guardian in this style"), &set.enabled);
-    ImGui::SameLine();
-    Mod::help_marker(_("Off: the trigger does nothing while this style is picked (the stand stays the game's)."));
-    hex_input(_("Neutral"), set.neutral, _("Motion the stand plays on the trigger alone (hex; the stand's Red Queen motion numbers). Default 31C."));
-    block_input("neutral", set.neutral_block);
-    hex_input(_("Forward"), set.forward, _("Lock-on + forward + the trigger. Default 317 (Streak)."));
-    block_input("forward", set.forward_block);
-    hex_input(_("Back"), set.back, _("Lock-on + back + the trigger. Default 330."));
-    block_input("back", set.back_block);
-    hex_input(_("Rush"), set.rush, _("Lock-on + back, forward + the trigger (Calibur's input: back, then forward within 15 frames, the trigger "
-                                     "within 15 more). Default 35F (the punch rush). Holding the trigger keeps it going (the loop below)."));
-    block_input("rush", set.rush_block);
-    ImGui::PushItemWidth(Mod::sameLineItemWidth);
-    ImGui::SliderFloat(_("Rush start frame"), &set.rush_start, 0.0f, 300.0f, "%.0f");
-    ImGui::SameLine();
-    Mod::help_marker(_("The frame the rush motion starts at (its wind-up is skipped at 135)."));
-    ImGui::SliderFloat(_("Loop from"), &set.loop_from, 0.0f, 300.0f, "%.0f");
-    ImGui::SameLine();
-    Mod::help_marker(_("While the trigger is held, a rush frame between Loop from and Loop to jumps back to Loop to frame. Let go in that "
-                       "window and the rush ends with its end effect."));
-    ImGui::SliderFloat(_("Loop to"), &set.loop_to, 0.0f, 300.0f, "%.0f");
-    ImGui::SameLine();
-    Mod::help_marker(_("The end of the loop window (172 by default; a 2-frame window catches the frame at 60 fps)."));
-    ImGui::SliderFloat(_("Loop to frame"), &set.loop_dest, 0.0f, 300.0f, "%.0f");
-    ImGui::SameLine();
-    Mod::help_marker(_("Where the rush jumps back to while held (150: the punches, past the wind-up)."));
-    ImGui::PopItemWidth();
-    hex_input(_("Guard"), set.guard, _("Motion the stand plays when it guards (hex). Default 302: its sword clash, the motion it plays "
-                                       "in Devil Trigger when Nero's sword is knocked back."));
-    block_input("guard", set.guard_block);
-    ImGui::Indent(Mod::lineIndent);
-    ImGui::PushItemWidth(90.0f);
-    ImGui::InputInt(_("Guard variants"), &set.guard_blocks, 1, 1);
-    ImGui::PopItemWidth();
-    ImGui::Unindent(Mod::lineIndent);
-    set.guard_blocks = std::clamp(set.guard_blocks, 1, 16);
-    ImGui::SameLine();
-    Mod::help_marker(_("How many guard animations to pick from at random: the LMT block above and the ones after it (3 with block 0: "
-                       "blocks 0, 1 and 2). 1 = always that block. A block the stand LMT doesn't have plays the first one."));
-    ImGui::PushItemWidth(Mod::sameLineItemWidth);
-    ImGui::SliderFloat(_("Guard start frame"), &set.guard_start, 0.0f, 60.0f, "%.0f");
-    ImGui::SameLine();
-    Mod::help_marker(_("The frame the guard motion starts at (0)."));
-    ImGui::PopItemWidth();
-    static int copy_from = 0;
-    ImGui::PushItemWidth(Mod::sameLineItemWidth);
-    if (ImGui::BeginCombo(_("Copy from slot"), nero_style::slots[copy_from].name[0] ? nero_style::slots[copy_from].name : "Slot")) {
-        for (int i = 0; i < nero_style::kSlots; ++i) {
-            char label[48];
-            snprintf(label, sizeof label, "%d: %s", i + 1, nero_style::slots[i].name[0] ? nero_style::slots[i].name : "(unnamed)");
-            if (ImGui::Selectable(label, copy_from == i)) copy_from = i;
-        }
-        ImGui::EndCombo();
-    }
-    ImGui::PopItemWidth();
-    ImGui::SameLine();
-    if (ImGui::Button(_("Copy"))) { const bool on = set.enabled; set = sets[copy_from]; set.enabled = on; }
-    ImGui::SameLine();
-    Mod::help_marker(_("Copies that slot's motions and rush frames into this one (this slot's on / off is kept)."));
-    ImGui::PopID();
-}
 
 const char* phase_name(int phase) { return phase == ATTACK ? "attack" : phase == FADE ? "fading" : "idle"; }
 
@@ -1131,10 +1037,9 @@ void GuardianDevil::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Nero's Devil Trigger stand attacks on a button, outside DT, with Red Queen motions: the trigger alone, lock-on + "
                   "forward or back + the trigger, and lock-on + back, forward + the trigger for the punch rush (hold to keep "
-                  "punching). The trigger is one of Nero's game inputs (Change Gun by default), bound on the pad and keyboard in "
-                  "the game's control settings. Each Nero style has its own set of motions. The stand refuses while it is busy "
-                  "(Buster, Snatch, a hold) and while Nero is hit, in Buster, Snatch, Showdown, Maximum Bet or a DT activation. "
-                  "Off, the stand is the game's."));
+                  "punching). The trigger is set below. The stand refuses while it is busy (Buster, Snatch, a hold) and while "
+                  "Nero is hit, in Buster, Snatch, Showdown, Maximum Bet or a DT activation. It also plays Nero's taunts beside "
+                  "him, and a pose when he switches styles (the Nero styles mod). Off, the stand is the game's."));
     if (!mod_enabled) { ImGui::EndGroup(); return; }
     ImGui::Indent(lineIndent);
     ImGui::PushID("GuardianDevil");
@@ -1146,169 +1051,40 @@ void GuardianDevil::on_gui_frame(int display) {
                    "keyboard key below works too, at the same time. Either way the stick part is the game's own command "
                    "checker: lock-on + forward / back, or lock-on + back, forward for the rush."),
                  trigger_source, trigger_pad, trigger_key, trigger_game, true);
-    ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::SliderFloat(_("Cooldown"), &cooldown_frames, 0.0f, 120.0f, "%.0f frames");
-    ImGui::PopItemWidth();
+    ImGui::Checkbox(_("Stand actions cost DT"), &dt_cost);
     ImGui::SameLine();
-    help_marker(_("Frames after a start before the trigger works again (30)."));
+    help_marker(_("Each stand attack takes half a bar of DT from Nero's gauge when it starts, and is refused when the gauge has "
+                  "less. The punch rush also drains half a bar a second while it is held past its wind-up, and stops when the "
+                  "gauge runs dry. In Devil Trigger the cost and the drain are halved. Guards, the taunt mimic and the style "
+                  "switch pose are free."));
     ImGui::Checkbox(_("Cancel when Nero is hit"), &cancel_on_hit);
     ImGui::SameLine();
     help_marker(_("On: a hit, grab or knock-down on Nero ends the stand's attack (it fades out). Off: the stand finishes its attack."));
-    ImGui::Checkbox(_("Devil Rush effect"), &rush_effect);
-    ImGui::SameLine();
-    help_marker(_("The rush's effects on the stand (effect\\efl\\vie\\vi020_00v0 while it punches, v1 when it stops)."));
-    ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::SliderFloat(_("Height offset"), &height_offset, -60.0f, 60.0f, "%.0f cm");
-    ImGui::PopItemWidth();
-    ImGui::SameLine();
-    help_marker(_("Added to the stand's height when it is placed on Nero for an attack (0). Negative lowers it, for attacks that "
-                  "should reach knocked-down enemies."));
-    ImGui::Checkbox(_("Stand holds its place during a hold"), &hold_stays_put);
-    ImGui::SameLine();
-    help_marker(_("While the stand holds an enemy (a Buster hold) it stays where it is instead of following Nero, until the hold ends."));
-    ImGui::Checkbox(_("Instant DT during a hold"), &dt_cancel_keeps_hold);
-    ImGui::SameLine();
-    help_marker(_("The game refuses the instant DT activation (Nero's DT cancel) while the stand holds an enemy and takes the slow "
-                  "path instead. On: the instant activation runs, cancelling Nero's move with the aura, and the stand keeps the "
-                  "hold instead of being summoned to Nero."));
-
-    ImGui::SeparatorText(_("DT cost"));
-    ImGui::Checkbox(_("Stand actions cost DT"), &dt_cost);
-    ImGui::SameLine();
-    help_marker(_("Each stand action takes DT from Nero's gauge when it starts (1000 = one bar), and is refused when the gauge "
-                  "has less. The punch rush also drains the gauge while it is held, and stops when the gauge runs dry. The "
-                  "taunt mimic is free."));
-    if (dt_cost) {
-        ImGui::Indent(lineIndent);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        const struct { const char* label; float* value; const char* help; } costs[] = {
-            { _("Neutral cost"), &cost_neutral, _("DT the trigger alone takes (500 = half a bar).") },
-            { _("Forward cost"), &cost_forward, _("DT lock-on + forward + the trigger takes (500).") },
-            { _("Back cost"),    &cost_back,    _("DT lock-on + back + the trigger takes (500).") },
-            { _("Rush cost"),    &cost_rush,    _("DT the punch rush takes when it starts (500); holding it drains more, below.") },
-            { _("Guard cost"),   &cost_guard,   _("DT a guard takes (0: the guard stays free).") },
-        };
-        for (const auto& c : costs) {
-            ImGui::SliderFloat(c.label, c.value, 0.0f, 3000.0f, "%.0f");
-            ImGui::SameLine();
-            help_marker(c.help);
-        }
-        ImGui::SliderFloat(_("Rush drain"), &rush_drain, 0.0f, 3000.0f, "%.0f / s");
-        ImGui::SameLine();
-        help_marker(_("DT per second while the punch rush is held past its wind-up (500 = half a bar a second). When the gauge "
-                      "runs dry the rush stops as if the trigger were let go."));
-        ImGui::SliderFloat(_("Cost in Devil Trigger"), &cost_in_dt, 0.0f, 1.0f, "x%.2f");
-        ImGui::SameLine();
-        help_marker(_("While Nero is in Devil Trigger every cost above and the rush drain are multiplied by this (0.5 = half; "
-                      "0 = free in DT, 1 = the same as outside it)."));
-        ImGui::PopItemWidth();
-        ImGui::Unindent(lineIndent);
-    }
-
-    ImGui::SeparatorText(_("Guard"));
     ImGui::Checkbox(_("Stand guard"), &guard_enabled);
     ImGui::SameLine();
-    help_marker(_("A timed shield on the Guardian action: a hit that lands within the window after you start a stand attack "
-                  "does nothing to Nero (no damage, no flinch, no style drop), and the attack turns into a guard: the stand "
-                  "appears on Nero in its sword clash. While it guards, pressing the button again guards the next hit instead "
-                  "of attacking (time each press: one that catches nothing ends the re-guards until the next guard). The guard "
-                  "does nothing to the enemy. After a guard, no stand attack starts until the recovery is over. Not guarded: "
-                  "enemy grabs and the few attacks the game handles as pressure. The guard's motion is set per style below."));
+    help_marker(_("A timed shield on the Guardian action: a hit that lands within 5 frames after you start a stand attack does "
+                  "nothing to Nero (no damage, no flinch, no style drop), and the attack turns into a guard: the stand appears "
+                  "on Nero in its sword clash, with the game's own stand block spark, sound and pad rumble, and the guard adds "
+                  "style and DT as that block does (no DT in Devil Trigger). For 45 frames after a guard, pressing the button "
+                  "again guards the next hit instead of attacking (time each press: one that catches nothing ends the re-guards "
+                  "until the next guard). The guard does nothing to the enemy. After a guard, no stand attack starts for 15 "
+                  "frames. Not guarded: enemy grabs and the few attacks the game handles as pressure."));
     if (guard_enabled) {
         ImGui::Indent(lineIndent);
-        ImGui::PushItemWidth(sameLineItemWidth);
-        ImGui::SliderFloat(_("Guard window"), &guard_window, 1.0f, 15.0f, "%.0f frames");
-        ImGui::SameLine();
-        help_marker(_("How long after a stand attack's press a hit is still guarded (5 frames, Dante's Just Block window). Counted "
-                      "in game time, so slow motion stretches it as it does for the game."));
-        ImGui::SliderFloat(_("Guard recovery"), &guard_recovery, 0.0f, 120.0f, "%.0f frames");
-        ImGui::SameLine();
-        help_marker(_("Frames after a guard before the next stand attack can start (15). Guarding again doesn't wait for it."));
-        ImGui::SliderFloat(_("Re-guard time"), &reguard_time, 0.0f, 120.0f, "%.0f frames");
-        ImGui::SameLine();
-        help_marker(_("For this long after a guard, pressing the Guardian action guards the next hit instead of attacking, "
-                      "however short the guard animation is (45 frames). A re-guard that catches a hit brings the stand back in "
-                      "its guard pose and starts this time again; one that catches nothing ends the re-guards until the next "
-                      "guard."));
-        ImGui::PopItemWidth();
-        ImGui::Checkbox(_("Guard effect and sound"), &guard_effects);
-        ImGui::SameLine();
-        help_marker(_("A guard plays the game's own stand block spark and sound, and the pad rumble of a sword clash."));
-        ImGui::Checkbox(_("Guard adds DT"), &guard_dt);
-        ImGui::SameLine();
-        help_marker(_("A guard that catches a hit fills the Devil Trigger gauge, as the game's own stand block does. Nothing "
-                      "while Nero is in Devil Trigger (as the game's other DT gains). With a guard cost, the cost is taken too."));
-        if (guard_dt) {
-            ImGui::PushItemWidth(sameLineItemWidth);
-            ImGui::SliderFloat(_("Guard DT gain"), &guard_dt_gain, -1.0f, 3000.0f, guard_dt_gain < 0.0f ? "game value" : "%.0f");
-            ImGui::PopItemWidth();
-            ImGui::SameLine();
-            help_marker(_("DT per guard (1000 = one bar). All the way left = the game's own stand block value, read from Nero's "
-                          "parameters (the readout shows it)."));
-            if (guard_dt_gain > -1.0f && guard_dt_gain < 0.0f) guard_dt_gain = 0.0f;
-        }
-        ImGui::Checkbox(_("Guard adds style"), &guard_style);
-        ImGui::SameLine();
-        help_marker(_("A guard adds style points as the game's own stand block does (without the block's Devil Trigger gain)."));
         if (ImGui::Button(_("Play Guard Motion"))) g_test_guard = true;
         ImGui::SameLine();
-        help_marker(_("Plays the current style's guard motion on the stand now, as a guard would (its LMT block or vanilla number, "
-                      "and start frame), without a hit: no effect, sound, style or DT cost. The readout below says which "
-                      "motion played and where it came from, or why the stand refused."));
+        help_marker(_("Plays the guard motion on the stand now, as a guard would (one of its stand LMT blocks at random), without a "
+                      "hit: no effect, sound, style or DT. The readout below says which motion played and where it came from, or "
+                      "why the stand refused."));
         ImGui::Unindent(lineIndent);
     }
-
-    ImGui::SeparatorText(_("Taunt mimic"));
-    ImGui::Checkbox(_("Stand mimics Nero's taunt"), &taunt_mimic);
-    ImGui::SameLine();
-    help_marker(_("When Nero taunts, the stand appears beside him and plays the same taunt, and stops when he does. The stand's own "
-                  "motion files have no taunts and its bones are numbered differently, so Nero's taunts are retargeted onto the "
-                  "stand and its arm with Albam (scripts/stand_taunt_retarget.py) into the two LMTs below, loose files under "
-                  "nativePC, which the motion registry puts on the stand."));
-    ImGui::PushItemWidth(sameLineWidth);
-    bool lmt_changed = ImGui::InputText(_("Stand LMT (body)"), taunt_lmt, sizeof taunt_lmt);
-    ImGui::SameLine();
-    help_marker(_("Game path without .lmt, read from nativePC: the stand body's taunts, with Nero's block numbers. Its other "
-                  "blocks hold custom stand moves, which the action sets' LMT block fields play."));
-    lmt_changed |= ImGui::InputText(_("Stand LMT (arm)"), taunt_arm_lmt, sizeof taunt_arm_lmt);
-    ImGui::SameLine();
-    help_marker(_("The same for the arm model (wp024). Clear it to leave the arm still."));
-    ImGui::PopItemWidth();
-    if (lmt_changed) register_taunt_set();
-    ImGui::SameLine();
     if (ImGui::Button(_("Reload LMTs"))) motion_registry::refresh();
     ImGui::SameLine();
-    help_marker(_("Reads every registry LMT from disk again (after re-exporting the files)."));
-    ImGui::PushItemWidth(sameLineItemWidth);
-    ImGui::SliderFloat(_("Taunt: behind Nero"), &taunt_back, -200.0f, 200.0f, "%.0f cm");
-    ImGui::SameLine();
-    help_marker(_("Where the stand stands for the taunt: cm behind Nero along his facing (negative = in front)."));
-    ImGui::SliderFloat(_("Taunt: to the right"), &taunt_side, -200.0f, 200.0f, "%.0f cm");
-    ImGui::SameLine();
-    help_marker(_("cm to Nero's right (negative = left)."));
-    ImGui::PopItemWidth();
+    help_marker(_("Reads every registry LMT from disk again (after re-exporting the files), the stand's too: "
+                  "motion\\pl020\\pl020_guardian_ex and motion\\wp024\\wp024_guardian_ex under nativePC, with its taunts, guards "
+                  "and style switch poses."));
     if (const uintptr_t P = (uintptr_t)devil4_sdk::get_local_player(); P && is_nero(P) && g_taunt_set >= 0)
         ImGui::TextDisabled("taunt set: %s", motion_registry::describe(g_taunt_set, P).c_str());
-
-    ImGui::SeparatorText(_("Actions per style"));
-    static int gui_slot = 0;
-    ImGui::PushItemWidth(sameLineItemWidth);
-    {
-        char label[48];
-        snprintf(label, sizeof label, "%d: %s", gui_slot + 1, nero_style::slots[gui_slot].name[0] ? nero_style::slots[gui_slot].name : "(unnamed)");
-        if (ImGui::BeginCombo(_("Style slot"), label)) {
-            for (int i = 0; i < nero_style::kSlots; ++i) {
-                snprintf(label, sizeof label, "%d: %s", i + 1, nero_style::slots[i].name[0] ? nero_style::slots[i].name : "(unnamed)");
-                if (ImGui::Selectable(label, gui_slot == i)) gui_slot = i;
-            }
-            ImGui::EndCombo();
-        }
-    }
-    ImGui::PopItemWidth();
-    ImGui::SameLine();
-    help_marker(_("The Nero style whose stand actions are edited below (the slots of the Nero styles mod). The first slot's set "
-                  "also serves when Nero styles are off."));
-    action_set_editor(gui_slot);
 
     if (const uintptr_t P = (uintptr_t)devil4_sdk::get_local_player()) {
         if (is_nero(P)) {
@@ -1316,7 +1092,8 @@ void GuardianDevil::on_gui_frame(int display) {
             const State* s = find_state(P);
             const int slot = slot_for(P);
             ImGui::Text("%s | stand action %d tp %d trace %d | slot %d (%s) | motion %03X | cooldown %.0f | bytes mod %d shown %d | cmd bits %d %d %d %d | starts %u refused %u (%s)",
-                        s ? phase_name(s->phase) : "idle",
+                        s ? (s->phase == ATTACK && s->switching ? "switch pose" : s->phase == ATTACK && s->taunting ? "taunt"
+                             : phase_name(s->phase)) : "idle",
                         stand ? at<int>(stand, st::mActionNo) : -1, stand ? at<int>(stand, st::mTpPhase) : -1, stand ? at<uint8_t>(stand, st::mIsTraceParent) : -1,
                         slot, nero_style::slots[slot].name, s ? s->motion : -1, s ? s->cooldown : 0.0f,
                         stand ? at<uint8_t>(stand, st::kMod) : -1, stand ? at<uint8_t>(stand, st::kShown) : -1,
@@ -1329,7 +1106,7 @@ void GuardianDevil::on_gui_frame(int display) {
             ImGui::Text("guard %s%s | re-guard %.0f | %.1f frames since the press | guards %u blocked %u | DT %.0f (+%.0f a guard)%s",
                         guarding(P) ? "OPEN" : (s && s->guarding) ? "playing" : "-", (s && !s->reguard_ok) ? " (re-guards locked)" : "",
                         s ? s->reguard_left : 0.0f, s ? s->guard_timer : 0.0f, s ? s->guards : 0u, s ? s->blocked : 0u, at<float>(P, kDevilTrgNow),
-                        guard_dt ? guard_dt_amount(P) : 0.0f, (s && s->drained) ? " (rush ran dry)" : "");
+                        guard_dt_amount(P), (s && s->drained) ? " (rush ran dry)" : "");
         } else {
             ImGui::TextDisabled(_("(the local player isn't Nero)"));
         }
@@ -1348,57 +1125,9 @@ void GuardianDevil::on_config_load(const utility::Config& cfg) {
     trigger_game   = cfg.get<int>("dt_knuckle_trigger_game").value_or(trigger_game);
     if (trigger_source != TRIG_GAME) trigger_source = TRIG_PAD;   // a key-only trigger (old TRIG_KEY) keeps its key, beside the pad's
     rebuild_commands();
-    cooldown_frames      = cfg.get<float>("dt_knuckle_cooldown").value_or(cooldown_frames);
-    cancel_on_hit        = cfg.get<bool>("dt_knuckle_cancel_on_hit").value_or(cancel_on_hit);
-    rush_effect          = cfg.get<bool>("dt_knuckle_rush_effect").value_or(rush_effect);
-    height_offset        = cfg.get<float>("dt_knuckle_height_offset").value_or(height_offset);
-    hold_stays_put       = cfg.get<bool>("dt_knuckle_hold_stays_put").value_or(hold_stays_put);
-    dt_cancel_keeps_hold = cfg.get<bool>("dt_knuckle_dt_cancel_keeps_hold").value_or(dt_cancel_keeps_hold);
-    taunt_mimic          = cfg.get<bool>("dt_knuckle_taunt_mimic").value_or(taunt_mimic);
-    // the files were pl020_taunt / wp024_taunt (the guardian_taunt package) before they held more than taunts: a saved old
-    // default moves to the new names, any other saved path is kept
-    if (auto p = cfg.get("dt_knuckle_taunt_lmt"); p && *p != "motion\\pl020\\pl020_taunt") strcpy_s(taunt_lmt, p->c_str());
-    if (auto p = cfg.get("dt_knuckle_taunt_arm_lmt"); p && *p != "motion\\wp024\\wp024_taunt") strcpy_s(taunt_arm_lmt, p->c_str());
-    taunt_back           = cfg.get<float>("dt_knuckle_taunt_back").value_or(taunt_back);
-    taunt_side           = cfg.get<float>("dt_knuckle_taunt_side").value_or(taunt_side);
-    guard_enabled        = cfg.get<bool>("dt_knuckle_guard").value_or(guard_enabled);
-    guard_window         = cfg.get<float>("dt_knuckle_guard_window").value_or(guard_window);
-    guard_recovery       = cfg.get<float>("dt_knuckle_guard_recovery").value_or(guard_recovery);
-    reguard_time         = cfg.get<float>("dt_knuckle_reguard_time").value_or(reguard_time);
-    guard_effects        = cfg.get<bool>("dt_knuckle_guard_effects").value_or(guard_effects);
-    guard_style          = cfg.get<bool>("dt_knuckle_guard_style").value_or(guard_style);
-    guard_dt             = cfg.get<bool>("dt_knuckle_guard_dt").value_or(guard_dt);
-    guard_dt_gain        = cfg.get<float>("dt_knuckle_guard_dt_gain").value_or(guard_dt_gain);
-    dt_cost              = cfg.get<bool>("dt_knuckle_dt_cost").value_or(dt_cost);
-    cost_neutral         = cfg.get<float>("dt_knuckle_cost_neutral").value_or(cost_neutral);
-    cost_forward         = cfg.get<float>("dt_knuckle_cost_forward").value_or(cost_forward);
-    cost_back            = cfg.get<float>("dt_knuckle_cost_back").value_or(cost_back);
-    cost_rush            = cfg.get<float>("dt_knuckle_cost_rush").value_or(cost_rush);
-    cost_guard           = cfg.get<float>("dt_knuckle_cost_guard").value_or(cost_guard);
-    rush_drain           = cfg.get<float>("dt_knuckle_rush_drain").value_or(rush_drain);
-    cost_in_dt           = cfg.get<float>("dt_knuckle_cost_in_dt").value_or(cost_in_dt);
-    register_taunt_set();
-    for (int i = 0; i < nero_style::kSlots; ++i) {
-        ActionSet& set = sets[i];
-        const std::string p = "dt_knuckle_s" + std::to_string(i) + "_";
-        set.enabled    = cfg.get<bool>(p + "enabled").value_or(set.enabled);
-        set.neutral    = cfg.get<int>(p + "neutral").value_or(set.neutral);
-        set.forward    = cfg.get<int>(p + "forward").value_or(set.forward);
-        set.back       = cfg.get<int>(p + "back").value_or(set.back);
-        set.rush       = cfg.get<int>(p + "rush").value_or(set.rush);
-        set.rush_start = cfg.get<float>(p + "rush_start").value_or(set.rush_start);
-        set.loop_from  = cfg.get<float>(p + "loop_from").value_or(set.loop_from);
-        set.loop_to    = cfg.get<float>(p + "loop_to").value_or(set.loop_to);
-        set.loop_dest  = cfg.get<float>(p + "loop_dest").value_or(set.loop_dest);
-        set.guard      = cfg.get<int>(p + "guard_motion").value_or(set.guard);
-        set.guard_start = cfg.get<float>(p + "guard_motion_start").value_or(set.guard_start);
-        set.neutral_block = cfg.get<int>(p + "neutral_block").value_or(set.neutral_block);
-        set.forward_block = cfg.get<int>(p + "forward_block").value_or(set.forward_block);
-        set.back_block    = cfg.get<int>(p + "back_block").value_or(set.back_block);
-        set.rush_block    = cfg.get<int>(p + "rush_block").value_or(set.rush_block);
-        set.guard_block   = cfg.get<int>(p + "guard_block").value_or(set.guard_block);
-        set.guard_blocks  = cfg.get<int>(p + "guard_blocks").value_or(set.guard_blocks);
-    }
+    guard_enabled  = cfg.get<bool>("dt_knuckle_guard").value_or(guard_enabled);
+    dt_cost        = cfg.get<bool>("dt_knuckle_dt_cost").value_or(dt_cost);
+    cancel_on_hit  = cfg.get<bool>("dt_knuckle_cancel_on_hit").value_or(cancel_on_hit);
     check_data_file();
     toggle(mod_enabled);
 }
@@ -1409,52 +1138,7 @@ void GuardianDevil::on_config_save(utility::Config& cfg) {
     cfg.set<int>("dt_knuckle_trigger_source", trigger_source);
     cfg.set<int>("dt_knuckle_trigger_key", trigger_key);
     cfg.set<int>("dt_knuckle_trigger_game", trigger_game);
-    cfg.set<float>("dt_knuckle_cooldown", cooldown_frames);
-    cfg.set<bool>("dt_knuckle_cancel_on_hit", cancel_on_hit);
-    cfg.set<bool>("dt_knuckle_rush_effect", rush_effect);
-    cfg.set<float>("dt_knuckle_height_offset", height_offset);
-    cfg.set<bool>("dt_knuckle_hold_stays_put", hold_stays_put);
-    cfg.set<bool>("dt_knuckle_dt_cancel_keeps_hold", dt_cancel_keeps_hold);
-    cfg.set<bool>("dt_knuckle_taunt_mimic", taunt_mimic);
-    cfg.set("dt_knuckle_taunt_lmt", std::string(taunt_lmt));
-    cfg.set("dt_knuckle_taunt_arm_lmt", std::string(taunt_arm_lmt));
-    cfg.set<float>("dt_knuckle_taunt_back", taunt_back);
-    cfg.set<float>("dt_knuckle_taunt_side", taunt_side);
     cfg.set<bool>("dt_knuckle_guard", guard_enabled);
-    cfg.set<float>("dt_knuckle_guard_window", guard_window);
-    cfg.set<float>("dt_knuckle_guard_recovery", guard_recovery);
-    cfg.set<float>("dt_knuckle_reguard_time", reguard_time);
-    cfg.set<bool>("dt_knuckle_guard_effects", guard_effects);
-    cfg.set<bool>("dt_knuckle_guard_style", guard_style);
-    cfg.set<bool>("dt_knuckle_guard_dt", guard_dt);
-    cfg.set<float>("dt_knuckle_guard_dt_gain", guard_dt_gain);
     cfg.set<bool>("dt_knuckle_dt_cost", dt_cost);
-    cfg.set<float>("dt_knuckle_cost_neutral", cost_neutral);
-    cfg.set<float>("dt_knuckle_cost_forward", cost_forward);
-    cfg.set<float>("dt_knuckle_cost_back", cost_back);
-    cfg.set<float>("dt_knuckle_cost_rush", cost_rush);
-    cfg.set<float>("dt_knuckle_cost_guard", cost_guard);
-    cfg.set<float>("dt_knuckle_rush_drain", rush_drain);
-    cfg.set<float>("dt_knuckle_cost_in_dt", cost_in_dt);
-    for (int i = 0; i < nero_style::kSlots; ++i) {
-        const ActionSet& set = sets[i];
-        const std::string p = "dt_knuckle_s" + std::to_string(i) + "_";
-        cfg.set<bool>(p + "enabled", set.enabled);
-        cfg.set<int>(p + "neutral", set.neutral);
-        cfg.set<int>(p + "forward", set.forward);
-        cfg.set<int>(p + "back", set.back);
-        cfg.set<int>(p + "rush", set.rush);
-        cfg.set<float>(p + "rush_start", set.rush_start);
-        cfg.set<float>(p + "loop_from", set.loop_from);
-        cfg.set<float>(p + "loop_to", set.loop_to);
-        cfg.set<float>(p + "loop_dest", set.loop_dest);
-        cfg.set<int>(p + "guard_motion", set.guard);
-        cfg.set<float>(p + "guard_motion_start", set.guard_start);
-        cfg.set<int>(p + "neutral_block", set.neutral_block);
-        cfg.set<int>(p + "forward_block", set.forward_block);
-        cfg.set<int>(p + "back_block", set.back_block);
-        cfg.set<int>(p + "rush_block", set.rush_block);
-        cfg.set<int>(p + "guard_block", set.guard_block);
-        cfg.set<int>(p + "guard_blocks", set.guard_blocks);
-    }
+    cfg.set<bool>("dt_knuckle_cancel_on_hit", cancel_on_hit);
 }

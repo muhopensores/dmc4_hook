@@ -27,32 +27,33 @@ CustomInput custom_input[2] = {
 };
 bool  vertical_ground_any_stick = true;   // a lean on the ground has no directional jump to go to: the up jump takes it
 int   lmt_set       = -1;
-char  lmt_path[128] = "motion\\pl000\\gerb";          // Nero's
-int   slot[DIR_COUNT] = { 0, 1, 2, 4, 3, 5 };   // forward, down, back, left, right, up
-int   ctn_bank      = 0;
-int   ctn_slot      = 5;           // the fall motion's script: no cancels until the game's air rules say so
-float launch_frame  = 0.0f;
-float speed         = 20.0f;
-float rise          = 14.0f;
-float up_speed      = 32.0f;
-float down_speed    = 24.0f;
-float gravity       = -1.1f;
-float max_fall      = 30.0f;
-float cancel_frame  = 10.0f;
-float side_angle    = 50.0f;
-bool  face_direction  = true;
-bool  airborne_status = true;
-bool  effect_enabled  = true;
-int   effect_list     = 1;
-int   effect_index    = 0x28;
-float effect_tilt     = 45.0f;
-bool  se_enabled      = true;
-int   se_id           = 40;
+
+namespace {
+
+// The LMT (game path without extension) and its block per direction (Dir order: forward, down, back, left, right, up).
+constexpr const char* kLmtPath = "motion\\pl000\\gerb";   // Nero's
+constexpr int kSlot[DIR_COUNT] = { 0, 1, 2, 4, 3, 5 };
+constexpr int kCtnBank = 0, kCtnSlot = 5;   // the vanilla .ctn script the cycles borrow (runtime banks have none): the fall
+                                            // motion's, no cancels until the game's air rules say so
+// The jump (cm per frame, frames of the cycle).
+constexpr float kLaunchFrame = 0.0f;   // the frame at which the velocity is applied
+constexpr float kSpeed       = 20.0f;  // along the chosen direction (forward / back / left / right)
+constexpr float kRise        = 14.0f;  // vertical speed added at launch for forward / back / left / right
+constexpr float kUpSpeed     = 32.0f;  // the up jump
+constexpr float kDownSpeed   = 24.0f;  // the down jump (dive)
+constexpr float kGravity     = -1.1f;  // added to the vertical speed every frame
+constexpr float kMaxFall     = 30.0f;
+constexpr float kCancelFrame = 10.0f;  // from this frame every cancel window is open
+constexpr float kSideAngle   = 50.0f;  // degrees off the facing (or its opposite) beyond which a stick is left / right
+// The take-off: the air hike's effect and sound (uPlayerNero::setWJumpEffect 0x7E8850), at the launch frame.
+constexpr int   kEffectList  = 1;      // sDevil4Effect list / index: Nero's air hike (effect\efl\com\ec000_00v2)
+constexpr int   kEffectIndex = 0x28;
+constexpr float kEffectTilt  = 45.0f;  // degrees the effect leans from the player's up toward the jump direction (level part)
+constexpr int   kSeId        = 40;     // SE of the player's sound resource (+0x1D60): the air hike's
 
 // ---------------------------------------------------------------------------------------------------------------
 // Game functions (the few the jump needs; WallRun.cpp keeps its own copies file-local).
 // ---------------------------------------------------------------------------------------------------------------
-namespace {
 
 static uintptr_t fn_setActionLand = 0x007AA6A0;   // uPlayer::setActionLand(this@ecx)
 
@@ -65,7 +66,7 @@ void request_motion(uintptr_t pl, int motion, uint32_t attr, float interp, float
 
 constexpr int kPlayerSlots = 8;        // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
 // The cancel window the game's own way (MoveDef D11): one in-memory .ctn script per player slot (sdk/CtnScript.hpp):
-// wait(cancel_frame), then every cancel category opened; the bytes must outlive the motion, so they're static.
+// wait(kCancelFrame), then every cancel category opened; the bytes must outlive the motion, so they're static.
 static ctn::Script g_cancel_scripts[kPlayerSlots];
 
 // The rows' command bits are set by custom_tick, not by a command of the game's checker; an empty command on each, never
@@ -103,15 +104,13 @@ void basis_quat(uintptr_t pl, const glm::vec3& dir, float tilt_deg, float roll_d
 
 // The air hike's effect and sound at the take-off: the effect leaned toward the jump, upside down for the dive.
 void take_off_fx(uintptr_t pl, const glm::vec3& dir) {
-    if (effect_enabled) {
-        float q[4];
-        const glm::vec3 h(dir.x, 0.0f, dir.z);
-        const float roll = dir.y < -0.5f ? 180.0f : 0.0f;
-        if (roll == 0.0f && (effect_tilt == 0.0f || glm::length(h) < 1e-3f)) { const float* g = &at<float>(pl, pl::mQuat); q[0] = g[0]; q[1] = g[1]; q[2] = g[2]; q[3] = g[3]; }
-        else basis_quat(pl, dir, effect_tilt, roll, q);
-        devil4_sdk::effect_stay(effect_list, effect_index, q, &at<float>(pl, pl::mPos), (void*)pl);   // the air hike's spawn + setEffect registration
-    }
-    if (se_enabled) devil4_sdk::play_player_se((void*)pl, se_id);   // the air hike's SE on the player's own sound resource
+    float q[4];
+    const glm::vec3 h(dir.x, 0.0f, dir.z);
+    const float roll = dir.y < -0.5f ? 180.0f : 0.0f;
+    if (roll == 0.0f && glm::length(h) < 1e-3f) { const float* g = &at<float>(pl, pl::mQuat); q[0] = g[0]; q[1] = g[1]; q[2] = g[2]; q[3] = g[3]; }
+    else basis_quat(pl, dir, kEffectTilt, roll, q);
+    devil4_sdk::effect_stay(kEffectList, kEffectIndex, q, &at<float>(pl, pl::mPos), (void*)pl);   // the air hike's spawn + setEffect registration
+    devil4_sdk::play_player_se((void*)pl, kSeId);   // the air hike's SE on the player's own sound resource
 }
 
 void face(uintptr_t pl, float yaw) {
@@ -133,7 +132,7 @@ bool lmt_file_exists(const char* game_path) {
 }
 
 constexpr int PHASE_ENTRY   = 0;
-constexpr int PHASE_WAIT    = 1;     // cycle playing, waiting for launch_frame
+constexpr int PHASE_WAIT    = 1;     // cycle playing, waiting for kLaunchFrame
 constexpr int PHASE_AIRBORNE = 2;
 
 static int g_dbg_n0_at_move = -1, g_dbg_all_at_move = -1;   // mStat[0] / [7] as seen inside move (after updateCharTbl + the checks)
@@ -171,15 +170,13 @@ JumpState& state_for(uintptr_t player) {
     return *victim;
 }
 
-// First tick after the motion request: swap the borrowed script for the cancel script (if a cancel frame is set).
+// First tick after the motion request: swap the borrowed script for the cancel script.
 void arm_cancel_script(JumpState& s, uintptr_t pl) {
     if (s.script_set) return;
     s.script_set = true;
-    if (cancel_frame >= 0.0f) {
-        ctn::Script& sc = g_cancel_scripts[slot_of(s) % kPlayerSlots];
-        sc.reset().wait(cancel_frame).open_all().end();
-        devil4_sdk::install_ctn_script((void*)pl, sc.data());
-    }
+    ctn::Script& sc = g_cancel_scripts[slot_of(s) % kPlayerSlots];
+    sc.reset().wait(kCancelFrame).open_all().end();
+    devil4_sdk::install_ctn_script((void*)pl, sc.data());
 }
 
 // The gate every cancel goes through: uPlayer::main calls checkBeforeAction / checkAction (checkAtck, the jump
@@ -187,7 +184,7 @@ void arm_cancel_script(JumpState& s, uintptr_t pl) {
 // the vanilla attack functions set it back at their cancel frame, and so does this. Before that frame nothing can
 // interrupt the move whatever the .ctn windows say; after it the windows decide which rows may.
 void open_cancel_gate(uintptr_t pl) {
-    if (cancel_frame >= 0.0f && at<float>(pl, pl::mMotionFrame0) >= cancel_frame)
+    if (at<float>(pl, pl::mMotionFrame0) >= kCancelFrame)
         at<bool>(pl, pl::mIsCancelCheckEnable) = true;
 }
 
@@ -196,7 +193,7 @@ void open_cancel_gate(uintptr_t pl) {
 // ---------------------------------------------------------------------------------------------------------------
 // Direction. The vertical row: up on the ground, down in the air (AST_JUMP). The directional row: the stick
 // against the facing (it can't be centred, ANYDIRECTION needs a lean; forward if it somehow is); within
-// side_angle of the facing = forward, of its opposite = back; otherwise left / right by the sign against the
+// kSideAngle of the facing = forward, of its opposite = back; otherwise left / right by the sign against the
 // right axis.
 // ---------------------------------------------------------------------------------------------------------------
 Dir pick_direction(uintptr_t pl, bool vertical) {
@@ -207,7 +204,7 @@ Dir pick_direction(uintptr_t pl, bool vertical) {
     const glm::vec3 fwd   = wmat_row(pl, 2);
     const glm::vec3 right = wmat_row(pl, 0);
     const float along = glm::dot(stick, fwd);
-    const float cosA  = std::cos(glm::radians(side_angle));
+    const float cosA  = std::cos(glm::radians(kSideAngle));
     if (along >=  cosA) return FORWARD;
     if (along <= -cosA) return BACK;
     return glm::dot(stick, right) >= 0.0f ? RIGHT : LEFT;
@@ -222,9 +219,9 @@ bool ready(uintptr_t pl) {
 void register_lmt() {
     motion_registry::SetDesc d;
     d.owner = "Gerb";
-    d.body[motion_registry::NERO] = lmt_path;
+    d.body[motion_registry::NERO] = kLmtPath;
     const int old = lmt_set;
-    lmt_set = lmt_path[0] ? motion_registry::add(d) : -1;
+    lmt_set = motion_registry::add(d);
     if (old >= 0) motion_registry::remove(old);
 }
 
@@ -243,7 +240,7 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
 
         s.vertical = atck_id == move_id_vertical;
         s.dir = pick_direction(pl, s.vertical);
-        const int motion = motion_registry::word(lmt_set, pl, slot[s.dir]);
+        const int motion = motion_registry::word(lmt_set, pl, kSlot[s.dir]);
         if (motion < 0) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }   // slot past the file's blocks
         const glm::vec3 fwd = wmat_row(pl, 2), right = wmat_row(pl, 0);
         switch (s.dir) {
@@ -255,10 +252,10 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
         case DOWN:    s.dir_vec = glm::vec3(0.0f, -1.0f, 0.0f); break;
         default: break;
         }
-        if (face_direction && (s.dir == FORWARD || s.dir == LEFT || s.dir == RIGHT))   // a back jump keeps facing
+        if (s.dir == FORWARD || s.dir == LEFT || s.dir == RIGHT)   // a back jump keeps facing
             face(pl, yaw_of(s.dir_vec));
 
-        devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
+        devil4_sdk::borrow_ctn((void*)pl, (uint32_t)kCtnBank, (uint32_t)kCtnSlot);
         // the cycle is the whole jump: loop as its block says, root translation off
         request_motion(pl, motion, (uint32_t)A_NULL_TRANS_OFF, 4.0f, 0.0f, 1.0f);
 
@@ -272,13 +269,13 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
         acc.x = acc.y = acc.z = 0.0f;
         arm_cancel_script(s, pl);
         open_cancel_gate(pl);
-        if (at<float>(pl, pl::mMotionFrame0) < launch_frame) return;
+        if (at<float>(pl, pl::mMotionFrame0) < kLaunchFrame) return;
 
         glm::vec3 v;
         switch (s.dir) {
-        case UP:   v = glm::vec3(0.0f,  up_speed,   0.0f); break;
-        case DOWN: v = glm::vec3(0.0f, -down_speed, 0.0f); break;
-        default:   v = s.dir_vec * speed + glm::vec3(0.0f, rise, 0.0f); break;
+        case UP:   v = glm::vec3(0.0f,  kUpSpeed,   0.0f); break;
+        case DOWN: v = glm::vec3(0.0f, -kDownSpeed, 0.0f); break;
+        default:   v = s.dir_vec * kSpeed + glm::vec3(0.0f, kRise, 0.0f); break;
         }
         vel.x = v.x; vel.y = v.y; vel.z = v.z;
         // keep the game's own XZ model in step (mMoveVel / mJump.moveAng), no table deceleration, no additive speed
@@ -290,7 +287,7 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
         // From the take-off the action counts as a jump (AST_JUMP) so the game's air rules and the air rows of the
         // attack table apply; until then it keeps the status it was entered with (stand on the ground), so ground
         // rows can still cancel the wind-up.
-        if (airborne_status) at<uint32_t>(pl, pl::mActStat) = (at<uint32_t>(pl, pl::mActStat) & ~0x1u) | 0x2u;
+        at<uint32_t>(pl, pl::mActStat) = (at<uint32_t>(pl, pl::mActStat) & ~0x1u) | 0x2u;
         take_off_fx(pl, s.dir_vec);
         phase = PHASE_AIRBORNE;
         if (shell_enabled) spawn_shell(pl, s.dir_vec, ++s.shell_serial);   // after the phase: the shell checks it
@@ -303,8 +300,8 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
         open_cancel_gate(pl);
         uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
         if (vel.y <= 0.0f && coll && at<bool>(coll, 0x1C)) { set_action_land(pl); return; }   // mLand
-        vel.y += gravity * at<float>(pl, pl::m_delta_time);
-        if (vel.y < -max_fall) vel.y = -max_fall;
+        vel.y += kGravity * at<float>(pl, pl::m_delta_time);
+        if (vel.y < -kMaxFall) vel.y = -kMaxFall;
         acc.x = acc.y = acc.z = 0.0f;
         return;
     }
@@ -548,61 +545,19 @@ void Gerb::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("A free jump in any direction, no wall: forward / back / left / right by the stick (in the air only), "
                   "straight up from the ground or straight down in the air on the vertical input. Needs motion\\pl000\\gerb.lmt "
-                  "(slots 0 forward, 1 down, 2 back, 3 left, 4 right, 5 up) and the two MoveTable rows (0x40, 0x41)."));
+                  "(blocks 0 forward, 1 down, 2 back, 3 right, 4 left, 5 up) and the two MoveTable rows (0x40, 0x41)."));
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
     ImGui::PushID("Gerb");            // WallRun's panel shares this page and some labels (Bank, Gravity, Slot ...)
     input_editor(ROW_DIRECTIONAL, _("Directional input (air): forward / back / left / right by the stick"));
     input_editor(ROW_VERTICAL, _("Vertical input: up on the ground, down in the air"));
-    if (ImGui::InputText(_("LMT"), lmt_path, sizeof(lmt_path), ImGuiInputTextFlags_EnterReturnsTrue)) register_lmt();
-    ImGui::SameLine();
-    help_marker(_("Game path of the LMT under nativePC, without .lmt; Enter applies it. The hook places it in a free motion "
-                  "bank itself (shared with the other features that add animations)."));
-    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
-        ImGui::Text(_("File: %s | %s"), lmt_file_exists(lmt_path) ? "found" : "missing",
-                    motion_registry::describe(lmt_set, (uintptr_t)pl).c_str());
-        if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next jump
-    }
-    ImGui::InputInt(_("Slot forward"), &slot[gerb::FORWARD]);
-    ImGui::InputInt(_("Slot down"), &slot[gerb::DOWN]);
-    ImGui::InputInt(_("Slot back"), &slot[gerb::BACK]);
-    ImGui::InputInt(_("Slot left"), &slot[gerb::LEFT]);
-    ImGui::InputInt(_("Slot right"), &slot[gerb::RIGHT]);
-    ImGui::InputInt(_("Slot up"), &slot[gerb::UP]);
-    ImGui::InputInt(_("Borrowed .ctn bank"), &ctn_bank);
-    ImGui::InputInt(_("Borrowed .ctn slot"), &ctn_slot);
-    ImGui::SliderFloat(_("Launch frame"), &launch_frame, 0.0f, 60.0f);
-    ImGui::SliderFloat(_("Speed"), &speed, 0.0f, 60.0f);
-    ImGui::SliderFloat(_("Rise"), &rise, -20.0f, 40.0f);
-    ImGui::SliderFloat(_("Up speed"), &up_speed, 0.0f, 60.0f);
-    ImGui::SliderFloat(_("Down speed"), &down_speed, 0.0f, 60.0f);
-    ImGui::SliderFloat(_("Gravity"), &gravity, -5.0f, 0.0f);
-    ImGui::SliderFloat(_("Max fall"), &max_fall, 1.0f, 80.0f);
-    ImGui::SliderFloat(_("Cancel frame"), &cancel_frame, -1.0f, 60.0f);
-    ImGui::SameLine();
-    help_marker(_("From this frame of the cycle every cancel window (melee, command, jump, taunt, gun, all) is open, so attacks and "
-                  "jumps can interrupt the jump: a .ctn script made in memory replaces the borrowed one. -1 = never (the borrowed "
-                  "script's windows apply)."));
-    ImGui::SliderFloat(_("Side angle"), &side_angle, 10.0f, 80.0f);
-    ImGui::Checkbox(_("Take-off effect"), &effect_enabled);
-    ImGui::SameLine();
-    help_marker(_("The air hike's effect at the launch frame, spawned the way uPlayerNero::setWJumpEffect does (list / index of "
-                  "the game's effect table, at the player's feet). Nero's air hike is list 1 index 0x28 (ec000_00v2); Dante's "
-                  "is 2 / 0x14 (ec005_20v1)."));
-    if (effect_enabled) {
-        ImGui::InputInt(_("Effect list"), &effect_list);
-        ImGui::InputInt(_("Effect index"), &effect_index);
-        ImGui::SliderFloat(_("Effect tilt"), &effect_tilt, -60.0f, 60.0f);
-        ImGui::SameLine();
-        help_marker(_("Degrees the effect leans from the player's up toward the direction of the jump (its level part, so the "
-                      "up / down jumps never lean). 0 = the player's own orientation, as the air hike has it."));
-    }
-    ImGui::Checkbox(_("Take-off sound"), &se_enabled);
-    ImGui::SameLine();
-    help_marker(_("The air hike's sound at the launch frame: an SE id of the player's own sound resource. The air hike plays 40."));
-    if (se_enabled) ImGui::InputInt(_("SE id"), &se_id);
-    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {      // live readout for debugging the cancel window
+    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {      // live readout: the LMT, then the cancel window
         const uintptr_t P = (uintptr_t)pl;
+        ImGui::Text(_("%s.lmt: %s | %s"), kLmtPath, lmt_file_exists(kLmtPath) ? "found" : "missing",
+                    motion_registry::describe(lmt_set, P).c_str());
+        if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next jump
+        ImGui::SameLine();
+        help_marker(_("Reads the LMT from disk again (after editing it); the next jump uses it."));
         ImGui::Text("actLimit %04X  actStat %02X  frame %.1f  phase %d  motion ctrl0 %04X ctrl1 %04X (half used: %s)",
                     at<uint32_t>(P, pl::mActLimit), at<uint32_t>(P, pl::mActStat), at<float>(P, pl::mMotionFrame0),
                     at<int>(P, pl::mBdyActionLowerPhase), at<uint32_t>(P, pl::mMotionCtrl0No) & 0xFFFF,
@@ -628,9 +583,6 @@ void Gerb::on_gui_frame(int display) {
                         c1[0], c1[1], c1[2], c1[3], c1[4], c1[5]);
         }
     }
-    ImGui::Checkbox(_("Face the direction"), &face_direction);
-    ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox(_("Count as airborne"), &airborne_status);
     ImGui::Separator();
     shell_gui();
     ImGui::PopID();
@@ -639,26 +591,6 @@ void Gerb::on_gui_frame(int display) {
 
 void Gerb::on_config_load(const utility::Config& cfg) {
     mod_enabled  = cfg.get<bool>("gerb").value_or(false);
-    for (int i = 0; i < DIR_COUNT; ++i) slot[i] = cfg.get<int>("gerb_slot_" + std::to_string(i)).value_or(slot[i]);
-    ctn_bank     = cfg.get<int>("gerb_ctn_bank").value_or(ctn_bank);
-    ctn_slot     = cfg.get<int>("gerb_ctn_slot").value_or(ctn_slot);
-    launch_frame = cfg.get<float>("gerb_launch_frame").value_or(launch_frame);
-    speed        = cfg.get<float>("gerb_speed").value_or(speed);
-    rise         = cfg.get<float>("gerb_rise").value_or(rise);
-    up_speed     = cfg.get<float>("gerb_up_speed").value_or(up_speed);
-    down_speed   = cfg.get<float>("gerb_down_speed").value_or(down_speed);
-    gravity      = cfg.get<float>("gerb_gravity").value_or(gravity);
-    max_fall     = cfg.get<float>("gerb_max_fall").value_or(max_fall);
-    cancel_frame = cfg.get<float>("gerb_cancel_frame").value_or(cancel_frame);
-    side_angle   = cfg.get<float>("gerb_side_angle").value_or(side_angle);
-    face_direction  = cfg.get<bool>("gerb_face_direction").value_or(true);
-    airborne_status = cfg.get<bool>("gerb_airborne_status").value_or(true);
-    effect_enabled  = cfg.get<bool>("gerb_effect").value_or(true);
-    effect_list     = cfg.get<int>("gerb_effect_list").value_or(effect_list);
-    effect_index    = cfg.get<int>("gerb_effect_index").value_or(effect_index);
-    effect_tilt     = cfg.get<float>("gerb_effect_tilt").value_or(effect_tilt);
-    se_enabled      = cfg.get<bool>("gerb_se").value_or(true);
-    se_id           = cfg.get<int>("gerb_se_id").value_or(se_id);
     for (int i = 0; i < 2; ++i) {           // the rows' inputs: gerb_in<row>_source / _bits / _lockon / _stick
         CustomInput& ci = custom_input[i];
         const std::string p = "gerb_in" + std::to_string(i) + "_";
@@ -675,26 +607,6 @@ void Gerb::on_config_load(const utility::Config& cfg) {
 
 void Gerb::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("gerb", mod_enabled);
-    for (int i = 0; i < DIR_COUNT; ++i) cfg.set<int>("gerb_slot_" + std::to_string(i), slot[i]);
-    cfg.set<int>("gerb_ctn_bank", ctn_bank);
-    cfg.set<int>("gerb_ctn_slot", ctn_slot);
-    cfg.set<float>("gerb_launch_frame", launch_frame);
-    cfg.set<float>("gerb_speed", speed);
-    cfg.set<float>("gerb_rise", rise);
-    cfg.set<float>("gerb_up_speed", up_speed);
-    cfg.set<float>("gerb_down_speed", down_speed);
-    cfg.set<float>("gerb_gravity", gravity);
-    cfg.set<float>("gerb_max_fall", max_fall);
-    cfg.set<float>("gerb_cancel_frame", cancel_frame);
-    cfg.set<float>("gerb_side_angle", side_angle);
-    cfg.set<bool>("gerb_face_direction", face_direction);
-    cfg.set<bool>("gerb_airborne_status", airborne_status);
-    cfg.set<bool>("gerb_effect", effect_enabled);
-    cfg.set<int>("gerb_effect_list", effect_list);
-    cfg.set<int>("gerb_effect_index", effect_index);
-    cfg.set<float>("gerb_effect_tilt", effect_tilt);
-    cfg.set<bool>("gerb_se", se_enabled);
-    cfg.set<int>("gerb_se_id", se_id);
     for (int i = 0; i < 2; ++i) {
         const CustomInput& ci = custom_input[i];
         const std::string p = "gerb_in" + std::to_string(i) + "_";

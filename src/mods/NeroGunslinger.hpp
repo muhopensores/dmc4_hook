@@ -10,31 +10,31 @@
 //                       forward or right (the stick against the lock-on target, as the game's lever check) and fires Blue
 //                       Rose on that direction's shot frame.
 //   0x47 (ground_move_id) grab on the ground without the dodge's lock-on + direction: Nero fans the hammer, a full shot
-//                       (flash, recoil, sound) on each of fan_frames, standing (the clip's root motion as the dodges').
+//                       (flash, recoil, sound) on frames 0 / 6 / 12, standing (the clip's root motion as the dodges').
 //                       Its row shares the air shot's command (the grab button alone; the rows' ground / air conditions
 //                       pick one), and a dodge press clears that bit on the ground so the dodge wins. With the
-//                       button still held once the volley has fired (from spin.from_frame), Nero spins Blue Rose
-//                       (spin.block, looped from spin.loop_from) and charges it, far faster than the vanilla charge
-//                       (spin.charge_frames, with the vanilla charge glow and level sounds); letting go fires the
+//                       button still held once the volley has fired (from frame 14), Nero spins Blue Rose
+//                       (block 8, looped from its start) and charges it, far faster than the vanilla charge
+//                       (levels at 10 / 25 / 45 frames of spinning, the levels Nero has learned, with the vanilla charge
+//                       glow and level sounds); letting go fires the
 //                       vanilla charge shot of the level reached (uPlayer::setActionAtckGun with atckId 44 + level, as
 //                       the gun rows start it; uPlayerNero::moveAtckBlueRoseChargeShot reads the level from the id),
 //                       or before level 1 stands him up.
 //   0x46 (air_move_id)  grab in the air (any stick, lock-on or not): an air combo. Each press in a step's next-move
 //                       window plays the next step (after the last, the first again); a press outside one starts the
-//                       first. Every step: Nero hops (air_lift, less on each air shot before he lands, as the vanilla air
-//                       shot), fires Blue Rose on the step's shot frame and keeps the sideways speed he was moving at,
-//                       undecayed, as the air rev keeps his velocity for Rev Flying (uPlayerNero::moveActODJump
+//                       first; a press any time in a step is queued. Every step: Nero hops (16.174 cm a frame, 0.75 of
+//                       it on each further air shot before he lands, as the vanilla air shot), fires Blue Rose on the
+//                       step's shot frame and keeps the sideways speed he was moving at (a share per step), undecayed, as the air rev keeps his velocity for Rev Flying (uPlayerNero::moveActODJump
 //                       0x7F9950): the larger of the stored inertia (mMoveVel along mJumpMoveAng: a jump's, or Calibur's
 //                       through a jump cancel) and his last tick's movement (Gerb's mVel), carried on mAddSpd
 //                       re-armed every tick, with mMoveVel /
 //                       mJumpMoveAng in step so the fall after the shot carries on with it; his jump's gravity goes on.
 //                       The clip's root motion is ignored, landing ends the shot.
-// Each direction has its own LMT block, shot frame and cancel frame, and is off until its clip is in the LMT; a press
-// toward a direction that is off doesn't trigger the row (post_command_tick clears the command bit).
+// Each move has its own LMT block, shot frame, next-move window and cancel frame (fixed in the .cpp).
 // The travel is the clip's root motion (joint 255), so the move only holds Nero's own velocity at 0 and lets the motion
 // carry him. The shot is the vanilla shot's own calls (uPlayerNero::moveAtckBlueRoseShotAir 0x8010F0): the bullet
 // (uPlNeroShl000::create, which aims at the lock-on target or along the facing by itself), the muzzle flash on the left
-// hand, Blue Rose's recoil motion, the sound and the pad rumble. One shot sends `bullets` bullets bullet_interval frames
+// hand, Blue Rose's recoil motion, the sound and the pad rumble. One shot sends 3 bullets 10 frames
 // apart (each hits on its own, as the vanilla shot's two barrels do), so a single shot in the clip hits several times.
 // The bullets after the first run on their own timer (pre_tick), so they all land whatever Nero does next: a chain into
 // the next move or a clip shorter than the spacing doesn't drop them.
@@ -54,8 +54,8 @@
 // moveAtckBlueRoseChargeShotAir 0x801BF0): one charged bullet (uPlNeroShl001::create(level - 1, owner), which reads
 // nothing of Nero's state but its parameters), the charged flash (setGunEffect kind = level), the gun's recoil, the
 // level's sound (setGunSe by the lent atckId 44 + level) and rumble (4 / 6 / 8). Its hits keep wp000.atk's charge
-// entries (interrupt levels 2-4), so the oomph settings don't apply to it. An air shot can also kick Nero on its shot
-// frame: pushed away from where he faces and lifted (air_kick), the push fading by air_kick_decay a frame on top of
+// entries (interrupt levels 2-4), so the oomph doesn't apply to it. An air shot can also kick Nero on its shot
+// frame: pushed away from where he faces and lifted (air_kick), the push fading by 0.9 a frame on top of
 // the momentum he carries, as the vanilla air charge shot pushes him back (its mMoveVel recoil, damped every frame).
 //
 // Input: a game command (input_commands: lock-on held, the stick leaning any way, then the grab button, 0x200, within
@@ -65,7 +65,7 @@
 // are off (they need their own styles), so the button is free there, and in the other styles it keeps them.
 //
 // The motions come from motion\pl000\gunslinger.lmt (Albam's LMT export) through the motion registry, one block per
-// direction (dodges[d].block). Blue Rose is drawn while the clip's first-table events have bit 26 (gun_display) on: key it in
+// move (ShotMove::block). Blue Rose is drawn while the clip's first-table events have bit 26 (gun_display) on: key it in
 // Albam. The phase lives in mBdyAction[1].phase, which setAction zeroes: 0 entry, 1 the dodge or the air shot.
 
 namespace gunslinger {
@@ -75,96 +75,11 @@ constexpr uint32_t air_move_id = 0x46;        // the air shot's (the MoveDef exa
 constexpr uint32_t ground_move_id = 0x47;     // the neutral ground shot's
 
 extern bool mod_enabled;
-
-// the LMT
-extern int   lmt_set;                 // the motion_registry handle of lmt_path (-1 none)
-extern char  lmt_path[128];           // game path without extension
-extern int   ctn_bank, ctn_slot;      // the vanilla .ctn script borrowed for it (registry banks have none)
-
-// the dodges, by the stick's direction
-enum Dir : int { DIR_BACK = 0, DIR_LEFT = 1, DIR_FORWARD = 2, DIR_RIGHT = 3, DIR_COUNT = 4 };
-struct ShotMove {
-    bool  enabled;                    // the move has its clip (a press for one that is off does nothing)
-    int   block;                      // its LMT block
-    float shot_frame;                 // the clip's frame the shot fires on
-    float next_from;                  // from this frame a press for the next move (C_COMMAND) is queued (-1 = none)
-    float next_at;                    // from this frame the next move starts, a queued press at once (-1 = none)
-    float cancel_frame;               // from this frame every cancel window is open (-1 = the borrowed script's windows)
-    int   charge = 0;                 // 0 = Blue Rose's plain shot; 1-3 = a charge shot of that level (one charged bullet)
-    bool  after_images = false;       // AfterImage's trail while the move plays (after_image::trail_request)
-    float after_image_until = 0.0f;   // up to this frame of the clip (0 = the whole clip)
-};
-extern ShotMove dodges[DIR_COUNT];
-extern const char* const dir_names[DIR_COUNT];
-
-// the neutral ground shot: Nero fans the hammer, a full shot on each of its frames (its shot_frame isn't used)
-constexpr int FAN_MAX = 6;
-extern ShotMove ground_shot;
-extern int   fan_shots;               // the shots it fires (1 - FAN_MAX)
-extern float fan_frames[FAN_MAX];     // the clip's frame of each, in order
-extern int   fan_bullets;             // bullets each of them sends (bullet_interval apart)
-
-// the neutral shot held: after the volley Nero spins the gun while the button stays down (the charge to come)
-struct Spin {
-    bool  enabled;                    // the spin has its clip
-    int   block;                      // its LMT block
-    float from_frame;                 // the neutral shot's frame the spin starts on, the button held since the press
-    float loop_from;                  // the spin clip's frame it goes back to at its end, while still held
-    float blend;                      // interpolation from the neutral shot into the spin
-    float cancel_frame;               // from this frame of the spin every cancel window is open (-1 = none: only letting go ends it)
-    float charge_frames[3];           // frames of spinning each charge level takes (from the spin's start)
-    bool  learned_only;               // levels 2 / 3 only once Nero has learned Charge Shot 2 / 3, as the vanilla charge
-};
-extern Spin spin;
-
-// the air shots: the air combo's steps, in order (a step that is off ends the combo: the next press starts step 1)
-constexpr int AIR_STEPS = 3;
-extern ShotMove air_shots[AIR_STEPS];
-extern float air_momentum[AIR_STEPS];  // each step's share of the sideways speed it starts with (1 = all, 0 = none)
-extern float air_gravity;             // its gravity when Nero brings none of his own (added to the fall speed every frame)
-extern float air_max_fall;            // the fall speed gravity stops adding at
-extern float air_lift;                // the hop: the rise speed the shot starts with at least (cm per frame, 0 = none)
-extern float air_lift_decay;          // each further air shot before Nero lands lifts this much of the one before
-extern bool  air_buffer;              // a press any time in an air shot is remembered (its next-move window from frame 0)
-extern float air_chain_grace;         // frames after an air shot ends (its clip over, Nero falling) that a press still plays the next step
-struct AirKick {
-    float knockback;                  // on the shot frame Nero is pushed away from where he faces at this speed (cm per frame)
-    float lift;                       // and rises at least this fast (cm per frame); 0 = neither
-};
-extern AirKick air_kick[AIR_STEPS];
-extern float air_kick_decay;          // the push left after each frame (0.9 = a tenth less a frame); the carried momentum doesn't fade
-
-// the move
-extern bool  root_motion;             // the clip's root motion moves Nero (off: A_NULL_TRANS_OFF, he dodges in place)
-extern float blend_frames;            // interpolation into the clip
-extern bool  face_target;             // turn toward the lock-on target as the dodge starts
-extern int   bullets;                 // bullets the shot sends (each hits once)
-extern float bullet_interval;         // frames between them (the vanilla shot's two barrels: 5)
-extern bool  pad_rumble;              // the shot's pad vibration (0x11, as the vanilla shot)
-
-// oomph
-struct BulletPower {
-    int level;                        // the interrupt level of its hits (mAttackLvI, 1-4; the vanilla shot's 1)
-    int hit_stop;                     // frames the enemy freezes for on a hit (0 = none)
-    int hit_se;                       // the hit sound (wp000.atk mHitSE: 9 the shot's, 11 the charge shot's; -1 = keep)
-};
-extern BulletPower shot_power;        // every bullet of these moves
-extern BulletPower final_power;       // the last bullet of a move's last shot
-struct Shake {
-    int strength;                     // how far the screen moves (the game's lightest preset: 150; 0 = no shake)
-    int frames;                       // how long it lasts
-};
-extern Shake final_shake;             // on a dodge's or an air shot's shot
-extern Shake neutral_shake;           // on the neutral shot's last shot (it fires fast: none by default)
-extern int   heavy_sound;             // the charge shot level whose sound is layered over a shot's (1-3, 0 none)
-extern bool  heavy_sound_all;         // on every shot (off: the move's last shot only)
-extern int   neutral_heavy_sound;     // the same for the neutral shot (it fires fast: the plain sound by default)
-
-extern int   cmd_bit;                 // the dodge command's mCmdFlag bit (next_free_bit), -1 none
-extern int   air_cmd_bit;             // the air shot command's, -1 none
+extern int  cmd_bit;                  // the dodge command's mCmdFlag bit (next_free_bit), -1 none
+extern int  air_cmd_bit;              // the air shot command's, -1 none
 
 bool ready(uintptr_t player);         // the LMT is on this player's models (the registry builds them if needed)
-void register_lmt();                  // (re-)registers lmt_path with the motion registry
+void register_lmt();                  // (re-)registers the LMT with the motion registry
 void __stdcall move(uintptr_t player, uint32_t atck_id);   // the per-tick state function
 void apply_row();                     // the rows' command bits, enable bytes and style condition
 

@@ -2,7 +2,7 @@
 
 #include "../mod.hpp"
 #include "WallRun.hpp"     // wallrun::at / wallrun::pl offsets; shares no state with WallRun
-#include "NeroStyle.hpp"   // nero_style::kSlots / current(): the action set per style
+#include "NeroStyle.hpp"   // nero_style::kSlots / switches(): the style switch poses
 
 // Guardian Devil: Nero's DT stand (uPlNeroDevil, sdk/NeroStand.hpp) attacks on a button, outside DT, with Red Queen
 // motions. The stand is driven through the game's own DT mimic path: the start does what uPlayerNero::setRedQueenMotion
@@ -11,8 +11,8 @@
 // the motion's end (setAction(0)) and updateTransparency fades it out; the stand follows Nero again once hidden.
 //
 // Two bytes in the stand's free padding carry the mod's state to the game's code (nothing else writes them, no game
-// instruction reads them): kMod (+0x22D9) = MOD_ATTACK while a guardian attack runs (| MOD_HOLD while the stand is held in
-// place during a Buster hold), and kShown (+0x22D3) = mIsDevilTrigger || the mod shows the stand. Ten one-byte patches
+// instruction reads them): kMod (+0x22D9) = MOD_ATTACK while a guardian attack runs (| MOD_PLACED until it has faded out,
+// | MOD_GUARD while it is a guard), and kShown (+0x22D3) = mIsDevilTrigger || the mod shows the stand. Ten one-byte patches
 // point the stand's DT reads (main, moveEx, sync, updateMaterial, draw, updateMatrix, updateTransparency's hand alpha and
 // aura, moveActYamato's gate) at kShown, so the stand updates and draws for a guardian attack as it does in DT, and
 // stays hidden otherwise (Buster / Snatch without DT keep the vanilla look). Six hooks test kMod and do nothing while it
@@ -32,81 +32,67 @@
 // forward; lock-on + back + trigger = back; the trigger alone = neutral. The post-command tick reads the four bits
 // (rush > forward > back > neutral) and starts the stand.
 //
-// Stand LMT blocks: each motion (neutral, forward, back, rush, guard) is either a vanilla stand motion number or a block
-// of the stand LMT pair the taunt mimic registers (taunt_lmt / taunt_arm_lmt: one shared file for every custom stand
-// animation, so they cost one set of registry blocks). A block is played by its registry word (motion_registry::word);
-// while the set isn't on the stand yet, the vanilla motion plays instead.
+// The actions (the same in every Nero style): neutral 0x31C, forward 0x317 (Streak), back 0x330, the rush 0x35F from
+// frame 135 (its wind-up skipped), looping 170-172 -> 150 while the trigger is held, with the effect
+// effect\efl\vie\vi020_00v0 while it punches and v1 when it stops; 30 frames between starts. A motion can instead be a
+// block of the stand LMT pair the taunt mimic registers (motion\pl020\pl020_guardian_ex /
+// motion\wp024\wp024_guardian_ex: one shared file for every custom stand animation, so they cost one set of registry
+// blocks), played by its registry word (motion_registry::word); of the actions only the guard does (blocks 0-2). While the set
+// isn't on the stand yet, the vanilla motion plays instead. Starts are refused while the stand is busy (Buster, Snatch, a
+// hold, Illusion Sword), while a DT change is pending, and while Nero is hit / down / grabbed / dying, in a DT
+// activation, or in Buster / Snatch / Showdown / Maximum Bet; a refused start changes nothing. A hit on Nero doesn't end
+// a running attack: the stand finishes it.
 //
-// Per style: the action set (the four motions, the rush's start frame and loop window) is one per NeroStyle slot,
-// picked with nero_style::current(player) (slot 0 when Nero styles are off). Starts are refused while the stand is busy
-// (Buster, Snatch, a hold, Illusion Sword), while a DT change is pending, and while Nero is hit / down / grabbed / dying,
-// in a DT activation, or in Buster / Snatch / Showdown / Maximum Bet; a refused start changes nothing.
-//
-// Options from the issues: the stand can stay where it is while it holds an enemy (Buster hold) instead of following
-// Nero (hold_stays_put: its position is pinned where the hold began, since the hold motions carry root motion), and the instant DT activation (Nero's DT cancel) can run during that hold without summoning the
-// stand (dt_cancel_keeps_hold: uPlayerNero::checkActionDevilTrgAtOnce refuses it while the stand holds, and
-// moveActDevilTrg / moveActDevilTrgAir call the stand's Appear action; both are gated).
-//
-// Taunt mimic (taunt_mimic): when Nero starts a taunt (lower action 0x17, motions 0x96-0x9E / 0xA5 / 0xA6 of his bank
+// Taunt mimic: when Nero starts a taunt (lower action 0x17, motions 0x96-0x9E / 0xA5 / 0xA6 of his bank
 // 0), the stand plays the same taunt beside him. The stand's own motion lists (pl020_01..04) have no taunts and its
 // joints are numbered differently from Nero's (its left arm is 7-10 where Nero's is 9-12; its right arm is the separate
 // model wp024, whose own blocks place the whole arm on the shoulder), so Nero's taunts are retargeted onto both rigs
-// with Albam (scripts/stand_taunt_retarget.py there) into two LMTs with Nero's block indices, loaded by the motion
-// registry as a STAND set (taunt_lmt for the body, taunt_arm_lmt for the arm, loose files under nativePC); the stand
-// plays the registry's word for Nero's motion id. It stops when Nero's taunt ends.
+// with Albam (scripts/stand_taunt_retarget.py there) into the two stand LMTs with Nero's block indices, loaded by the
+// motion registry as a STAND set (loose files under nativePC); the stand plays the registry's word for Nero's motion id,
+// 80 cm behind Nero. It stops when Nero's taunt ends.
+//
+// Style switch pose: when NeroStyle switches Nero into a style (nero_style::switches: a real switch, not a new player
+// object getting its style written back), the stand appears on him with Nero's DT-on flash (com\ec024_60v0) and the Devil
+// Bringer's appear sound (pl000_style00 41, BringerAppear) and plays that style's pose block of the stand LMT (10 for the
+// Devil Bringer, 12 Gerbera, 11 Gunslinger; none for the third slot), holds its last frame for 10 frames (the motions
+// stopped with A_STOP), then fades out as after an attack. It needs no trigger, costs nothing, opens no guard window and
+// sets no cooldown (a stand attack may cut it short). It is refused like an attack (Nero hit / in Buster / Snatch / a DT
+// activation, the stand busy), and while a stand attack or guard runs; a block the stand LMT lacks plays nothing (no
+// vanilla fallback).
 //
 // Guard (guard_enabled): a timed stand shield on the Guardian action itself, Nero's aerial defence that works in any
 // situation. Every Guardian action start (neutral, forward, back, rush) opens a guard window: from the press a counter
 // adds the frame's delta time, as Dante's Just Block counter does (uPlayerDante::checkStyle / movePlayerBefore, checked
-// <= 5 by checkJustBlock); while it is at most guard_window, a hit on Nero is cancelled whole:
+// <= 5 by checkJustBlock); while it is at most 5 frames, a hit on Nero is cancelled whole:
 // uPlayerNero::procBeforeDamageCalc (vtable slot 83, called by uPlayer::damageMessage before any damage) returns 1, which
 // skips the damage, the DT gain from being hit, the hit reaction, blood and the style rank drop. The first guarded hit
-// of a window cancels the attack into the guard: the next tick the stand is placed back on Nero with the style's guard
-// motion (0x302 from frame 0: the sword clash, which uPlayerNero::moveActFlip hands the stand in DT when Nero's sword is
-// knocked back), with the vanilla stand block's effect and sound (procBeforeDamageCalc's own: stay effect list 0 /
-// 0x28 and SE 69 of the player's second bank) and the clash's pad rumble (reverseMessage's 1); its setAction turns the
-// hand's attack collision off, so the guard does nothing to the attacker (no damage or push-back). With guard_style it
-// adds style as the vanilla block does (uPlayer::addComboGauge, ADD_COMBO_GUAGE_ENEMY_GUARD 6, with Nero's own block
-// values from his player params), without the block's DT bonus. The
-// clash marks every frame with the stand's "disappear outside DT" event bit (11; bit 10, the DT one, from frame 20), so
-// uPlNeroDevil::checkDevilDisappear would fade a guard out on its first frame: during a guard (kMod MOD_GUARD) it takes
-// its DT branch, and the guard fades from frame 20 as the clash does in DT. Later hits inside the same window are cancelled too. After a guard, a Guardian action press guards again instead of
-// attacking: a new window, no cost until it catches a hit; a re-guard window that catches nothing ends the re-guards
-// until the next guard, so each one has to be timed. Re-guards last reguard_time frames from each guard, whether its motion
-// still plays or not (a caught re-guard brings the stand back in the guard pose and starts them again). After the guard,
-// guard_recovery frames pass before a stand attack.
+// of a window cancels the attack into the guard: the next tick the stand is placed back on Nero with the guard motion (a
+// random one of stand LMT blocks 0-2, else 0x302 from frame 0: the sword clash, which uPlayerNero::moveActFlip hands the
+// stand in DT when Nero's sword is knocked back), with the vanilla stand block's effect and sound (procBeforeDamageCalc's
+// own: stay effect list 0 / 0x28 and SE 69 of the player's second bank) and the clash's pad rumble (reverseMessage's 1);
+// its setAction turns the hand's attack collision off, so the guard does nothing to the attacker (no damage or
+// push-back). It adds style as the vanilla block does (uPlayer::addComboGauge, ADD_COMBO_GUAGE_ENEMY_GUARD 6, with Nero's
+// own block values from his player params) and the block's DT bonus (player params +0x48, added directly; none in Devil
+// Trigger). The clash marks every frame with the stand's "disappear outside DT" event bit (11; bit 10, the DT one, from
+// frame 20), so uPlNeroDevil::checkDevilDisappear would fade a guard out on its first frame: during a guard (kMod
+// MOD_GUARD) it takes its DT branch, and the guard fades from frame 20 as the clash does in DT. Later hits inside the same
+// window are cancelled too. After a guard, a Guardian action press guards again instead of attacking: a new window; a
+// re-guard window that catches nothing ends the re-guards until the next guard, so each one has to be timed. Re-guards
+// last 45 frames from each guard, whether its motion still plays or not (a caught re-guard brings the stand back in the
+// guard pose and starts them again). After the guard, 15 frames pass before a stand attack.
 // Attacks that skip slot 83 (checkPressureDamage ones, enemy grabs through grabHitMessage) aren't guarded.
 //
-// DT cost (dt_cost, off by default): each start takes its cost from Nero's DT gauge (uPlayer::mDevilTrg.now +0x1F24,
-// 1000 = one bar) and is refused when the gauge has less; the rush also drains rush_drain per second while it is held
-// past its wind-up, and stops looping when the gauge runs dry (as if the trigger were let go). In Devil Trigger (the
-// stand's mIsDevilTrigger) every cost and the drain are multiplied by cost_in_dt (0.5). The taunt mimic is free.
+// DT cost (dt_cost, off by default): each attack's start takes 500 (half a bar) from Nero's DT gauge
+// (uPlayer::mDevilTrg.now +0x1F24, 1000 = one bar) and is refused when the gauge has less; the rush also drains 500 a
+// second while it is held past its wind-up, and stops looping when the gauge runs dry (as if the trigger were let go).
+// In Devil Trigger (the stand's mIsDevilTrigger) the cost and the drain are halved. Guards, the taunt mimic and the
+// switch pose are free.
 //
 // Needs the downloaded nativePC\Collision\wp024.col (the stand's attack data; the mod turns itself off without it).
 // The stand hits with that file's attack entries, so the style-points repetition penalty and which enemies a hit
 // reaches are that data's, not the mod's.
 
 namespace guardian_devil {
-
-struct ActionSet {
-    bool  enabled;        // the stand attacks in this style
-    int   neutral;        // the button alone (0x31C)
-    int   forward;        // lock-on + forward + button (0x317, Streak)
-    int   back;           // lock-on + back + button (0x330)
-    int   rush;           // lock-on + back, forward + button (0x35F, the punch rush)
-    float rush_start;     // the rush motion's start frame (its wind-up skipped: 135)
-    float loop_from;      // while the button is held, a rush frame in [loop_from, loop_to] jumps back to loop_dest
-    float loop_to;
-    float loop_dest;
-    int   guard;          // the guard's motion (0x302, the stand's sword clash)
-    float guard_start;    // its start frame (0)
-    int   neutral_block;  // the stand LMT block each motion plays instead of the vanilla number (-1 = the vanilla one)
-    int   forward_block;
-    int   back_block;
-    int   rush_block;
-    int   guard_block;    // 0 by default: block 0 of the stand LMT (the guardian_ex package's guard); the others -1
-    int   guard_blocks;   // each guard picks one of this many blocks from guard_block on at random (3: blocks 0-2)
-};
 
 enum TriggerSource : int { TRIG_PAD = 0 /* gamepad buttons */, TRIG_KEY = 1 /* a keyboard key */, TRIG_GAME = 2 /* a mapped game input */ };
 constexpr uint32_t kVirtualButton = 0x800;   // the pad / key trigger as a game button bit, for the command checker
@@ -117,42 +103,17 @@ extern int   trigger_pad;          // raw pad bits (mPeripheral.mPadBtnOn), all 
 extern int   trigger_key;          // virtual-key code (0 = none), a trigger too alongside the controller's, for the player
                                    // who has the keyboard (players::has_keyboard)
 extern int   trigger_game;         // the mapped game input (mBtnTrg bit): 0x100 Change Gun, 0x80 Change Devil Arm, 0x8 Taunt
-extern float cooldown_frames;      // frames between starts (30)
-extern bool  cancel_on_hit;        // a hit / grab on Nero ends a running guardian attack (off: the stand finishes it)
-extern bool  rush_effect;          // the rush's effects (effect\efl\vie\vi020_00v0 while it runs, v1 at its end)
-extern float height_offset;        // cm added to the stand's height at the start (0)
-extern bool  hold_stays_put;       // the stand stays in place while it holds an enemy (Buster hold) instead of following Nero
-extern bool  dt_cancel_keeps_hold; // the instant DT activation runs during that hold, without summoning the stand
-extern bool  taunt_mimic;          // the stand plays Nero's taunt beside him
-extern char  taunt_lmt[128];       // the stand LMT (Nero's taunts retargeted, custom stand moves; game path without .lmt)
-extern char  taunt_arm_lmt[128];   // the arm model's (empty = the arm plays nothing)
-extern float taunt_back;           // where the stand taunts: cm behind Nero (negative = in front)
-extern float taunt_side;           // cm to Nero's right (negative = left)
 extern bool  guard_enabled;        // a Guardian action's press opens a guard window
-extern float guard_window;         // frames after the press in which a hit is cancelled (5)
-extern bool  guard_effects;        // a guard plays the vanilla block's effect, sound and pad rumble
-extern bool  guard_style;          // a guard adds style, as the vanilla stand block does
-extern bool  guard_dt;             // a guard adds DT (not while in Devil Trigger, as the game's own gains)
-extern float guard_dt_gain;        // how much: -1 = the vanilla stand block's (Nero's player params +0x48), else this
-extern float guard_recovery;       // frames after a guard before the next stand attack (15)
-extern float reguard_time;         // frames after a guard in which a Guardian action press guards again instead of attacking (45)
-extern bool  dt_cost;              // the stand's actions cost DT
-extern float cost_neutral;         // DT per start (1000 = one bar)
-extern float cost_forward;
-extern float cost_back;
-extern float cost_rush;            // the rush's start
-extern float cost_guard;           // taken by the first guarded hit (0: the guard stays free)
-extern float rush_drain;           // DT per second while the rush is held
-extern float cost_in_dt;           // multiplier on every cost and the drain while Nero is in Devil Trigger (0.5)
-extern ActionSet sets[nero_style::kSlots];
+extern bool  dt_cost;              // the stand's attacks cost DT
+extern bool  cancel_on_hit;        // a hit / grab on Nero ends a running guardian attack (off: the stand finishes it)
 
-int  slot_for(uintptr_t player);   // the NeroStyle slot whose set applies (0 when styles are off or the player isn't Nero)
+int  slot_for(uintptr_t player);   // this Nero's NeroStyle slot (0 when styles are off or the player isn't Nero)
 bool active(uintptr_t player);     // a guardian attack runs for this Nero
 bool guarding(uintptr_t player);   // a guard's window is open for this Nero (a hit now is cancelled)
-void pre_tick(uintptr_t player);   // input_commands::add_tick: end detection, the hold, the stand bytes, the rush loop
+void pre_tick(uintptr_t player);   // input_commands::add_tick: end detection, the guard, the poses, the stand bytes, the rush loop
 void post_command_tick(uintptr_t player);   // input_commands::add_post_command_tick: the four command bits -> a start
 uint32_t trigger_bit();            // the button bit the four commands test (trigger_game, or the virtual button)
-void register_taunt_set();         // (re)registers the taunt LMTs with the motion registry
+void register_taunt_set();         // registers the stand LMTs with the motion registry
 void rebuild_commands();           // after a trigger change: rewrites the four commands' button step
 
 } // namespace guardian_devil
@@ -170,8 +131,7 @@ public:
 
     void toggle(bool enable);   // the ten kShown patches
 
-    std::unique_ptr<FunctionHook> hook_cmd, hook_gate, hook_phase0, hook_follow, hook_position, hook_dt_request, hook_kabuto,
-                                  hook_dt_at_once, hook_dt_appear, hook_dt_appear_air, hook_disappear;
+    std::unique_ptr<FunctionHook> hook_cmd, hook_gate, hook_phase0, hook_follow, hook_dt_request, hook_kabuto, hook_disappear;
     std::unique_ptr<Patch> patch_shown[10];
     std::unique_ptr<Patch> patch_guard[3];   // uPlayerNero's (and its Benchmark / Tutorial copies') vtable slot 83
 };

@@ -5,7 +5,7 @@
 #include "WallRun.hpp"     // wallrun::at / wallrun::pl offsets / JUMP_MODE; the move itself shares no state with WallRun
 
 // Gerb: a free three-dimensional jump, no wall. The jump-out of WallRun taken on its own: the cycle is the whole
-// jump (launch at a frame of it, tunable ballistic physics, no fall motion). Two MoveTable rows:
+// jump (launch at a frame of it, ballistic physics with fixed values in Gerb.cpp, no fall motion). Two MoveTable rows:
 //   0x40 (move_id)          forward / back / left / right by where the stick leans relative to the facing; air only
 //   0x41 (move_id_vertical) straight up from the ground, straight down in the air, on its own command
 // Nero's dispatch (MoveTable nero_move_switch) calls gerb::move(actor, id) every tick while moveID2 is one of them.
@@ -21,12 +21,18 @@
 // Gerbera style only (NeroStyle), where the game's Snatch rows are off; Calibur's back, forward (STICK_BACK_FORWARD, the
 // game's cmd 0x52) stays a choice in the GUI.
 //
-// Motions come from motion\pl000\gerb.lmt (Nero) loaded into a free bank at runtime (MoveDef D14): slots
-// 0 forward, 1 down, 2 back, 3 left, 4 right, 5 up. Without the file the move refuses to start (there is no
+// Motions come from motion\pl000\gerb.lmt (Nero) loaded into a free bank at runtime (MoveDef D14): blocks
+// 0 forward, 1 down, 2 back, 3 right, 4 left, 5 up. Without the file the move refuses to start (there is no
 // vanilla stand-in for it).
 //
-// The move is `namespace gerb` (tunables, the state function, the rows, the command); the `Gerb` Mod class below
-// is only the framework plumbing (hook install, config, GUI) and holds no state of its own but the hook.
+// The jump's values are constants in Gerb.cpp: launch at frame 0 of the cycle, 20 cm / frame along the direction plus a
+// 14 rise (forward / back / left / right), up 32, down 24, gravity -1.1 a frame, max fall 30, every cancel window open
+// from frame 10, sideways beyond 50 deg off the facing, the facing turned toward forward / left / right jumps, AST_JUMP
+// from the take-off, and the air hike's effect (list 1 / 0x28, leaned 45 deg toward the jump) and SE 40 at it. The
+// cycles borrow the fall motion's .ctn script (bank 0, slot 5). Only the on / off and the rows' inputs are settings.
+//
+// The move is `namespace gerb` (the state function, the rows, the command); the `Gerb` Mod class below is only the
+// framework plumbing (hook install, config, GUI) and holds no state of its own but the hook.
 
 namespace gerb {
 
@@ -56,37 +62,11 @@ extern bool vertical_ground_any_stick;   // on the ground the vertical row takes
 enum Dir : int { FORWARD = 0, DOWN = 1, BACK = 2, LEFT = 3, RIGHT = 4, UP = 5, DIR_COUNT = 6 };   // = the LMT slots
 
 extern bool mod_enabled;
-
-// the LMT
-extern int  lmt_set;              // the motion_registry handle of lmt_path (-1 none): the registry picks the bank
-extern char lmt_path[128];        // game path without extension
-extern int  slot[DIR_COUNT];      // block per direction, 0 forward, 1 down, 2 back, 3 left, 4 right, 5 up
-extern int  ctn_bank, ctn_slot;   // vanilla .ctn script borrowed for the cycles (runtime banks have none)
-
-// the jump (cm per frame)
-extern float launch_frame;        // frame of the cycle at which the velocity is applied
-extern float speed;               // along the chosen direction (forward / back / left / right)
-extern float rise;                // vertical speed added at launch for forward / left / right
-extern float up_speed;            // the up jump
-extern float down_speed;          // the down jump (dive)
-extern float gravity;             // added to the vertical speed every frame (negative)
-extern float max_fall;
-extern float cancel_frame;        // from this frame of the cycle every cancel window is open (-1 = never)
-extern float side_angle;          // degrees off the facing (or its opposite) beyond which a stick is left / right, not forward / back
-extern bool  face_direction;      // turn the facing toward the jump direction (forward / left / right; a back jump keeps facing)
-extern bool  airborne_status;     // mark the action as a jump (AST_JUMP) so the game's air rules apply
-
-// the take-off: the air hike's effect and sound (uPlayerNero::setWJumpEffect 0x7E8850), fired at the launch frame
-extern bool  effect_enabled;
-extern int   effect_list, effect_index;   // sDevil4Effect list / index: Nero's air hike is 1 / 0x28 (effect\efl\com\ec000_00v2),
-                                          // Dante's 2 / 0x14 (ec005_20v1)
-extern float effect_tilt;                 // degrees the effect leans from the player's up toward the jump direction (level part)
-extern bool  se_enabled;
-extern int   se_id;                       // SE of the player's sound resource (+0x1D60): the air hike plays 40
+extern int  lmt_set;              // the motion_registry handle of the LMT (-1 none): the registry picks the bank
 
 Dir  pick_direction(uintptr_t player, bool vertical);
 bool ready(uintptr_t player);          // the LMT is on this player's models (the registry builds them if needed)
-void register_lmt();                   // (re-)registers lmt_path with the motion registry
+void register_lmt();                   // (re-)registers the LMT with the motion registry
 void __stdcall move(uintptr_t player, uint32_t atck_id);   // the per-tick state function (atck_id = the row)
 void apply_row();                      // writes the inputs and the enable byte into the rows MoveTable inserted
 

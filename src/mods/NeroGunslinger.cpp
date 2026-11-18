@@ -19,53 +19,84 @@ using namespace wallrun;
 namespace gunslinger {
 
 bool  mod_enabled      = false;
-int   lmt_set          = -1;
-char  lmt_path[128]    = "motion\\pl000\\gunslinger";
-int   ctn_bank         = 0;
-int   ctn_slot         = 5;            // Gerb's: no cancels of its own until cancel_frame opens them all
-bool  root_motion      = true;
-float blend_frames     = 6.0f;
-bool  face_target      = true;
-int   bullets          = 3;
-float bullet_interval  = 10.0f;         // the vanilla shot's two barrels
-bool  pad_rumble       = true;
 int   cmd_bit          = -1;
-BulletPower shot_power  = { 2, 0, -1 };   // Twosome Time's close-range level
-BulletPower final_power = { 3, 5, 11 };
-Shake final_shake     = { 60, 5 };      // well under the lightest preset (150)
-Shake neutral_shake   = { 0, 4 };       // it fires fast and is pressed again and again
-int   heavy_sound      = 1;
-bool  heavy_sound_all  = true;
-int   neutral_heavy_sound = 0;
-ShotMove dodges[DIR_COUNT] = {
-    { true,  0, 20.0f, -1.0f, -1.0f, 35.0f, 0, true, 35.0f },   // back: 43 frames, the travel ends at 35
-    { true,  1,  8.0f, -1.0f, -1.0f, 38.0f, 0, true, 39.0f },   // left: 41 frames, travelling to 39
-    { true,  3, 10.0f, -1.0f, -1.0f, 35.0f, 0, true, 34.0f },   // forward (made at 48 fps): 45 frames, the travel ends at 34
-    { true,  2,  8.0f, -1.0f, -1.0f, 38.0f, 0, true, 40.0f },   // right: 41 frames, travelling to 40
-};
-const char* const dir_names[DIR_COUNT] = { "Back", "Left", "Forward", "Right" };
-ShotMove air_shots[AIR_STEPS] = {
-    { true,  5,  7.0f,  4.0f, 12.0f, 22.0f },   // 31 frames
-    { true,  4, 13.0f, 10.0f, 17.0f, 20.0f },   // 24 frames; the arm kicks on 13-14
-    { true,  7, 20.0f, 20.0f, 28.0f, 30.0f, 3 },   // a charge shot on 20 (the user)
-};
-float air_momentum[AIR_STEPS] = { 0.5f, 1.0f, 1.0f };   // the second keeps all of it (the user)
-ShotMove ground_shot   = { true, 6, 0.0f, 6.0f, 14.0f, 15.0f };   // 19 frames (made at 48 fps); the next shot queues from the second shot
-int   fan_shots        = 3;
-float fan_frames[FAN_MAX] = { 0.0f, 6.0f, 12.0f, 18.0f, 24.0f, 30.0f };
-int   fan_bullets      = 1;
-Spin  spin             = { true, 8, 14.0f, 0.0f, 4.0f, 0.0f, { 10.0f, 25.0f, 45.0f }, true };   // after the third shot (12), at the neutral shot's Next move at
-float air_gravity      = -1.1f;         // Gerb's
-float air_max_fall     = 30.0f;
-float air_lift         = 12.0f;         // with Gerb's gravity about 65 cm up, back down by the clip's end (24 frames)
-float air_lift_decay   = 0.75f;
-bool  air_buffer       = true;
-float air_chain_grace  = 12.0f;
-AirKick air_kick[AIR_STEPS] = { { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 6.0f, 10.0f } };   // the charge shot kicks Nero back and up
-float air_kick_decay   = 0.9f;          // about 60 cm of push in all
 int   air_cmd_bit      = -1;
 
 namespace {
+
+int   lmt_set          = -1;            // the motion_registry handle of kLmtPath (-1 none)
+constexpr const char* kLmtPath = "motion\\pl000\\gunslinger";   // game path without extension
+constexpr uint32_t kCtnBank = 0, kCtnSlot = 5;   // the vanilla .ctn script borrowed (Gerb's): registry banks have none
+constexpr float kBlendFrames     = 4.0f;   // interpolation into a clip
+constexpr int   kBullets         = 3;      // bullets a dodge's or an air shot's shot sends (each hits once)
+constexpr float kBulletInterval  = 10.0f;  // frames between them (the vanilla shot's two barrels: 5)
+
+// the dodges, by the stick's direction
+enum Dir : int { DIR_BACK = 0, DIR_LEFT = 1, DIR_FORWARD = 2, DIR_RIGHT = 3, DIR_COUNT = 4 };
+struct ShotMove {
+    int   block;                      // its LMT block
+    float shot_frame;                 // the clip's frame the shot fires on
+    float next_from;                  // from this frame a press for the next move (C_COMMAND) is queued (-1 = none)
+    float next_at;                    // from this frame the next move starts, a queued press at once (-1 = none)
+    float cancel_frame;               // from this frame every cancel window is open (-1 = the borrowed script's windows)
+    int   charge = 0;                 // 0 = Blue Rose's plain shot; 1-3 = a charge shot of that level (one charged bullet)
+    float after_image_until = -1.0f;  // AfterImage's trail up to this frame of the clip (-1 = none)
+};
+constexpr ShotMove dodges[DIR_COUNT] = {
+    { 0, 20.0f, -1.0f, -1.0f, 35.0f, 0, 35.0f },   // back: 43 frames, the travel ends at 35
+    { 1,  8.0f, -1.0f, -1.0f, 38.0f, 0, 39.0f },   // left: 41 frames, travelling to 39
+    { 3,  8.0f, -1.0f, -1.0f, 28.0f, 0, 34.0f },   // forward (made at 48 fps): 45 frames, the travel ends at 34
+    { 2,  8.0f, -1.0f, -1.0f, 38.0f, 0, 40.0f },   // right: 41 frames, travelling to 40
+};
+const char* const dir_names[DIR_COUNT] = { "Back", "Left", "Forward", "Right" };
+
+// the air shots: the air combo's steps, in order. A press any time in a step is queued (next_from 0) and plays the
+// next step at its next_at.
+constexpr int AIR_STEPS = 3;
+constexpr ShotMove air_shots[AIR_STEPS] = {
+    { 5,  7.0f, 0.0f, 12.0f, 22.0f },      // 31 frames
+    { 4, 13.0f, 0.0f, 17.0f, 20.0f },      // 24 frames; the arm kicks on 13-14
+    { 7, 20.0f, 0.0f, 12.0f, 22.0f, 3 },   // a charge shot on 20
+};
+constexpr float air_momentum[AIR_STEPS] = { 0.5f, 1.0f, 1.0f };   // each step's share of the sideways speed it starts with
+constexpr float kAirGravity     = -1.1f;   // Gerb's: added to the fall speed every frame when Nero brings no gravity of his own
+constexpr float kAirMaxFall     = 30.0f;   // the fall speed gravity stops adding at
+constexpr float kAirLift        = 16.174f; // the hop: the rise speed an air shot starts with at least (cm per frame)
+constexpr float kAirLiftDecay   = 0.75f;   // each further air shot before Nero lands lifts this much of the one before
+constexpr float kAirChainGrace  = 12.0f;   // frames after an air shot ends (Nero falling) that a press still plays the next step
+struct AirKick {
+    float knockback;                  // on the shot frame Nero is pushed away from where he faces at this speed (cm per frame)
+    float lift;                       // and rises at least this fast (cm per frame); 0 = neither
+};
+constexpr AirKick air_kick[AIR_STEPS] = { { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 6.0f, 10.0f } };   // the charge shot kicks Nero back and up
+constexpr float kAirKickDecay   = 0.9f;    // the push left after each frame (about 60 cm of push in all)
+
+// the neutral ground shot: Nero fans the hammer, a full shot of one bullet on each of kFanFrames
+constexpr ShotMove ground_shot = { 6, 0.0f, 6.0f, 14.0f, 15.0f };   // 19 frames (made at 48 fps); the next shot queues from the second shot
+constexpr int   kFanShots = 3;
+constexpr float kFanFrames[kFanShots] = { 0.0f, 6.0f, 12.0f };
+
+// the neutral shot held: after the volley Nero spins the gun while the button stays down, charging
+constexpr int   kSpinBlock       = 8;
+constexpr float kSpinFrom        = 14.0f;   // the neutral shot's frame the spin starts on (its Next move at)
+constexpr float kSpinBlend       = 4.0f;    // interpolation from the neutral shot into the spin
+constexpr float kSpinCancelFrame = 0.0f;    // from this frame of the spin every cancel window is open
+constexpr float kSpinCharge[3]   = { 10.0f, 25.0f, 45.0f };   // frames of spinning each charge level takes
+
+// oomph
+struct BulletPower {
+    int level;                        // the interrupt level of its hits (mAttackLvI; the vanilla shot's 1)
+    int hit_stop;                     // frames the enemy freezes for on a hit
+    int hit_se;                       // the hit sound (wp000.atk mHitSE: 9 the shot's, 11 the charge shot's; -1 = keep)
+};
+constexpr BulletPower shot_power  = { 2, 0, -1 };   // every bullet of these moves: Twosome Time's close-range level
+constexpr BulletPower final_power = { 3, 5, 11 };   // the last bullet of a move's last shot
+struct Shake {
+    int strength;                     // how far the screen moves (the game's lightest preset: 150)
+    int frames;                       // how long it lasts
+};
+constexpr Shake final_shake = { 60, 5 };   // on a dodge's or an air shot's shot; the neutral shot has none
+constexpr int kHeavySound = 1;             // the charge shot level whose sound is layered over a dodge's or air shot's
 
 // ---------------------------------------------------------------------------------------------------------------
 // Game functions. The shot's calling conventions are the vanilla air shot's (uPlayerNero::moveAtckBlueRoseShotAir
@@ -215,8 +246,8 @@ void __fastcall shl_hit(uintptr_t shell, uintptr_t edx, uintptr_t own, uintptr_t
     if (!b || !own) return;
     const BulletPower& p = b->last ? final_power : shot_power;
     kAttackStatus& a = *(kAttackStatus*)(own + kGroupAttack);
-    a.mAttackLvI = std::clamp(p.level, 0, 4);
-    a.mHitStopTimer = std::max(p.hit_stop, 0);
+    a.mAttackLvI = p.level;
+    a.mHitStopTimer = p.hit_stop;
     if (p.hit_se >= 0) a.mHitSE = p.hit_se;
     ++g_power_hits;
 }
@@ -228,15 +259,15 @@ uintptr_t __fastcall shl_dtor(uintptr_t shell, uintptr_t edx, uint32_t flags) {
 
 // One Blue Rose bullet; the shot's first also brings the flash, the gun's recoil, the rumble and the sound, as the
 // vanilla shot fires its first barrel. `last` = the move's last bullet; `last_shot` = it belongs to the move's last shot,
-// which shakes the camera by `shake`; `heavy` = the charge shot level whose sound is layered on (0 none).
+// which shakes the camera by `shake` (none: no shake); `heavy` = the charge shot level whose sound is layered on (0 none).
 void fire(uintptr_t pl, bool first, bool last, bool last_shot, const Shake* shake = nullptr, int heavy = 0) {
     remember(((uintptr_t(__cdecl*)(int, uintptr_t))fn_shl000_create)(0, pl), last);
     if (!first) return;
     set_gun_effect(pl, 0);
     if (const uintptr_t gun = blue_rose(pl)) set_shot(gun);
-    if (pad_rumble) pad_vibration(pl, 0x11);
+    pad_vibration(pl, 0x11);
     gun_se(pl, 0);
-    if (heavy > 0 && (heavy_sound_all || last_shot)) gun_se(pl, 0, kBlueRoseShotId + (uint32_t)std::min(heavy, 3));
+    if (heavy > 0) gun_se(pl, 0, kBlueRoseShotId + (uint32_t)std::min(heavy, 3));
     if (last_shot && shake) camera_shake(*shake);
 }
 
@@ -246,7 +277,7 @@ void fire_charged(uintptr_t pl, int level, const Shake& shake) {
     ((uintptr_t(__cdecl*)(int, uintptr_t))fn_shl001_create)(level - 1, pl);
     set_gun_effect(pl, level);
     if (const uintptr_t gun = blue_rose(pl)) set_shot(gun);
-    if (pad_rumble) pad_vibration(pl, 2 + 2 * level);
+    pad_vibration(pl, 2 + 2 * level);
     gun_se(pl, 0, kBlueRoseShotId + (uint32_t)level);
     camera_shake(shake);
 }
@@ -450,10 +481,10 @@ struct State {
     bool pending_last = false;       // they belong to the move's last shot (the last of them is the move's last bullet)
     float next_in = 0.0f;            // frames to the next of them
     int air_ticks = 0;
-    float gravity = 0.0f;            // the air shot's: Nero's own when he brings one, else air_gravity
+    float gravity = 0.0f;            // the air shot's: Nero's own when he brings one, else kAirGravity
     int air_count = 0;               // air shots since he last stood on the ground (the lift shrinks with each)
     int air_step = 0;                // the air combo's step playing (or last played)
-    int fan_next = 0;                // the neutral shot's next shot (fan_frames index)
+    int fan_next = 0;                // the neutral shot's next shot (kFanFrames index)
     bool held = false;               // the neutral shot's button has stayed down since the press
     float spin_time = 0.0f;          // frames the spin has run
     int charge_level = 0;            // the spin's charge level reached (0-3)
@@ -530,11 +561,11 @@ static float g_spin_frames = 0.0f;   // readout: the last spin's length so far
 static uint32_t g_charge_shots = 0;  // readout
 
 // A shot of `count` bullets: the first now, the rest left to pre_tick's timer. `last_shot` = the move's last shot.
-void shoot(uintptr_t pl, State& s, int count, bool last_shot, const Shake& shake, int heavy) {
-    fire(pl, true, last_shot && count <= 1, last_shot, &shake, heavy);
+void shoot(uintptr_t pl, State& s, int count, bool last_shot, const Shake* shake, int heavy) {
+    fire(pl, true, last_shot && count <= 1, last_shot, shake, heavy);
     ++g_shots;
     if (count > 1) {
-        if (s.pending == 0) s.next_in = bullet_interval;
+        if (s.pending == 0) s.next_in = kBulletInterval;
         s.pending += count - 1;
         s.pending_last = last_shot;
     }
@@ -543,7 +574,7 @@ void shoot(uintptr_t pl, State& s, int count, bool last_shot, const Shake& shake
 // The move's shot once the clip reaches its frame (the dodges and air shots have one): true on the tick it fires.
 // AfterImage's trail while the move's clip is before its after_image_until frame.
 void after_images(uintptr_t pl, const ShotMove& m) {
-    if (m.after_images && (m.after_image_until <= 0.0f || at<float>(pl, pl::mMotionFrame0) < m.after_image_until))
+    if (m.after_image_until > 0.0f && at<float>(pl, pl::mMotionFrame0) < m.after_image_until)
         after_image::trail_request(pl);
 }
 
@@ -554,23 +585,22 @@ bool fire_due(uintptr_t pl, State& s, const ShotMove& m) {
         fire_charged(pl, m.charge, final_shake);
         ++g_shots;
     } else {
-        shoot(pl, s, bullets, true, final_shake, heavy_sound);
+        shoot(pl, s, kBullets, true, &final_shake, kHeavySound);
     }
     return true;
 }
 
-// The neutral shot's shots as the clip reaches their frames, each a full shot (flash, recoil, sound) with fan_bullets
-// bullets.
+// The neutral shot's shots as the clip reaches their frames, each a full shot (flash, recoil, the plain sound) of one
+// bullet; no camera shake (it fires fast and is pressed again and again).
 void fire_fan(uintptr_t pl, State& s) {
     const float frame = at<float>(pl, pl::mMotionFrame0);
-    const int shots = std::clamp(fan_shots, 1, FAN_MAX);
-    while (s.fan_next < shots && frame >= fan_frames[s.fan_next]) {
+    while (s.fan_next < kFanShots && frame >= kFanFrames[s.fan_next]) {
         ++s.fan_next;
-        shoot(pl, s, fan_bullets, s.fan_next == shots, neutral_shake, neutral_heavy_sound);
+        shoot(pl, s, 1, s.fan_next == kFanShots, nullptr, 0);
     }
 }
 
-// The pending bullets, bullet_interval apart (an interval of 0 sends them together), whatever Nero is doing.
+// The pending bullets, kBulletInterval apart, whatever Nero is doing.
 void fire_pending(uintptr_t pl, State& s) {
     if (s.pending <= 0) return;
     s.next_in -= at<float>(pl, pl::m_delta_time);
@@ -578,14 +608,13 @@ void fire_pending(uintptr_t pl, State& s) {
         fire(pl, false, s.pending_last && s.pending == 1, false);
         ++g_shots;
         --s.pending;
-        s.next_in += bullet_interval;
+        s.next_in += kBulletInterval;
     }
 }
 
-// The highest charge level the spin may reach: 3, or with learned_only the levels Nero has learned (level 1 always,
-// 2 / 3 as the vanilla charge checks them).
+// The highest charge level the spin may reach: the levels Nero has learned (level 1 always, 2 / 3 as the vanilla charge
+// checks them).
 int charge_cap(uintptr_t pl) {
-    if (!spin.learned_only) return 3;
     if (!learned(pl, kBlueRoseShotId + 2)) return 1;
     return learned(pl, kBlueRoseShotId + 3) ? 3 : 2;
 }
@@ -601,7 +630,7 @@ void charge_start(uintptr_t pl, State& s) {
 void charge_update(uintptr_t pl, State& s) {
     static const uint32_t glow[4] = { 1, 2, 4, 8 }, flash[4] = { 0, 1, 2, 4 };
     const int cap = charge_cap(pl);
-    while (s.charge_level < cap && s.spin_time >= spin.charge_frames[s.charge_level]) {
+    while (s.charge_level < cap && s.spin_time >= kSpinCharge[s.charge_level]) {
         const int level = ++s.charge_level;
         finish_effect(pl, kGlowType);
         keep_effect(pl, 0x2A, flash[level], kFlashType);
@@ -630,9 +659,9 @@ bool ready(uintptr_t pl) {
 void register_lmt() {
     motion_registry::SetDesc d;
     d.owner = "NeroGunslinger";
-    d.body[motion_registry::NERO] = lmt_path;
+    d.body[motion_registry::NERO] = kLmtPath;
     const int old = lmt_set;
-    lmt_set = lmt_path[0] ? motion_registry::add(d) : -1;
+    lmt_set = motion_registry::add(d);
     if (old >= 0) motion_registry::remove(old);
 }
 
@@ -650,9 +679,9 @@ void register_lmt() {
 // frame, which is what Rev Flying carries). So the speed is the larger of that inertia and his last tick's movement
 // (pre_tick's positions: Gerb's mVel, whose mMoveVel mirrors it), carried on mAddSpd, re-armed every tick,
 // with mMoveVel / mJumpMoveAng in step (mMoveAcc 0) so the default fall after the shot (setActionFall 0x7AA410: mVel.x /
-// z zeroed, the drift rebuilt by calcSpeedXZ) carries on with it. Vertically he rises at least at the lift (air_lift,
-// times air_lift_decay for each air shot before it since he landed), and gravity goes on adding to the fall as in his
-// jump (his own acceleration when he brings one, else air_gravity); the clip's root motion is off. Landing ends it, and
+// z zeroed, the drift rebuilt by calcSpeedXZ) carries on with it. Vertically he rises at least at the lift (kAirLift,
+// times kAirLiftDecay for each air shot before it since he landed), and gravity goes on adding to the fall as in his
+// jump (his own acceleration when he brings one, else kAirGravity); the clip's root motion is off. Landing ends it, and
 // so does the clip's end (the default fall).
 static void carry_drift(uintptr_t pl, const State& s) {
     MtVector3& vel = at<MtVector3>(pl, pl::mVel);
@@ -675,20 +704,20 @@ static void air_move(uintptr_t pl, State& s, int& phase) {
 
     switch (phase) {
     case PHASE_ENTRY: {
-        const bool chained = s.air_gap <= 1.0f + std::max(air_chain_grace, 0.0f) + 1e-3f;   // still running, or ended within the grace
+        const bool chained = s.air_gap <= 1.0f + kAirChainGrace + 1e-3f;   // still running, or ended within the grace
         int step = chained ? s.air_step + 1 : 0;
-        if (step >= AIR_STEPS || !air_shots[step].enabled) step = 0;
+        if (step >= AIR_STEPS) step = 0;
         s.air_step = step;
         const ShotMove& m = air_shots[step];
-        const int motion = m.enabled && ready(pl) ? motion_registry::word(lmt_set, pl, m.block) : -1;
+        const int motion = ready(pl) ? motion_registry::word(lmt_set, pl, m.block) : -1;
         if (motion < 0) {                                                   // no LMT, or the block isn't in it
             snprintf(g_last, sizeof(g_last), "air shot %d: no motion: %s", step + 1, motion_registry::describe(lmt_set, pl).c_str());
             devil4_sdk::neutral_air_transition((uPlayer_old*)pl);
             return;
         }
-        if (face_target) face_lock_target(pl);
-        s.gravity = acc.y < 0.0f ? acc.y : air_gravity;
-        const float lift = air_lift * std::pow(air_lift_decay, (float)s.air_count++);
+        face_lock_target(pl);
+        s.gravity = acc.y < 0.0f ? acc.y : kAirGravity;
+        const float lift = kAirLift * std::pow(kAirLiftDecay, (float)s.air_count++);
         if (vel.y < lift) vel.y = lift;
         // the larger of the stored inertia (mMoveVel along mJumpMoveAng: a jump's, or Calibur's, which only its final
         // hit zeroes and a jump cancel keeps until the jump frame) and last tick's movement (Gerb's mVel, root motion)
@@ -704,8 +733,8 @@ static void air_move(uintptr_t pl, State& s, int& phase) {
         s.drift_z = (stored ? iz : mz) * air_momentum[step];
         s.kick_x = s.kick_z = 0.0f;
         carry_drift(pl, s);
-        devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
-        request_motion(pl, motion, (uint32_t)A_NULL_TRANS_OFF, blend_frames);
+        devil4_sdk::borrow_ctn((void*)pl, kCtnBank, kCtnSlot);
+        request_motion(pl, motion, (uint32_t)A_NULL_TRANS_OFF, kBlendFrames);
         at<uint32_t>(pl, pl::mActStat) = (at<uint32_t>(pl, pl::mActStat) & ~0x1u) | 0x2u;   // airborne: the air rules and rows
         s.script_set = false;                                               // the cancel script goes in next tick
         s.fired = false;
@@ -719,13 +748,11 @@ static void air_move(uintptr_t pl, State& s, int& phase) {
     case PHASE_AIR: {
         const ShotMove& m = air_shots[s.air_step];
         s.air_gap = 0.0f;
-        ShotMove windows = m;                                               // buffered: the press queued from the first frame
-        if (air_buffer && windows.next_at >= 0.0f) windows.next_from = 0.0f;
-        arm_cancel_script(s, pl, windows);
-        open_cancel_gate(pl, windows);
+        arm_cancel_script(s, pl, m);
+        open_cancel_gate(pl, m);
         const float dt = at<float>(pl, pl::m_delta_time);
         after_images(pl, m);
-        const float fade = std::pow(std::clamp(air_kick_decay, 0.0f, 1.0f), dt);
+        const float fade = std::pow(kAirKickDecay, dt);
         s.kick_x *= fade;
         s.kick_z *= fade;
         if (fire_due(pl, s, m)) {                                           // the shot's kick: back from the facing, and up
@@ -737,8 +764,8 @@ static void air_move(uintptr_t pl, State& s, int& phase) {
         }
         const uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
         if (vel.y <= 0.0f && coll && at<bool>(coll, 0x1C)) { set_action_land(pl); return; }   // mLand
-        if (vel.y > -air_max_fall)
-            vel.y = std::max(vel.y + s.gravity * at<float>(pl, pl::m_delta_time), -air_max_fall);
+        if (vel.y > -kAirMaxFall)
+            vel.y = std::max(vel.y + s.gravity * at<float>(pl, pl::m_delta_time), -kAirMaxFall);
         acc.x = acc.y = acc.z = 0.0f;                                       // the gravity above is the only acceleration
         carry_drift(pl, s);
         if (at<bool>(pl, pl::mMotionFrameEnd0)) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }
@@ -753,17 +780,17 @@ static void air_move(uintptr_t pl, State& s, int& phase) {
 static void ground_move(uintptr_t pl, State& s, int& phase) {
     switch (phase) {
     case PHASE_ENTRY: {
-        const int motion = ground_shot.enabled && ready(pl) ? motion_registry::word(lmt_set, pl, ground_shot.block) : -1;
+        const int motion = ready(pl) ? motion_registry::word(lmt_set, pl, ground_shot.block) : -1;
         if (motion < 0) {                                                   // no LMT, or the block isn't in it
             snprintf(g_last, sizeof(g_last), "neutral shot: no motion: %s", motion_registry::describe(lmt_set, pl).c_str());
             leave(pl);
             return;
         }
-        if (face_target) face_lock_target(pl);
+        face_lock_target(pl);
         hold_still(pl);
         follow_floor(pl);
-        devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
-        request_motion(pl, motion, root_motion ? 0u : (uint32_t)A_NULL_TRANS_OFF, blend_frames);
+        devil4_sdk::borrow_ctn((void*)pl, kCtnBank, kCtnSlot);
+        request_motion(pl, motion, 0u, kBlendFrames);                       // the clip's root motion moves him
         s.script_set = false;                                               // the cancel script goes in next tick
         s.fan_next = 0;
         s.air_ticks = 0;
@@ -781,12 +808,11 @@ static void ground_move(uintptr_t pl, State& s, int& phase) {
         fire_fan(pl, s);
         if (left_floor(pl, s.air_ticks)) { devil4_sdk::neutral_air_transition((uPlayer_old*)pl); return; }
         if (!(at<uint32_t>(pl, pl::mBtnOn) & input_commands::BTN_STYLE)) s.held = false;
-        if (s.held && spin.enabled && s.fan_next >= std::clamp(fan_shots, 1, FAN_MAX) &&
-            at<float>(pl, pl::mMotionFrame0) >= spin.from_frame) {
-            const int motion = ready(pl) ? motion_registry::word(lmt_set, pl, spin.block) : -1;
+        if (s.held && s.fan_next >= kFanShots && at<float>(pl, pl::mMotionFrame0) >= kSpinFrom) {
+            const int motion = ready(pl) ? motion_registry::word(lmt_set, pl, kSpinBlock) : -1;
             if (motion >= 0) {
-                devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
-                request_motion(pl, motion, root_motion ? 0u : (uint32_t)A_NULL_TRANS_OFF, spin.blend);
+                devil4_sdk::borrow_ctn((void*)pl, kCtnBank, kCtnSlot);
+                request_motion(pl, motion, 0u, kSpinBlend);
                 s.script_set = false;                                       // the spin's cancel script goes in next tick
                 s.spin_time = 0.0f;
                 charge_start(pl, s);
@@ -801,7 +827,7 @@ static void ground_move(uintptr_t pl, State& s, int& phase) {
         return;
     }
     case PHASE_SPIN: {                                                      // the spin until the button is let go
-        const ShotMove windows = { true, spin.block, 0.0f, -1.0f, -1.0f, spin.cancel_frame };
+        const ShotMove windows = { kSpinBlock, 0.0f, -1.0f, -1.0f, kSpinCancelFrame };
         arm_cancel_script(s, pl, windows);
         open_cancel_gate(pl, windows);
         hold_still(pl);
@@ -822,7 +848,7 @@ static void ground_move(uintptr_t pl, State& s, int& phase) {
             return;
         }
         if (at<bool>(pl, pl::mMotionFrameEnd0)) {                           // the clip's end, still held: round again
-            at<float>(pl, pl::mMotionFrame0) = std::max(spin.loop_from, 0.0f);
+            at<float>(pl, pl::mMotionFrame0) = 0.0f;
             at<bool>(pl, pl::mMotionFrameEnd0) = false;
         }
         return;
@@ -841,8 +867,8 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
     switch (phase) {
     case PHASE_ENTRY: {
         const int d = stick_dir(pl);
-        if (d < 0 || !dodges[d].enabled) {                                  // post_command_tick keeps these out; a fallback
-            snprintf(g_last, sizeof(g_last), "no dodge %s", d < 0 ? "with the stick centred" : dir_names[d]);
+        if (d < 0) {                                                        // post_command_tick keeps these out; a fallback
+            snprintf(g_last, sizeof(g_last), "no dodge with the stick centred");
             leave(pl);
             return;
         }
@@ -852,11 +878,11 @@ void __stdcall move(uintptr_t pl, uint32_t atck_id) {
             leave(pl);
             return;
         }
-        if (face_target) face_lock_target(pl);
+        face_lock_target(pl);
         hold_still(pl);
         follow_floor(pl);
-        devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
-        request_motion(pl, motion, root_motion ? 0u : (uint32_t)A_NULL_TRANS_OFF, blend_frames);
+        devil4_sdk::borrow_ctn((void*)pl, kCtnBank, kCtnSlot);
+        request_motion(pl, motion, 0u, kBlendFrames);                       // the clip's root motion moves him
         s.script_set = false;                                               // the cancel script goes in next tick
         s.dir = d;
         s.fired = false;
@@ -891,11 +917,11 @@ void apply_row() {
         row->atckConditionStyle = nero_style::gunslinger_condition();
     }
     if (kAtckDefTbl* row = MoveTable::row(0, g_air_row_marker)) {
-        row->command.buffer = (uint32_t)(air_cmd_bit & 0xFF) | (mod_enabled && air_shots[0].enabled && air_cmd_bit >= 0 ? 0u : 0x100u);
+        row->command.buffer = (uint32_t)(air_cmd_bit & 0xFF) | (mod_enabled && air_cmd_bit >= 0 ? 0u : 0x100u);
         row->atckConditionStyle = nero_style::gunslinger_condition();
     }
     if (kAtckDefTbl* row = MoveTable::row(0, g_ground_row_marker)) {   // the air shot's command: the grab button alone
-        row->command.buffer = (uint32_t)(air_cmd_bit & 0xFF) | (mod_enabled && ground_shot.enabled && air_cmd_bit >= 0 ? 0u : 0x100u);
+        row->command.buffer = (uint32_t)(air_cmd_bit & 0xFF) | (mod_enabled && air_cmd_bit >= 0 ? 0u : 0x100u);
         row->atckConditionStyle = nero_style::gunslinger_condition();
     }
 }
@@ -927,16 +953,16 @@ static void pre_tick(uintptr_t pl) {
     }
 }
 
-// After the commands ran: a press toward a direction that is off loses its command bit, so the row doesn't run (the
-// neutral shot plays instead); a dodge on the ground takes the grab button's bit away from the neutral shot, which
-// shares it with the air shot. The readout counts the ticks the dodge command fired on the local Nero.
+// After the commands ran: a press with the stick centred loses its command bit, so the row doesn't run (the neutral
+// shot plays instead); a dodge on the ground takes the grab button's bit away from the neutral shot, which shares it
+// with the air shot. The readout counts the ticks the dodge command fired on the local Nero.
 static void post_command_tick(uintptr_t pl) {
     if (cmd_bit < 0 || !pl || at<int>(pl, pl::mPlayerID) != 1) return;
     uint32_t& flags = at<uint32_t>(pl, 0x2184 + 4 * (cmd_bit >> 5));   // mCmdFlag
     const uint32_t bit = 1u << (cmd_bit & 31);
     if (!(flags & bit)) return;
     const int d = stick_dir(pl);
-    if (d < 0 || !dodges[d].enabled) { flags &= ~bit; return; }
+    if (d < 0) { flags &= ~bit; return; }
     if (air_cmd_bit >= 0 && !(at<uint32_t>(pl, pl::mActStat) & 0x2u))
         at<uint32_t>(pl, 0x2184 + 4 * (air_cmd_bit >> 5)) &= ~(1u << (air_cmd_bit & 31));
     if (pl == (uintptr_t)devil4_sdk::get_local_player()) ++g_cmd_seen;
@@ -948,47 +974,6 @@ static void post_command_tick(uintptr_t pl) {
 // The Mod: framework plumbing only. Everything the moves are lives in namespace gunslinger above.
 // ---------------------------------------------------------------------------------------------------------------
 using namespace gunslinger;
-
-static const char* const kDirKey[DIR_COUNT] = { "back", "left", "forward", "right" };   // config keys
-
-// A move's clip block, shot frame (unless it has shot frames of its own) and cancel windows.
-static void shot_fields(ShotMove& m, bool shot_frame = true) {
-    ImGui::InputInt(_("Block"), &m.block);
-    ImGui::SameLine();
-    Mod::help_marker(_("The LMT block (the animation's slot in Albam's LMT list) this move plays."));
-    if (shot_frame) {
-        ImGui::SliderFloat(_("Shot frame"), &m.shot_frame, 0.0f, 60.0f);
-        ImGui::SameLine();
-        Mod::help_marker(_("The clip's frame (game frames, 60 per second, counted from the clip's first frame) Blue Rose fires on: the first "
-                      "bullet with the muzzle flash, the gun's recoil and the sound, as the vanilla shot. The other bullets follow on their "
-                      "own, even after the move is cancelled or ends."));
-        ImGui::SliderInt(_("Charge level"), &m.charge, 0, 3);
-        ImGui::SameLine();
-        Mod::help_marker(_("0 = Blue Rose's plain shot. 1-3 = a charge shot of that level instead, as the vanilla charge shot fires it: one "
-                      "charged bullet with its flash, sound and rumble. Its hits are the game's charge shot hits, so the oomph settings "
-                      "don't change them."));
-    }
-    ImGui::SliderFloat(_("Next move from"), &m.next_from, -1.0f, 60.0f);
-    ImGui::SameLine();
-    Mod::help_marker(_("From this frame a press for the next move is remembered (the next Gunslinger move; command moves such as Streak "
-                  "count too) and starts at the frame below. -1 = no early window."));
-    ImGui::SliderFloat(_("Next move at"), &m.next_at, -1.0f, 60.0f);
-    ImGui::SameLine();
-    Mod::help_marker(_("From this frame the next move starts: a press remembered since the frame above at once, a new one when it comes. "
-                  "Earlier than the cancel frame below, so moves chain before anything else can cancel. -1 = no early window."));
-    ImGui::SliderFloat(_("Cancel frame"), &m.cancel_frame, -1.0f, 60.0f);
-    ImGui::SameLine();
-    Mod::help_marker(_("From this frame of the clip every cancel window (attacks, jump, gun, taunt) is open, so the move can be cancelled "
-                  "by anything. -1 = only the borrowed script's windows and the next move's window."));
-    ImGui::Checkbox(_("After images"), &m.after_images);
-    ImGui::SameLine();
-    Mod::help_marker(_("The move leaves after images (the AfterImage mod's trail, with its Mod moves trigger on) while it plays."));
-    if (m.after_images) {
-        ImGui::SliderFloat(_("After images until"), &m.after_image_until, 0.0f, 60.0f);
-        ImGui::SameLine();
-        Mod::help_marker(_("The clip's frame the after images stop on (the end of the dodge's travel, say). 0 = the whole clip."));
-    }
-}
 
 std::optional<std::string> NeroGunslinger::on_initialize() {
     using namespace input_commands;
@@ -1040,262 +1025,18 @@ void NeroGunslinger::on_gui_frame(int display) {
     help_marker(_("Nero's Gunslinger style moves, while the Gunslinger style is picked (Nero styles; without that mod they work in any "
                   "style). On the ground the dodge shots: lock-on + a stick direction + grab (the Snatch / Gerb button); Nero dodges back, "
                   "left, forward or right (the stick against the target) with the clip's own root motion and fires Blue Rose on that "
-                  "direction's shot frame. Grab on the ground without them: the neutral shot, Nero fans the hammer. In the air the air "
-                  "shot: grab, and Nero fires while keeping his momentum. Needs motion\\pl000\\gunslinger.lmt."));
+                  "direction's shot frame. Grab on the ground without them: the neutral shot, Nero fans the hammer; hold it to spin and "
+                  "charge. In the air the air shot: grab, and Nero fires while keeping his momentum. Needs motion\\pl000\\gunslinger.lmt."));
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
     ImGui::PushID("Gunslinger");
-    if (ImGui::InputText(_("LMT"), lmt_path, sizeof(lmt_path), ImGuiInputTextFlags_EnterReturnsTrue)) register_lmt();
-    ImGui::SameLine();
-    help_marker(_("Game path of the LMT under nativePC, without .lmt; Enter applies it. The hook places it in a free motion bank "
-                  "itself (shared with the other features that add animations)."));
-    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
-        ImGui::Text(_("File: %s | %s"), lmt_file_exists(lmt_path) ? "found" : "missing", motion_registry::describe(lmt_set, (uintptr_t)pl).c_str());
-        if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();
-        ImGui::SameLine();
-        help_marker(_("Reads the LMT from disk again: export from Albam, press this, and the next move plays the new clip."));
-    }
-    ImGui::InputInt(_("Borrowed .ctn bank"), &ctn_bank);
-    ImGui::InputInt(_("Borrowed .ctn slot"), &ctn_slot);
-    ImGui::SameLine();
-    help_marker(_("A vanilla cancel script the moves run under (every motion needs one, or the game hangs on it). Each move's cancel "
-                  "frame replaces it with one that opens every window at that frame."));
-    ImGui::Checkbox(_("Root motion"), &root_motion);
-    ImGui::SameLine();
-    help_marker(_("On: the clip's root_motion bone moves Nero (animate the travel in Blender). Off: he dodges in place. The air shot "
-                  "always ignores it: his momentum moves him there."));
-    ImGui::SliderFloat(_("Blend frames"), &blend_frames, 0.0f, 15.0f);
-    ImGui::SameLine();
-    help_marker(_("Frames the body takes to blend from what it was doing into the move."));
-    ImGui::Checkbox(_("Face the target"), &face_target);
-    ImGui::SameLine();
-    help_marker(_("Turn toward the lock-on target as a move starts, so the shot and the dodge line up with it. Turning doesn't "
-                  "change the air shot's momentum."));
-    ImGui::SliderInt(_("Bullets"), &bullets, 1, 8);
-    ImGui::SameLine();
-    help_marker(_("How many times the one shot hits: each bullet hits once. Only the first has the flash, recoil and sound, so it "
-                  "still looks and sounds like one shot."));
-    ImGui::SliderFloat(_("Bullet interval"), &bullet_interval, 0.0f, 20.0f);
-    ImGui::SameLine();
-    help_marker(_("Frames between the bullets. 0 sends them all on the shot frame; a few frames apart spaces the hits out "
-                  "(the vanilla shot's two barrels are 5 apart)."));
-    ImGui::Checkbox(_("Pad rumble"), &pad_rumble);
-    ImGui::SameLine();
-    help_marker(_("The vanilla shot's pad vibration on the first bullet."));
-    ImGui::SeparatorText(_("Oomph"));
-    ImGui::SameLine();
-    help_marker(_("How hard these moves' bullets hit. Only the Gunslinger moves' bullets change; Nero's normal Blue Rose shots stay "
-                  "vanilla."));
-    for (int i = 0; i < 2; ++i) {
-        BulletPower& p = i ? final_power : shot_power;
-        ImGui::PushID(i);
-        ImGui::TextUnformatted(i ? _("Last bullet of a move") : _("Every bullet"));
-        ImGui::SameLine();
-        help_marker(i ? _("The last bullet of a move's last shot (the dodge's, the air shot's, the neutral shot's third): its finisher.")
-                      : _("Every bullet the Gunslinger moves fire, but the last."));
-        ImGui::Indent(lineIndent);
-        ImGui::SliderInt(_("Stopping power"), &p.level, 1, 4);
-        ImGui::SameLine();
-        help_marker(_("The interrupt level of its hits. Each enemy flinches (and hovers in the air) only from hits of a level its build "
-                      "doesn't shrug off: Blue Rose's normal shot is 1, Dante's Twosome Time 2, the charge shots 2-4. Higher makes heavier "
-                      "enemies flinch and stay up."));
-        ImGui::SliderInt(_("Hit stop"), &p.hit_stop, 0, 15);
-        ImGui::SameLine();
-        help_marker(_("Frames the enemy freezes for when it hits, as melee hits do (Red Queen's Combo A: 3). Gun hits have none."));
-        ImGui::SliderInt(_("Hit sound"), &p.hit_se, -1, 11);
-        ImGui::SameLine();
-        help_marker(_("The sound of the hit landing (Blue Rose's own: 9 the shot, 10 / 11 the charge shots, the heaviest). -1 = the "
-                      "shot's own."));
-        ImGui::Unindent(lineIndent);
-        ImGui::PopID();
-    }
-    for (int i = 0; i < 2; ++i) {
-        Shake& sh = i ? neutral_shake : final_shake;
-        ImGui::PushID(100 + i);
-        ImGui::TextUnformatted(i ? _("Shake: neutral shot") : _("Shake: dodges and air shots"));
-        ImGui::SameLine();
-        help_marker(i ? _("The camera shake on the neutral shot's last shot. It fires fast and is pressed again and again, so it has "
-                          "none by default.")
-                      : _("The camera shake on a dodge's or an air shot's shot."));
-        ImGui::Indent(lineIndent);
-        ImGui::SliderInt(_("Strength"), &sh.strength, 0, 200);
-        ImGui::SameLine();
-        help_marker(_("How far the screen moves. The game's lightest shake (the Buster grab's hit) is 150. 0 = no shake."));
-        ImGui::SliderInt(_("Frames"), &sh.frames, 1, 30);
-        ImGui::SameLine();
-        help_marker(_("How long the shake lasts (60 frames a second)."));
-        ImGui::Unindent(lineIndent);
-        ImGui::PopID();
-    }
-    ImGui::SliderInt(_("Heavy sound"), &heavy_sound, 0, 3);
-    ImGui::SameLine();
-    help_marker(_("Layers a charge shot's firing sound (its level 1-3) over the shot's own, for more weight and bass. 0 = the plain "
-                  "shot only."));
-    ImGui::SliderInt(_("Neutral shot heavy sound"), &neutral_heavy_sound, 0, 3);
-    ImGui::SameLine();
-    help_marker(_("The same for the neutral shot. It fires fast, so 0 (the plain, lighter shot sound) by default."));
-    ImGui::Checkbox(_("Heavy sound on every shot"), &heavy_sound_all);
-    ImGui::SameLine();
-    help_marker(_("On: every shot gets the heavy sound. Off: only a move's last shot."));
-    ImGui::SeparatorText(_("Directions"));
-    ImGui::SameLine();
-    help_marker(_("One dodge per stick direction, measured against the lock-on target as the game does (forward / back within 45 degrees, "
-                  "left / right between). Turn a direction on once its clip is in the LMT; a press toward one that is off does nothing."));
-    for (int i = 0; i < DIR_COUNT; ++i) {
-        ImGui::PushID(i);
-        ImGui::Checkbox(dir_names[i], &dodges[i].enabled);
-        ImGui::SameLine();
-        help_marker(_("This direction's dodge is on: its block below has its clip."));
-        if (dodges[i].enabled) {
-            ImGui::Indent(lineIndent);
-            shot_fields(dodges[i]);
-            ImGui::Unindent(lineIndent);
-        }
-        ImGui::PopID();
-    }
-    ImGui::SeparatorText(_("Neutral shot"));
-    ImGui::SameLine();
-    help_marker(_("Grab on the ground without lock-on + a direction (or toward a direction that is off): Nero stands and fans the "
-                  "hammer, a full shot (flash, recoil, sound) on each shot frame."));
-    ImGui::PushID("ground");
-    if (ImGui::Checkbox(_("Neutral shot"), &ground_shot.enabled)) apply_row();
-    ImGui::SameLine();
-    help_marker(_("The neutral shot is on: its block below has its clip. Off, grab on the ground without a direction does nothing in this "
-                  "style."));
-    if (ground_shot.enabled) {
-        ImGui::Indent(lineIndent);
-        shot_fields(ground_shot, false);
-        ImGui::SliderInt(_("Shots"), &fan_shots, 1, FAN_MAX);
-        ImGui::SameLine();
-        help_marker(_("How many times Nero fires in the clip, one shot on each frame below."));
-        for (int i = 0; i < std::clamp(fan_shots, 1, FAN_MAX); ++i) {
-            char label[32];
-            snprintf(label, sizeof(label), "Shot %d frame", i + 1);
-            ImGui::SliderFloat(label, &fan_frames[i], 0.0f, 60.0f);
-            ImGui::SameLine();
-            help_marker(_("The clip's frame (game frames, 60 per second) this shot fires on: a full shot, muzzle flash, recoil and sound. "
-                          "Keep them in order."));
-        }
-        ImGui::SliderInt(_("Bullets per shot"), &fan_bullets, 1, 8);
-        ImGui::SameLine();
-        help_marker(_("Bullets each shot sends, Bullet interval apart (1 = one hit a shot). The Bullets setting above is the other "
-                      "moves'."));
-        ImGui::Checkbox(_("Hold to spin"), &spin.enabled);
-        ImGui::SameLine();
-        help_marker(_("Keep the button held through the volley and Nero spins Blue Rose once it has fired, until the button is let go "
-                      "(then he stands). Its clip goes in the block below. Off, the neutral shot always plays out."));
-        if (spin.enabled) {
-            ImGui::Indent(lineIndent);
-            ImGui::InputInt(_("Spin block"), &spin.block);
-            ImGui::SameLine();
-            help_marker(_("The LMT block (the animation's slot in Albam's LMT list) of the spin."));
-            ImGui::SliderFloat(_("Spin from"), &spin.from_frame, 0.0f, 60.0f);
-            ImGui::SameLine();
-            help_marker(_("The neutral shot's frame the spin starts on, the button held since the press. It waits for the volley's last "
-                          "shot either way."));
-            ImGui::SliderFloat(_("Loop from"), &spin.loop_from, 0.0f, 60.0f);
-            ImGui::SameLine();
-            help_marker(_("The spin clip's frame it goes back to when it reaches its end while the button is still held (0 = the whole "
-                          "clip again). Smoother: give the clip a Loop Start in Albam's LMT panel, and the game loops it itself, blending "
-                          "its last frame into the loop frame (end the clip one frame's step before the loop frame's pose); this "
-                          "setting then isn't used. Here the clip stops on its last frame for a frame before jumping back."));
-            ImGui::SliderFloat(_("Spin blend"), &spin.blend, 0.0f, 15.0f);
-            ImGui::SameLine();
-            help_marker(_("Frames the body takes to blend from the neutral shot into the spin."));
-            ImGui::SliderFloat(_("Spin cancel frame"), &spin.cancel_frame, -1.0f, 60.0f);
-            ImGui::SameLine();
-            help_marker(_("From this frame of the spin every cancel window (attacks, jump, gun, taunt) is open, so anything can break it. "
-                          "-1 = nothing does: only letting go of the button ends it."));
-            for (int i = 0; i < 3; ++i) {
-                char label[32];
-                snprintf(label, sizeof(label), "Charge level %d at", i + 1);
-                ImGui::SliderFloat(label, &spin.charge_frames[i], 0.0f, 120.0f);
-                ImGui::SameLine();
-                help_marker(_("Frames of spinning (60 a second, from the spin's start) this charge level takes. Letting go fires the vanilla "
-                              "charge shot of the level reached, its own animation, bullet and flash; before level 1 Nero just stands. "
-                              "Each level lights the vanilla charge glow and plays its sound. Keep them in order."));
-            }
-            ImGui::Checkbox(_("Learned levels only"), &spin.learned_only);
-            ImGui::SameLine();
-            help_marker(_("Levels 2 and 3 only once Nero has learned Charge Shot 2 and 3, as the vanilla charge. Off: every level, whatever "
-                          "he has learned."));
-            ImGui::Unindent(lineIndent);
-        }
-        ImGui::Unindent(lineIndent);
-    }
-    ImGui::PopID();
-    ImGui::SeparatorText(_("Air shots"));
-    ImGui::SameLine();
-    help_marker(_("Grab in the air (any stick, lock-on or not): an air combo. A press in a shot's next-move window plays the next shot, "
-                  "after the last the first again; any other press starts the first. Each shot: Nero hops, fires Blue Rose and keeps the "
-                  "sideways speed he was moving at (from a jump, Gerb, Calibur ...), undecayed, as the air rev does for Rev Flying; the fall "
-                  "after the shot carries on with it. His jump's gravity goes on. The clips' root motion is ignored. Landing ends a shot, or "
-                  "the clip's end (the default fall)."));
-    ImGui::PushID("air");
-    for (int i = 0; i < AIR_STEPS; ++i) {
-        ImGui::PushID(i);
-        char label[32];
-        snprintf(label, sizeof(label), "Air shot %d", i + 1);
-        if (ImGui::Checkbox(label, &air_shots[i].enabled)) apply_row();
-        ImGui::SameLine();
-        help_marker(i == 0 ? _("The combo's first shot is on: its block below has its clip. Off, grab in the air does nothing in this style.")
-                           : _("This step of the combo is on: its block below has its clip. Off, the combo ends at the step before it (the next "
-                               "press starts the first shot again)."));
-        if (air_shots[i].enabled) {
-            ImGui::Indent(lineIndent);
-            shot_fields(air_shots[i]);
-            ImGui::SliderFloat(_("Momentum kept"), &air_momentum[i], 0.0f, 2.0f);
-            ImGui::SameLine();
-            help_marker(_("How much of the sideways speed Nero has as this shot starts it keeps, through the shot and the fall after it: "
-                          "1 = all of it, 0.5 = half, 0 = he stops and drops straight down; above 1 speeds him up. A chained shot starts "
-                          "from what the shot before it kept."));
-            ImGui::SliderFloat(_("Knockback"), &air_kick[i].knockback, 0.0f, 20.0f);
-            ImGui::SameLine();
-            help_marker(_("On the shot frame Nero is pushed away from where he faces at this speed (cm per frame), the recoil of a heavy "
-                          "shot. The push fades by Knockback fade below; the momentum he had keeps going under it. 0 = no push."));
-            ImGui::SliderFloat(_("Lift on shot"), &air_kick[i].lift, 0.0f, 30.0f);
-            ImGui::SameLine();
-            help_marker(_("On the shot frame Nero rises at least this fast (cm per frame); already rising faster, he keeps his speed. 10 "
-                          "with the default gravity is about 45 cm up. 0 = none."));
-            ImGui::Unindent(lineIndent);
-        }
-        ImGui::PopID();
-    }
-    {
-        ImGui::Indent(lineIndent);
-        ImGui::SliderFloat(_("Lift"), &air_lift, 0.0f, 40.0f);
-        ImGui::SameLine();
-        help_marker(_("The hop: Nero rises at least this fast (cm per frame) as the air shot starts; already rising faster, he keeps "
-                      "his speed. 12 with the default gravity is about 65 cm up. 0 = no hop, only his own momentum."));
-        ImGui::SliderFloat(_("Knockback fade"), &air_kick_decay, 0.0f, 1.0f);
-        ImGui::SameLine();
-        help_marker(_("How much of a shot's knockback is left after each frame: 0.9 = a tenth less every frame (about 10 times the "
-                      "knockback speed in cm in all), 1 = it never fades, 0 = a single frame."));
-        ImGui::Checkbox(_("Buffer the next shot"), &air_buffer);
-        ImGui::SameLine();
-        help_marker(_("A press any time during an air shot is remembered and plays the combo's next step at that shot's Next move at "
-                      "frame, so the shots buffer into each other (each shot's Next move from is then not used). Off, a press only counts "
-                      "from Next move from."));
-        ImGui::SliderFloat(_("Combo grace"), &air_chain_grace, 0.0f, 30.0f);
-        ImGui::SameLine();
-        help_marker(_("Frames after an air shot's clip ends, while Nero falls, that a press still plays the combo's next step instead of "
-                      "the first. 0 = only a press during the shot chains. Landing always ends the combo."));
-        ImGui::SliderFloat(_("Lift per repeat"), &air_lift_decay, 0.0f, 1.0f);
-        ImGui::SameLine();
-        help_marker(_("Each further air shot before Nero lands lifts this much of the one before (0.75 = a quarter less each time), "
-                      "so chained air shots don't keep him up for ever. 1 = the same every time."));
-        ImGui::SliderFloat(_("Gravity"), &air_gravity, -5.0f, 0.0f);
-        ImGui::SameLine();
-        help_marker(_("Added to the fall speed every frame of the air shot when Nero brings no gravity of his own (his jump's is used "
-                      "when he has one)."));
-        ImGui::SliderFloat(_("Max fall speed"), &air_max_fall, 1.0f, 60.0f);
-        ImGui::SameLine();
-        help_marker(_("Gravity stops adding once he falls this fast (cm per frame). A faster fall he came in with is kept."));
-        ImGui::Unindent(lineIndent);
-    }
-    ImGui::PopID();
     if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
         const uintptr_t P = (uintptr_t)pl;
+        ImGui::Text(_("File: %s | %s"), lmt_file_exists(kLmtPath) ? "found" : "missing", motion_registry::describe(lmt_set, P).c_str());
+        if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();
+        ImGui::SameLine();
+        help_marker(_("Reads motion\\pl000\\gunslinger.lmt from disk again: export from Albam, press this, and the next move plays the "
+                      "new clip."));
         ImGui::Text("command bits %d / %d (fired %u) | dodges %u air %u shots %u hard hits %u charge shots %u | style %d, row style %d | atckId %02X phase %d frame %.1f spin %.0f | %s",
                     cmd_bit, air_cmd_bit, g_cmd_seen, g_dodges, g_air_shots, g_shots, g_power_hits, g_charge_shots, nero_style::current(P),
                     (int)nero_style::gunslinger_condition(), at<uint32_t>(P, pl::mAtckId), at<int>(P, pl::mBdyActionLowerPhase),
@@ -1305,190 +1046,12 @@ void NeroGunslinger::on_gui_frame(int display) {
     ImGui::Unindent(lineIndent);
 }
 
-static void load_after_images(const utility::Config& cfg, const std::string& k, ShotMove& m) {
-    m.after_images      = cfg.get<bool>(k + "_after_images").value_or(m.after_images);
-    m.after_image_until = cfg.get<float>(k + "_after_images_until").value_or(m.after_image_until);
-}
-
-static void save_after_images(utility::Config& cfg, const std::string& k, const ShotMove& m) {
-    cfg.set<bool>(k + "_after_images", m.after_images);
-    cfg.set<float>(k + "_after_images_until", m.after_image_until);
-}
-
 void NeroGunslinger::on_config_load(const utility::Config& cfg) {
-    mod_enabled      = cfg.get<bool>("gunslinger").value_or(false);
-    if (auto p = cfg.get("gunslinger_lmt")) strcpy_s(lmt_path, p->c_str());
-    ctn_bank         = cfg.get<int>("gunslinger_ctn_bank").value_or(ctn_bank);
-    ctn_slot         = cfg.get<int>("gunslinger_ctn_slot").value_or(ctn_slot);
-    root_motion      = cfg.get<bool>("gunslinger_root_motion").value_or(root_motion);
-    blend_frames     = cfg.get<float>("gunslinger_blend_frames").value_or(blend_frames);
-    face_target      = cfg.get<bool>("gunslinger_face_target").value_or(face_target);
-    bullets          = std::clamp(cfg.get<int>("gunslinger_bullets").value_or(bullets), 1, 8);
-    bullet_interval  = cfg.get<float>("gunslinger_bullet_gap").value_or(bullet_interval);
-    pad_rumble       = cfg.get<bool>("gunslinger_pad_rumble").value_or(pad_rumble);
-    for (int i = 0; i < 2; ++i) {
-        BulletPower& p = i ? final_power : shot_power;
-        const std::string k = i ? "gunslinger_final_" : "gunslinger_shot_";
-        p.level    = std::clamp(cfg.get<int>(k + "level").value_or(p.level), 1, 4);
-        p.hit_stop = std::clamp(cfg.get<int>(k + "hit_stop").value_or(p.hit_stop), 0, 15);
-        p.hit_se   = std::clamp(cfg.get<int>(k + "hit_se").value_or(p.hit_se), -1, 11);
-    }
-    for (int i = 0; i < 2; ++i) {
-        Shake& sh = i ? neutral_shake : final_shake;
-        const std::string k = i ? "gunslinger_neutral_shake_" : "gunslinger_shake_";
-        sh.strength = std::clamp(cfg.get<int>(k + "strength").value_or(sh.strength), 0, 200);
-        sh.frames   = std::clamp(cfg.get<int>(k + "frames").value_or(sh.frames), 1, 30);
-    }
-    heavy_sound      = std::clamp(cfg.get<int>("gunslinger_heavy_sound").value_or(heavy_sound), 0, 3);
-    heavy_sound_all  = cfg.get<bool>("gunslinger_heavy_sound_all").value_or(heavy_sound_all);
-    neutral_heavy_sound = std::clamp(cfg.get<int>("gunslinger_neutral_heavy_sound").value_or(neutral_heavy_sound), 0, 3);
-    // the back dodge's keys from before the directions
-    dodges[DIR_BACK].block        = cfg.get<int>("gunslinger_back_dodge_block").value_or(dodges[DIR_BACK].block);
-    dodges[DIR_BACK].shot_frame   = cfg.get<float>("gunslinger_shot_frame").value_or(dodges[DIR_BACK].shot_frame);
-    dodges[DIR_BACK].cancel_frame = cfg.get<float>("gunslinger_cancel_frame").value_or(dodges[DIR_BACK].cancel_frame);
-    for (int i = 0; i < DIR_COUNT; ++i) {
-        const std::string k = std::string("gunslinger_") + kDirKey[i];
-        ShotMove& m = dodges[i];
-        m.enabled      = cfg.get<bool>(k + "_on").value_or(m.enabled);
-        m.block        = cfg.get<int>(k + "_block").value_or(m.block);
-        m.shot_frame   = cfg.get<float>(k + "_shot_frame").value_or(m.shot_frame);
-        m.next_from    = cfg.get<float>(k + "_next_from").value_or(m.next_from);
-        m.next_at      = cfg.get<float>(k + "_next_at").value_or(m.next_at);
-        m.cancel_frame = cfg.get<float>(k + "_cancel_frame").value_or(m.cancel_frame);
-        m.charge       = std::clamp(cfg.get<int>(k + "_charge").value_or(m.charge), 0, 3);
-        load_after_images(cfg, k, m);
-    }
-    {   // the single air shot's keys from before the combo: that clip is now the second step
-        ShotMove& m = air_shots[1];
-        m.enabled      = cfg.get<bool>("gunslinger_air_on").value_or(m.enabled);
-        m.block        = cfg.get<int>("gunslinger_air_block").value_or(m.block);
-        m.shot_frame   = cfg.get<float>("gunslinger_air_shot_frame").value_or(m.shot_frame);
-        m.next_from    = cfg.get<float>("gunslinger_air_next_from").value_or(m.next_from);
-        m.next_at      = cfg.get<float>("gunslinger_air_next_at").value_or(m.next_at);
-        m.cancel_frame = cfg.get<float>("gunslinger_air_cancel_frame").value_or(m.cancel_frame);
-    }
-    for (int i = 0; i < AIR_STEPS; ++i) {
-        const std::string k = "gunslinger_air" + std::to_string(i + 1);
-        ShotMove& m = air_shots[i];
-        m.enabled      = cfg.get<bool>(k + "_on").value_or(m.enabled);
-        m.block        = cfg.get<int>(k + "_block").value_or(m.block);
-        m.shot_frame   = cfg.get<float>(k + "_shot_frame").value_or(m.shot_frame);
-        m.next_from    = cfg.get<float>(k + "_next_from").value_or(m.next_from);
-        m.next_at      = cfg.get<float>(k + "_next_at").value_or(m.next_at);
-        m.cancel_frame = cfg.get<float>(k + "_cancel_frame").value_or(m.cancel_frame);
-        air_momentum[i] = cfg.get<float>(k + "_momentum").value_or(air_momentum[i]);
-        m.charge       = std::clamp(cfg.get<int>(k + "_charge").value_or(m.charge), 0, 3);
-        load_after_images(cfg, k, m);
-        air_kick[i].knockback = cfg.get<float>(k + "_knockback").value_or(air_kick[i].knockback);
-        air_kick[i].lift      = cfg.get<float>(k + "_kick_lift").value_or(air_kick[i].lift);
-    }
-    air_kick_decay = cfg.get<float>("gunslinger_air_kick_decay").value_or(air_kick_decay);
-    {
-        ShotMove& m = ground_shot;
-        m.enabled      = cfg.get<bool>("gunslinger_ground_on").value_or(m.enabled);
-        m.block        = cfg.get<int>("gunslinger_ground_block").value_or(m.block);
-        m.next_from    = cfg.get<float>("gunslinger_ground_next_from").value_or(m.next_from);
-        m.next_at      = cfg.get<float>("gunslinger_ground_next_at").value_or(m.next_at);
-        m.cancel_frame = cfg.get<float>("gunslinger_ground_cancel_frame").value_or(m.cancel_frame);
-        load_after_images(cfg, "gunslinger_ground", m);
-        fan_shots      = std::clamp(cfg.get<int>("gunslinger_ground_shots").value_or(fan_shots), 1, FAN_MAX);
-        for (int i = 0; i < FAN_MAX; ++i)
-            fan_frames[i] = cfg.get<float>("gunslinger_ground_shot" + std::to_string(i + 1)).value_or(fan_frames[i]);
-        fan_bullets    = std::clamp(cfg.get<int>("gunslinger_ground_bullets").value_or(fan_bullets), 1, 8);
-    }
-    spin.enabled      = cfg.get<bool>("gunslinger_spin_on").value_or(spin.enabled);
-    spin.block        = cfg.get<int>("gunslinger_spin_block").value_or(spin.block);
-    spin.from_frame   = cfg.get<float>("gunslinger_spin_from").value_or(spin.from_frame);
-    spin.loop_from    = cfg.get<float>("gunslinger_spin_loop_from").value_or(spin.loop_from);
-    spin.blend        = cfg.get<float>("gunslinger_spin_blend").value_or(spin.blend);
-    spin.cancel_frame = cfg.get<float>("gunslinger_spin_cancel_frame").value_or(spin.cancel_frame);
-    for (int i = 0; i < 3; ++i)
-        spin.charge_frames[i] = cfg.get<float>("gunslinger_spin_charge" + std::to_string(i + 1)).value_or(spin.charge_frames[i]);
-    spin.learned_only = cfg.get<bool>("gunslinger_spin_learned_only").value_or(spin.learned_only);
-    air_gravity           = cfg.get<float>("gunslinger_air_gravity").value_or(air_gravity);
-    air_max_fall          = cfg.get<float>("gunslinger_air_max_fall").value_or(air_max_fall);
-    air_lift              = cfg.get<float>("gunslinger_air_lift").value_or(air_lift);
-    air_lift_decay        = cfg.get<float>("gunslinger_air_lift_decay").value_or(air_lift_decay);
-    air_chain_grace       = cfg.get<float>("gunslinger_air_chain_grace").value_or(air_chain_grace);
-    air_buffer            = cfg.get<bool>("gunslinger_air_buffer").value_or(air_buffer);
+    mod_enabled = cfg.get<bool>("gunslinger").value_or(false);
     apply_row();
     register_lmt();
 }
 
 void NeroGunslinger::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("gunslinger", mod_enabled);
-    cfg.set("gunslinger_lmt", std::string(lmt_path));
-    cfg.set<int>("gunslinger_ctn_bank", ctn_bank);
-    cfg.set<int>("gunslinger_ctn_slot", ctn_slot);
-    cfg.set<bool>("gunslinger_root_motion", root_motion);
-    cfg.set<float>("gunslinger_blend_frames", blend_frames);
-    cfg.set<bool>("gunslinger_face_target", face_target);
-    cfg.set<int>("gunslinger_bullets", bullets);
-    cfg.set<float>("gunslinger_bullet_gap", bullet_interval);
-    cfg.set<bool>("gunslinger_pad_rumble", pad_rumble);
-    for (int i = 0; i < 2; ++i) {
-        const BulletPower& p = i ? final_power : shot_power;
-        const std::string k = i ? "gunslinger_final_" : "gunslinger_shot_";
-        cfg.set<int>(k + "level", p.level);
-        cfg.set<int>(k + "hit_stop", p.hit_stop);
-        cfg.set<int>(k + "hit_se", p.hit_se);
-    }
-    for (int i = 0; i < 2; ++i) {
-        const Shake& sh = i ? neutral_shake : final_shake;
-        const std::string k = i ? "gunslinger_neutral_shake_" : "gunslinger_shake_";
-        cfg.set<int>(k + "strength", sh.strength);
-        cfg.set<int>(k + "frames", sh.frames);
-    }
-    cfg.set<int>("gunslinger_heavy_sound", heavy_sound);
-    cfg.set<bool>("gunslinger_heavy_sound_all", heavy_sound_all);
-    cfg.set<int>("gunslinger_neutral_heavy_sound", neutral_heavy_sound);
-    for (int i = 0; i < DIR_COUNT; ++i) {
-        const std::string k = std::string("gunslinger_") + kDirKey[i];
-        cfg.set<bool>(k + "_on", dodges[i].enabled);
-        cfg.set<int>(k + "_block", dodges[i].block);
-        cfg.set<float>(k + "_shot_frame", dodges[i].shot_frame);
-        cfg.set<float>(k + "_next_from", dodges[i].next_from);
-        cfg.set<float>(k + "_next_at", dodges[i].next_at);
-        cfg.set<float>(k + "_cancel_frame", dodges[i].cancel_frame);
-        cfg.set<int>(k + "_charge", dodges[i].charge);
-        save_after_images(cfg, k, dodges[i]);
-    }
-    for (int i = 0; i < AIR_STEPS; ++i) {
-        const std::string k = "gunslinger_air" + std::to_string(i + 1);
-        cfg.set<bool>(k + "_on", air_shots[i].enabled);
-        cfg.set<int>(k + "_block", air_shots[i].block);
-        cfg.set<float>(k + "_shot_frame", air_shots[i].shot_frame);
-        cfg.set<float>(k + "_next_from", air_shots[i].next_from);
-        cfg.set<float>(k + "_next_at", air_shots[i].next_at);
-        cfg.set<float>(k + "_cancel_frame", air_shots[i].cancel_frame);
-        cfg.set<float>(k + "_momentum", air_momentum[i]);
-        cfg.set<int>(k + "_charge", air_shots[i].charge);
-        save_after_images(cfg, k, air_shots[i]);
-        cfg.set<float>(k + "_knockback", air_kick[i].knockback);
-        cfg.set<float>(k + "_kick_lift", air_kick[i].lift);
-    }
-    cfg.set<float>("gunslinger_air_kick_decay", air_kick_decay);
-    cfg.set<bool>("gunslinger_ground_on", ground_shot.enabled);
-    cfg.set<int>("gunslinger_ground_block", ground_shot.block);
-    cfg.set<float>("gunslinger_ground_next_from", ground_shot.next_from);
-    cfg.set<float>("gunslinger_ground_next_at", ground_shot.next_at);
-    cfg.set<float>("gunslinger_ground_cancel_frame", ground_shot.cancel_frame);
-    save_after_images(cfg, "gunslinger_ground", ground_shot);
-    cfg.set<int>("gunslinger_ground_shots", fan_shots);
-    for (int i = 0; i < FAN_MAX; ++i) cfg.set<float>("gunslinger_ground_shot" + std::to_string(i + 1), fan_frames[i]);
-    cfg.set<int>("gunslinger_ground_bullets", fan_bullets);
-    cfg.set<bool>("gunslinger_spin_on", spin.enabled);
-    cfg.set<int>("gunslinger_spin_block", spin.block);
-    cfg.set<float>("gunslinger_spin_from", spin.from_frame);
-    cfg.set<float>("gunslinger_spin_loop_from", spin.loop_from);
-    cfg.set<float>("gunslinger_spin_blend", spin.blend);
-    cfg.set<float>("gunslinger_spin_cancel_frame", spin.cancel_frame);
-    for (int i = 0; i < 3; ++i) cfg.set<float>("gunslinger_spin_charge" + std::to_string(i + 1), spin.charge_frames[i]);
-    cfg.set<bool>("gunslinger_spin_learned_only", spin.learned_only);
-    cfg.set<float>("gunslinger_air_gravity", air_gravity);
-    cfg.set<float>("gunslinger_air_max_fall", air_max_fall);
-    cfg.set<float>("gunslinger_air_lift", air_lift);
-    cfg.set<float>("gunslinger_air_lift_decay", air_lift_decay);
-    cfg.set<float>("gunslinger_air_chain_grace", air_chain_grace);
-    cfg.set<bool>("gunslinger_air_buffer", air_buffer);
 }

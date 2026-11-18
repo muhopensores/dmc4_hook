@@ -4,8 +4,10 @@
 #include "../sdk/MtMath.hpp"
 #include "../sdk/Collision.hpp"
 
-// Wall run, a MoveTable move, modelled on the game's wall jump (uPlayer::moveActWallJump 0x827200), which is
-// ported readably at the bottom of WallRun.cpp as a reference (`wall_jump_port`, not hooked).
+// Wall run, modelled on the game's wall jump (uPlayer::moveActWallJump 0x827200). While the mod is on, the game's
+// wall jump and its entry check (checkWallJumpBegin 0x804650) run as readable ports at the bottom of WallRun.cpp
+// (`wall_jump_port`, `wall_jump_check_port`), which the run starts from and hands back to. Its tuning is fixed in
+// WallRun.cpp; the settings are the on/off, the start button and the gun during the run.
 //
 // Player fields are read by offset through `wallrun::pl::*` + `at<T>()`, not through sdk/uPlayer.hpp: that struct
 // is due for a revision, and the names here are the DX9 IDB's (the sdk name follows in brackets where one exists).
@@ -86,7 +88,7 @@ struct Wall {
     MtVector3 hit_pos;
     float yaw;                // facing: along run_dir sideways, into the wall for a climb (the game's atan2(x, z) yaw)
     bool on_left;             // the wall is on the player's left (sideways only)
-    bool vertical;            // the stick (or the facing) points into the wall within climb_angle: run up it
+    bool vertical;            // the stick (or the facing) points into the wall within climb_angle (35 deg): run up it
     LineResult poly;          // the nearer hit, in mGroundPoly's layout (hand-off to the wall jump)
 };
 
@@ -98,76 +100,20 @@ public:
     std::string get_mod_name() override { return "WallRun"; };
 
     static bool mod_enabled;
-    static bool replace_wall_jump;   // run wall_jump_port in place of uPlayer::moveActWallJump (hook at its entry 0x827200)
-    static uintptr_t jmp_ret1;       // 0x827206, after the 6 prologue bytes the hook replaces
-    static bool replace_wall_jump_check; // run wall_jump_check_port in place of uPlayer::checkWallJumpBegin (entry 0x804650)
-    static uintptr_t jmp_ret2;       // 0x804656
-    static bool  require_wall_jumps; // the check's own rule: no entry when mWallJumpCnt is 0 (off = unlimited runs)
-    static float check_reach;        // cm the entry check looks forward and back for a wall (the game: 80)
-    static float check_height;       // cm above the feet it looks (the game: 10)
+    static uintptr_t jmp_ret1;       // 0x827206, after the 6 prologue bytes the moveActWallJump hook replaces
+    static uintptr_t jmp_ret2;       // 0x804656, the same for checkWallJumpBegin
     static uint32_t button_mask;     // mBtnTrg bits that start the run while airborne (4 = jump); no jump-window / act-limit logic
 
-    // tunables (ImGui)
     // The gun during the run (UpperGun.hpp; the run is one of its hosts): the game's own walking shot, upper half only, over the
     // running legs (its shot motion and the elevation layer on the upper controllers; the lower controller keeps the run
     // cycle, so the steps never go out of sync), back to the run cycle after each shot, rapid fire by mashing as on the
     // ground, a torso lean through SpineAim. No charge shots, no Pandora.
     static bool  gun_while_running;
-    static float shoot_lean_deg;   // torso lean while shooting (SpineAim's lean on joint 1): negative = away from the wall
-    static float lean_blend_frames; // frames the lean takes to come in when the gun comes up, and to go when it goes down
-    static float shot_end_ticks;   // safety: a shot action still running this many ticks after its start is ended (0 = never)
-    static float upper_blend_min;  // frames: the least interpolation a shot's upper / aim request gets during the run (the shot
-                                   // starts with the draw timer as its blend, 0 once the gun counts as held: a cut from the run's arms).
-                                   // With SpineAim's inertial blends it is the fade length (6: the shot plays at full strength
-                                   // at once); with the crossfade keep it short (3), or the short shots play diluted
-    static float run_blend_frames; // frames the arms take to blend back into the run cycle after a shot
-    static float gun_hold_frames;  // frames the gun stays up after the last shot before the arms go back to the run (0 = at once)
-    static bool  gun_readout;      // the debug lines under the gun options
-    static float run_speed;    // cm per frame along the wall
-    static float run_frames;   // longest run in frames, 0 = as long as jump is held
-    static float stick_speed;  // cm per frame pushed into the wall so the capsule stays on it
-    static float wall_gap;     // cm the position is kept away from the wall plane each tick (0 = off): the root-motion backstop
-    static float lose_grace;   // frames the run keeps going on the last wall after the casts stop hitting, before jumping off
-    static float cast_length;  // cm, each of the two casts
-    static float cast_height;  // cm above the feet the casts start from
-    static float cast_angle;   // degrees off the forward axis, per side (45)
-    static float corner_dot;   // two hits whose normals' dot is below this are a corner, not a wall
-    // Collision channels the casts and the entry check accept (sCollision::Param filter). The game's wall checks use
-    // COLL_WALL alone; invisible walls live in the fall-stop channel (what stops Stinger at a ledge).
-    enum : uint32_t { COLL_WALL = 0x20000, COLL_FALLSTOP = 0x10000000, COLL_CAMERASTOP = 0x20000000 };
-    static uint32_t wall_filter;
-    static bool run_on_invisible_walls;   // adds COLL_FALLSTOP
-    static bool run_on_camera_walls;      // adds COLL_CAMERASTOP
-    static uint32_t filter();             // wall_filter with the two options folded in
-    static float climb_angle;  // degrees between the facing and the wall normal below which the run goes up, not sideways
-    static float climb_speed;  // cm per frame up the wall
-    static float away_deadzone; // a stick leaning away from the wall: its along-wall part below this (0-1) has no effect
-    static int   jumps_after_run; // what the run costs: 0 one wall jump (entry's initJumpBegin(3) stands), 1 nothing (refund), 2 reset both counters to the table maxima
-    static int motion_left;    // placeholder motions (vanilla wall-jump kick-offs) while the run cycles aren't made
-    static int motion_right;
-    static int motion_up;
+    static bool  run_on_invisible_walls;   // the casts and the entry check also see the fall-stop channel (invisible walls)
 
-    // Custom LMT (MoveDef D26): one motion_registry set for both characters (the body file shared, a coat file each);
-    // the registry picks the bank on the body and coat models.
-    static bool use_custom_lmt;   // off = the placeholder motions above, on = the custom LMT's run_slot_* when the file is there
+    // Custom LMT (MoveDef D26): one motion_registry set for both characters (the body file shared, no coat file); the
+    // registry picks the bank on the body model. Without the file the run plays placeholder motions (the wall jump's kick-offs).
     static int  lmt_set;          // the motion_registry handle (-1 none)
-    static int  run_slot_left;    // block indices inside the custom LMT
-    static int  run_slot_right;
-    static int  run_slot_up;
-    static int  run_slot_jump_right; // jump-out cycles: the kick-off after a run on a right / left wall (3 / 4)
-    static int  run_slot_jump_left;
-    static float jumpout_launch_frame; // frame of the jump-out cycle at which the jump's velocity is applied (the take-off)
-    // Jump-out physics (cm per frame), used instead of the jump table's when `jumpout_custom_physics` is on.
-    static bool  jumpout_custom_physics;
-    static float jumpout_up;        // vertical speed at take-off
-    static float jumpout_out;       // speed away from the wall (along its normal)
-    static float jumpout_along;     // speed along the run's direction
-    static float jumpout_gravity;   // added to the vertical speed every frame (negative)
-    static float jumpout_max_fall;  // fastest fall speed
-    static char lmt_body[128];    // game paths without extension, like effect paths
-    static bool load_coat_lmt;    // off for now: only the body gets the custom bank; the coat keeps its pose on the run
-    static char lmt_coat_nero[128];
-    static char lmt_coat_dante[128];
 
     static void register_lmt();                          // (re-)registers the custom LMT with the motion registry
     static bool custom_ready(uintptr_t player);          // the custom LMT is on this player's models (else placeholders)
@@ -193,11 +139,12 @@ public:
     // uPlayer::checkWallJumpBegin 0x804650 line for line: the trigger of lower-body action 0x18. In a jump, with a
     // jump press (fresh and allowed, or buffered in the C_JUMP window) and a wall jump left, it casts 80 cm back
     // and forward at hip height; on a wall it charges initJumpBegin(3), sets the jump mode and starts the action.
-    // Runs in place of the game's when `replace_wall_jump_check` is on. Returns what the game's returns (al).
+    // Runs in place of the game's while the mod is on, with its own reach, height and channels, and no wall-jump
+    // count rule. Returns what the game's returns (al).
     static bool wall_jump_check_port(uintptr_t player);
 
-    // uPlayer::moveActWallJump 0x827200 line for line, over the offsets above. Runs in place of the game's when
-    // `replace_wall_jump` is on (hook at the function entry 0x827200, `this` in eax).
+    // uPlayer::moveActWallJump 0x827200 line for line, over the offsets above. Runs in place of the game's while the
+    // mod is on (hook at the function entry 0x827200, `this` in eax).
     static void wall_jump_port(uintptr_t player);
 
     std::optional<std::string> on_initialize() override;

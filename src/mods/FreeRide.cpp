@@ -17,58 +17,63 @@ using namespace wallrun;
 
 namespace free_ride {
 
-bool  mod_enabled   = false;
-bool  need_forward  = true;
-float mount_range   = 350.0f;
-float mount_height  = 120.0f;
-bool  allow_bosses  = false;
-int   lmt_set       = -1;
-char  lmt_path[2][128] = { "motion\\pl000\\freeride", "motion\\pl006\\freeride" };
-int   slot_mount    = -1;            // -1 = the game's enemy-step hop
-int   slot_start    = 0;             // the start-up on the board, between the mount and the ride (-1 = none)
-int   slot_ride     = 1;
-int   ctn_bank      = 0;
-int   ctn_slot      = 5;             // the fall motion's script, as Gerb borrows: no windows of its own
-int   vanilla_mount_motion = 0x11;
-int   vanilla_ride_motion  = 5;
-float vanilla_ride_frame   = 12.0f;
-float mount_frames  = 14.0f;
-float start_frames  = 0.0f;          // the start-up's length; 0 = until its block ends
-float hop_height    = 70.0f;
-float ride_height   = 45.0f;
-float ride_speed    = 16.0f;
-float turn_rate     = 3.0f;
-float ride_frames   = 240.0f;
-float step_down     = 120.0f;
-float hold_frames   = 4.0f;
-int   hit_mode      = HIT_DAMAGE;
-float up_grace      = 20.0f;
-bool  align_enemy   = true;
-bool  exceed_fill   = true;
-float exceed_frames = 80.0f;
-bool  gun_while_riding = true;
-float gun_hold_frames  = 10.0f;
-float gun_blend_min    = 6.0f;
-float gun_back_blend   = 8.0f;
-float gun_shot_end     = 0.0f;
-bool  gunslinger_moves = true;
-float enemy_yaw_offset = 0.0f;
-int   nero_finisher = 0x1F;          // uPlayerNero::moveAtckRedQueenHiTime (High Roller; the move picks its jump follow-up itself)
-int   dante_finisher[3] = { 0x0B, -1, -1 };   // uPlayerDante::moveAtckRevellionHiTime; Gilgamesh / Lucifer: none chosen yet
-float finish_back   = 90.0f;
-float flat_frames   = 6.0f;          // the mount gate: frames the target has to lie flat on the floor first
-float flat_gap      = 12.0f;         // cm above the floor under it an enemy may be and still lie on it
-bool  se_enabled    = true;
-SeRef se_mount_foot      = { SE_FOOT, 0 };                           // FT_Jump
-SeRef se_mount_whoosh[2] = { { SE_CORE, 32 }, { SE_CORE, 30 } };     // Nero Whoosh01, Dante mantowoosh (the coat)
-SeRef se_land            = { SE_FOOT, 1 };                           // FT_Land
-SeRef se_ride            = { SE_FOOT, 11 };                          // FT_Sliding
-float se_ride_interval   = 20.0f;    // frames between two sliding sounds (0 = once, at the start of the ride)
+bool mod_enabled  = false;
+bool need_forward = true;
+bool exceed_fill  = true;
+int  hit_mode     = HIT_DAMAGE;
+
+namespace {
+
+// ---------------------------------------------------------------------------------------------------------------
+// The tuning (cm, cm per frame, frames).
+// ---------------------------------------------------------------------------------------------------------------
+// the input
+constexpr float mount_range  = 350.0f;    // level distance to the lock-on target (an enemy; bosses aren't ridden)
+constexpr float mount_height = 120.0f;    // the target's height difference allowed either way
+constexpr float flat_frames  = 6.0f;      // the mount gate: frames the target has to lie flat on the floor first
+constexpr float flat_gap     = 12.0f;     // cm above the floor under it an enemy may be and still lie on it
+// the ride
+constexpr float mount_frames = 14.0f;     // the hop onto the enemy
+constexpr float hop_height   = 70.0f;     // the hop's apex above the straight line
+constexpr float ride_height  = 45.0f;     // the player's feet above the floor under the enemy
+constexpr float ride_speed   = 16.0f;
+constexpr float turn_rate    = 3.0f;      // degrees per frame the board turns toward the stick
+constexpr float ride_frames  = 240.0f;    // the ride's length (then a hop off)
+constexpr float step_down    = 120.0f;    // how far below the board the floor may drop before the ride leaves the ledge
+constexpr float hold_frames  = 4.0f;      // the enemy's hit-stop timer is kept at least this high (the mount; the ride in HIT_STOP)
+constexpr float up_grace     = 20.0f;     // frames off AS_DOWN before the ride hops off (the hits couldn't keep it down)
+constexpr float exceed_frames = 80.0f;    // Nero: frames of riding per Exceed stock (the three over the 240-frame ride)
+// the gun (UpperGun reads them through the host)
+constexpr float gun_hold_frames = 10.0f;  // frames the gun stays up after the last shot before the arms go back to the ride
+constexpr float gun_blend_min   = 6.0f;   // frames: the least blend a shot's upper / aim request gets
+constexpr float gun_back_blend  = 8.0f;   // frames the arms take back into the ride's motion after a shot
+// the exits: melee hands off to the launcher (the Stinger -> Million Stab way); without one it hops off
+constexpr uint32_t nero_finisher  = 0x1F; // uPlayerNero::moveAtckRedQueenHiTime (High Roller; the move picks its jump follow-up itself)
+constexpr uint32_t dante_finisher = 0x0B; // with Rebellion: uPlayerDante::moveAtckRevellionHiTime; Gilgamesh / Lucifer: none
+constexpr float finish_back = 90.0f;      // cm the player is put back from the enemy before the launcher, on the floor
+// the LMT, per character (game paths without extension); the mount always plays the game's enemy-step hop
+const char* const lmt_path[2] = { "motion\\pl000\\freeride", "motion\\pl006\\freeride" };
+constexpr int slot_start = 0;             // the start-up on the board, between the mount and the ride, until its block ends
+constexpr int slot_ride  = 1;             // the ride (looping)
+constexpr int ctn_bank = 0, ctn_slot = 5; // the .ctn script borrowed for the LMT motions: the fall motion's, as Gerb borrows (no windows of its own)
+// the stand-ins without the LMT (bank 0 motions both characters share)
+constexpr int   vanilla_mount_motion = 0x11;   // the enemy step (uPlayer::moveActEmJump 0x827890)
+constexpr int   vanilla_ride_motion  = 5;      // the jump (uPlayer::moveActJumpBegin 0x8221D0), held still
+constexpr float vanilla_ride_frame   = 12.0f;  // the frame it is held at
+// sounds: a request id on one of the player's sound banks
+enum SeBank : int { SE_CORE = 0, SE_FOOT = 2 };   // the character's bank, the common footstep bank
+struct SeRef { int bank; int id; };
+constexpr SeRef se_mount_foot      = { SE_FOOT, 0 };                           // the hop onto the enemy: FT_Jump
+constexpr SeRef se_mount_whoosh[2] = { { SE_CORE, 32 }, { SE_CORE, 30 } };     // with it: Nero Whoosh01, Dante mantowoosh (the coat)
+constexpr SeRef se_land            = { SE_FOOT, 1 };                           // landing on the enemy: FT_Land
+constexpr SeRef se_ride            = { SE_FOOT, 11 };                          // the ride, repeated: FT_Sliding
+constexpr float se_ride_interval   = 20.0f;    // frames between two sliding sounds
+
+int lmt_set = -1;                         // the motion registry's handle of our set (a body LMT per character)
 
 // ---------------------------------------------------------------------------------------------------------------
 // Game functions, offsets and helpers.
 // ---------------------------------------------------------------------------------------------------------------
-namespace {
 
 // the enemy (uActor / uEnemy, DX9)
 namespace em {
@@ -312,7 +317,6 @@ uintptr_t se_bank(uintptr_t pl, int bank) {
     return at<uintptr_t>(pl, kSeBanks + 4 * bank);
 }
 void se_request(uintptr_t pl, const SeRef& se, int mode) {
-    if (!se_enabled || se.id < 0) return;
     const uintptr_t inst = *(uintptr_t*)kSoundInstance;
     const uintptr_t rsrc = se_bank(pl, se.bank);
     if (!inst || !rsrc) return;
@@ -348,11 +352,8 @@ void ignore_enemy(uintptr_t pl, uintptr_t e, bool on) {
 void place_enemy(uintptr_t e, const glm::vec3& p, float yaw) {
     MtVector3& pos = at<MtVector3>(e, em::mPos);
     pos.x = p.x; pos.y = p.y; pos.z = p.z;
-    if (align_enemy) {
-        const float y = yaw + glm::radians(enemy_yaw_offset);
-        float* q = &at<float>(e, em::mQuat);
-        q[0] = 0.0f; q[1] = std::sin(y * 0.5f); q[2] = 0.0f; q[3] = std::cos(y * 0.5f);
-    }
+    float* q = &at<float>(e, em::mQuat);   // the enemy turns with the board
+    q[0] = 0.0f; q[1] = std::sin(yaw * 0.5f); q[2] = 0.0f; q[3] = std::cos(yaw * 0.5f);
 }
 
 // Velocity in both of the game's models: mVel, and the XZ speed along mJump.moveAng that calcSpeedXZ rebuilds it from in
@@ -388,15 +389,13 @@ void register_lmt() {
     d.owner = "FreeRide";
     d.body[motion_registry::NERO]  = lmt_path[NERO];
     d.body[motion_registry::DANTE] = lmt_path[DANTE];
-    const int old = lmt_set;
-    lmt_set = (lmt_path[NERO][0] || lmt_path[DANTE][0]) ? motion_registry::add(d) : -1;
-    if (old >= 0) motion_registry::remove(old);
+    lmt_set = motion_registry::add(d);
 }
 
 // The word of one of our slots for this player, or -1 without the file (the stand-ins play). ready() builds the
 // player's banks, so this runs from the player's own tick only (the move), never from on_frame or the GUI.
 int motion_word(uintptr_t pl, int slot) {
-    if (slot < 0 || lmt_set < 0 || !motion_registry::ready(lmt_set, pl)) return -1;   // slot -1 = the stand-in
+    if (lmt_set < 0 || !motion_registry::ready(lmt_set, pl)) return -1;
     return motion_registry::word(lmt_set, pl, slot);
 }
 
@@ -413,8 +412,7 @@ struct RideState {
     float     t = 0.0f;              // frames into the mount / the ride
     bool      jump_held = false;     // the press that started the ride hasn't been let go yet (eaten until it is)
     bool      melee_held = false;
-    bool      custom = false;        // the mount played our LMT (so a one-block file can run on as the ride)
-    bool      motion_ended = false;  // our block on the legs reached its last frame (the game's frame-end flag, latched per phase)
+    bool      motion_ended = false;  // the start-up block reached its last frame (the game's frame-end flag, latched)
     bool      change_short = false;  // a weapon-change press under a shot, kept for the shot's end
     bool      change_long = false;
     float     exceed = 0.0f;         // Nero: frames of ride toward the next Exceed stock
@@ -430,7 +428,6 @@ struct RideState {
     uintptr_t flat_enemy = 0;        // the lock-on target found lying flat, and for how many frames (pre_tick; ride_target's gate)
     float     flat_t = 0.0f;
     float     se_t = 0.0f;           // frames since the ride's last sliding sound
-    bool      landed = false;        // the landing sound played (the mount's end may wait for its block)
 };
 RideState g_rides[kPlayerSlots];
 
@@ -490,7 +487,7 @@ uintptr_t ride_target_now(uintptr_t pl) {
     const uintptr_t t = lock_target(pl);
     if (!t) return 0;
     const uint32_t type = at<uint32_t>(t, kTargetType);
-    if (type != 0 && !(allow_bosses && type == 1)) return 0;
+    if (type != 0) return 0;                            // enemies only (bosses are large and some don't lie down the same way)
     const uintptr_t e = at<uintptr_t>(t, kTargetModel);
     if (!enemy_alive(e) || !enemy_flat(e)) return 0;
     const glm::vec3 d = vec(at<MtVector3>(e, em::mPos)) - vec(at<MtVector3>(pl, pl::mPos));
@@ -636,15 +633,11 @@ void drop_ride(uintptr_t pl, RideState& s) { let_go(pl, s); }
 // The launcher: the player back on the floor behind the enemy, then the Stinger -> Million Stab hand-off (setActionAtck
 // with both halves, the new move's state function this same tick).
 bool finish(uintptr_t pl, RideState& s, int c) {
-    int id = c == NERO ? nero_finisher : -1;
-    if (c == DANTE) {
-        const uint32_t sword = at<uint32_t>(pl, kCurrentSword);
-        if (sword >= 4 && sword <= 6) id = dante_finisher[sword - 4];
-    }
-    if (id <= 0) return false;
+    if (c == DANTE && at<uint32_t>(pl, kCurrentSword) != 4) return false;   // Dante's launcher is Rebellion's
+    const uint32_t id = c == NERO ? nero_finisher : dante_finisher;
     dismount_to_floor(pl, s);
     ++g_finishes;
-    set_action_atck(pl, (uint32_t)id, -1);
+    set_action_atck(pl, id, -1);
     run_dispatch(pl, c);
     return true;
 }
@@ -696,7 +689,7 @@ bool style_gun_id(uint32_t id) { return id >= 60 && id <= 90 && id != 81 && id !
 // along the floor, the hold / hits and the enemy under the player. false = the ride can't go on (a ledge, the enemy got up).
 bool ride_tick(uintptr_t pl, RideState& s, int c, float dt, bool steer, float speed = ride_speed) {
     MtVector3& pos = at<MtVector3>(pl, pl::mPos);
-    if (c == NERO && exceed_fill && exceed_frames > 0.0f) fill_exceed(pl, s, dt);
+    if (c == NERO && exceed_fill) fill_exceed(pl, s, dt);
 
     if (steer && at<int>(pl, pl::mAnlgPow) != 0)            // steer: the board turns toward the stick
         s.yaw = turn_toward(s.yaw, at<float>(pl, pl::mAnlgRadian), glm::radians(turn_rate) * dt);
@@ -709,26 +702,23 @@ bool ride_tick(uintptr_t pl, RideState& s, int c, float dt, bool steer, float sp
     const glm::vec3 v(dir_of(s.yaw).x * speed, (fy + ride_height - pos.y) / dt, dir_of(s.yaw).z * speed);
     set_velocity(pl, v);
     if (hit_mode == HIT_DAMAGE) {
-        still(s.enemy);
+        still(s.enemy);                                     // the hits keep it down (FreeRideShell)
         if (at<uint32_t>(s.enemy, em::mActorStatus) & AS_DOWN) s.up_frames = 0.0f;
         else if ((s.up_frames += dt) > up_grace) return false;   // it got up: the hits don't interrupt it
     } else {
-        hold(s.enemy);
+        hold(s.enemy);                                      // frozen in its pose by the hit stop
     }
     place_enemy(s.enemy, glm::vec3(next.x, fy, next.z), s.yaw);
     return true;
 }
 
-// The ride proper: its motion (the LMT's ride block from frame 0, else the stand-in held still; the block that is already
-// playing runs on when the ride has the same slot) and PHASE_RIDE, with the timer at 0. `playing` = the slot of our block
-// on the legs right now (-1 = a stand-in).
-void begin_ride(uintptr_t pl, RideState& s, int playing) {
+// The ride proper: its motion (the LMT's ride block from frame 0, else the stand-in held still) and PHASE_RIDE, with the
+// timer at 0.
+void begin_ride(uintptr_t pl, RideState& s) {
     s.t = 0.0f;
     s.se_t = 0.0f;
     play_se(pl, se_ride);
-    if (s.custom && playing >= 0 && slot_ride == playing) {
-        // one block for both: the motion runs on as the ride (loop it in the LMT); s.ride_motion already names it
-    } else if (const int ride = motion_word(pl, slot_ride); ride >= 0) {
+    if (const int ride = motion_word(pl, slot_ride); ride >= 0) {
         set_ride_motion(s, ride, 1.0f, 0.0f, true);
         request_ride_motion(pl, s, 10.0f);
     } else {
@@ -766,7 +756,7 @@ void style_post(uintptr_t pl, RideState& s) {
     }
     const int action = at<int>(pl, upper_gun::kActionNo);
     if (action != 1 && action != 13) { drop_ride(pl, s); return; }   // a jump, damage, a melee row, a dash: the ride is over
-    if (ride_frames > 0.0f && s.t >= ride_frames) { hop_off(pl, s); return; }   // the ride ran out under the move
+    if (s.t >= ride_frames) { hop_off(pl, s); return; }   // the ride ran out under the move
     resume_ride(pl, s, c, dt);
 }
 
@@ -806,19 +796,10 @@ void move_impl(uintptr_t pl) {
         face(pl, s.yaw);
         hold(e);
         ignore_enemy(pl, e, true);
-        s.custom = false;
         s.motion_ended = false;
         s.change_short = s.change_long = false;
-        if (const int mount = motion_word(pl, slot_mount); mount >= 0) {   // the word first: a bail-out leaves no .ctn override armed
-            devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
-            request_motion(pl, mount, (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);
-            s.custom = true;
-            set_ride_motion(s, mount, 1.0f, 0.0f, true);   // (stays if one block is the whole move)
-        } else {
-            request_motion(pl, vanilla_mount_motion, (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);
-        }
+        request_motion(pl, vanilla_mount_motion, (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);   // the game's hop
         set_airborne(pl, true);
-        s.landed = false;
         play_se(pl, se_mount_foot);
         play_se(pl, se_mount_whoosh[c == NERO ? 0 : 1]);
         phase = PHASE_MOUNT;
@@ -827,7 +808,6 @@ void move_impl(uintptr_t pl) {
     case PHASE_MOUNT: {
         if (!enemy_alive(s.enemy)) { hop_off(pl, s); return; }
         hold(s.enemy);
-        if (s.custom && s.t >= 2.0f && at<bool>(pl, pl::mMotionFrameEnd0)) s.motion_ended = true;   // from the second tick: the first can carry the last motion's
         // a straight line to the board with a parabola on top, sampled where the player should be after this tick
         const glm::vec3 ep = vec(at<MtVector3>(s.enemy, em::mPos));
         const glm::vec3 end(ep.x, s.floor_y + ride_height, ep.z);
@@ -837,14 +817,7 @@ void move_impl(uintptr_t pl) {
         const glm::vec3 want = s.start + (end - s.start) * k + glm::vec3(0.0f, hop_height * 4.0f * k * (1.0f - k), 0.0f);
         set_velocity(pl, (want - vec(pos)) / dt);
         if (k < 1.0f) return;
-        if (!s.landed) { s.landed = true; play_se(pl, se_land); }   // on the board (the phase may now wait for its block)
-        // Our mount block plays to its end before the next phase starts its own block (the player holds on the board
-        // meanwhile, the hop's end point held each tick above); not when the next phase runs this block on, and not past
-        // 300 frames (a looping block). The stand-in hop isn't waited for.
-        if (s.custom) {
-            const int next_slot = motion_word(pl, slot_start) >= 0 ? slot_start : slot_ride;
-            if (next_slot != slot_mount && !s.motion_ended && s.t < n + 300.0f) return;
-        }
+        play_se(pl, se_land);               // on the board
         s.t = 0.0f;
         s.serial = ++g_ride_serial;
         s.up_frames = 0.0f;
@@ -852,25 +825,22 @@ void move_impl(uintptr_t pl) {
             release(s.enemy);
             spawn_ride_shell(pl, s.enemy, s.serial);
         }
-        if (const int start = motion_word(pl, slot_start); start >= 0) {   // the start-up on the board first (no stand-in: slot -1 / no file = none)
-            if (!(s.custom && slot_start == slot_mount)) {              // the mount's own block runs on as the start-up
-                devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
-                request_motion(pl, start, (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);
-            }
-            s.custom = true;
-            set_ride_motion(s, start, 1.0f, 0.0f, true);   // (stays if the ride has this block too)
+        if (const int start = motion_word(pl, slot_start); start >= 0) {   // the start-up on the board first (no stand-in: no file = none)
+            devil4_sdk::borrow_ctn((void*)pl, (uint32_t)ctn_bank, (uint32_t)ctn_slot);
+            request_motion(pl, start, (uint32_t)A_NULL_TRANS_OFF, 3.0f, 0.0f, 1.0f);
+            set_ride_motion(s, start, 1.0f, 0.0f, true);
             s.motion_ended = false;
             phase = PHASE_START;
             return;
         }
-        begin_ride(pl, s, s.custom ? slot_mount : -1);
+        begin_ride(pl, s);
         return;
     }
     case PHASE_START: {
         // On the board, the start-up block playing: the board holds its place over the enemy (floor, hits and the hold as in
         // the ride, no travel, no steering, no shots: the arms are in the block). It ends when the block does (the game's
-        // lower-body frame-end flag, read from the second tick on: the first may still carry the mount's) or after
-        // `start_frames`; a looping block that never ends gives way after 300 frames. Jump and melee leave as from the ride.
+        // lower-body frame-end flag, read from the second tick on: the first may still carry the mount's); a looping block
+        // that never ends gives way after 300 frames. Jump and melee leave as from the ride.
         if (!enemy_alive(s.enemy)) { hop_off(pl, s); return; }
         s.t += dt;
         const uint32_t trg = at<uint32_t>(pl, pl::mBtnTrg);
@@ -881,15 +851,15 @@ void move_impl(uintptr_t pl) {
             return;
         }
         if (s.t >= 2.0f && at<bool>(pl, pl::mMotionFrameEnd0)) s.motion_ended = true;
-        const bool over = start_frames > 0.0f ? s.t >= start_frames : (s.motion_ended || s.t >= 300.0f);
+        const bool over = s.motion_ended || s.t >= 300.0f;
         if (!ride_tick(pl, s, c, dt, false, 0.0f)) { hop_off(pl, s); return; }
-        if (over) begin_ride(pl, s, slot_start);
+        if (over) begin_ride(pl, s);
         return;
     }
     case PHASE_RIDE: {
         if (!enemy_alive(s.enemy)) { hop_off(pl, s); return; }
         s.t += dt;
-        if (se_ride_interval > 0.0f && (s.se_t += dt) >= se_ride_interval) { s.se_t = 0.0f; play_se(pl, se_ride); }
+        if ((s.se_t += dt) >= se_ride_interval) { s.se_t = 0.0f; play_se(pl, se_ride); }
         const uint32_t trg = at<uint32_t>(pl, pl::mBtnTrg);
         if (!s.jump_held && (trg & 0x4)) { hop_off(pl, s); return; }   // jump: the enemy step off the board
         if (!s.melee_held && (trg & 0x1)) {                    // melee: the launcher, else a hop
@@ -897,8 +867,8 @@ void move_impl(uintptr_t pl) {
             hop_off(pl, s);
             return;
         }
-        if (c == DANTE && gunslinger_moves && (trg & 0x200) && style_gun_move(pl, s)) return;   // Gunslinger: the gun's style move takes the body, the board goes on (style_post)
-        if (ride_frames > 0.0f && s.t >= ride_frames) { hop_off(pl, s); return; }
+        if (c == DANTE && (trg & 0x200) && style_gun_move(pl, s)) return;   // Gunslinger: the gun's style move takes the body, the board goes on (style_post)
+        if (s.t >= ride_frames) { hop_off(pl, s); return; }
         if (!ride_tick(pl, s, c, dt, true)) hop_off(pl, s);     // a ledge, or the enemy got up
         return;
     }
@@ -995,14 +965,12 @@ std::optional<std::string> FreeRide::on_initialize() {
     {                                          // the gun during the ride (UpperGun; WallRun may have installed the hooks already)
         upper_gun::Host h;
         h.name = "FreeRide";
-        h.enabled = &gun_while_riding;
-        h.active = &gun_active;
+        h.active = &gun_active;                // (no `enabled`: the gun is always on; no shot_end_ticks: the shots end on their own)
         h.facing = &gun_facing;
         h.lower_motion = &gun_lower_motion;
         h.before_back = &gun_before_back;
         h.lower_atck_id = &gun_lower_id;
         h.clear_cancel_gate = true;
-        h.shot_end_ticks = &gun_shot_end;
         h.upper_blend_min = &gun_blend_min;
         h.back_blend_frames = &gun_back_blend;
         h.gun_hold_frames = &gun_hold_frames;
@@ -1023,6 +991,7 @@ std::optional<std::string> FreeRide::on_initialize() {
         }
         input_commands::hook_installed = true;
     }
+    register_lmt();
     apply_rows();
     return Mod::on_initialize();
 }
@@ -1033,199 +1002,30 @@ void FreeRide::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("DMC3's Free Ride for Nero and Dante: lock-on + forward + jump next to a knocked-down enemy hops onto it and surfs "
                   "it along the ground. The stick steers; jump steps off (the enemy step), melee launches it (Nero's High Roller, "
-                  "Dante's High Time with Rebellion). The enemy is held with the game's own hit stop, so it lies still under the "
-                  "board and carries on when the ride ends. Optional motions: motion\\pl000\\freeride.lmt (Nero) / "
-                  "motion\\pl006\\freeride.lmt (Dante): by default block 0 is the ride and the mount keeps the game's hop."));
+                  "Dante's High Time with Rebellion). Little hits keep the enemy down under the board (it takes damage, as in "
+                  "DMC3). The guns fire from the upper half during the ride; in Gunslinger, Dante's style button plays the gun's "
+                  "style move on the board. Optional motions: motion\\pl000\\freeride.lmt (Nero) / motion\\pl006\\freeride.lmt "
+                  "(Dante): block 0 is the start-up on the board, block 1 the ride; the mount is the game's hop."));
     if (!mod_enabled) return;
     ImGui::Indent(lineIndent);
     ImGui::PushID("FreeRide");
 
-    ImGui::TextUnformatted(_("Input"));
     if (ImGui::Checkbox(_("Stick toward the target"), &need_forward)) build_command();
     ImGui::SameLine();
     help_marker(_("On: lock-on + forward (toward the target, within 45 degrees) + jump. Off: lock-on + jump alone."));
-    ImGui::SliderFloat(_("Mount range"), &mount_range, 50.0f, 1000.0f, "%.0f cm");
-    ImGui::SameLine();
-    help_marker(_("How far (level distance) the knocked-down lock-on target may be for the input to take it."));
-    ImGui::SliderFloat(_("Mount height"), &mount_height, 0.0f, 400.0f, "%.0f cm");
-    ImGui::SameLine();
-    help_marker(_("How far above or below the player the target may lie."));
-    ImGui::Checkbox(_("Bosses too"), &allow_bosses);
-    ImGui::SameLine();
-    help_marker(_("Also ride lock-on targets of the boss type. Off by default: bosses are large and some don't lie down the way normal enemies do."));
-    ImGui::SliderFloat(_("Lying-flat frames"), &flat_frames, 0.0f, 30.0f, "%.0f frames");
-    ImGui::SameLine();
-    help_marker(_("The target must have lain flat on the floor this long before the input takes it: knocked down, not in the air, "
-                  "not moving up or down, within the floor gap of the ground under it. Keeps the hop (and its hit stop) off an enemy "
-                  "that is still falling or bouncing after a launch, which would freeze it in mid-air. 0 = as soon as it lies flat."));
-    ImGui::SliderFloat(_("Floor gap"), &flat_gap, 2.0f, 60.0f, "%.0f cm");
-    ImGui::SameLine();
-    help_marker(_("How far above the floor under it the enemy's position may be and still count as lying on it (big enemies lie higher)."));
-
-    ImGui::TextUnformatted(_("Ride"));
-    ImGui::SliderFloat(_("Hop frames"), &mount_frames, 1.0f, 40.0f);
-    ImGui::SameLine();
-    help_marker(_("Frames the hop onto the enemy takes."));
-    ImGui::SliderFloat(_("Hop height"), &hop_height, 0.0f, 200.0f, "%.0f cm");
-    ImGui::SameLine();
-    help_marker(_("How high the hop arcs above the straight line to the enemy."));
-    ImGui::SliderFloat(_("Ride height"), &ride_height, 0.0f, 150.0f, "%.0f cm");
-    ImGui::SameLine();
-    help_marker(_("The player's feet above the floor under the enemy while riding. Raise it if the player sinks into the enemy, lower it if they float."));
-    ImGui::SliderFloat(_("Speed"), &ride_speed, 0.0f, 50.0f, "%.1f cm/frame");
-    ImGui::SameLine();
-    help_marker(_("How fast the board travels."));
-    ImGui::SliderFloat(_("Turn rate"), &turn_rate, 0.0f, 15.0f, "%.1f deg/frame");
-    ImGui::SameLine();
-    help_marker(_("How fast the board turns toward where the stick points. 0 = straight ahead only."));
-    ImGui::SliderFloat(_("Ride length"), &ride_frames, 0.0f, 900.0f, "%.0f frames");
-    ImGui::SameLine();
-    help_marker(_("Frames before the ride ends by itself with a hop off. 0 = only an input, a ledge or the enemy dying ends it."));
-    ImGui::SliderFloat(_("Step down"), &step_down, 10.0f, 400.0f, "%.0f cm");
-    ImGui::SameLine();
-    help_marker(_("How far the floor may drop under the board (stairs, slopes) before the ride counts it as a ledge and hops off."));
-    ImGui::SliderFloat(_("Hold frames"), &hold_frames, 1.0f, 20.0f);
-    ImGui::SameLine();
-    help_marker(_("The enemy's hit-stop timer is kept at least this high while ridden. It is also how long the enemy stays frozen after the "
-                  "ride ends, if the ride is cut short by something other than an exit."));
-    ImGui::Checkbox(_("Turn the enemy with the board"), &align_enemy);
-    ImGui::SameLine();
-    help_marker(_("Sets the enemy's yaw to the board's direction plus the offset below every tick."));
-    if (align_enemy) ImGui::SliderFloat(_("Enemy yaw offset"), &enemy_yaw_offset, -180.0f, 180.0f, "%.0f deg");
     ImGui::Checkbox(_("Nero: rev the Exceed gauge"), &exceed_fill);
     ImGui::SameLine();
-    help_marker(_("The ride fills Nero's Exceed gauge by itself: the bar rises over the frames below and a stock lights at the top, "
-                  "until all three are in. Revving by hand still works on top of it. Dante has no gauge to fill."));
-    if (exceed_fill) {
-        ImGui::SliderFloat(_("Frames per Exceed stock"), &exceed_frames, 10.0f, 600.0f, "%.0f frames");
-        ImGui::SameLine();
-        help_marker(_("Frames of riding for one stock. 80 = the three stocks over the default 240-frame ride."));
-    }
-
-    ImGui::TextUnformatted(_("Holding the enemy"));
+    help_marker(_("The ride fills Nero's Exceed gauge by itself: the bar rises over 80 frames and a stock lights at the top, until "
+                  "all three are in (over the 240-frame ride). Revving by hand still works on top of it. Dante has no gauge to fill."));
     {
         const char* modes[] = { "Hits (damage keeps it down)", "Hit stop (frozen)" };
         int mode = hit_mode == HIT_DAMAGE ? 0 : 1;
-        if (ImGui::Combo(_("Hold"), &mode, modes, 2)) hit_mode = mode == 0 ? HIT_DAMAGE : HIT_STOP;
+        if (ImGui::Combo(_("Hold the enemy by"), &mode, modes, 2)) hit_mode = mode == 0 ? HIT_DAMAGE : HIT_STOP;
         ImGui::SameLine();
-        help_marker(_("How the enemy is kept under the board. Hits: a hitbox on it deals a little damage every few frames, and each "
-                      "hit replays its down flinch so it stays down the game's own way (and takes damage, as in DMC3). Hit stop: its "
-                      "hit-stop timer is topped up every tick, so it stands frozen in its pose. The mount always uses the hit stop."));
-    }
-    if (hit_mode == HIT_DAMAGE) {
-        hit_gui();
-        ImGui::SliderFloat(_("Stand-up grace"), &up_grace, 0.0f, 120.0f, "%.0f frames");
-        ImGui::SameLine();
-        help_marker(_("Frames the enemy may be off its down status before the ride hops off (an enemy the hits can't interrupt gets "
-                      "up under the player)."));
-    }
-
-    ImGui::TextUnformatted(_("Guns"));
-    ImGui::Checkbox(_("Shoot while riding"), &gun_while_riding);
-    ImGui::SameLine();
-    help_marker(_("The gun fires from the upper half while the ride goes on, as the game's walking shot does over walking legs: its "
-                  "shot motion and the elevation layer on the upper body, the ride's motion on the legs; after each shot the arms "
-                  "blend back. Bullets, effects, sound, mashing for rapid fire and the guns' own animations are the game's. No "
-                  "charge shots, no Pandora. Jump and melee still end the ride."));
-    if (gun_while_riding) {
-        ImGui::SliderFloat(_("Gun held after a shot"), &gun_hold_frames, 0.0f, 120.0f, "%.0f frames");
-        ImGui::SameLine();
-        help_marker(_("How long the gun stays up after the last shot before the arms go back to the ride (60 = one second). A burst "
-                      "then stays aimed instead of dipping between shots. 0 = back to the ride after every shot."));
-        ImGui::SliderFloat(_("Shot blend in"), &gun_blend_min, 0.0f, 20.0f, "%.0f frames");
-        ImGui::SameLine();
-        help_marker(_("The least blend a shot (and its aim layer) gets coming in. The shot plays at full strength at once and only "
-                      "the gap from the riding arms fades over these frames (6-8)."));
-        ImGui::SliderFloat(_("Back to ride blend"), &gun_back_blend, 1.0f, 30.0f, "%.0f frames");
-        ImGui::SameLine();
-        help_marker(_("How long the arms take to blend from the end of a shot back into the ride's motion."));
-        ImGui::SliderFloat(_("Shot hand-off (0 = off)"), &gun_shot_end, 0.0f, 120.0f, "%.0f ticks");
-        ImGui::SameLine();
-        help_marker(_("Safety only: a shot action still running this many ticks after it started is ended, so the next press can "
-                      "shoot again. The shots end on their own, so 0 is right unless a weapon gets stuck."));
-    }
-    ImGui::Checkbox(_("Dante: Gunslinger moves from the board"), &gunslinger_moves);
-    ImGui::SameLine();
-    help_marker(_("In Gunslinger, the style button does the held gun's style move (Twosome Time, Fireworks, Pandora's) on the board: "
-                  "the game's own move plays with its whole-body animation while the board carries on straight ahead (the stick "
-                  "aims the shots meanwhile, as it does on the ground), Honeycomb and the repeats included; when the move ends the "
-                  "ride animation comes back. Gun Stinger and Backslide carry the player off the board, as do jump and melee. Rain "
-                  "Storm (an air move) isn't offered. Pandora is disabled for the ride: no mount with it in hand, and on the board "
-                  "the weapon cycle skips it."));
-
-    ImGui::TextUnformatted(_("Exits"));
-    ImGui::InputInt(_("Nero finisher atckId"), &nero_finisher, 1, 1, ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::SameLine();
-    help_marker(_("The attack melee hands off to (the Stinger -> Million Stab way). 0x1F = High Roller (it follows the enemy up when melee is "
-                  "held, as usual). -1 = melee hops off instead."));
-    ImGui::InputInt(_("Dante finisher, Rebellion"), &dante_finisher[0], 1, 1, ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::InputInt(_("Dante finisher, Gilgamesh"), &dante_finisher[1], 1, 1, ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::InputInt(_("Dante finisher, Lucifer"), &dante_finisher[2], 1, 1, ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::SameLine();
-    help_marker(_("Dante's attack per held sword. 0xB = Rebellion's High Time. -1 = melee hops off with that sword."));
-    ImGui::SliderFloat(_("Finisher step back"), &finish_back, 0.0f, 250.0f, "%.0f cm");
-    ImGui::SameLine();
-    help_marker(_("Before the launcher the player is put on the floor this far behind the enemy, so the swing meets it. Every other dismount is the game's enemy step: the hop toward the stick, or straight up."));
-
-    ImGui::TextUnformatted(_("Motions"));
-    for (int c = 0; c < 2; ++c) {
-        ImGui::PushID(c);
-        if (ImGui::InputText(c == NERO ? _("Nero LMT") : _("Dante LMT"), lmt_path[c], sizeof(lmt_path[c]), ImGuiInputTextFlags_EnterReturnsTrue))
-            register_lmt();
-        ImGui::PopID();
-    }
-    ImGui::SameLine();
-    help_marker(_("Optional; Enter applies. One LMT per character (game path without the extension, under nativePC). The motion registry "
-                  "merges it into a free motion bank and picks the bank. Without the file the game's own motions stand in."));
-    ImGui::InputInt(_("Slot mount"), &slot_mount);
-    ImGui::InputInt(_("Slot start-up"), &slot_start);
-    ImGui::InputInt(_("Slot ride"), &slot_ride);
-    ImGui::SameLine();
-    help_marker(_("Blocks of the LMT, -1 = none of ours. Default: the game's enemy-step hop for the mount, block 0 for the start-up "
-                  "(played once the player lands on the enemy, the board standing still over it, then the ride begins), block 1 for "
-                  "the ride (from frame 0; loop it in the LMT). The same block in two slots = one animation running on from one "
-                  "into the next. A block the file doesn't have plays the stand-in (mount, ride) or is skipped (start-up)."));
-    ImGui::SliderFloat(_("Start-up frames (0 = the block's length)"), &start_frames, 0.0f, 120.0f, "%.0f frames");
-    ImGui::SameLine();
-    help_marker(_("How long the start-up lasts before the ride begins. 0 = until its block reaches its last frame (a looping block "
-                  "gives way after 300 frames); otherwise this many frames, cutting the block short or holding its last frame."));
-    ImGui::InputInt(_("Stand-in mount motion"), &vanilla_mount_motion, 1, 1, ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::InputInt(_("Stand-in ride motion"), &vanilla_ride_motion, 1, 1, ImGuiInputTextFlags_CharsHexadecimal);
-    ImGui::SliderFloat(_("Stand-in ride frame"), &vanilla_ride_frame, 0.0f, 40.0f);
-    ImGui::SameLine();
-    help_marker(_("Without the LMT: the mount plays motion 0x11 (the enemy step) and the ride holds motion 5 (the jump) still at this frame."));
-
-    ImGui::TextUnformatted(_("Sounds"));
-    ImGui::Checkbox(_("Sound effects"), &se_enabled);
-    ImGui::SameLine();
-    help_marker(_("Sounds for the ride, played on the player the way the game plays its own (a request on one of the player's sound "
-                  "banks). Each is a bank and a request id, -1 = none. Character = the character's own bank (Nero: 31 Jump, 32 / 33 "
-                  "Whoosh, 34 Stamp, 41 Dash, 42 warp; Dante: 30 coat whoosh, 31-33 attack whoosh, 34 punch hit, 39 warp). Style = "
-                  "the style bank (Nero: 0 gun fire, 2 gun aim, 93 Streak impact, 94 High Roller; Dante: 81-83 sword whoosh, 86 "
-                  "sword hit, 96 Stinger wind). Footsteps = the common foley bank (0 jump, 1 land, 2-5 walk / run, 6-10 steps, "
-                  "11 sliding, 14-15 fall). The exits keep the game's own sounds: the enemy step's and the launcher's."));
-    if (se_enabled) {
-        const auto se_gui = [&](const char* label, SeRef& se, const char* help) {   // one sound: the bank and the request id on one row
-            ImGui::PushID(label);
-            const char* banks[] = { "Character", "Style", "Footsteps" };
-            ImGui::SetNextItemWidth(110.0f);
-            ImGui::Combo("##bank", &se.bank, banks, 3);
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(100.0f);
-            ImGui::InputInt(label, &se.id);
-            ImGui::SameLine();
-            help_marker(help);
-            ImGui::PopID();
-        };
-        se_gui(_("Mount: footstep"), se_mount_foot, _("Played as the player hops onto the enemy. Default: the jump foley."));
-        se_gui(_("Mount: whoosh (Nero)"), se_mount_whoosh[0], _("Played with it for Nero. Default: his whoosh."));
-        se_gui(_("Mount: whoosh (Dante)"), se_mount_whoosh[1], _("Played with it for Dante. Default: his coat's whoosh."));
-        se_gui(_("Landing"), se_land, _("Played when the player lands on the enemy. Default: the landing foley."));
-        se_gui(_("Ride"), se_ride, _("Played as the ride starts and then every so many frames (below), stopped by the exits. Default: "
-                                     "the sliding foley."));
-        ImGui::SliderFloat(_("Ride sound every"), &se_ride_interval, 0.0f, 120.0f, "%.0f frames");
-        ImGui::SameLine();
-        help_marker(_("Frames between two plays of the ride sound. 0 = only once, when the ride starts."));
+        help_marker(_("How the enemy is kept under the board. Hits: a hitbox on it deals a little damage every 12 frames, and each "
+                      "hit replays its down flinch so it stays down the game's own way (and takes damage, as in DMC3); the ride hops "
+                      "off if it gets up anyway. Hit stop: its hit-stop timer is topped up every tick, so it stands frozen in its "
+                      "pose. The hop onto it always uses the hit stop."));
     }
 
     if (uPlayer_old* pl = devil4_sdk::get_local_player()) {      // live readout
@@ -1239,129 +1039,34 @@ void FreeRide::on_gui_frame(int display) {
                     (int)riding(P), at<int>(P, pl::mBdyActionLowerPhase), s ? s->t : 0.0f, g_in_reach ? "yes" : "no", s ? s->flat_t : 0.0f, (void*)ridden,
                     enemy_alive(ridden) ? at<float>(ridden, em::mEmHitStopTimer) : 0.0f, s ? s->floor_y : 0.0f);
         if (hit_mode == HIT_DAMAGE) hit_readout();
-        if (gun_while_riding)
-            ImGui::Text("gun: shots %d | %s | upper action %d | atck id %u (effective %u) | shooting %s", upper_gun::shots, upper_gun::last,
-                        at<int>(P, upper_gun::kBdyUpperNo), at<uint32_t>(P, pl::mAtckId), upper_gun::effective_atck_id(P),
-                        upper_gun::shooting(P) ? "yes" : "no");
+        ImGui::Text("gun: shots %d | %s | upper action %d | atck id %u (effective %u) | shooting %s", upper_gun::shots, upper_gun::last,
+                    at<int>(P, upper_gun::kBdyUpperNo), at<uint32_t>(P, pl::mAtckId), upper_gun::effective_atck_id(P),
+                    upper_gun::shooting(P) ? "yes" : "no");
         if (c == NERO)
             ImGui::Text("exceed: stocks %d | bar %.1f / %.1f | ride %.0f / %.0f", at<int>(P + kOdGauge, kOdStock),
                         at<float>(P + kOdGauge, kOdValue), at<float>(P + kOdGauge, kOdMax), s ? s->exceed : 0.0f, exceed_frames);
         ImGui::Text(_("LMT file: %s | %s"), lmt_file_exists(lmt_path[c]) ? "found" : "missing",
                     lmt_set >= 0 ? motion_registry::describe(lmt_set, P).c_str() : "no set registered");
         if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next ride
+        ImGui::SameLine();
+        help_marker(_("Reads the LMTs again from disk; the next ride uses them."));
     }
     ImGui::PopID();
     ImGui::Unindent(lineIndent);
 }
 
 void FreeRide::on_config_load(const utility::Config& cfg) {
-    mod_enabled   = cfg.get<bool>("free_ride").value_or(false);
-    need_forward  = cfg.get<bool>("free_ride_need_forward").value_or(need_forward);
-    mount_range   = cfg.get<float>("free_ride_mount_range").value_or(mount_range);
-    mount_height  = cfg.get<float>("free_ride_mount_height").value_or(mount_height);
-    allow_bosses  = cfg.get<bool>("free_ride_bosses").value_or(allow_bosses);
-    for (int c = 0; c < 2; ++c)
-        if (auto p = cfg.get("free_ride_lmt_" + std::to_string(c))) strcpy_s(lmt_path[c], p->c_str());
-    slot_mount    = cfg.get<int>("free_ride_slot_mount").value_or(slot_mount);
-    const auto saved_start = cfg.get<int>("free_ride_slot_start");
-    slot_start    = saved_start.value_or(slot_start);
-    slot_ride     = cfg.get<int>("free_ride_slot_ride").value_or(slot_ride);
-    if (!saved_start && slot_ride == 0) slot_ride = 1;   // a config saved before the start-up slot existed: the ride is block 1 now
-    start_frames  = cfg.get<float>("free_ride_start_frames").value_or(start_frames);
-    vanilla_mount_motion = cfg.get<int>("free_ride_vanilla_mount").value_or(vanilla_mount_motion);
-    vanilla_ride_motion  = cfg.get<int>("free_ride_vanilla_ride").value_or(vanilla_ride_motion);
-    vanilla_ride_frame   = cfg.get<float>("free_ride_vanilla_ride_frame").value_or(vanilla_ride_frame);
-    mount_frames  = cfg.get<float>("free_ride_mount_frames").value_or(mount_frames);
-    hop_height    = cfg.get<float>("free_ride_hop_height").value_or(hop_height);
-    ride_height   = cfg.get<float>("free_ride_height").value_or(ride_height);
-    ride_speed    = cfg.get<float>("free_ride_speed").value_or(ride_speed);
-    turn_rate     = cfg.get<float>("free_ride_turn_rate").value_or(turn_rate);
-    ride_frames   = cfg.get<float>("free_ride_frames").value_or(ride_frames);
-    step_down     = cfg.get<float>("free_ride_step_down").value_or(step_down);
-    hold_frames   = cfg.get<float>("free_ride_hold_frames").value_or(hold_frames);
-    align_enemy   = cfg.get<bool>("free_ride_align_enemy").value_or(align_enemy);
-    enemy_yaw_offset = cfg.get<float>("free_ride_enemy_yaw").value_or(enemy_yaw_offset);
-    hit_mode      = cfg.get<int>("free_ride_hit_mode").value_or(hit_mode);
-    up_grace      = cfg.get<float>("free_ride_up_grace").value_or(up_grace);
-    hit_config_load(cfg);
-    exceed_fill   = cfg.get<bool>("free_ride_exceed").value_or(exceed_fill);
-    exceed_frames = cfg.get<float>("free_ride_exceed_frames").value_or(exceed_frames);
-    gun_while_riding = cfg.get<bool>("free_ride_gun").value_or(gun_while_riding);
-    gun_hold_frames  = cfg.get<float>("free_ride_gun_hold").value_or(gun_hold_frames);
-    gun_blend_min    = cfg.get<float>("free_ride_gun_blend").value_or(gun_blend_min);
-    gun_back_blend   = cfg.get<float>("free_ride_gun_back_blend").value_or(gun_back_blend);
-    gun_shot_end     = cfg.get<float>("free_ride_gun_shot_end").value_or(gun_shot_end);
-    gunslinger_moves = cfg.get<bool>("free_ride_gunslinger").value_or(gunslinger_moves);
-    nero_finisher = cfg.get<int>("free_ride_nero_finisher").value_or(nero_finisher);
-    for (int i = 0; i < 3; ++i) dante_finisher[i] = cfg.get<int>("free_ride_dante_finisher_" + std::to_string(i)).value_or(dante_finisher[i]);
-    finish_back   = cfg.get<float>("free_ride_finish_back").value_or(finish_back);
-    flat_frames   = cfg.get<float>("free_ride_flat_frames").value_or(flat_frames);
-    flat_gap      = cfg.get<float>("free_ride_flat_gap").value_or(flat_gap);
-    se_enabled    = cfg.get<bool>("free_ride_se").value_or(se_enabled);
-    const auto load_se = [&](const char* key, SeRef& se) {
-        se.bank = cfg.get<int>(std::string("free_ride_se_") + key + "_bank").value_or(se.bank);
-        se.id   = cfg.get<int>(std::string("free_ride_se_") + key + "_id").value_or(se.id);
-    };
-    load_se("mount_foot", se_mount_foot);
-    load_se("mount_whoosh_nero", se_mount_whoosh[0]);
-    load_se("mount_whoosh_dante", se_mount_whoosh[1]);
-    load_se("land", se_land);
-    load_se("ride", se_ride);
-    se_ride_interval = cfg.get<float>("free_ride_se_ride_interval").value_or(se_ride_interval);
+    mod_enabled  = cfg.get<bool>("free_ride").value_or(false);
+    need_forward = cfg.get<bool>("free_ride_need_forward").value_or(need_forward);
+    exceed_fill  = cfg.get<bool>("free_ride_exceed").value_or(exceed_fill);
+    hit_mode     = cfg.get<int>("free_ride_hit_mode").value_or(hit_mode) == HIT_STOP ? HIT_STOP : HIT_DAMAGE;
     build_command();                           // the steps follow need_forward
     apply_rows();
-    register_lmt();
 }
 
 void FreeRide::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("free_ride", mod_enabled);
     cfg.set<bool>("free_ride_need_forward", need_forward);
-    cfg.set<float>("free_ride_mount_range", mount_range);
-    cfg.set<float>("free_ride_mount_height", mount_height);
-    cfg.set<bool>("free_ride_bosses", allow_bosses);
-    for (int c = 0; c < 2; ++c) cfg.set("free_ride_lmt_" + std::to_string(c), std::string(lmt_path[c]));
-    cfg.set<int>("free_ride_slot_mount", slot_mount);
-    cfg.set<int>("free_ride_slot_start", slot_start);
-    cfg.set<int>("free_ride_slot_ride", slot_ride);
-    cfg.set<float>("free_ride_start_frames", start_frames);
-    cfg.set<int>("free_ride_vanilla_mount", vanilla_mount_motion);
-    cfg.set<int>("free_ride_vanilla_ride", vanilla_ride_motion);
-    cfg.set<float>("free_ride_vanilla_ride_frame", vanilla_ride_frame);
-    cfg.set<float>("free_ride_mount_frames", mount_frames);
-    cfg.set<float>("free_ride_hop_height", hop_height);
-    cfg.set<float>("free_ride_height", ride_height);
-    cfg.set<float>("free_ride_speed", ride_speed);
-    cfg.set<float>("free_ride_turn_rate", turn_rate);
-    cfg.set<float>("free_ride_frames", ride_frames);
-    cfg.set<float>("free_ride_step_down", step_down);
-    cfg.set<float>("free_ride_hold_frames", hold_frames);
-    cfg.set<bool>("free_ride_align_enemy", align_enemy);
-    cfg.set<float>("free_ride_enemy_yaw", enemy_yaw_offset);
-    cfg.set<int>("free_ride_hit_mode", hit_mode);
-    cfg.set<float>("free_ride_up_grace", up_grace);
-    hit_config_save(cfg);
     cfg.set<bool>("free_ride_exceed", exceed_fill);
-    cfg.set<float>("free_ride_exceed_frames", exceed_frames);
-    cfg.set<bool>("free_ride_gun", gun_while_riding);
-    cfg.set<float>("free_ride_gun_hold", gun_hold_frames);
-    cfg.set<float>("free_ride_gun_blend", gun_blend_min);
-    cfg.set<float>("free_ride_gun_back_blend", gun_back_blend);
-    cfg.set<float>("free_ride_gun_shot_end", gun_shot_end);
-    cfg.set<bool>("free_ride_gunslinger", gunslinger_moves);
-    cfg.set<int>("free_ride_nero_finisher", nero_finisher);
-    for (int i = 0; i < 3; ++i) cfg.set<int>("free_ride_dante_finisher_" + std::to_string(i), dante_finisher[i]);
-    cfg.set<float>("free_ride_flat_frames", flat_frames);
-    cfg.set<float>("free_ride_flat_gap", flat_gap);
-    cfg.set<bool>("free_ride_se", se_enabled);
-    const auto save_se = [&](const char* key, const SeRef& se) {
-        cfg.set<int>(std::string("free_ride_se_") + key + "_bank", se.bank);
-        cfg.set<int>(std::string("free_ride_se_") + key + "_id", se.id);
-    };
-    save_se("mount_foot", se_mount_foot);
-    save_se("mount_whoosh_nero", se_mount_whoosh[0]);
-    save_se("mount_whoosh_dante", se_mount_whoosh[1]);
-    save_se("land", se_land);
-    save_se("ride", se_ride);
-    cfg.set<float>("free_ride_se_ride_interval", se_ride_interval);
-    cfg.set<float>("free_ride_finish_back", finish_back);
+    cfg.set<int>("free_ride_hit_mode", hit_mode);
 }

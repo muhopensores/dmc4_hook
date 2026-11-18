@@ -207,7 +207,7 @@ Mods::Mods() {
     ADD_MOD(WallRun);
     ADD_MOD(NeroStyle);     // before Gerb: Gerb's rows take their style condition from it (config load order)
     ADD_MOD(Gerb);
-    ADD_MOD(GuardianDevil); // after NeroStyle: its action sets are per style slot
+    ADD_MOD(GuardianDevil); // after NeroStyle: its switch pose follows NeroStyle's switches
     ADD_MOD(DanteAirDodge);
     ADD_MOD(FreeRide);      // before MoveDef: its command bit is taken before MoveDef picks free ones
     ADD_MOD(NeroGunslinger);    // before MoveDef, as FreeRide (its command bit); its row's style is NeroStyle's
