@@ -507,6 +507,8 @@ set(SDK_SRC
     sdk/RoomClasses.cpp
     sdk/EventScript.hpp
     sdk/EventScript.cpp
+    sdk/Menus.hpp
+    sdk/Menus.cpp
     sdk/ArcRows.hpp
     sdk/ArcRows.cpp
     sdk/MtMemoryStream.hpp

@@ -76,6 +76,9 @@
 #include "sdk/uMissionStart.hpp"
 #include "sdk/Cam.hpp"
 
+// menus: layouts (sprMap / fontMap / rSprLayout), uListSelect and its vtable, the title, pause and practice menus
+#include "sdk/Menus.hpp"
+
 // .ctn cancel scripts built in memory (for api->game->install_ctn_script)
 #include "sdk/CtnScript.hpp"
 
