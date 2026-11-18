@@ -65,6 +65,11 @@ void DebugServer::on_gui_frame(int display) {
             ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", g_error.c_str());
         else
             ImGui::TextDisabled("%s", _("Not running"));
+        bool dev = debug_server::dev_tools();
+        if (ImGui::Checkbox(_("Dev tools"), &dev)) debug_server::set_dev_tools(dev);
+        ImGui::SameLine();
+        help_marker(_("Lets the server's tools change the game (mod settings now; memory writes, calls and input later). "
+                      "Off at every start."));
         for (const auto& c : debug_server::recent_calls())
             ImGui::BulletText("%s %s %.1f ms", c.tool.c_str(), c.ok ? "ok" : "error", c.ms);
         ImGui::TreePop();

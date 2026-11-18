@@ -18,10 +18,15 @@ struct Tool {
     json schema = json{{"type", "object"}, {"properties", json::object()}};   // MCP inputSchema
     bool game_thread = false;                    // run from the frame hook (game state), else on the server thread
     std::function<json(const json& args)> run;   // throw std::runtime_error for a tool error
+    bool dev = false;                            // changes the game: refused unless the panel's Dev tools switch is on
 };
 
 void add_tool(Tool tool);
 std::vector<std::string> tool_names();
+
+// The panel's "Dev tools" switch (plan D5): off at every start, never saved. Tools marked `dev` need it.
+bool dev_tools();
+void set_dev_tools(bool on);
 
 bool start(int port, std::string& error);       // localhost only
 void stop();

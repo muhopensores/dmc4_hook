@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace utility { class Config; }
 struct dmc4_plugin;
@@ -29,5 +30,16 @@ bool run_guarded(dmc4_plugin* self, dmc4_callback fn, void* user, const char* wh
 // For the api tables in other files: a line in the plugin's log (as api->log), and its DLL's file name.
 void plugin_log(dmc4_plugin* self, int level, const std::string& text);
 std::string plugin_file(const dmc4_plugin* self);
+
+// What the hook knows of each plugin DLL found (the debug server's `plugins` tool, the menu's list).
+struct Info {
+    std::string file, name, version, author, description;
+    std::string state;     // "off" (switched off), "failed", "running", "stopped" (crashed or quit)
+    std::string error;
+    bool enabled = true;   // the user's switch (takes effect at the next start)
+    int hooks = 0;
+    std::vector<std::string> log;   // its last log lines
+};
+std::vector<Info> list();
 
 } // namespace plugins

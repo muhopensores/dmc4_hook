@@ -430,6 +430,28 @@ void plugin_log(dmc4_plugin* self, int level, const std::string& text) {
 
 std::string plugin_file(const dmc4_plugin* self) { return self ? self->file : std::string(); }
 
+std::vector<Info> list() {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    std::vector<Info> out;
+    for (auto& up : g_plugins) {
+        const dmc4_plugin& p = *up;
+        Info i;
+        i.file = p.file;
+        i.name = p.name;
+        i.version = p.version;
+        i.author = p.author;
+        i.description = p.description;
+        i.state = p.state == State::Off ? "off" : p.state == State::Failed ? "failed"
+                : p.state == State::Running ? "running" : "stopped";
+        i.error = p.error;
+        i.enabled = p.enabled;
+        i.hooks = (int)p.hooks.size();
+        for (const LogLine& l : p.log) i.log.push_back(l.text);
+        out.push_back(std::move(i));
+    }
+    return out;
+}
+
 void frame() {
     ++g_frame;
     run(true);

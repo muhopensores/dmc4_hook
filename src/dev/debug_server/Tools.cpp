@@ -7,7 +7,7 @@
 #include "../../sdk/RoomClasses.hpp"
 #include "../../sdk/FrameHooks.hpp"
 
-// S0 tools (plan Vibed/GameMCP/README.md): version, status, log.
+// S0 tools (plan Vibed/GameMCP/README.md): version, status, log. S1's queries are in Queries.cpp.
 
 namespace debug_server {
 namespace {
@@ -52,7 +52,7 @@ json status() {
 void register_tools() {
     add_tool({"version", "The server and hook: name, phase, build time, the tools there are.",
               json{{"type", "object"}, {"properties", json::object()}}, false, [](const json&) {
-                  return json{{"server", "dmc4_hook debug server"}, {"phase", "S0"},
+                  return json{{"server", "dmc4_hook debug server"}, {"phase", "S1"},
                               {"built", std::string(__DATE__) + " " + __TIME__}, {"tools", tool_names()}};
               }});
     add_tool({"status",
@@ -71,6 +71,7 @@ void register_tools() {
                   const int max = a.contains("max") ? a["max"].get<int>() : 200;
                   return log_lines(since, max);
               }});
+    register_queries();
 }
 
 } // namespace debug_server

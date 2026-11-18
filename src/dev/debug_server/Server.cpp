@@ -2,6 +2,7 @@
 #include <httplib.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/base_sink.h>
+#include <atomic>
 #include <chrono>
 #include <deque>
 #include <future>
@@ -13,13 +14,14 @@ namespace debug_server {
 namespace {
 
 constexpr const char* kServerName = "dmc4_hook";
-constexpr const char* kServerVersion = "S0";
+constexpr const char* kServerVersion = "S1";
 constexpr auto kGameTimeout = std::chrono::seconds(3);
 
 // ---- tools ----
 
 std::mutex g_tools_mutex;
 std::vector<Tool> g_tools;
+std::atomic<bool> g_dev_tools{false};
 
 const Tool* find_tool(const std::string& name) {
     std::lock_guard<std::mutex> lock(g_tools_mutex);
@@ -59,6 +61,9 @@ std::deque<CallRecord> g_calls;
 json call_tool(const std::string& name, const json& args) {
     const Tool* t = find_tool(name);
     if (!t) throw std::runtime_error("no tool '" + name + "'");
+    if (t->dev && !g_dev_tools)
+        throw std::runtime_error("'" + name + "' changes the game: switch on Dev tools in dmc4_hook's Debug server panel "
+                                 "first");
     const auto t0 = std::chrono::steady_clock::now();
     bool ok = false;
     auto record = [&] {
@@ -119,7 +124,9 @@ json handle(const json& req) {
             json list = json::array();
             std::lock_guard<std::mutex> lock(g_tools_mutex);
             for (const Tool& t : g_tools)
-                list.push_back({{"name", t.name}, {"description", t.description}, {"inputSchema", t.schema}});
+                list.push_back({{"name", t.name},
+                                {"description", t.dev ? t.description + " Needs the panel's Dev tools switch." : t.description},
+                                {"inputSchema", t.schema}});
             return rpc_result(id, {{"tools", list}});
         }
         if (method == "tools/call") {
@@ -195,6 +202,9 @@ void add_tool(Tool tool) {
         if (t.name == tool.name) { t = std::move(tool); return; }
     g_tools.push_back(std::move(tool));
 }
+
+bool dev_tools() { return g_dev_tools; }
+void set_dev_tools(bool on) { g_dev_tools = on; }
 
 std::vector<std::string> tool_names() {
     std::lock_guard<std::mutex> lock(g_tools_mutex);
