@@ -14,7 +14,7 @@ namespace debug_server {
 namespace {
 
 constexpr const char* kServerName = "dmc4_hook";
-constexpr const char* kServerVersion = "S1";
+constexpr const char* kServerVersion = "S2";
 constexpr auto kGameTimeout = std::chrono::seconds(3);
 
 // ---- tools ----
@@ -134,7 +134,7 @@ json handle(const json& req) {
             const json args = params.contains("arguments") ? params["arguments"] : json::object();
             try {
                 const json r = call_tool(name, args);
-                return rpc_result(id, {{"content", json::array({{{"type", "text"}, {"text", r.dump(1)}}})},
+                return rpc_result(id, {{"content", json::array({{{"type", "text"}, {"text", r.dump(1, ' ', false, json::error_handler_t::replace)}}})},
                                        {"isError", false}});
             } catch (const std::exception& e) {
                 return rpc_result(id, {{"content", json::array({{{"type", "text"}, {"text", e.what()}}})},
@@ -240,7 +240,7 @@ bool start(int port, std::string& error) {
             res.status = 202;   // notifications only
             return;
         }
-        res.set_content(reply.dump(), "application/json");
+        res.set_content(reply.dump(-1, ' ', false, json::error_handler_t::replace), "application/json");   // game strings may not be UTF-8
     });
     server->Get("/mcp", [](const httplib::Request&, httplib::Response& res) {
         res.status = 405;   // no server-sent event stream

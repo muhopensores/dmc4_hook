@@ -441,6 +441,9 @@ set(DEV_SRC
   dev/debug_server/Tools.hpp
   dev/debug_server/Tools.cpp
   dev/debug_server/Queries.cpp
+  dev/debug_server/Memory.hpp
+  dev/debug_server/Memory.cpp
+  dev/debug_server/Actions.cpp
   ../plugin_sdk/include/dmc4_plugin.h
   dev/ps_bind.hpp
   dev/shader_file.hpp

@@ -6,12 +6,16 @@
 
 bool DebugServer::mod_enabled = false;
 int DebugServer::server_port = 13350;
+bool DebugServer::dev_tools_at_start = false;
 
 namespace {
 
 std::string g_error;
 
-void drain_jobs(void*) { debug_server::on_game_frame(); }
+void drain_jobs(void*) {
+    debug_server::on_game_frame();
+    debug_server::actions_frame();
+}
 
 void apply(bool on) {
     if (on) {
@@ -39,12 +43,15 @@ std::optional<std::string> DebugServer::on_initialize() {
 void DebugServer::on_config_load(const utility::Config& cfg) {
     server_port = cfg.get<int>("debug_server_port").value_or(13350);
     mod_enabled = cfg.get<bool>("debug_server_enabled").value_or(false);
+    dev_tools_at_start = cfg.get<bool>("debug_server_dev_tools").value_or(false);
+    debug_server::set_dev_tools(dev_tools_at_start);
     if (mod_enabled) apply(true);
 }
 
 void DebugServer::on_config_save(utility::Config& cfg) {
     cfg.set<int>("debug_server_port", server_port);
     cfg.set<bool>("debug_server_enabled", mod_enabled);
+    cfg.set<bool>("debug_server_dev_tools", dev_tools_at_start);   // the cfg's choice, not this session's checkbox
 }
 
 void DebugServer::on_gui_frame(int display) {
@@ -68,8 +75,9 @@ void DebugServer::on_gui_frame(int display) {
         bool dev = debug_server::dev_tools();
         if (ImGui::Checkbox(_("Dev tools"), &dev)) debug_server::set_dev_tools(dev);
         ImGui::SameLine();
-        help_marker(_("Lets the server's tools change the game (mod settings now; memory writes, calls and input later). "
-                      "Off at every start."));
+        help_marker(_("Lets the server's tools change the game: write memory, call functions, enter rooms, show text, "
+                      "spawn and delete units, change mod settings. For this session only; it starts on only when "
+                      "dmc4_hook.cfg has debug_server_dev_tools = true (for test runs)."));
         for (const auto& c : debug_server::recent_calls())
             ImGui::BulletText("%s %s %.1f ms", c.tool.c_str(), c.ok ? "ok" : "error", c.ms);
         ImGui::TreePop();

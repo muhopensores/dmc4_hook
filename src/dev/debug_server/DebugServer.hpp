@@ -13,6 +13,7 @@ public:
 
     static bool mod_enabled;
     static int server_port;
+    static bool dev_tools_at_start;   // cfg debug_server_dev_tools: the Dev tools switch starts on (test runs)
 
     std::optional<std::string> on_initialize() override;
     void on_gui_frame(int display) override;
