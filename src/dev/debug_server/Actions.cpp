@@ -211,14 +211,16 @@ std::mutex g_print_mutex;
 std::vector<Print> g_prints;
 int g_next_print = 1;
 
+// sMessage::printf takes the colour as bytes B, G, R, A (the SDK's MtColor names them r, g, b, a): seen in a
+// screenshot 2026-11-18, FFD040 came out light blue. So the fields are filled in that order.
 MtColor parse_color(const json& c) {
     if (c.is_array() && (c.size() == 3 || c.size() == 4)) {
         auto ch = [&](size_t i) { return (uint8_t)std::clamp(c[i].get<int>(), 0, 255); };
-        return MtColor{ch(0), ch(1), ch(2), c.size() == 4 ? ch(3) : (uint8_t)255};
+        return MtColor{ch(2), ch(1), ch(0), c.size() == 4 ? ch(3) : (uint8_t)255};   // see bgra below
     }
     if (c.is_string()) {   // "RRGGBB" or "RRGGBBAA"
         const auto b = parse_hex(c.get<std::string>());
-        if (b.size() == 3 || b.size() == 4) return MtColor{b[0], b[1], b[2], b.size() == 4 ? b[3] : (uint8_t)255};
+        if (b.size() == 3 || b.size() == 4) return MtColor{b[2], b[1], b[0], b.size() == 4 ? b[3] : (uint8_t)255};
     }
     throw std::runtime_error("color: [r, g, b(, a)] 0-255 or \"RRGGBB(AA)\"");
 }

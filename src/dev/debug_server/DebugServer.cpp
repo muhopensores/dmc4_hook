@@ -42,6 +42,8 @@ std::optional<std::string> DebugServer::on_initialize() {
     return Mod::on_initialize();
 }
 
+void DebugServer::on_frame(fmilliseconds&) { debug_server::screenshot_present(); }
+
 void DebugServer::on_config_load(const utility::Config& cfg) {
     server_port = cfg.get<int>("debug_server_port").value_or(13350);
     mod_enabled = cfg.get<bool>("debug_server_enabled").value_or(false);

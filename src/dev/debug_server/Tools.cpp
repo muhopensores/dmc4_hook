@@ -9,7 +9,7 @@
 #include "../../sdk/FrameHooks.hpp"
 
 // S0 tools (plan Vibed/GameMCP/README.md): version, status, log. S1's queries are in Queries.cpp, S2's actions in
-// Actions.cpp, S3's input / pause / step / wait in Input.cpp, S5's sdl link in Sdl.cpp, the memory access they share in Memory.cpp.
+// Actions.cpp, S3's input / pause / step / wait in Input.cpp, S5's sdl link in Sdl.cpp, S4's screenshot in Screenshot.cpp, the memory access they share in Memory.cpp.
 
 namespace debug_server {
 namespace {
@@ -82,6 +82,7 @@ void register_tools() {
     register_actions();
     register_input();
     register_sdl();
+    register_screenshot();
 }
 
 } // namespace debug_server

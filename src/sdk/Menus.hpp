@@ -309,6 +309,8 @@ bool slot_loaded(int slot);
 // system font or the debug font). HDTV coordinates; `w` / `h` = one character's size (the game uses 28 x 28); `\n`
 // starts a new line. Game thread, every frame it should show (it's drawn for one frame). Returns false if the slot
 // isn't loaded.
+// `color`: printf reads the four bytes as B, G, R, A, so MtColor's fields named r and b hold blue and red here
+// (seen in a screenshot, 2026-11-18: {r 0xFF, g 0xD0, b 0x40} drew light blue).
 bool print(int slot, int x, int y, unsigned w, unsigned h, MtColor color, int prio, const char* text);
 
 } // namespace menus
