@@ -125,7 +125,11 @@ uintptr_t base_of(int level, int slot, aRoom* room, int arg) {
     const Class& k = g_classes[level];
     if (k.parent >= 0) return dispatch(k.parent, slot, room, arg);
     void* f = k.vanilla[slot];
-    return slot == SLOT_NAME_AT ? reinterpret_cast<FnI>(f)(room, arg) : reinterpret_cast<Fn0>(f)(room);
+    if (slot == SLOT_NAME_AT) return reinterpret_cast<FnI>(f)(room, arg);
+    const uintptr_t r = reinterpret_cast<Fn0>(f)(room);
+    // the vanilla load (0x40A590) returns a bool in al, the rest of eax is leftovers: a load callback's `base(c) != 0`
+    // read them as "loaded" on the first frame, and the room was built before its files (room 901, 2026-11-18)
+    return slot == SLOT_LOAD ? (r & 0xFF) : r;
 }
 
 int class_or_log(aRoom* self, const char* what) {
