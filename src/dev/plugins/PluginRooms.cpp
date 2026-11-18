@@ -2,6 +2,7 @@
 #include "PluginHost.hpp"
 #include "../../../plugin_sdk/include/dmc4_plugin.h"
 #include "../../sdk/RoomClasses.hpp"
+#include "../menus/MenuRows.hpp"
 #include "../../sdk/EventScript.hpp"
 #include "../../sdk/sArea.hpp"
 #include "../../mods/AreaJump.hpp"
@@ -135,7 +136,7 @@ void* __cdecl api_current() { return room_classes::current(); }
 int __cdecl api_room_number(void* room) { return room ? static_cast<aRoom*>(room)->room_no : -1; }
 int __cdecl api_stage_number(void* room) { return room ? static_cast<aRoom*>(room)->stage_no : -1; }
 void* __cdecl api_fields(void* room) { return room_classes::fields_of(static_cast<aRoom*>(room)); }
-int __cdecl api_enter(int room) { return AreaJump::jump_to_room_id(room) ? 1 : 0; }
+int __cdecl api_enter(int room) { return MenuRows::enter_room(room) ? 1 : 0; }   // from a room or the Mission Menu
 
 int __cdecl api_check_script(const char* text, char* error, uint32_t error_size) {
     std::vector<uint8_t> bytes;

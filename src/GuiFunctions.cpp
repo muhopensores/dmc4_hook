@@ -523,6 +523,7 @@ namespace gui {
 
                         ImGui::SeparatorText(_("New Moves"));
 
+                        pmods->on_draw_ui<DanteAirDodge>(DISPLAY_DANTE_A);
                         pmods->on_draw_ui<FreeRide>(DISPLAY_DANTE_A); // also in Nero's tab: one setting for both
                         pmods->on_draw_ui<WallRun>(DISPLAY_DANTE_A);  // also in Nero's tab: one setting for both
 
@@ -864,8 +865,8 @@ namespace gui {
                 pmods->on_draw_ui<FreeRide>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<NeroGunslinger>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<GuardianDevil>(DISPLAY_SYSTEM_A);
-
                 pmods->on_draw_ui<DanteAirDodge>(DISPLAY_SYSTEM_A);
+
                 pmods->on_draw_ui<ThirdPersonAim>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<ModelExtension>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<MoveDef>(DISPLAY_SYSTEM_A);

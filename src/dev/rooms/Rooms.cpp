@@ -2,6 +2,7 @@
 #include "../../sdk/RoomClasses.hpp"
 #include "../../sdk/sArea.hpp"
 #include "../../mods/AreaJump.hpp"
+#include "../menus/MenuRows.hpp"
 #include <spdlog/spdlog.h>
 #include <cstring>
 
@@ -117,7 +118,7 @@ void Rooms::on_gui_frame(int display) {
                 ImGui::SameLine();
                 ImGui::TextDisabled(i.in_area_table ? _("recorded, %d live") : _("NOT recorded by sArea, %d live"), i.live);
                 ImGui::SameLine();
-                if (ImGui::SmallButton(_("Enter"))) AreaJump::jump_to_room_id(i.room);
+                if (ImGui::SmallButton(_("Enter"))) MenuRows::enter_room(i.room);   // from a room, or the Mission Menu
             }
             ImGui::PopID();
         }

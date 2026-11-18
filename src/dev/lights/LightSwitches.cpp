@@ -100,15 +100,36 @@ void** __stdcall rank_lights(void** list, uint32_t count, const float* box, uint
 
 // 0xA66448, 8 bytes: mov [esp+10h], ecx / mov [esp+2Ch], edx (ecx = the light list, edx = its count; ebp = sub_A66180's
 // frame: +10h the model's box, +14h its light group). The loop at 0xA66450 then reads the list from [esp+10h].
+// xmm4 (0) and xmm5 (mSpeed, every light's strength: mSpeed - its shadow) are loaded at 0xA663DC / 0xA663E4 and live
+// across the site, and rank_lights' code uses the SSE registers: all eight are saved, or every light a model gets is
+// scaled by whatever the scoring left in xmm5 (stages went black in st700, lit up with each flash in st307).
 naked void detour_rank() {
     _asm {
         pushad
+        sub esp, 0x80
+        movdqu [esp], xmm0
+        movdqu [esp + 0x10], xmm1
+        movdqu [esp + 0x20], xmm2
+        movdqu [esp + 0x30], xmm3
+        movdqu [esp + 0x40], xmm4
+        movdqu [esp + 0x50], xmm5
+        movdqu [esp + 0x60], xmm6
+        movdqu [esp + 0x70], xmm7
         push dword ptr [ebp + 0x14]     // light group
         push dword ptr [ebp + 0x10]     // the model's box
         push edx                        // count
         push ecx                        // list
         call rank_lights                // __stdcall, the list to walk in eax
-        mov [esp + 24], eax             // pushad's ecx
+        mov [esp + 0x80 + 24], eax      // pushad's ecx
+        movdqu xmm0, [esp]
+        movdqu xmm1, [esp + 0x10]
+        movdqu xmm2, [esp + 0x20]
+        movdqu xmm3, [esp + 0x30]
+        movdqu xmm4, [esp + 0x40]
+        movdqu xmm5, [esp + 0x50]
+        movdqu xmm6, [esp + 0x60]
+        movdqu xmm7, [esp + 0x70]
+        add esp, 0x80
         popad
         mov [esp + 0x10], ecx
         mov [esp + 0x2C], edx

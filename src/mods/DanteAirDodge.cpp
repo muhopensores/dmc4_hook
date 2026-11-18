@@ -20,34 +20,48 @@ bool  mod_enabled     = false;
 int   cmd_bit         = -1;
 uintptr_t jmp_ret_wjump = 0;
 int   lmt_set         = -1;
-char  lmt_path[128]   = "motion\\pl006\\airdodge";
-int   slot[DIR_COUNT] = { 1, 0 };        // right, left
-int   ctn_bank        = 0;
-int   ctn_slot        = 5;               // the fall motion's script: no cancels until the game's air rules say so
-float launch_frame    = 0.0f;
-float speed           = 16.0f;
-float rise            = 16.0f;
-float gravity         = -1.1f;
-float max_fall        = 30.0f;
-float cancel_frame    = 10.0f;
-float side_angle      = 50.0f;
-bool  face_direction  = false;
-bool  airborne_status = true;
-bool  enemy_step_from_start = true;   // the enemy step (jump cancel) can interrupt the dodge from frame 0, before the cancel frame
-bool  cost_air_hike   = true;        // the dodge is the air jump: no air hike after it (uPlayer::checkWJumpBegin: mWJumpCnt >= wJumpCnt)
-int   dodges_per_air  = 0;           // 0: the game's air-jump count is the only limit (2 in DT), since the dodge spends one
-bool  effect_enabled  = true;
-int   effect_list     = 2;
-int   effect_index    = 0x14;
-float effect_tilt     = 45.0f;
-bool  se_enabled      = true;
-int   se_id           = 40;
+
+// ---------------------------------------------------------------------------------------------------------------
+// Tuning (cm and frames at 60 fps).
+// ---------------------------------------------------------------------------------------------------------------
+namespace {
+
+constexpr const char* lmt_path  = "motion\\pl006\\airdodge";   // game path under nativePC, without .lmt
+constexpr int   slot[DIR_COUNT] = { 1, 0 };   // block per direction: right, left
+constexpr int   ctn_bank        = 0;          // the vanilla .ctn script borrowed for the cycle (runtime banks have none):
+constexpr int   ctn_slot        = 5;          // the fall motion's, so no cancels until the game's air rules say so
+constexpr float launch_frame    = 0.0f;       // frame of the cycle at which the velocity is applied
+constexpr float speed           = 16.0f;      // sideways
+constexpr float rise            = 16.0f;      // vertical speed at the launch
+constexpr float gravity         = -1.1f;      // added to the vertical speed every frame
+constexpr float max_fall        = 30.0f;
+constexpr float cancel_frame    = 10.0f;      // from this frame of the cycle every cancel window is open
+constexpr float side_angle      = 50.0f;      // degrees off the right / left axis within which the stick counts as sideways
+constexpr bool  face_direction  = false;      // keep facing the target
+constexpr bool  airborne_status = true;       // mark the action as a jump (AST_JUMP) so the game's air rules apply
+constexpr bool  enemy_step_from_start = true; // the enemy step (jump cancel) can interrupt the dodge from frame 0
+constexpr bool  cost_air_hike   = true;       // the dodge is the air jump: no air hike after it (checkWJumpBegin: mWJumpCnt >= wJumpCnt)
+constexpr int   dodges_per_air  = 0;          // 0: the game's air-jump count is the only limit (2 in DT), since the dodge spends one
+constexpr int   effect_list     = 2;          // Dante's air hike effect (uPlayerDante::setWJumpEffect 0x7B9220): effect\efl\com\ec005_20v1
+constexpr int   effect_index    = 0x14;
+constexpr float effect_tilt     = 45.0f;      // degrees the effect leans from the player's up toward the dodge
+constexpr int   se_id           = 40;         // the air hike's sound
+
+// The end, Sky Star's (moveActTsAirDash): when the cycle ends, the fall motion (4, attr 0x15, 30-frame blend from frame
+// 51) and a sideways speed that drains by param +0x130 a frame until it is under 1, then stops.
+constexpr float end_inertia     = 7.5f;       // sideways speed the fall starts with (Sky Star's own is 1.7-8 by its frame)
+constexpr float end_stop        = 1.0f;
+constexpr float end_drain       = -0.39f;     // pl006_param.plp +0x130, used when the live table can't be read
+constexpr uintptr_t kParamTbl   = 0x1EA8;     // uPlayer: the .plp parameter data Sky Star reads
+constexpr uintptr_t kEndDrain   = 0x130;
+constexpr int   kFallMotion     = 4;
+constexpr uint32_t kFallAttr    = 0x15;
+constexpr float kFallBlend      = 30.0f;
+constexpr float kFallStart      = 51.0f;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Game functions and helpers (Gerb's, kept file-local the same way).
 // ---------------------------------------------------------------------------------------------------------------
-namespace {
-
 static uintptr_t fn_setActionLand = 0x007AA6A0;   // uPlayer::setActionLand(this@ecx)
 
 void set_action_land(uintptr_t pl) { ((void(__fastcall*)(uintptr_t, int))fn_setActionLand)(pl, 0); }
@@ -81,6 +95,12 @@ bool lmt_file_exists(const char* game_path) {
     return std::filesystem::exists(std::string(".\\nativePC\\") + game_path + ".lmt");
 }
 
+float end_deceleration(uintptr_t pl) {
+    const uintptr_t tbl = at<uintptr_t>(pl, kParamTbl);
+    const float a = tbl ? at<float>(tbl, kEndDrain) : 0.0f;
+    return a < 0.0f ? a : end_drain;
+}
+
 // The player's orientation with its up leaned `tilt_deg` toward the level part of `dir` (mt_basis_quat, MtMath.hpp).
 void basis_quat(uintptr_t pl, const glm::vec3& dir, float tilt_deg, float out[4]) {
     glm::vec3 b[3] = { wmat_row(pl, 0), wmat_row(pl, 1), wmat_row(pl, 2) };
@@ -94,18 +114,16 @@ void basis_quat(uintptr_t pl, const glm::vec3& dir, float tilt_deg, float out[4]
 
 // Dante's air hike effect and sound at the take-off, the effect leaned toward the dodge.
 void take_off_fx(uintptr_t pl, const glm::vec3& dir) {
-    if (effect_enabled) {
-        float q[4];
-        if (effect_tilt == 0.0f) { const float* g = &at<float>(pl, pl::mQuat); q[0] = g[0]; q[1] = g[1]; q[2] = g[2]; q[3] = g[3]; }
-        else basis_quat(pl, dir, effect_tilt, q);
-        devil4_sdk::effect_stay(effect_list, effect_index, q, &at<float>(pl, pl::mPos), (void*)pl);
-    }
-    if (se_enabled) devil4_sdk::play_player_se((void*)pl, se_id);
+    float q[4];
+    basis_quat(pl, dir, effect_tilt, q);
+    devil4_sdk::effect_stay(effect_list, effect_index, q, &at<float>(pl, pl::mPos), (void*)pl);
+    devil4_sdk::play_player_se((void*)pl, se_id);
 }
 
 constexpr int PHASE_ENTRY    = 0;
 constexpr int PHASE_WAIT     = 1;     // cycle playing, waiting for launch_frame
 constexpr int PHASE_AIRBORNE = 2;
+constexpr int PHASE_FALL     = 3;     // the cycle ended: the fall motion, the sideways speed draining
 
 constexpr int kPlayerSlots = 8;       // uPlayer objects tracked at once (the player, NPC / boss Dante, a co-op partner ...)
 static ctn::Script g_cancel_scripts[kPlayerSlots];   // the in-memory .ctn script per player slot (MoveDef D11, sdk/CtnScript.hpp)
@@ -142,28 +160,26 @@ DodgeState& state_for(uintptr_t player) {
     return *victim;
 }
 
-// First tick after the motion request: swap the borrowed script for the cancel script (if a cancel frame is set).
-// (Opening C_JUMP from frame 0 was tried for the jump cancel and dropped: with an air hike left (DT) it let the
-// dodge be cancelled into one at once. The enemy step needs no window: see check_enemy_step.)
+// First tick after the motion request: swap the borrowed script for the cancel script. (Opening C_JUMP from frame 0
+// would let the dodge be cancelled into an air hike at once when one is left (DT); the enemy step needs no window:
+// see check_enemy_step.)
 void arm_cancel_script(DodgeState& s, uintptr_t pl) {
     if (s.script_set) return;
     s.script_set = true;
-    if (cancel_frame >= 0.0f) {
-        ctn::Script& sc = g_cancel_scripts[slot_of(s) % kPlayerSlots];
-        sc.reset().wait(cancel_frame).open_all().end();
-        devil4_sdk::install_ctn_script((void*)pl, sc.data());
-    }
+    ctn::Script& sc = g_cancel_scripts[slot_of(s) % kPlayerSlots];
+    sc.reset().wait(cancel_frame).open_all().end();
+    devil4_sdk::install_ctn_script((void*)pl, sc.data());
 }
 
 // The cancel gate (mIsCancelCheckEnable): cleared by setActionAtck, set back at the cancel frame as the vanilla attacks do.
-bool gate_open(uintptr_t pl) { return cancel_frame >= 0.0f && at<float>(pl, pl::mMotionFrame0) >= cancel_frame; }
+bool gate_open(uintptr_t pl) { return at<float>(pl, pl::mMotionFrame0) >= cancel_frame; }
 void open_cancel_gate(uintptr_t pl) {
     if (gate_open(pl)) at<bool>(pl, pl::mIsCancelCheckEnable) = true;
 }
 
-// The press that started the dodge outlives the tick (the game ticks faster than the pad reports: the panel log showed
-// mBtnTrg still carrying it one tick later, and uPlayer::updateMotCancel latching it as the C_JUMP reserve). Until the
-// button has been released once, the dodge eats the trigger bit and that latch, so no jump check takes the same press.
+// The press that started the dodge outlives the tick (the game ticks faster than the pad reports: mBtnTrg still
+// carries it one tick later, and uPlayer::updateMotCancel latches it as the C_JUMP reserve). Until the button has been
+// released once, the dodge eats the trigger bit and that latch, so no jump check takes the same press.
 void eat_held_jump(DodgeState& s, uintptr_t pl) {
     if (!s.jump_held) return;
     if (!(at<uint32_t>(pl, pl::mBtnOn) & 0x4)) { s.jump_held = false; return; }
@@ -188,6 +204,18 @@ bool check_enemy_step(uintptr_t pl) {
         popad
     }
     return r != 0;
+}
+
+// The cycle's end, as Sky Star's: the fall motion, the sideways speed (at most end_inertia) moved into mMoveVel along
+// the dodge, draining by the game's Sky Star rate. mMoveVel / mJumpMoveAng stay in step, so a cancel into a move that
+// carries the game's inertia carries this.
+void start_fall(uintptr_t pl, DodgeState& s) {
+    MtVector3& vel = at<MtVector3>(pl, pl::mVel);
+    const float now = std::sqrt(vel.x * vel.x + vel.z * vel.z);
+    request_motion(pl, kFallMotion, kFallAttr, kFallBlend, kFallStart, 1.0f);
+    at<float>(pl, pl::mMoveVel) = std::min(end_inertia, now);
+    at<float>(pl, pl::mMoveAcc) = end_deceleration(pl);
+    at<float>(pl, pl::mJumpMoveAng) = yaw_of(s.dir_vec);
 }
 
 // ---- the command: lock-on held + jump pressed, while the stick leans sideways (the predicate) ----------------
@@ -251,8 +279,8 @@ bool stick_sideways(uintptr_t pl) {
     return std::fabs(across) >= std::cos(glm::radians(side_angle));
 }
 
-// Once per airtime by default: the count resets whenever the player stands (AST_STAND), so a spent dodge leaves the
-// next lock-on jump press to the air hike instead of chaining another dodge.
+// The count resets whenever the player stands (AST_STAND); with dodges_per_air set, a spent dodge leaves the next lock-on
+// jump press to the air hike instead of chaining another dodge.
 bool can_dodge(uintptr_t pl) {
     DodgeState& s = state_for(pl);
     if (at<uint32_t>(pl, pl::mActStat) & 0x1) s.used = 0;
@@ -275,7 +303,7 @@ void register_lmt() {
     d.owner = "DanteAirDodge";
     d.body[motion_registry::DANTE] = lmt_path;
     const int old = lmt_set;
-    lmt_set = lmt_path[0] ? motion_registry::add(d) : -1;
+    lmt_set = motion_registry::add(d);
     if (old >= 0) motion_registry::remove(old);
 }
 
@@ -353,9 +381,14 @@ void __stdcall move(uintptr_t pl) {
         if (enemy_step_from_start && !gate_open(pl) && check_enemy_step(pl)) return;
         uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
         if (vel.y <= 0.0f && coll && at<bool>(coll, 0x1C)) { set_action_land(pl); return; }   // mLand
-        // Watchdog: the only exits are the landing and the cancels after cancel_frame, both of which need the motion to
-        // play. A frame that doesn't move for 60 ticks means it isn't: report and leave, instead of a soft lock.
         const float frame = at<float>(pl, pl::mMotionFrame0);
+        if (frame >= 2.0f && at<bool>(pl, pl::mMotionFrameEnd0)) {      // the cycle is over (a fresh request still shows the old end)
+            start_fall(pl, s);
+            phase = PHASE_FALL;
+            return;
+        }
+        // Watchdog: the exits need the motion to play (its end, the landing, the cancels after cancel_frame). A frame
+        // that doesn't move for 60 ticks means it isn't: report and leave, instead of a soft lock.
         s.stuck_ticks = (frame == s.last_frame) ? s.stuck_ticks + 1 : 0;
         s.last_frame = frame;
         if (s.stuck_ticks > 60) {
@@ -367,6 +400,23 @@ void __stdcall move(uintptr_t pl) {
             return;
         }
         vel.y += gravity * at<float>(pl, pl::m_delta_time);
+        if (vel.y < -max_fall) vel.y = -max_fall;
+        acc.x = acc.y = acc.z = 0.0f;
+        return;
+    }
+    case PHASE_FALL: {                                                  // Sky Star's phase 4
+        eat_held_jump(s, pl);
+        open_cancel_gate(pl);
+        uintptr_t coll = at<uintptr_t>(pl, pl::mCollMgr);
+        if (vel.y <= 0.0f && coll && at<bool>(coll, 0x1C)) { set_action_land(pl); return; }   // mLand
+        float& inertia = at<float>(pl, pl::mMoveVel);
+        float& drain = at<float>(pl, pl::mMoveAcc);
+        if (inertia < end_stop) { inertia = 0.0f; drain = 0.0f; }
+        const float dt = at<float>(pl, pl::m_delta_time);
+        vel.x = s.dir_vec.x * inertia;
+        vel.z = s.dir_vec.z * inertia;
+        inertia += drain * dt;
+        vel.y += gravity * dt;
         if (vel.y < -max_fall) vel.y = -max_fall;
         acc.x = acc.y = acc.z = 0.0f;
         return;
@@ -479,134 +529,52 @@ void DanteAirDodge::on_frame(fmilliseconds& dt) {
 }
 
 void DanteAirDodge::on_gui_frame(int display) {
-    if (display != DISPLAY_SYSTEM_A) return;        // debug page, like Gerb
-    if (ImGui::Checkbox(_("Dante air dodge"), &mod_enabled)) apply_row();
+    if (display == DISPLAY_SYSTEM_A) { debug_panel(); return; }   // the Debug tab: the readout
+    if (display != DISPLAY_DANTE_A) return;
+    if (ImGui::Checkbox(_("Air Dodge"), &mod_enabled)) apply_row();
     ImGui::SameLine();
-    help_marker(_("Lock-on + stick left or right + jump in the air: a sideways dodge with Gerb's arc, from motion\\pl006\\airdodge.lmt "
-                  "(slot 0 right, 1 left). The same press without a sideways stick stays an air hike (uPlayerDante::checkWJumpBegin "
-                  "is hooked to step aside only for the dodge)."));
+    help_marker(_("Lock-on + stick left or right + jump in the air: a sideways dodge. It spends the air hike (Devil Trigger keeps "
+                  "its second), and the same press without a sideways stick stays an air hike. When the dodge plays out, Dante "
+                  "falls on drifting sideways, the drift dying away as after Sky Star. Needs nativePC\\motion\\pl006\\airdodge.lmt."));
+}
+
+void DanteAirDodge::debug_panel() {
     if (!mod_enabled) return;
+    uPlayer_old* pl = devil4_sdk::get_local_player();
+    if (!pl) return;
+    const uintptr_t P = (uintptr_t)pl;
+    ImGui::PushID("DanteAirDodge");
+    ImGui::TextUnformatted(_("Dante Air Dodge"));
     ImGui::Indent(lineIndent);
-    ImGui::PushID("DanteAirDodge");            // the page's other panels share some labels
-    if (ImGui::InputText(_("LMT"), lmt_path, sizeof(lmt_path), ImGuiInputTextFlags_EnterReturnsTrue)) register_lmt();
+    ImGui::Text(_("File: %s | %s"), lmt_file_exists(lmt_path) ? "found" : "missing", motion_registry::describe(lmt_set, P).c_str());
+    if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next dodge
     ImGui::SameLine();
-    help_marker(_("Game path of the LMT under nativePC, without .lmt; Enter applies it. The hook places it in a free motion "
-                  "bank itself (shared with the other features that add animations)."));
-    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
-        ImGui::Text(_("File: %s | %s"), lmt_file_exists(lmt_path) ? "found" : "missing",
-                    motion_registry::describe(lmt_set, (uintptr_t)pl).c_str());
-        if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next dodge
-    }
-    ImGui::InputInt(_("Slot right"), &slot[RIGHT]);
-    ImGui::InputInt(_("Slot left"), &slot[LEFT]);
-    ImGui::InputInt(_("Borrowed .ctn bank"), &ctn_bank);
-    ImGui::InputInt(_("Borrowed .ctn slot"), &ctn_slot);
-    ImGui::SliderFloat(_("Launch frame"), &launch_frame, 0.0f, 60.0f);
-    ImGui::SliderFloat(_("Speed"), &speed, 0.0f, 60.0f);
-    ImGui::SliderFloat(_("Rise"), &rise, -20.0f, 40.0f);
-    ImGui::SliderFloat(_("Gravity"), &gravity, -5.0f, 0.0f);
-    ImGui::SliderFloat(_("Max fall"), &max_fall, 1.0f, 80.0f);
-    ImGui::SliderFloat(_("Cancel frame"), &cancel_frame, -1.0f, 60.0f);
-    ImGui::Checkbox(_("Enemy step from frame 0"), &enemy_step_from_start);
-    ImGui::SameLine();
-    help_marker(_("Runs the game's enemy-step check (uPlayer::checkEmJumpBegin) during the dodge before the cancel frame, so a jump "
-                  "press over an enemy cancels it from the first frame. Opens nothing else: the air hike and wall jump wait for the "
-                  "cancel frame."));
-    ImGui::SameLine();
-    help_marker(_("From this frame of the cycle every cancel window is open (an in-memory .ctn script replaces the borrowed one). "
-                  "-1 = never (the borrowed script's windows apply)."));
-    ImGui::SliderFloat(_("Side angle"), &side_angle, 10.0f, 85.0f);
-    ImGui::SameLine();
-    help_marker(_("Degrees off the right / left axis of the facing within which the stick counts as sideways, for the input and the "
-                  "air-hike suppression. 90 would take any lean."));
-    ImGui::Checkbox(_("Face the direction"), &face_direction);
-    ImGui::SameLine(sameLineWidth);
-    ImGui::Checkbox(_("Count as airborne"), &airborne_status);
-    ImGui::InputInt(_("Dodges per airtime"), &dodges_per_air);
-    ImGui::SameLine();
-    help_marker(_("An extra cap on dodges between landings; 0 = none, so the air-jump count alone decides (1 normally, 2 in Devil Trigger, "
-                  "shared with the air hike since the dodge spends one). A spent press is a normal air hike if any jump is left."));
-    ImGui::Checkbox(_("Costs the air hike"), &cost_air_hike);
-    ImGui::SameLine();
-    help_marker(_("Counts the dodge as the air jump (mWJumpCnt), so no air hike is left after it until landing."));
-    ImGui::Checkbox(_("Take-off effect"), &effect_enabled);
-    ImGui::SameLine();
-    help_marker(_("Dante's air hike effect at the launch frame: list 2 index 0x14 (ec005_20v1), spawned as uPlayerDante::setWJumpEffect does."));
-    if (effect_enabled) {
-        ImGui::InputInt(_("Effect list"), &effect_list);
-        ImGui::InputInt(_("Effect index"), &effect_index);
-        ImGui::SliderFloat(_("Effect tilt"), &effect_tilt, -60.0f, 60.0f);
-    }
-    ImGui::Checkbox(_("Take-off sound"), &se_enabled);
-    if (se_enabled) ImGui::InputInt(_("SE id"), &se_id);
-    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {      // live readout
-        const uintptr_t P = (uintptr_t)pl;
-        const uint32_t* f = &at<uint32_t>(P, 0x2184);
-        ImGui::Text("actStat %02X  frame %.1f  phase %d  atckId %u  stick sideways %d  bit %d: %d  wjumpCnt %d  jump window stat %d reserve %d",
-                    at<uint32_t>(P, pl::mActStat), at<float>(P, pl::mMotionFrame0), at<int>(P, pl::mBdyActionLowerPhase),
-                    at<uint32_t>(P, pl::mAtckId), (int)stick_sideways(P), cmd_bit,
-                    cmd_bit >= 0 ? (int)((f[cmd_bit >> 5] >> (cmd_bit & 31)) & 1) : 0, (int)at<char>(P, pl::mWJumpCnt),
-                    at<int>(P, pl::mMotCnclJumpStat), (int)at<bool>(P, pl::mMotCnclJumpReserve));
-        ImGui::Text("counters: air hikes suppressed %d | ticks with the bit %d | move entries %d | used this airtime %d | row cmd %08X | hook %s",
-                    g_suppressed, g_bit_seen, g_moves, state_for(P).used,
-                    (HookDanteKADTbl && MoveTable::DanteAirDodge) ? ((kAtckDefTbl*)HookDanteKADTbl + (MoveTable::extra_dante_moves - MoveTable::DanteAirDodge))->command.buffer : 0,
-                    hook_wjump ? "installed" : "MISSING");
-        ImGui::TextWrapped("log (newest last). ACT = action / motion change, ph = phase change, UP = upward impulse. act 6 jump, 7 air, 8 air hike, "
-                           "10 land, 12 attack, 0x18 wall jump, 25 enemy step; J = C_JUMP window stat / reserve; vy = vertical speed");
-        for (int i = 0; i < g_log_n; ++i) ImGui::TextWrapped("%s", g_log[(g_log_head - g_log_n + i + kLogLines) % kLogLines].text);
-    }
-    ImGui::PopID();
+    help_marker(_("Reads the dodge's LMT (nativePC\\motion\\pl006\\airdodge.lmt, slot 0 right, 1 left) again from disk on the next dodge."));
+    const uint32_t* f = &at<uint32_t>(P, 0x2184);
+    ImGui::Text("actStat %02X  frame %.1f  phase %d  atckId %u  stick sideways %d  bit %d: %d  wjumpCnt %d  jump window stat %d reserve %d  inertia %.2f (%+.2f)",
+                at<uint32_t>(P, pl::mActStat), at<float>(P, pl::mMotionFrame0), at<int>(P, pl::mBdyActionLowerPhase),
+                at<uint32_t>(P, pl::mAtckId), (int)stick_sideways(P), cmd_bit,
+                cmd_bit >= 0 ? (int)((f[cmd_bit >> 5] >> (cmd_bit & 31)) & 1) : 0, (int)at<char>(P, pl::mWJumpCnt),
+                at<int>(P, pl::mMotCnclJumpStat), (int)at<bool>(P, pl::mMotCnclJumpReserve),
+                at<float>(P, pl::mMoveVel), at<float>(P, pl::mMoveAcc));
+    ImGui::Text("counters: air hikes suppressed %d | ticks with the bit %d | move entries %d | used this airtime %d | row cmd %08X | hook %s",
+                g_suppressed, g_bit_seen, g_moves, state_for(P).used,
+                (HookDanteKADTbl && MoveTable::DanteAirDodge) ? ((kAtckDefTbl*)HookDanteKADTbl + (MoveTable::extra_dante_moves - MoveTable::DanteAirDodge))->command.buffer : 0,
+                hook_wjump ? "installed" : "MISSING");
+    ImGui::TextWrapped("log (newest last). ACT = action / motion change, ph = phase change (3 = the fall after the cycle), UP = upward "
+                       "impulse. act 6 jump, 7 air, 8 air hike, 10 land, 12 attack, 0x18 wall jump, 25 enemy step; J = C_JUMP window "
+                       "stat / reserve; vy = vertical speed");
+    for (int i = 0; i < g_log_n; ++i) ImGui::TextWrapped("%s", g_log[(g_log_head - g_log_n + i + kLogLines) % kLogLines].text);
     ImGui::Unindent(lineIndent);
+    ImGui::PopID();
 }
 
 void DanteAirDodge::on_config_load(const utility::Config& cfg) {
-    mod_enabled     = cfg.get<bool>("dante_air_dodge").value_or(false);
+    mod_enabled = cfg.get<bool>("dante_air_dodge").value_or(false);
     apply_row();
-    for (int i = 0; i < DIR_COUNT; ++i) slot[i] = cfg.get<int>("dante_air_dodge_slot_" + std::to_string(i)).value_or(slot[i]);
-    ctn_bank        = cfg.get<int>("dante_air_dodge_ctn_bank").value_or(ctn_bank);
-    ctn_slot        = cfg.get<int>("dante_air_dodge_ctn_slot").value_or(ctn_slot);
-    launch_frame    = cfg.get<float>("dante_air_dodge_launch_frame").value_or(launch_frame);
-    speed           = cfg.get<float>("dante_air_dodge_speed").value_or(speed);
-    rise            = cfg.get<float>("dante_air_dodge_rise").value_or(rise);
-    gravity         = cfg.get<float>("dante_air_dodge_gravity").value_or(gravity);
-    max_fall        = cfg.get<float>("dante_air_dodge_max_fall").value_or(max_fall);
-    cancel_frame    = cfg.get<float>("dante_air_dodge_cancel_frame").value_or(cancel_frame);
-    enemy_step_from_start = cfg.get<bool>("dante_air_dodge_enemy_step_from_start").value_or(enemy_step_from_start);
-    side_angle      = cfg.get<float>("dante_air_dodge_side_angle").value_or(side_angle);
-    face_direction  = cfg.get<bool>("dante_air_dodge_face_direction").value_or(face_direction);
-    airborne_status = cfg.get<bool>("dante_air_dodge_airborne_status").value_or(airborne_status);
-    cost_air_hike   = cfg.get<bool>("dante_air_dodge_costs_air_hike").value_or(cost_air_hike);   // (key renamed so the old false default isn't reloaded)
-    dodges_per_air  = cfg.get<int>("dante_air_dodge_max_per_air").value_or(dodges_per_air);   // (key renamed: the old default 1 shouldn't reload)
-    effect_enabled  = cfg.get<bool>("dante_air_dodge_effect").value_or(effect_enabled);
-    effect_list     = cfg.get<int>("dante_air_dodge_effect_list").value_or(effect_list);
-    effect_index    = cfg.get<int>("dante_air_dodge_effect_index").value_or(effect_index);
-    effect_tilt     = cfg.get<float>("dante_air_dodge_effect_tilt").value_or(effect_tilt);
-    se_enabled      = cfg.get<bool>("dante_air_dodge_se").value_or(se_enabled);
-    se_id           = cfg.get<int>("dante_air_dodge_se_id").value_or(se_id);
     register_lmt();
 }
 
 void DanteAirDodge::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("dante_air_dodge", mod_enabled);
-    for (int i = 0; i < DIR_COUNT; ++i) cfg.set<int>("dante_air_dodge_slot_" + std::to_string(i), slot[i]);
-    cfg.set<int>("dante_air_dodge_ctn_bank", ctn_bank);
-    cfg.set<int>("dante_air_dodge_ctn_slot", ctn_slot);
-    cfg.set<float>("dante_air_dodge_launch_frame", launch_frame);
-    cfg.set<float>("dante_air_dodge_speed", speed);
-    cfg.set<float>("dante_air_dodge_rise", rise);
-    cfg.set<float>("dante_air_dodge_gravity", gravity);
-    cfg.set<float>("dante_air_dodge_max_fall", max_fall);
-    cfg.set<float>("dante_air_dodge_cancel_frame", cancel_frame);
-    cfg.set<bool>("dante_air_dodge_enemy_step_from_start", enemy_step_from_start);
-    cfg.set<float>("dante_air_dodge_side_angle", side_angle);
-    cfg.set<bool>("dante_air_dodge_face_direction", face_direction);
-    cfg.set<bool>("dante_air_dodge_airborne_status", airborne_status);
-    cfg.set<bool>("dante_air_dodge_costs_air_hike", cost_air_hike);
-    cfg.set<int>("dante_air_dodge_max_per_air", dodges_per_air);
-    cfg.set<bool>("dante_air_dodge_effect", effect_enabled);
-    cfg.set<int>("dante_air_dodge_effect_list", effect_list);
-    cfg.set<int>("dante_air_dodge_effect_index", effect_index);
-    cfg.set<float>("dante_air_dodge_effect_tilt", effect_tilt);
-    cfg.set<bool>("dante_air_dodge_se", se_enabled);
-    cfg.set<int>("dante_air_dodge_se_id", se_id);
 }
