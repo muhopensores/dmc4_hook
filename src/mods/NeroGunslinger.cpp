@@ -1019,19 +1019,13 @@ std::optional<std::string> NeroGunslinger::on_initialize() {
 }
 
 void NeroGunslinger::on_gui_frame(int display) {
-    if (display != DISPLAY_SYSTEM_A) return;        // debug page
-    if (ImGui::Checkbox(_("Gunslinger"), &mod_enabled)) apply_row();
-    ImGui::SameLine();
-    help_marker(_("Nero's Gunslinger style moves, while the Gunslinger style is picked (Nero styles; without that mod they work in any "
-                  "style). On the ground the dodge shots: lock-on + a stick direction + grab (the Snatch / Gerb button); Nero dodges back, "
-                  "left, forward or right (the stick against the target) with the clip's own root motion and fires Blue Rose on that "
-                  "direction's shot frame. Grab on the ground without them: the neutral shot, Nero fans the hammer; hold it to spin and "
-                  "charge. In the air the air shot: grab, and Nero fires while keeping his momentum. Needs motion\\pl000\\gunslinger.lmt."));
-    if (!mod_enabled) return;
-    ImGui::Indent(lineIndent);
-    ImGui::PushID("Gunslinger");
-    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
+    if (display == DISPLAY_SYSTEM_A) {              // the Debug tab: the readout
+        uPlayer_old* pl = devil4_sdk::get_local_player();
+        if (!mod_enabled || !pl) return;
         const uintptr_t P = (uintptr_t)pl;
+        ImGui::PushID("Gunslinger");
+        ImGui::TextUnformatted(_("Gunslinger"));
+        ImGui::Indent(lineIndent);
         ImGui::Text(_("File: %s | %s"), lmt_file_exists(kLmtPath) ? "found" : "missing", motion_registry::describe(lmt_set, P).c_str());
         if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();
         ImGui::SameLine();
@@ -1041,9 +1035,18 @@ void NeroGunslinger::on_gui_frame(int display) {
                     cmd_bit, air_cmd_bit, g_cmd_seen, g_dodges, g_air_shots, g_shots, g_power_hits, g_charge_shots, nero_style::current(P),
                     (int)nero_style::gunslinger_condition(), at<uint32_t>(P, pl::mAtckId), at<int>(P, pl::mBdyActionLowerPhase),
                     at<float>(P, pl::mMotionFrame0), g_spin_frames, g_last);
+        ImGui::Unindent(lineIndent);
+        ImGui::PopID();
+        return;
     }
-    ImGui::PopID();
-    ImGui::Unindent(lineIndent);
+    if (display != DISPLAY_NERO_A) return;
+    if (ImGui::Checkbox(_("Gunslinger"), &mod_enabled)) apply_row();
+    ImGui::SameLine();
+    help_marker(_("Nero's Gunslinger style moves, while the Gunslinger style is picked (Nero styles; without that mod they work in any "
+                  "style). On the ground the dodge shots: lock-on + a stick direction + grab (the Snatch / Gerb button); Nero dodges back, "
+                  "left, forward or right (the stick against the target) with the clip's own root motion and fires Blue Rose on that "
+                  "direction's shot frame. Grab on the ground without them: the neutral shot, Nero fans the hammer; hold it to spin and "
+                  "charge. In the air the air shot: grab, and Nero fires while keeping his momentum. Needs motion\\pl000\\gunslinger.lmt."));
 }
 
 void NeroGunslinger::on_config_load(const utility::Config& cfg) {

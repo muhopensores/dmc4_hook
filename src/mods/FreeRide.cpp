@@ -997,7 +997,8 @@ std::optional<std::string> FreeRide::on_initialize() {
 }
 
 void FreeRide::on_gui_frame(int display) {
-    if (display != DISPLAY_SYSTEM_A) return;        // debug page, like Gerb and the dodge
+    if (display == DISPLAY_SYSTEM_A) { debug_panel(); return; }   // the Debug tab: the readout
+    if (display != DISPLAY_NERO_A && display != DISPLAY_DANTE_A) return;   // both characters' tabs: one setting for both
     if (ImGui::Checkbox(_("Free Ride"), &mod_enabled)) apply_rows();
     ImGui::SameLine();
     help_marker(_("DMC3's Free Ride for Nero and Dante: lock-on + forward + jump next to a knocked-down enemy hops onto it and surfs "
@@ -1013,10 +1014,12 @@ void FreeRide::on_gui_frame(int display) {
     if (ImGui::Checkbox(_("Stick toward the target"), &need_forward)) build_command();
     ImGui::SameLine();
     help_marker(_("On: lock-on + forward (toward the target, within 45 degrees) + jump. Off: lock-on + jump alone."));
-    ImGui::Checkbox(_("Nero: rev the Exceed gauge"), &exceed_fill);
-    ImGui::SameLine();
-    help_marker(_("The ride fills Nero's Exceed gauge by itself: the bar rises over 80 frames and a stock lights at the top, until "
-                  "all three are in (over the 240-frame ride). Revving by hand still works on top of it. Dante has no gauge to fill."));
+    if (display == DISPLAY_NERO_A) {
+        ImGui::Checkbox(_("Rev the Exceed gauge"), &exceed_fill);
+        ImGui::SameLine();
+        help_marker(_("The ride fills Nero's Exceed gauge by itself: the bar rises over 80 frames and a stock lights at the top, until "
+                      "all three are in (over the 240-frame ride). Revving by hand still works on top of it."));
+    }
     {
         const char* modes[] = { "Hits (damage keeps it down)", "Hit stop (frozen)" };
         int mode = hit_mode == HIT_DAMAGE ? 0 : 1;
@@ -1027,7 +1030,15 @@ void FreeRide::on_gui_frame(int display) {
                       "off if it gets up anyway. Hit stop: its hit-stop timer is topped up every tick, so it stands frozen in its "
                       "pose. The hop onto it always uses the hit stop."));
     }
+    ImGui::PopID();
+    ImGui::Unindent(lineIndent);
+}
 
+void FreeRide::debug_panel() {
+    if (!mod_enabled) return;
+    ImGui::PushID("FreeRide");
+    ImGui::TextUnformatted(_("Free Ride"));
+    ImGui::Indent(lineIndent);
     if (uPlayer_old* pl = devil4_sdk::get_local_player()) {      // live readout
         const uintptr_t P = (uintptr_t)pl;
         const int c = character_of(P);

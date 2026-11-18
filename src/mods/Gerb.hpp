@@ -80,7 +80,10 @@ public:
     std::optional<std::string> on_initialize() override;
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
-    void on_gui_frame(int display) override;
+    void on_gui_frame(int display) override;   // the inputs in Nero's tab, the readout and the hitbox shell in the Debug tab
 
     std::unique_ptr<FunctionHook> hook_cmd;
+
+private:
+    void debug_panel();
 };

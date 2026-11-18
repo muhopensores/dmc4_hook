@@ -127,11 +127,14 @@ public:
     std::optional<std::string> on_initialize() override;
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
-    void on_gui_frame(int display) override;
+    void on_gui_frame(int display) override;   // the settings in Nero's tab, test buttons and the readout in the Debug tab
 
     void toggle(bool enable);   // the ten kShown patches
 
     std::unique_ptr<FunctionHook> hook_cmd, hook_gate, hook_phase0, hook_follow, hook_dt_request, hook_kabuto, hook_disappear;
     std::unique_ptr<Patch> patch_shown[10];
     std::unique_ptr<Patch> patch_guard[3];   // uPlayerNero's (and its Benchmark / Tutorial copies') vtable slot 83
+
+private:
+    void debug_panel();
 };

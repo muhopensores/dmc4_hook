@@ -875,7 +875,24 @@ std::optional<std::string> WallRun::on_initialize() {
 }
 
 void WallRun::on_gui_frame(int display) {
-    if (display != DISPLAY_SYSTEM_A) return;       // debug page: it hooks the wall jump of both characters
+    if (display == DISPLAY_SYSTEM_A) {              // the Debug tab: the readout
+        uPlayer_old* pl = devil4_sdk::get_local_player();
+        if (!mod_enabled || !pl) return;
+        ImGui::PushID("WallRun");
+        ImGui::TextUnformatted(_("Wall Run"));
+        ImGui::Indent(lineIndent);
+        ImGui::Text(_("File: %s | in use: %s"), lmt_file_exists(lmt_body) ? "found" : "missing",
+                    motion_registry::placed(lmt_set, (uintptr_t)pl) ? "custom cycles" : "placeholders");
+        ImGui::Text("%s", motion_registry::describe(lmt_set, (uintptr_t)pl).c_str());
+        if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next run
+        ImGui::SameLine();
+        help_marker(_("Reads the run's LMT (nativePC\\motion\\common\\wallrun.lmt) again from disk on the next run. "
+                      "Without the file the run plays the wall jump's kick-off motions instead."));
+        ImGui::Unindent(lineIndent);
+        ImGui::PopID();
+        return;
+    }
+    if (display != DISPLAY_NERO_A && display != DISPLAY_DANTE_A) return;   // both characters' tabs: one setting for both
     ImGui::Checkbox(_("Wall Run"), &mod_enabled);
     ImGui::SameLine();
     help_marker(_("Run along a wall found by two 45-degree casts. Jump kicks off into the game's wall jump."));
@@ -896,15 +913,6 @@ void WallRun::on_gui_frame(int display) {
     ImGui::SameLine();
     help_marker(_("Also run on the invisible walls that stop Stinger at ledges (the fall-stop collision channel), in the run's "
                   "casts and the entry check. Off: only real walls, as the game's own wall jump."));
-    if (uPlayer_old* pl = devil4_sdk::get_local_player()) {
-        ImGui::Text(_("File: %s | in use: %s"), lmt_file_exists(lmt_body) ? "found" : "missing",
-                    motion_registry::placed(lmt_set, (uintptr_t)pl) ? "custom cycles" : "placeholders");
-        ImGui::Text("%s", motion_registry::describe(lmt_set, (uintptr_t)pl).c_str());
-        if (ImGui::Button(_("Reload LMT"))) motion_registry::refresh();   // read again from disk on the next run
-        ImGui::SameLine();
-        help_marker(_("Reads the run's LMT (nativePC\\motion\\common\\wallrun.lmt) again from disk on the next run. "
-                      "Without the file the run plays the wall jump's kick-off motions instead."));
-    }
     ImGui::Unindent(lineIndent);
 }
 

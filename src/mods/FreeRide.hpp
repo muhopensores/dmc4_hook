@@ -99,7 +99,10 @@ public:
     std::optional<std::string> on_initialize() override;
     void on_config_load(const utility::Config& cfg) override;
     void on_config_save(utility::Config& cfg) override;
-    void on_gui_frame(int display) override;
+    void on_gui_frame(int display) override;   // the settings in Nero's and Dante's tabs, the readout in the Debug tab
 
     std::unique_ptr<FunctionHook> hook_cmd, hook_post;
+
+private:
+    void debug_panel();
 };

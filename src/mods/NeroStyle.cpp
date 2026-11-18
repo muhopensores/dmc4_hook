@@ -167,7 +167,25 @@ std::optional<std::string> NeroStyle::on_initialize() {
 }
 
 void NeroStyle::on_gui_frame(int display) {
-    if (display != DISPLAY_SYSTEM_A) return;
+    if (display == DISPLAY_SYSTEM_A) {              // the Debug tab: the readout
+        uPlayer_old* lp = devil4_sdk::get_local_player();
+        if (!mod_enabled || !lp) return;
+        const uintptr_t P = (uintptr_t)lp;
+        ImGui::TextUnformatted(_("Nero styles"));
+        ImGui::Indent(lineIndent);
+        if (is_nero(P)) {
+            const State& s = state_for(P);
+            const int sel = selected_for(P);
+            ImGui::Text("style %d (%s) | field %d | pending %d | cooldown %.0f | presses %u switches %u | Bringer rows %s | Gerb rows style %d | Gunslinger rows style %d",
+                        sel, name_of(sel), at<int>(P, kStyle), s.pending, std::max(s.timer, 0.0f), g_presses, g_switches,
+                        bringer_rows_on() ? "on" : "off", (int)gerb_condition(), (int)gunslinger_condition());
+        } else {
+            ImGui::TextUnformatted(_("(the local player isn't Nero)"));
+        }
+        ImGui::Unindent(lineIndent);
+        return;
+    }
+    if (display != DISPLAY_NERO_A) return;
     if (ImGui::Checkbox(_("Nero styles"), &mod_enabled)) apply(!mod_enabled);
     ImGui::SameLine();
     help_marker(_("Styles for Nero, switched with the style buttons like Dante's (the d-pad with the default bindings; the "
@@ -194,18 +212,6 @@ void NeroStyle::on_gui_frame(int display) {
         snprintf(help, sizeof(help), "Style value %d. On: this button picks it. The name is a label (the readout, Guardian Devil's sets).", value_of(i));
         help_marker(help);
         ImGui::PopID();
-    }
-    if (uPlayer_old* lp = devil4_sdk::get_local_player()) {    // live readout
-        const uintptr_t P = (uintptr_t)lp;
-        if (is_nero(P)) {
-            const State& s = state_for(P);
-            const int sel = selected_for(P);
-            ImGui::Text("style %d (%s) | field %d | pending %d | cooldown %.0f | presses %u switches %u | Bringer rows %s | Gerb rows style %d | Gunslinger rows style %d",
-                        sel, name_of(sel), at<int>(P, kStyle), s.pending, std::max(s.timer, 0.0f), g_presses, g_switches,
-                        bringer_rows_on() ? "on" : "off", (int)gerb_condition(), (int)gunslinger_condition());
-        } else {
-            ImGui::TextUnformatted(_("(the local player isn't Nero)"));
-        }
     }
     ImGui::PopID();
     ImGui::Unindent(lineIndent);

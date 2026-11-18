@@ -540,7 +540,8 @@ std::optional<std::string> Gerb::on_initialize() {
 }
 
 void Gerb::on_gui_frame(int display) {
-    if (display != DISPLAY_SYSTEM_A) return;        // debug page
+    if (display == DISPLAY_SYSTEM_A) { debug_panel(); return; }   // the Debug tab: readout and the hitbox shell
+    if (display != DISPLAY_NERO_A) return;
     if (ImGui::Checkbox(_("Gerb"), &mod_enabled)) apply_row();
     ImGui::SameLine();
     help_marker(_("A free jump in any direction, no wall: forward / back / left / right by the stick (in the air only), "
@@ -551,6 +552,15 @@ void Gerb::on_gui_frame(int display) {
     ImGui::PushID("Gerb");            // WallRun's panel shares this page and some labels (Bank, Gravity, Slot ...)
     input_editor(ROW_DIRECTIONAL, _("Directional input (air): forward / back / left / right by the stick"));
     input_editor(ROW_VERTICAL, _("Vertical input: up on the ground, down in the air"));
+    ImGui::PopID();
+    ImGui::Unindent(lineIndent);
+}
+
+void Gerb::debug_panel() {
+    if (!mod_enabled) return;
+    ImGui::PushID("Gerb");
+    ImGui::TextUnformatted(_("Gerb"));
+    ImGui::Indent(lineIndent);
     if (uPlayer_old* pl = devil4_sdk::get_local_player()) {      // live readout: the LMT, then the cancel window
         const uintptr_t P = (uintptr_t)pl;
         ImGui::Text(_("%s.lmt: %s | %s"), kLmtPath, lmt_file_exists(kLmtPath) ? "found" : "missing",

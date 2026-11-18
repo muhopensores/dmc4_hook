@@ -363,6 +363,13 @@ namespace gui {
 
                         pmods->on_draw_ui<Payline>(DISPLAY_NERO_A); // needs its own line // keep on the last line, it has a download button
 
+                        ImGui::SeparatorText(_("Styles and Moves"));
+
+                        pmods->on_draw_ui<NeroStyle>(DISPLAY_NERO_A);
+                        pmods->on_draw_ui<NeroGunslinger>(DISPLAY_NERO_A);
+                        pmods->on_draw_ui<Gerb>(DISPLAY_NERO_A);
+                        pmods->on_draw_ui<FreeRide>(DISPLAY_NERO_A); // also in Dante's tab: one setting for both
+                        pmods->on_draw_ui<WallRun>(DISPLAY_NERO_A);  // also in Dante's tab: one setting for both
                         pmods->on_draw_ui<GuardianDevil>(DISPLAY_NERO_A); // keep on the last line, it has a download button
 
                         ImGui::SeparatorText(_("Speedups"));
@@ -513,6 +520,11 @@ namespace gui {
                         // pmods->on_draw_ui<AirMustang>(DISPLAY_DANTE_A);
                         // ImGui::SameLine(sameLineWidth);
                         pmods->on_draw_ui<AerialDrive>(DISPLAY_DANTE_A);
+
+                        ImGui::SeparatorText(_("New Moves"));
+
+                        pmods->on_draw_ui<FreeRide>(DISPLAY_DANTE_A); // also in Nero's tab: one setting for both
+                        pmods->on_draw_ui<WallRun>(DISPLAY_DANTE_A);  // also in Nero's tab: one setting for both
 
                         ImGui::SeparatorText(_("Accessibility"));
 
@@ -845,13 +857,15 @@ namespace gui {
 
                 pmods->on_draw_ui<BrainrotPalace>(DISPLAY_SYSTEM_A);
 
+                // the Character tabs' move mods: their readouts here, while they're on
                 pmods->on_draw_ui<WallRun>(DISPLAY_SYSTEM_A);
-
                 pmods->on_draw_ui<NeroStyle>(DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui<Gerb>(DISPLAY_SYSTEM_A);
-                pmods->on_draw_ui<DanteAirDodge>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<Gerb>(DISPLAY_SYSTEM_A);   // and its hitbox shell
                 pmods->on_draw_ui<FreeRide>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<NeroGunslinger>(DISPLAY_SYSTEM_A);
+                pmods->on_draw_ui<GuardianDevil>(DISPLAY_SYSTEM_A);
+
+                pmods->on_draw_ui<DanteAirDodge>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<ThirdPersonAim>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<ModelExtension>(DISPLAY_SYSTEM_A);
                 pmods->on_draw_ui<MoveDef>(DISPLAY_SYSTEM_A);

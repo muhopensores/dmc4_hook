@@ -1017,6 +1017,7 @@ void input_editor(const char* label, const char* help, int& source, int& pad, in
 } // namespace
 
 void GuardianDevil::on_gui_frame(int display) {
+    if (display == DISPLAY_SYSTEM_A) { debug_panel(); return; }   // the Debug tab: test buttons and the readout
     if (display != DISPLAY_NERO_A) return;
     ImGui::BeginGroup();
     if (!g_file_exists) {
@@ -1069,14 +1070,22 @@ void GuardianDevil::on_gui_frame(int display) {
                   "again guards the next hit instead of attacking (time each press: one that catches nothing ends the re-guards "
                   "until the next guard). The guard does nothing to the enemy. After a guard, no stand attack starts for 15 "
                   "frames. Not guarded: enemy grabs and the few attacks the game handles as pressure."));
+    ImGui::PopID();
+    ImGui::Unindent(lineIndent);
+    ImGui::EndGroup();
+}
+
+void GuardianDevil::debug_panel() {
+    if (!mod_enabled || !g_file_exists) return;
+    ImGui::PushID("GuardianDevil");
+    ImGui::TextUnformatted(_("Guardian Devil"));
+    ImGui::Indent(lineIndent);
     if (guard_enabled) {
-        ImGui::Indent(lineIndent);
         if (ImGui::Button(_("Play Guard Motion"))) g_test_guard = true;
         ImGui::SameLine();
         help_marker(_("Plays the guard motion on the stand now, as a guard would (one of its stand LMT blocks at random), without a "
                       "hit: no effect, sound, style or DT. The readout below says which motion played and where it came from, or "
                       "why the stand refused."));
-        ImGui::Unindent(lineIndent);
     }
     if (ImGui::Button(_("Reload LMTs"))) motion_registry::refresh();
     ImGui::SameLine();
@@ -1113,7 +1122,6 @@ void GuardianDevil::on_gui_frame(int display) {
     }
     ImGui::PopID();
     ImGui::Unindent(lineIndent);
-    ImGui::EndGroup();
 }
 
 // The keys are the ones the mod has always had (dt_knuckle, knuckle_input), the rest under dt_knuckle_.
