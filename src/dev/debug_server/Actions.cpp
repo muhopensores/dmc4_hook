@@ -160,7 +160,26 @@ json call_tool(const json& a) {
     }
     if ((conv == Conv::Thiscall && args.empty()) || (conv == Conv::Fastcall && args.empty()))
         throw std::runtime_error("thiscall / fastcall: args[0] is ecx");
-    const CallResult r = mem::call(fn, conv, args.data(), (int)args.size(), returns == "float");
+    uint32_t regs[6] = {};
+    unsigned regs_set = 0;
+    if (a.contains("registers")) {   // the game's __usercall functions: {"eax": ..., "ecx": ...}
+        static const char* names[6] = {"eax", "ebx", "ecx", "edx", "esi", "edi"};
+        if (!a["registers"].is_object()) throw ToolError("bad_args", "registers: {\"eax\": value, ...}");
+        for (const auto& [name, v] : a["registers"].items()) {
+            const std::string n = lower(name);
+            int k = 0;
+            while (k < 6 && n != names[k]) ++k;
+            if (k == 6) throw ToolError("bad_args", "registers: eax, ebx, ecx, edx, esi or edi, not " + name);
+            long long x = 0;
+            if (v.is_object() && v.contains("address")) x = (long long)resolve(v);
+            else if (v.is_boolean()) x = v.get<bool>() ? 1 : 0;
+            else if (!parse_number(v, x))
+                throw ToolError("bad_args", "registers." + n + ": a number, hex string or {\"address\": ...}");
+            regs[k] = (uint32_t)x;
+            regs_set |= 1u << k;
+        }
+    }
+    const CallResult r = mem::call(fn, conv, args.data(), (int)args.size(), returns == "float", regs, regs_set);
     if (!r.ok) {
         char b[96];
         std::snprintf(b, sizeof(b), "the call raised exception 0x%08X at 0x%08X", r.code, (unsigned)r.at);
@@ -387,8 +406,14 @@ void register_actions() {
                                               "buffer, returned as hex after the call), {\"address\": ...} (resolved as "
                                               "read's)"}};
     call_props["returns"] = prop("string", "int (eax, edx; default), float (st0), cstr (eax as char*), void");
+    call_props["registers"] = json{{"type", "object"},
+                                   {"description", "register arguments of a __usercall function: {\"eax\": value, ...} "
+                                                   "(eax, ebx, ecx, edx, esi, edi; a number, hex string or "
+                                                   "{\"address\": ...}); they override the convention's ecx / edx, args "
+                                                   "go on the stack"}};
     add_tool({"call",
-              "Call a game function on the game thread: address (or a root + path to a pointer), convention, args. "
+              "Call a game function on the game thread: address (or a root + path to a pointer), convention, args, "
+              "registers (for __usercall). "
               "An exception inside it comes back as an error (the game may still be left in a bad state).",
               json{{"type", "object"}, {"properties", call_props}, {"required", json::array({"address"})}},
               true, call_tool, true});

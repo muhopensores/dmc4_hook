@@ -76,7 +76,10 @@ struct CallResult {
     uint32_t eax = 0, edx = 0;
     double st0 = 0;            // only with float_return
 };
-// args[0] goes to ecx for thiscall / fastcall (args[1] to edx for fastcall), the rest on the stack, last pushed first
-CallResult call(uintptr_t fn, Conv conv, const uint32_t* args, int count, bool float_return);
+// args[0] goes to ecx for thiscall / fastcall (args[1] to edx for fastcall), the rest on the stack, last pushed first.
+// Register arguments (the game's __usercall functions): regs = eax, ebx, ecx, edx, esi, edi; bit k of regs_set
+// = regs[k] is loaded (over the convention's ecx / edx), the others are 0 (ecx / edx: the convention's).
+CallResult call(uintptr_t fn, Conv conv, const uint32_t* args, int count, bool float_return,
+                const uint32_t* regs = nullptr, unsigned regs_set = 0);
 
 } // namespace debug_server::mem

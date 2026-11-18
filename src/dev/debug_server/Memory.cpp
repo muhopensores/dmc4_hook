@@ -324,7 +324,9 @@ uintptr_t resolve(const json& a, json* chain) {
 namespace {
 
 // No C++ objects here (SEH and inline asm). esp comes back from saved_esp, so cdecl and stdcall clean up alike.
-void raw_call(uintptr_t fn, const uint32_t* stack_args, int stack_count, uint32_t ecx_value, uint32_t edx_value,
+// regs = eax, ebx, ecx, edx, esi, edi, all loaded just before the call (locals are ebp-relative, so `call fn` still
+// finds fn).
+void raw_call(uintptr_t fn, const uint32_t* stack_args, int stack_count, const uint32_t* regs,
               bool float_return, uint32_t* r_eax, uint32_t* r_edx, double* r_st0) {
     uint32_t saved_esp = 0, out_eax = 0, out_edx = 0;
     double out_st0 = 0;
@@ -339,8 +341,13 @@ void raw_call(uintptr_t fn, const uint32_t* stack_args, int stack_count, uint32_
         push dword ptr [esi + edi * 4]
         jmp push_next
     pushed:
-        mov ecx, ecx_value
-        mov edx, edx_value
+        mov eax, regs
+        mov ebx, [eax + 4]
+        mov ecx, [eax + 8]
+        mov edx, [eax + 12]
+        mov esi, [eax + 16]
+        mov edi, [eax + 20]
+        mov eax, [eax]
         call fn
         mov out_eax, eax
         mov out_edx, edx
@@ -360,10 +367,10 @@ int call_filter(EXCEPTION_POINTERS* e, uint32_t* code, uintptr_t* at) {
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
-bool call_seh(uintptr_t fn, const uint32_t* stack_args, int stack_count, uint32_t ecx_value, uint32_t edx_value,
+bool call_seh(uintptr_t fn, const uint32_t* stack_args, int stack_count, const uint32_t* regs,
               bool float_return, uint32_t* r_eax, uint32_t* r_edx, double* r_st0, uint32_t* code, uintptr_t* at) {
     __try {
-        raw_call(fn, stack_args, stack_count, ecx_value, edx_value, float_return, r_eax, r_edx, r_st0);
+        raw_call(fn, stack_args, stack_count, regs, float_return, r_eax, r_edx, r_st0);
         return true;
     } __except (call_filter(GetExceptionInformation(), code, at)) {
         return false;
@@ -372,14 +379,16 @@ bool call_seh(uintptr_t fn, const uint32_t* stack_args, int stack_count, uint32_
 
 } // namespace
 
-CallResult call(uintptr_t fn, Conv conv, const uint32_t* args, int count, bool float_return) {
+CallResult call(uintptr_t fn, Conv conv, const uint32_t* args, int count, bool float_return, const uint32_t* regs,
+                unsigned regs_set) {
     CallResult r;
-    uint32_t ecx_value = 0, edx_value = 0;
+    uint32_t loaded[6] = {};   // eax, ebx, ecx, edx, esi, edi
     int first = 0;
-    if ((conv == Conv::Thiscall || conv == Conv::Fastcall) && count > 0) ecx_value = args[first++];
-    if (conv == Conv::Fastcall && count > 1) edx_value = args[first++];
-    r.ok = call_seh(fn, args + first, count - first, ecx_value, edx_value, float_return, &r.eax, &r.edx, &r.st0, &r.code,
-                    &r.at);
+    if ((conv == Conv::Thiscall || conv == Conv::Fastcall) && count > 0) loaded[2] = args[first++];
+    if (conv == Conv::Fastcall && count > 1) loaded[3] = args[first++];
+    for (int k = 0; k < 6; ++k)
+        if (regs && (regs_set & (1u << k))) loaded[k] = regs[k];
+    r.ok = call_seh(fn, args + first, count - first, loaded, float_return, &r.eax, &r.edx, &r.st0, &r.code, &r.at);
     return r;
 }
 
