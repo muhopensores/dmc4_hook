@@ -430,6 +430,8 @@ set(DEV_SRC
   dev/plugins/PluginPlayers.cpp
   dev/plugins/Plugins.hpp
   dev/plugins/Plugins.cpp
+  dev/rooms/Rooms.hpp
+  dev/rooms/Rooms.cpp
   ../plugin_sdk/include/dmc4_plugin.h
   dev/ps_bind.hpp
   dev/shader_file.hpp
@@ -499,6 +501,10 @@ set(SDK_SRC
     sdk/LmtMerge.cpp
     sdk/MotionRegistry.hpp
     sdk/MotionRegistry.cpp
+    sdk/RoomClasses.hpp
+    sdk/RoomClasses.cpp
+    sdk/EventScript.hpp
+    sdk/EventScript.cpp
     sdk/ArcRows.hpp
     sdk/ArcRows.cpp
     sdk/MtMemoryStream.hpp

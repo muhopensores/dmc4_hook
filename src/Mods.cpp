@@ -221,6 +221,7 @@ Mods::Mods() {
     ADD_MOD(Shadows);        // stage shadow map size and live overrides of its settings (uShadow)
     ADD_MOD(ToneMap);        // a filmic curve (ACES / AgX) in place of XfFilter's Reinhard tone map shaders
     ADD_MOD(LightSwitches);  // light switches always on (off lights zeroed): no driver shader compile when effect lights appear
+    ADD_MOD(Rooms);          // derived room classes (sdk/RoomClasses): made at startup, test room 900
     ADD_MOD(Plugins);        // plugin DLLs from the game folder's plugins\ (the plugin API, plugin_sdk\include\dmc4_plugin.h)
 #endif
 #endif

@@ -8,7 +8,9 @@
 #include "sdk/aGame.hpp"
 #include "sdk/sArea.hpp"
 #include "sdk/sMediator.hpp"
+#include "sdk/RoomClasses.hpp"
 #include "Console.hpp"
+#include <deque>
 
 static int savedBPFloor = 0;
 static float savedBPTimer = 0.0f;
@@ -421,13 +423,18 @@ std::string get_bp_description(int floor) {
 }
 
 bool AreaJump::is_valid_room_id(int id) {
-    return std::any_of(room_items.begin(), room_items.end(), [id](const Room& room) { 
-        return room.id == id; 
-    });
+    return std::any_of(room_items.begin(), room_items.end(), [id](const Room& room) {
+        return room.id == id;
+    }) || room_classes::is_custom(id);   // room classes mods / plugins added (sdk/RoomClasses)
 };
 
-const AreaJump::Room* AreaJump::find_room_by_id(int id) {  
+const AreaJump::Room* AreaJump::find_room_by_id(int id) {
     auto it = std::find_if(room_items.begin(), room_items.end(), [id](const Room& room) { return room.id == id; });
+    if (it == room_items.end()) {   // a room class mods / plugins added
+        static std::deque<Room> custom_rooms;
+        for (const Room& r : custom_rooms) if (r.id == id) return &r;
+        if (const char* label = room_classes::label(id)) return &custom_rooms.emplace_back(Room{id, label});
+    }
     IM_ASSERT(it != room_items.end()); // crash if we passed wrong index
     size_t index = std::distance(room_items.begin(), it);
     //IM_ASSERT(index > 0); // this made tp to berial crash 

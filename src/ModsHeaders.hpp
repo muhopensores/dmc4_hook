@@ -200,4 +200,5 @@
 #include "dev/tonemap/ToneMap.hpp"
 #include "dev/lights/LightSwitches.hpp"
 #include "dev/plugins/Plugins.hpp"
+#include "dev/rooms/Rooms.hpp"
 #endif
