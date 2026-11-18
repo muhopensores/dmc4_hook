@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
@@ -19,6 +20,15 @@ struct Tool {
     bool game_thread = false;                    // run from the frame hook (game state), else on the server thread
     std::function<json(const json& args)> run;   // throw std::runtime_error for a tool error
     bool dev = false;                            // changes the game: refused unless the panel's Dev tools switch is on
+};
+
+// A tool error with a stable code for clients (tools.md "Errors"): plain calls get error.data = {code, ...data}.
+// Other exceptions are code "failed".
+struct ToolError : std::runtime_error {
+    ToolError(std::string code, const std::string& message, json data = json::object())
+        : std::runtime_error(message), code(std::move(code)), data(std::move(data)) {}
+    std::string code;
+    json data;
 };
 
 void add_tool(Tool tool);

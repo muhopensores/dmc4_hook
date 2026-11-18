@@ -14,7 +14,7 @@ namespace debug_server {
 namespace {
 
 constexpr const char* kServerName = "dmc4_hook";
-constexpr const char* kServerVersion = "S3";
+constexpr const char* kServerVersion = "S5";
 constexpr auto kGameTimeout = std::chrono::seconds(3);
 
 // ---- tools ----
@@ -50,8 +50,8 @@ json run_on_game_thread(std::function<json()> fn) {
         g_jobs.push_back(job);
     }
     if (f.wait_for(kGameTimeout) != std::future_status::ready)
-        throw std::runtime_error("the game thread didn't take the call within 3 s (loading, or the game isn't running "
-                                 "its frames)");
+        throw ToolError("game_busy", "the game thread didn't take the call within 3 s (loading, or the game isn't "
+                                     "running its frames)");
     return f.get();
 }
 
@@ -66,8 +66,8 @@ json call_tool(const std::string& name, const json& args) {
     const Tool* t = find_tool(name);
     if (!t) throw std::runtime_error("no tool '" + name + "'");
     if (t->dev && !g_dev_tools)
-        throw std::runtime_error("'" + name + "' changes the game: switch on Dev tools in dmc4_hook's Debug server panel "
-                                 "first");
+        throw ToolError("dev_tools_off", "'" + name + "' changes the game: switch on Dev tools in dmc4_hook's Debug server "
+                                         "panel first (or debug_server_dev_tools = true in the cfg)");
     const auto t0 = std::chrono::steady_clock::now();
     bool ok = false;
     auto record = [&] {
@@ -95,8 +95,16 @@ json call_tool(const std::string& name, const json& args) {
 
 // ---- JSON-RPC / MCP ----
 
-json rpc_error(const json& id, int code, const std::string& message) {
-    return json{{"jsonrpc", "2.0"}, {"id", id}, {"error", {{"code", code}, {"message", message}}}};
+json rpc_error(const json& id, int code, const std::string& message, json data = json()) {
+    json e{{"code", code}, {"message", message}};
+    if (!data.is_null()) e["data"] = std::move(data);
+    return json{{"jsonrpc", "2.0"}, {"id", id}, {"error", e}};
+}
+
+json error_data(const ToolError& e) {
+    json d = e.data.is_object() ? e.data : json::object();
+    d["code"] = e.code;
+    return d;
 }
 
 json rpc_result(const json& id, json result) {
@@ -140,6 +148,9 @@ json handle(const json& req) {
                 const json r = call_tool(name, args);
                 return rpc_result(id, {{"content", json::array({{{"type", "text"}, {"text", r.dump(1, ' ', false, json::error_handler_t::replace)}}})},
                                        {"isError", false}});
+            } catch (const ToolError& e) {
+                return rpc_result(id, {{"content", json::array({{{"type", "text"}, {"text", e.code + ": " + e.what()}}})},
+                                       {"isError", true}});
             } catch (const std::exception& e) {
                 return rpc_result(id, {{"content", json::array({{{"type", "text"}, {"text", e.what()}}})},
                                        {"isError", true}});
@@ -147,8 +158,10 @@ json handle(const json& req) {
         }
         if (find_tool(method)) return rpc_result(id, call_tool(method, params));   // plain RPC for other tools
         return rpc_error(id, -32601, "no method '" + method + "'");
+    } catch (const ToolError& e) {
+        return rpc_error(id, -32000, e.what(), error_data(e));
     } catch (const std::exception& e) {
-        return rpc_error(id, -32000, e.what());
+        return rpc_error(id, -32000, e.what(), json{{"code", "failed"}});
     }
 }
 

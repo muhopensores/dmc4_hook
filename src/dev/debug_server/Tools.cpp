@@ -9,7 +9,7 @@
 #include "../../sdk/FrameHooks.hpp"
 
 // S0 tools (plan Vibed/GameMCP/README.md): version, status, log. S1's queries are in Queries.cpp, S2's actions in
-// Actions.cpp, S3's input / pause / step / wait in Input.cpp, the memory access they share in Memory.cpp.
+// Actions.cpp, S3's input / pause / step / wait in Input.cpp, S5's sdl link in Sdl.cpp, the memory access they share in Memory.cpp.
 
 namespace debug_server {
 namespace {
@@ -26,6 +26,7 @@ const char* area_name(const void* area) {
 json status() {
     json s;
     s["frame"] = frame_hooks::frames();
+    s["load_gen"] = load_gen();
     sArea* area = devil4_sdk::get_sArea();
     s["area"] = area != nullptr;
     if (area) {
@@ -58,7 +59,7 @@ json status() {
 void register_tools() {
     add_tool({"version", "The server and hook: name, phase, build time, the tools there are.",
               json{{"type", "object"}, {"properties", json::object()}}, false, [](const json&) {
-                  return json{{"server", "dmc4_hook debug server"}, {"phase", "S3"},
+                  return json{{"server", "dmc4_hook debug server"}, {"phase", "S5 v1"},
                               {"built", std::string(__DATE__) + " " + __TIME__}, {"tools", tool_names()}};
               }});
     add_tool({"status",
@@ -80,6 +81,7 @@ void register_tools() {
     register_queries();
     register_actions();
     register_input();
+    register_sdl();
 }
 
 } // namespace debug_server
