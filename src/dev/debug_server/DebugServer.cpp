@@ -13,6 +13,7 @@ namespace {
 std::string g_error;
 
 void drain_jobs(void*) {
+    debug_server::input_frame();     // first: a step a job starts this frame runs from the next one
     debug_server::on_game_frame();
     debug_server::actions_frame();
 }

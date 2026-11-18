@@ -1,5 +1,6 @@
 #include "Tools.hpp"
 #include "Server.hpp"
+#include "Memory.hpp"
 #include "../../sdk/Devil4.hpp"
 #include "../../sdk/sArea.hpp"
 #include "../../sdk/sMediator.hpp"
@@ -8,7 +9,7 @@
 #include "../../sdk/FrameHooks.hpp"
 
 // S0 tools (plan Vibed/GameMCP/README.md): version, status, log. S1's queries are in Queries.cpp, S2's actions in
-// Actions.cpp, the memory access they share in Memory.cpp.
+// Actions.cpp, S3's input / pause / step / wait in Input.cpp, the memory access they share in Memory.cpp.
 
 namespace debug_server {
 namespace {
@@ -36,7 +37,9 @@ json status() {
             l[keys[i]] = n ? json(n) : json();
         }
         s["layers"] = l;
-        if (aRoom* r = area->aRoomPtr) {
+        aRoom* r = area->aRoomPtr;
+        const uintptr_t dti = r ? mem::dti_of(reinterpret_cast<uintptr_t>(r)) : 0;
+        if (r && dti && mem::dti_is_a(dti, "aroom")) {   // the room layer can be another cArea (MissionTitle)
             s["room"] = r->room_no;
             s["stage"] = r->stage_no;
             s["room_mode"] = r->mode;
@@ -45,6 +48,8 @@ json status() {
     }
     if (sMediator* m = devil4_sdk::get_sMediator()) s["mission"] = m->missionID;
     s["players"] = player_info::count();
+    const json input = input_status();   // kept: items() only refers to it
+    for (const auto& [k, v] : input.items()) s[k] = v;
     return s;
 }
 
@@ -53,7 +58,7 @@ json status() {
 void register_tools() {
     add_tool({"version", "The server and hook: name, phase, build time, the tools there are.",
               json{{"type", "object"}, {"properties", json::object()}}, false, [](const json&) {
-                  return json{{"server", "dmc4_hook debug server"}, {"phase", "S2"},
+                  return json{{"server", "dmc4_hook debug server"}, {"phase", "S3"},
                               {"built", std::string(__DATE__) + " " + __TIME__}, {"tools", tool_names()}};
               }});
     add_tool({"status",
@@ -74,6 +79,7 @@ void register_tools() {
               }});
     register_queries();
     register_actions();
+    register_input();
 }
 
 } // namespace debug_server

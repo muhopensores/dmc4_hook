@@ -14,7 +14,7 @@ namespace debug_server {
 namespace {
 
 constexpr const char* kServerName = "dmc4_hook";
-constexpr const char* kServerVersion = "S2";
+constexpr const char* kServerVersion = "S3";
 constexpr auto kGameTimeout = std::chrono::seconds(3);
 
 // ---- tools ----
@@ -39,6 +39,8 @@ struct Job {
 std::mutex g_jobs_mutex;
 std::deque<std::shared_ptr<Job>> g_jobs;
 
+} // namespace
+
 json run_on_game_thread(std::function<json()> fn) {
     auto job = std::make_shared<Job>();
     job->fn = std::move(fn);
@@ -52,6 +54,8 @@ json run_on_game_thread(std::function<json()> fn) {
                                  "its frames)");
     return f.get();
 }
+
+namespace {
 
 // ---- calls ----
 

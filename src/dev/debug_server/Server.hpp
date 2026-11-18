@@ -28,6 +28,10 @@ std::vector<std::string> tool_names();
 bool dev_tools();
 void set_dev_tools(bool on);
 
+// For server-thread tools: runs fn on the game thread (the next frame hook) and returns its result; throws if the game
+// doesn't take it within 3 s.
+json run_on_game_thread(std::function<json()> fn);
+
 bool start(int port, std::string& error);       // localhost only
 void stop();
 bool running();
