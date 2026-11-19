@@ -2,7 +2,7 @@
 #include "../../sdk/RoomClasses.hpp"
 #include "../../sdk/sArea.hpp"
 #include "../../mods/AreaJump.hpp"
-#include "../menus/MenuRows.hpp"
+#include "../../sdk/MissionMenu.hpp"
 #include <spdlog/spdlog.h>
 #include <cstring>
 
@@ -70,6 +70,7 @@ std::optional<std::string> Rooms::on_initialize() {
         spdlog::error("Rooms: failed to hook the sArea constructor (0x{:X})", kAreaSite);
         return "Failed to init Rooms (area hook)";
     }
+    mission_menu::install();   // Enter from the Mission Menu
     return Mod::on_initialize();
 }
 
@@ -118,7 +119,7 @@ void Rooms::on_gui_frame(int display) {
                 ImGui::SameLine();
                 ImGui::TextDisabled(i.in_area_table ? _("recorded, %d live") : _("NOT recorded by sArea, %d live"), i.live);
                 ImGui::SameLine();
-                if (ImGui::SmallButton(_("Enter"))) MenuRows::enter_room(i.room);   // from a room, or the Mission Menu
+                if (ImGui::SmallButton(_("Enter"))) mission_menu::enter_room(i.room);   // from a room, or the Mission Menu
             }
             ImGui::PopID();
         }

@@ -522,6 +522,8 @@ set(SDK_SRC
     sdk/EventScript.cpp
     sdk/Menus.hpp
     sdk/Menus.cpp
+    sdk/MissionMenu.hpp
+    sdk/MissionMenu.cpp
     sdk/FrameHooks.hpp
     sdk/FrameHooks.cpp
     sdk/ArcRows.hpp

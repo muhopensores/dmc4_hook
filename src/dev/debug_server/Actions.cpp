@@ -8,6 +8,7 @@
 #include "../../sdk/sUnit.hpp"
 #include "../../sdk/Menus.hpp"
 #include "../../sdk/RoomClasses.hpp"
+#include "../../sdk/MissionMenu.hpp"
 #include <windows.h>
 #include <algorithm>
 #include <cstdio>
@@ -206,13 +207,15 @@ json enter_room(const json& a) {
     if (!AreaJump::is_valid_room_id(room))
         throw std::runtime_error("no room " + std::to_string(room) + " (not a game room, nor one a mod / plugin added)");
     aRoom* r = room_classes::current();
-    // aGame takes the jump only in a room; set at the title / mission select, it would wait and go off when a mission
-    // starts (seen 2026-11-18)
-    if (!r) throw std::runtime_error("only from a room (in a mission): the title and mission select don't take jumps");
-    if (!AreaJump::jump_to_room_id(room)) throw std::runtime_error("can't jump now (no aGame)");
+    // aGame takes the jump only in a room or as a mission starts; from the Mission Menu, sdk/MissionMenu starts the menu's
+    // difficulty's mission into the room (2026-11-18). The title and other screens can't.
+    if (!r && !mission_menu::in_mission_menu())
+        throw std::runtime_error("only from a room or the Mission Menu (the title and other screens don't take jumps)");
+    if (!mission_menu::enter_room(room)) throw std::runtime_error("can't jump now (no aGame)");
     return json{{"jumping_to", room}, {"label", room_classes::label(room) ? json(room_classes::label(room)) : json()},
                 {"from_room", r ? json(r->room_no) : json()},
-                {"note", "aGame room_id / init_jump are set; the game changes room over the next frames: poll status"}};
+                {"note", r ? "aGame room_id / init_jump are set; the game changes room over the next frames: poll status"
+                           : "from the Mission Menu: the menu starts its difficulty's mission, which loads this room; poll status"}};
 }
 
 // ---- print_text ----
@@ -420,7 +423,8 @@ void register_actions() {
 
     add_tool({"enter_room",
               "Jump to a room by number (AreaJump: aGame room_id + init_jump), vanilla or one a mod / plugin added "
-              "(room_classes). The change happens over the next frames: poll status for the new room.",
+              "(room_classes), from a room or from the Mission Menu (there the menu starts its difficulty's mission into the "
+              "room). The change happens over the next frames: poll status for the new room.",
               obj({{"room", prop("integer", "room number, e.g. 200 or 900")}}, {"room"}), true, enter_room, true});
 
     add_tool({"print_text",

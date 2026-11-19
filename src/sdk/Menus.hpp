@@ -313,4 +313,14 @@ bool slot_loaded(int slot);
 // (seen in a screenshot, 2026-11-18: {r 0xFF, g 0xD0, b 0x40} drew light blue).
 bool print(int slot, int x, int y, unsigned w, unsigned h, MtColor color, int prio, const char* text);
 
+// The menus' font (moji00, the small-caps serif of the Mission Menu's descriptions and button prompts) for print: an
+// ASCII table in moji00 glyphs (Vibed\Menus\tools\make_ascii_moji00.py), made in memory as an rMessage once, put into
+// `slot` with the moji00 sheet whichever slot already holds it (the menus load it). Only a slot that's empty or already
+// ours is taken. Game thread; call it every frame you print (cheap once loaded). False while no slot has the sheet.
+// printf's advance at char width w: adv * w / 128 + 1, and moji00's advances are quarter pixels at 32, so w = h = 32
+// is the font's own size. Characters moji00 lacks (# * < > \ ^) are spaces.
+constexpr int kMenuFontSlot = 10;                   // empty in the Mission Menu (2, 4, 5, 11 in use there)
+bool load_menu_font(int slot = kMenuFontSlot);
+bool menu_font_ready(int slot = kMenuFontSlot);
+
 } // namespace menus
