@@ -98,8 +98,14 @@ void __stdcall after_main(uintptr_t menu) {
     const sprMap* shown = lit->isDisp ? lit : normal->isDisp ? normal : nullptr;
     const uint8_t alpha = shown ? shown->color.a : 0;
     const MtPoint pos = (shown ? shown : normal)->posHDTVOrg;
-    normal->isDisp = false;
-    lit->isDisp = false;
+    const bool image = r->label_image >= 0;
+    if (image) {   // frames of the menu's own sheet (mm_mm01.anm) in the label sprites
+        normal->sprId = static_cast<uint16_t>(r->label_image);
+        lit->sprId = static_cast<uint16_t>(r->label_image_selected >= 0 ? r->label_image_selected : r->label_image);
+    } else {
+        normal->isDisp = false;
+        lit->isDisp = false;
+    }
     if (on) {
         at<uint32_t>(menu, 0x120) = 0;   // no preview picture (My History's)
         if (fontMap* f = font(menu, kRow)) f->isDisp = false;   // nor its description
@@ -107,13 +113,14 @@ void __stdcall after_main(uintptr_t menu) {
     if (!alpha) return;
     const uint8_t v = on ? 0xFF : 0x9A;
     if (menus::load_menu_font()) {   // the menus' own font
-        menus::print(menus::kMenuFontSlot, pos.x + 8, pos.y - 16, 32, 32, MtColor{v, v, v, alpha}, kPrio, r->label.c_str());
+        if (!image)
+            menus::print(menus::kMenuFontSlot, pos.x + 8, pos.y - 16, 32, 32, MtColor{v, v, v, alpha}, kPrio, r->label.c_str());
         if (on && !r->description.empty())
             menus::print(menus::kMenuFontSlot, kInfoX, kInfoY, 26, 26, MtColor{0xFF, 0xFF, 0xFF, alpha}, kPrio,
                          r->description.c_str());
         return;
     }
-    menus::print(menus::kDebugFontSlot, pos.x, pos.y, 24, 30, MtColor{v, v, v, alpha}, kPrio, r->label.c_str());
+    if (!image) menus::print(menus::kDebugFontSlot, pos.x, pos.y, 24, 30, MtColor{v, v, v, alpha}, kPrio, r->label.c_str());
 }
 
 // result: the row was decided (game thread); the switch's default then goes back to selecting

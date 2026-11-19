@@ -31,6 +31,8 @@ struct Row {
     std::string label;
     std::string description;
     std::function<void()> decide;
+    int label_image = -1;            // a frame of the menu's sheet (mm_mm01.anm) for the label sprite instead of the text
+    int label_image_selected = -1;   // and for its selected sprite (-1 = label_image)
 };
 bool set_row(const Row& row);   // false if the menu's code isn't the expected one
 void clear_row();

@@ -54,6 +54,9 @@ int __cdecl api_pause_row(dmc4_plugin* self, const dmc4_pause_row* row) {
     r.room = row->room;
     r.label = row->label;
     r.description = row->description ? row->description : "";
+    r.label_image = row->label_image - 1;
+    r.label_image_width = row->label_image_width;
+    r.title_image = row->title_image - 1;
     r.menu.title = row->menu.title ? row->menu.title : "";
     r.menu.rows = [self]() {
         Call c{&g_menu};
@@ -102,6 +105,8 @@ int __cdecl api_mission_row(dmc4_plugin* self, const dmc4_mission_row* row) {
     mission_menu::Row r;
     r.label = row->label;
     r.description = row->description ? row->description : "";
+    r.label_image = row->label_image - 1;
+    r.label_image_selected = row->label_image_selected - 1;
     r.decide = [self]() {
         dmc4_mission_row copy;
         {

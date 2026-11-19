@@ -152,12 +152,15 @@ constexpr int kArrowSprite = 16;   // row 0's highlight arrow, borrowed for the 
 uintptr_t g_pause = 0;   // the pause menu our row was last drawn in (the list menu's parent); game thread
 // what hide_pause_rows changed, put back when the list closes (the pause menu goes back to selecting without its intro)
 bool g_saved = false, g_saved_sprites[kLastRowSprite + 1] = {}, g_saved_fonts[kFonts] = {};
+uint16_t g_saved_title = 0;   // the title sprite's frame (Row::title_image swaps it while the list is up)
+constexpr int kTitleSprite = 0;
 
 void save_pause_rows(uintptr_t menu) {
     for (int i = 0; i <= kLastRowSprite; ++i)
         if (sprMap* s = sprite(menu, i)) g_saved_sprites[i] = s->isDisp;
     for (int i = 0; i < kFonts; ++i)
         if (fontMap* f = font(menu, i)) g_saved_fonts[i] = f->isDisp;
+    if (sprMap* t = sprite(menu, kTitleSprite)) g_saved_title = t->sprId;
     g_saved = true;
 }
 
@@ -170,6 +173,7 @@ void restore_pause_rows(uintptr_t menu) {
     for (int i = 0; i < kFonts; ++i)
         if (fontMap* f = font(menu, i)) f->isDisp = g_saved_fonts[i];
     if (sprMap* arrow = sprite(menu, kArrowSprite)) arrow->posHDTV = arrow->posHDTVOrg;
+    if (sprMap* t = sprite(menu, kTitleSprite)) t->sprId = g_saved_title;
 }
 
 // our list is up: the pause menu is its frame (title, background, prompts), not its rows. Done from the list's own
@@ -192,13 +196,21 @@ void __stdcall after_pause_main(uintptr_t menu) {
     const bool on = at<int>(menu, 0x40) == kMapRow;
     const uint8_t alpha = normal->isDisp ? normal->color.a : 0;
     const MtPoint pos = normal->posHDTV;
-    normal->isDisp = false;
+    const bool image = r->label_image >= 0;
+    if (image) {   // a frame of the pause sheet in the label's place (narrowed: the frame is edited, shared by the .anm)
+        normal->sprId = static_cast<uint16_t>(r->label_image);
+        if (r->label_image_width > 0)
+            if (ANM_SPRITE* f = menus::anm_sprite(reinterpret_cast<uSprLayout*>(menu), r->label_image))
+                f->m_sizeW = static_cast<int16_t>(r->label_image_width);
+    } else {
+        normal->isDisp = false;
+    }
     if (fontMap* f = font(menu, kMapRow)) {
         if (on && f->isDisp && !r->description.empty() && menus::load_menu_font())
             menus::print(menus::kMenuFontSlot, f->posHDTV.x, f->posHDTV.y, 26, 26, white(0xFF), kPrio, r->description.c_str());
         f->isDisp = false;
     }
-    if (!alpha || at<uintptr_t>(menu, 0xF0)) return;   // faded out, or a child menu is up
+    if (image || !alpha || at<uintptr_t>(menu, 0xF0)) return;   // an image, faded out, or a child menu is up
     if (menus::load_menu_font())
         menus::print(menus::kMenuFontSlot, pos.x + 8, pos.y - 4, 32, 32, on ? white(alpha) : grey(alpha), kPrio, r->label.c_str());
     else
@@ -237,7 +249,7 @@ void draw_menu(const Open& o) {
     const ListMenu& m = o.row->menu;
     const bool menu_font = menus::load_menu_font();
     const int slot = menu_font ? menus::kMenuFontSlot : menus::kDebugFontSlot;
-    menus::print(slot, kTitleX, kTitleY, 36, 36, white(0xFF), kPrio, m.title.c_str());
+    if (o.row->title_image < 0) menus::print(slot, kTitleX, kTitleY, 36, 36, white(0xFF), kPrio, m.title.c_str());
     const int n = m.rows ? m.rows() : 0;
     std::string label, value;
     for (int i = 0; i < n; ++i) {
@@ -294,6 +306,8 @@ void __stdcall list_move(uintptr_t unit) {
     if (g_list_shown) {
         if (g_pause) {
             hide_pause_rows(g_pause);
+            if (o.row->title_image >= 0)
+                if (sprMap* t = sprite(g_pause, kTitleSprite)) t->sprId = static_cast<uint16_t>(o.row->title_image);
             if (sprMap* arrow = sprite(g_pause, kArrowSprite)) {   // the game's arrow on our row (its anchor sits on the label's right)
                 arrow->posHDTV.x = kRowX + 12;
                 arrow->posHDTV.y = kRowY + o.cursor * kRowStep + 9;

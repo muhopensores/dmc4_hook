@@ -29,6 +29,9 @@ struct Row {
     int room = -1;               // only in this room (aRoom room number); -1 = every room
     std::string label;           // drawn in place of "Map"
     std::string description;     // the menu's description line while the row is selected
+    int label_image = -1;        // a frame of the pause sheet (main01.anm) shown in the Map label's place instead of the text
+    int label_image_width = 0;   // narrows that frame (pixels; edits the shared frame, so only for frames nothing else shows)
+    int title_image = -1;        // a frame shown in place of the PAUSE MENU title while the list is up (instead of the title text)
     ListMenu menu;
 };
 

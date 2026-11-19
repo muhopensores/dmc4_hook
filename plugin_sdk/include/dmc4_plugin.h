@@ -285,6 +285,12 @@ typedef struct dmc4_pause_row {
     const char* label;          /* drawn in place of "Map" */
     const char* description;    /* the pause menu's help line while the row is selected */
     dmc4_list_menu menu;        /* opened when the row is chosen */
+    /* Images instead of text, as frames of the pause menu's sheet (id\pause\main01.anm) + 1; 0 = text. The sheet holds
+     * the cut practice mode's labels (28 PRACTICE END, 19 PLAYER SETTING, 20 ENEMY SETTING, 21 PRACTICE OPTION, 40
+     * NORMAL, 38 INFINITY, 39 NO DAMAGE, 30 D.T. GAUGE, 36 ON, 37 OFF ...): Vibed\RE\pause_menu.md. */
+    int label_image;            /* the row's label, in the Map label's place */
+    int label_image_width;      /* narrows that frame (pixels, 0 = as it is): edits the frame for every user of the sheet */
+    int title_image;            /* in place of the PAUSE MENU title while the list is up */
 } dmc4_pause_row;
 
 /* A row of the plugin's in the Mission Menu, in My History's place (its row tables hold 15 rows: one is taken over, not
@@ -296,6 +302,10 @@ typedef struct dmc4_mission_row {
     const char* description;    /* the menu's description box while the row is selected */
     void* user;
     void (*decide)(void* user);
+    /* the label as frames of the Mission Menu's sheet (id\pc\mm_mm01.anm) + 1, 0 = text: 38 PRACTICE (the cut practice
+     * row's own label, white) and 25 (silver), for the label sprite and the selected one */
+    int label_image;
+    int label_image_selected;
 } dmc4_mission_row;
 
 typedef struct dmc4_menus_api {

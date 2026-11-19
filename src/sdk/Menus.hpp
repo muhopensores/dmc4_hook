@@ -74,12 +74,120 @@ public:
 };
 static_assert(sizeof(rSprLayout) == 0x78);
 
+// ---- sprite frames: the .anm (rSprAnm) behind a layout (types from mods/Cock.cpp, checked on the pause and Mission
+// Menu sheets 2026-11-19). A sprite's sprId is a sprite group; group n's first part is mppAnmSprList[n]: its rectangle on
+// the sheet is (texU + 256 * (flag2 & 3), texV + 256 * ((flag2 >> 2) & 3), sizeW, sizeH). In the file: an 8-byte header,
+// then per group a u32 part count and its ANM_SPRITEs. ----
+
+struct ANM_HEADER {
+    uint8_t m_ID;                   // 0x0 (0x21)
+    uint8_t m_version;              // 0x1 (4)
+    uint16_t m_flag;                // 0x2
+    uint16_t m_numSpriteGroup;      // 0x4: the frames a sprId can name
+    uint16_t m_numSequence;         // 0x6
+};
+static_assert(sizeof(ANM_HEADER) == 0x8);
+
+struct ANM_SEQUENCE {
+    uint16_t m_iSpriteGroup;        // 0x0
+    uint8_t m_time;                 // 0x2
+    uint8_t m_attribute;            // 0x3
+    int16_t m_hotspotX;             // 0x4
+    int16_t m_hotspotY;             // 0x6
+};
+static_assert(sizeof(ANM_SEQUENCE) == 0x8);
+
+struct ANM_SPRITE {
+    uint8_t m_texU;                 // 0x0 low byte of x on the sheet (flag2 bits 0-1 = x / 256)
+    uint8_t m_texV;                 // 0x1 low byte of y (flag2 bits 2-3 = y / 256)
+    uint8_t m_ofsX;                 // 0x2 the anchor (signed in practice: 0xD8 = -40)
+    uint8_t m_ofsY;                 // 0x3
+    uint16_t m_CBA;                 // 0x4
+    uint16_t m_flag;                // 0x6
+    int16_t m_sizeW;                // 0x8
+    int16_t m_sizeH;                // 0xA
+    int16_t m_rot;                  // 0xC
+    uint16_t m_flag2;               // 0xE
+    int16_t m_scaleX;               // 0x10 (0x1000 = 1)
+    int16_t m_scaleY;               // 0x12
+};
+static_assert(sizeof(ANM_SPRITE) == 0x14);
+
+struct cAnmSprData {
+    void* vtable;                   // 0x00
+    uint8_t* mpAnmSource;           // 0x04 the .anm file image
+    void* mpAnmResource;            // 0x08 its rSprAnm
+    ANM_HEADER* mpAnmHead;          // 0x0C
+    ANM_SEQUENCE* mpAnmSeqData;     // 0x10
+    ANM_SPRITE* mpAnmSprData;       // 0x14
+    ANM_SEQUENCE** mppAnmSeqList;   // 0x18
+    ANM_SPRITE** mppAnmSprList;     // 0x1C per sprite group, its first part
+    uint32_t* mpPartsNumList;       // 0x20
+    uint16_t* mpSeqGpNumList;       // 0x24
+    uint16_t mpSeqGpNum;            // 0x28
+    char pad_2a[2];
+    int mIsEnable;                  // 0x2C
+    int mIsSet;                     // 0x30
+};
+static_assert(sizeof(cAnmSprData) == 0x34);
+
+namespace sPrim {
+struct Material {
+    uint32_t type : 5;
+    uint32_t bs_idx : 11;
+    uint32_t tex_handle : 10;
+    uint32_t transform : 4;
+    uint32_t pad : 2;
+    uint32_t attribute;             // 0x4
+};
+static_assert(sizeof(Material) == 0x8);
+} // namespace sPrim
+
+struct alignas(8) ANM_WORK {        // a playing sequence of a cSprAnm
+    uint8_t mBe_flag;               // 0x00
+    uint8_t pad;                    // 0x01
+    uint16_t mRot_y;                // 0x02
+    int mPos_x;                     // 0x04
+    int mPos_y;                     // 0x08
+    int mPos_z;                     // 0x0C
+    uint32_t mAttr;                 // 0x10
+    int16_t mCenter_x;              // 0x14
+    int16_t mCenter_y;              // 0x16
+    int mPrio;                      // 0x18
+    int mScale_x;                   // 0x1C
+    int mScale_y;                   // 0x20
+    uint16_t mSeq_num;              // 0x24
+    char pad_26[2];
+    int mUse_sub_seq;               // 0x28
+    uint16_t mFrame_top;            // 0x2C
+    uint16_t mFrame_num;            // 0x2E
+    uint16_t mNow_frame;            // 0x30
+    uint16_t mNow_spr_gp;           // 0x32
+    int mTimer;                     // 0x34
+    MtColor mColor;                 // 0x38
+    sPrim::Material mMaterial;      // 0x3C
+    ANM_SEQUENCE* mpSeq;            // 0x44
+};
+static_assert(sizeof(ANM_WORK) == 0x48);
+
+struct cSprAnm {
+    void* vtable;                   // 0x00 (MtObject)
+    bool mIsOwnTexture;             // 0x04
+    bool mIsOwnAnmData;             // 0x05
+    char pad_06[2];
+    cAnmSprData mAnmSprData;        // 0x08
+    rTexture* mpTexture;            // 0x3C
+    ANM_WORK* mpAnm_work;           // 0x40 [mAnmWorkNum]
+    uint32_t mAnmWorkNum;           // 0x44
+};
+static_assert(sizeof(cSprAnm) == 0x48);
+
 // ---- the unit side ----
 
 struct uSprLayout : cUnit {         // 0x28
     rSprLayout* mpResource;         // 0x18
     sprMap* mpData;                 // 0x1C this unit's copy of the sprites (0x48 apart)
-    void* mpSprAnm;                 // 0x20 cSprAnm (the .anm frames + texture)
+    cSprAnm* mpSprAnm;              // 0x20 the .anm frames + texture
     fontMap* mpFontData;            // 0x24 its copy of the labels (0x30 apart)
 };
 static_assert(sizeof(uSprLayout) == 0x28);
@@ -322,5 +430,14 @@ bool print(int slot, int x, int y, unsigned w, unsigned h, MtColor color, int pr
 constexpr int kMenuFontSlot = 10;                   // empty in the Mission Menu (2, 4, 5, 11 in use there)
 bool load_menu_font(int slot = kMenuFontSlot);
 bool menu_font_ready(int slot = kMenuFontSlot);
+
+// A layout's sprite frame (sprite group `frame` of its .anm, the first part), nullptr past the .anm's groups. A sprite
+// shows frame n with sprMap::sprId = n; frames are shared by every unit using that .anm (edit them with care).
+inline ANM_SPRITE* anm_sprite(const uSprLayout* layout, int frame) {
+    if (!layout || !layout->mpSprAnm || frame < 0) return nullptr;
+    const cAnmSprData& d = layout->mpSprAnm->mAnmSprData;
+    if (!d.mpAnmHead || !d.mppAnmSprList || frame >= d.mpAnmHead->m_numSpriteGroup) return nullptr;
+    return d.mppAnmSprList[frame];
+}
 
 } // namespace menus
