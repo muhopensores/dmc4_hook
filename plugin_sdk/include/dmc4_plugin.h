@@ -43,7 +43,7 @@ extern "C" {
 #endif
 
 #define DMC4_PLUGIN_ABI 1          /* breaking changes: a plugin built for another ABI isn't loaded */
-#define DMC4_PLUGIN_API_VERSION 6 /* additions: functions appended to dmc4_api (and to the tables it points to) */
+#define DMC4_PLUGIN_API_VERSION 7 /* additions: functions appended to dmc4_api (and to the tables it points to) */
 
 #define DMC4_PLUGIN_EXPORT DMC4_EXTERN_C __declspec(dllexport)
 #define DMC4_PLUGIN_ABI_EXPORT() DMC4_PLUGIN_EXPORT uint32_t dmc4_plugin_abi(void) { return DMC4_PLUGIN_ABI; }
@@ -87,6 +87,25 @@ enum dmc4_object {
 };
 
 enum dmc4_body { DMC4_BODY_LOWER = 0, DMC4_BODY_UPPER = 1, DMC4_BODY_THIRD = 2 };   /* a player's motion controllers */
+
+/* uActor::mActorStatus bits (SE's ACTOR_STATUS), api->game->actor_status */
+enum dmc4_actor_status {
+    DMC4_AS_GROUND = 1, DMC4_AS_AIR = 2, DMC4_AS_DOWN = 4, DMC4_AS_DAMAGE = 8, DMC4_AS_GUARD = 0x10, DMC4_AS_PARRY = 0x20,
+    DMC4_AS_GRAB = 0x40, DMC4_AS_DEAD = 0x80, DMC4_AS_APPEAR = 0x100, DMC4_AS_BUSTER = 0x200, DMC4_AS_BLOCKING = 0x400
+};
+
+/* An enemy's decision (api->game->on_think): every enemy picks its next action through cThinkMgr::GetActionNo when its
+ * current one ends. `action` is the AI's answer, the class's own action number (-1 = none: the class then keeps its
+ * current state or uses a default); set it to change what the enemy does. `caller` tells which class and state asked
+ * (the return address of the call in the game's code). Some callers start the answer without checking for -1 (Frost,
+ * Assault, Blitz, ...: -1 there crashes the game); Vibed\RE\think_mgr.md lists them. */
+typedef struct dmc4_think_call {
+    void* enemy;          /* the deciding unit (the one holding the think manager), NULL if it wasn't found */
+    void* think_mgr;      /* its cThinkMgr */
+    uintptr_t caller;     /* return address of the GetActionNo call */
+    int action;           /* the answer; the callback may change it */
+} dmc4_think_call;
+typedef void (*dmc4_think_fn)(void* user, dmc4_think_call* call);
 
 typedef struct dmc4_game_api {
     uint32_t size;   /* sizeof(dmc4_game_api) in the hook: functions are only appended (each says its api version) */
@@ -157,6 +176,17 @@ typedef struct dmc4_game_api {
     const char* (*enemy_type_name)(int type);
     /* spawns one enemy of that type near the local player; 1 = spawned, 0 = no player or no such type */
     int (*spawn_enemy)(int type);
+
+    /* ---- version 7 ---- */
+
+    /* every enemy decision through fn (game thread, inside the enemy's update; keep it short). Returns an id > 0. Several
+     * callbacks run in the order they were added, each seeing the answer the one before left. */
+    int (*on_think)(dmc4_plugin* self, dmc4_think_fn fn, void* user);
+    void (*remove_think)(dmc4_plugin* self, int id);
+    /* a unit's state bytes (cUnit +0x14: low byte = its action / mode, then the action's sub-steps), 0 for NULL */
+    uint32_t (*unit_state)(void* unit);
+    /* an actor's status bits (uActor::mActorStatus +0xEA8, dmc4_actor_status), 0 for NULL */
+    uint32_t (*actor_status)(void* actor);
 } dmc4_game_api;
 
 /* ---- the players (api->players, version 3): which player is which, with and without co-op ---- */

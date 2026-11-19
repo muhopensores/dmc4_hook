@@ -5,6 +5,7 @@
 #include "PluginMods.hpp"
 #include "PluginMenus.hpp"
 #include "PluginUnits.hpp"
+#include "PluginThink.hpp"
 #include "../../../plugin_sdk/include/dmc4_plugin.h"
 #include "../../mod.hpp"
 #include "imgui/imgui_internal.h"
@@ -98,6 +99,7 @@ void stop(dmc4_plugin& p, State state, const std::string& message) {
     release_mods(&p);
     release_menus(&p);
     release_units(&p);
+    release_think(&p);
     std::lock_guard<std::mutex> lock(g_mutex);
     p.patches.clear();
     p.state = state;

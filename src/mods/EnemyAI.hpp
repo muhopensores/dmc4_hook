@@ -108,6 +108,16 @@ extern bool  skip_cooldown;
 
 } // namespace anti_air
 
+// Every enemy decision: when a filter is set, cThinkMgr::GetActionNo's answer (the action number the class then starts,
+// -1 = none) goes through it, with the manager and the return address of the class's call (which class and state asked).
+// The plugin host's api->game->on_think is the one user. Some callers use the answer without checking for -1 (Frost's
+// setThinkAction 0x5A55D0 starts it: setAction(-1) crashes): Vibed\RE\think_mgr.md "Idle".
+namespace enemy_think {
+using Filter = int (*)(uintptr_t mgr, uintptr_t caller, int action);
+extern Filter g_filter;
+void set_filter(Filter f);
+} // namespace enemy_think
+
 class EnemyAI : public Mod {
 public:
     EnemyAI() = default;

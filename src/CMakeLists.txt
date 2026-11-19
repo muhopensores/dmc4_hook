@@ -436,6 +436,8 @@ set(DEV_SRC
   dev/plugins/PluginMenus.cpp
   dev/plugins/PluginUnits.hpp
   dev/plugins/PluginUnits.cpp
+  dev/plugins/PluginThink.hpp
+  dev/plugins/PluginThink.cpp
   dev/plugins/Plugins.hpp
   dev/plugins/Plugins.cpp
   dev/rooms/Rooms.hpp

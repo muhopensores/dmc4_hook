@@ -2,6 +2,7 @@
 #include "../../../plugin_sdk/include/dmc4_plugin.h"
 #include "../../sdk/Devil4.hpp"
 #include "../../mods/EnemySpawn.hpp"
+#include "PluginThink.hpp"
 
 // Thin __cdecl wrappers: devil4_sdk's functions are mostly __stdcall and take C++ types; plugins get C types and NULL
 // checks. Left out on purpose: unit creation and the raw allocators (spawn_or_something, easy_spawn, mt_allocate_heap,
@@ -128,6 +129,10 @@ int __cdecl spawn_enemy(int type) {
     return 1;
 }
 
+// version 7: enemy decisions (PluginThink.cpp) and the state readers
+uint32_t __cdecl unit_state(void* unit) { return unit ? *reinterpret_cast<uint32_t*>((uintptr_t)unit + 0x14) : 0; }
+uint32_t __cdecl actor_status(void* actor) { return actor ? *reinterpret_cast<uint32_t*>((uintptr_t)actor + 0xEA8) : 0; }
+
 const dmc4_game_api g_game = {
     sizeof(dmc4_game_api),
     object,
@@ -166,6 +171,10 @@ const dmc4_game_api g_game = {
     enemy_type_count,
     enemy_type_name,
     spawn_enemy,
+    think_add,
+    think_remove,
+    unit_state,
+    actor_status,
 };
 
 } // namespace

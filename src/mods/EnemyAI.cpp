@@ -820,6 +820,11 @@ uintptr_t provoker(uintptr_t enemy) {
 } // namespace provoke
 
 
+namespace enemy_think {
+Filter g_filter = nullptr;
+void set_filter(Filter f) { g_filter = f; }
+} // namespace enemy_think
+
 namespace anti_air {
 
 bool  enabled       = false;
@@ -895,9 +900,11 @@ int __stdcall think_check(uintptr_t mgr, ThinkRow row) {
 }
 
 int __stdcall get_action_no(uintptr_t mgr, uint32_t mot, float leng, float deg, float height, int lv) {
+    const uintptr_t caller = (uintptr_t)_ReturnAddress();
     if (provoke::g_any) provoke::note_think(mgr);
     const bool traced = think_trace::begin(mgr, mot, leng, deg, height, lv);
-    const int result = reinterpret_cast<GetActionNoFn>(get_action_no_original)(mgr, mot, leng, deg, height, lv);
+    int result = reinterpret_cast<GetActionNoFn>(get_action_no_original)(mgr, mot, leng, deg, height, lv);
+    if (enemy_think::Filter f = enemy_think::g_filter) result = f(mgr, caller, result);
     if (traced) think_trace::end(result);
     return result;
 }
