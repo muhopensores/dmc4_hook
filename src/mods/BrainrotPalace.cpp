@@ -4,6 +4,7 @@
 #include <D3dx9tex.h>
 #include <filesystem>
 #include "GuiFunctions.hpp"
+#include "utility/LargeAddress.hpp"
 
 constexpr uintptr_t rModelDTI = 0x00EADF48;
 
@@ -13,6 +14,7 @@ static bool g_should_draw_cef_window = false;
 static bool g_cef_initialized = false;
 static bool g_cef_shutdown_pending = false;
 static bool g_files_present = true;
+static bool g_cef_init_failed = false;
 
 static HMODULE g_libcef_plugin = NULL;
 
@@ -401,6 +403,7 @@ static void try_libcef() {
     once_flag = true;
     if (!cef_init(".\\cef", "cef_subprocess.exe")) {
         spdlog::error("FAIL: cef_init\n");
+        g_cef_init_failed = true;
         plugin_libcef_unload(g_libcef_plugin);
         return;
     }
@@ -540,6 +543,21 @@ static void on_cef_resize(glm::i32vec2& dims, IDirect3DTexture9** texture) {
     }
 }
 
+// The browser's libcef.dll (about 222 MB) maps into the game in one piece, and the 2 GB a game without the large address
+// flag gets has no free block that large once the game's heaps are in, so cef_init fails. The fix is the "Big chungus
+// patching" button at the top of the main window (GuiFunctions.cpp).
+static void draw_large_address_ui() {
+    static const bool running = large_address::running();
+    if (running) {
+        return;
+    }
+    if (g_cef_init_failed) {
+        ImGui::TextWrapped(_("The browser didn't start: the game ran out of memory for it. Use \"Big chungus patching\" at the top of this window."));
+    } else {
+        ImGui::TextWrapped(_("The browser needs the game to use 4 GB of memory: see the top of this window."));
+    }
+}
+
 void BrainrotPalace::on_gui_frame(int display) {
     if (!ImGui::CollapsingHeader(_("Brainrot Palace"))) {
         return;
@@ -572,7 +590,8 @@ void BrainrotPalace::on_gui_frame(int display) {
         }
         ImGui::SameLine();
         help_marker(_("Spawns a projector screen with a chromium tab, you can browse websites and watch some videos (not all codecs might be supported)\n"));
-        
+        draw_large_address_ui();
+
         if (ImGui::InputInt2(_("CEF screen size"), (int*)&CEF_TEXTURE_DIMS)) {
             CEF_TEXTURE_DIMS.x = glm::min(glm::max(CEF_TEXTURE_DIMS.x, CEF_TEXTURE_MIN_WIDTH), 4096);
             CEF_TEXTURE_DIMS.y = glm::min(glm::max(CEF_TEXTURE_DIMS.y, CEF_TEXTURE_MIN_HEIGHT), 4096);

@@ -14,6 +14,7 @@
 #include "imgui/imgui_internal.h"
 #ifndef PUBLIC_BUILD
 #include "dev/shader_file.hpp"
+#include "utility/LargeAddress.hpp"
 #endif
 
 #include <shlobj.h>
@@ -215,6 +216,52 @@ namespace gui {
         }
     }
 
+    // Shown at the top of the window while the game runs without the large address flag (2 GB of memory space instead of
+    // 4 GB): Brainrot Palace's browser doesn't fit in 2 GB. The button sets the flag on the exe (utility/LargeAddress.hpp).
+    static void draw_large_address_notice() {
+        static const bool running = large_address::running();
+        if (running) {
+            return;
+        }
+        static large_address::ExeState exe = large_address::read_exe();
+        static std::string result;
+        if (!exe.readable) {
+            return;
+        }
+        if (!result.empty()) {
+            ImGui::TextWrapped("%s", result.c_str());
+        }
+        if (exe.flagged) {
+            ImGui::TextWrapped(_("The game's exe now lets it use 4 GB of memory. Restart the game for it to take effect."));
+            ImGui::Separator();
+            return;
+        }
+        if (exe.steam_stub) {
+            ImGui::TextWrapped(_("The game has 2 GB of memory, and some mods need 4 GB (Brainrot Palace's browser). "
+                                 "Your exe still has Steam's DRM wrapper: run Steamless on it, then a button to fix this shows here."));
+            ImGui::Separator();
+            return;
+        }
+        ImGui::TextWrapped(_("The game has 2 GB of memory, and some mods need 4 GB (Brainrot Palace's browser)."));
+        if (ImGui::Button(_("Big chungus patching"))) {
+            std::wstring backup;
+            std::string error;
+            if (large_address::write_flagged(backup, error)) {
+                result = std::string(_("Done. The old exe is kept as ")) + large_address::to_utf8(backup) + ".";
+                spdlog::info("set the large address flag on the game's exe, old exe kept as {}", large_address::to_utf8(backup));
+            } else {
+                result = std::string(_("Couldn't set the flag: ")) + error + ".";
+                spdlog::error("couldn't set the large address flag: {}", error);
+            }
+            exe = large_address::read_exe();
+        }
+        ImGui::SameLine();
+        help_marker(_("Sets the large address flag on the game's exe, so Windows gives the game 4 GB of memory instead of 2 GB. "
+                      "The old exe is kept next to it (DevilMayCry4_DX9_no_laa.exe); to undo, delete the new exe and rename the old one back. "
+                      "Takes effect when you restart the game.\n"));
+        ImGui::Separator();
+    }
+
     void im_gui_main_window_proc(Mods* pmods) {
         ImGuiIO& io = ImGui::GetIO();
         io.IniFilename = NULL;
@@ -236,7 +283,8 @@ namespace gui {
         if (ImGui::Button(save_config_label)) {
             pmods->on_config_save();
         }
-        
+        draw_large_address_notice();
+
         if (ImGui::BeginTabBar("Trainer", ImGuiTabBarFlags_FittingPolicyScroll)) {
             uiHeight = ImGui::GetCursorPosY();
             // the mouse wheel over the tabs scrolls them (ImGui itself only takes the horizontal wheel / Shift + wheel there);
