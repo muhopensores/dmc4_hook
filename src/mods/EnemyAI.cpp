@@ -145,6 +145,14 @@ constexpr int kMaxEntries = 64;
 constexpr uint32_t kStaleFrames = 120;
 Entry g_list[kMaxEntries];
 bool g_any = false;                  // any entry live (the hooks' fast way out)
+// No attacks (cfg enemy_no_attacks, no checkbox: the practice mode plugin holds it through api->mods for its Don't
+// Attack): every permit check answers no, so enemies that ask for a turn never attack (the ones that don't ask, some
+// bosses, still do). Both permit sites are this mod's hooks; enemies without a group (EnemySpawn's) skip them: they get
+// patches in uEnemy::getAttackPermission (its 50 % roll) and in the Scarecrows' "is one free" 0x72FC50 (mov al, 1).
+bool g_no_attacks = false;
+std::unique_ptr<Patch> g_no_attack_patch, g_no_attack_patch2;
+constexpr uintptr_t kGetAttackPermission = 0x72FBD0;   // uEnemy::getAttackPermission (eax = the enemy; retn 8)
+constexpr uintptr_t kNoGroupFree = 0x72FC6A;           // sub_72FC50 (uEm000Base::checkChase's permit check), no group: mov al, 1
 volatile uint32_t g_frame = 0;       // render frames
 uint32_t g_taunts = 0, g_provoked = 0, g_auras_made = 0, g_permits = 0, g_flashes = 0;   // readout
 struct CancelStats {
@@ -716,6 +724,11 @@ naked void detour_delta() {
 // eax = sEnemyCtrl, esi = the permit list; returns al (a permit is free)
 naked void detour_permit_free() {
     __asm {
+        cmp byte ptr [g_no_attacks], 0
+        je not_blocked
+        xor al, al
+        ret
+    not_blocked:
         cmp byte ptr [g_any], 0
         je original
         push eax
@@ -738,6 +751,11 @@ naked void detour_permit_free() {
 // eax = sEnemyCtrl, edi = the permit list, [esp+4] = the time, [esp+8] = the enemy; returns al (granted), retn 8
 naked void detour_permit_request() {
     __asm {
+        cmp byte ptr [g_no_attacks], 0
+        je not_blocked
+        xor al, al
+        ret 8
+    not_blocked:
         push dword ptr [esp+8]
         push dword ptr [esp+8]
         call dword ptr [permit_request_original]
@@ -1087,6 +1105,15 @@ void EnemyAI::on_gui_frame(int display) {
 }
 
 void EnemyAI::on_config_load(const utility::Config& cfg) {
+    g_no_attacks = cfg.get<bool>("enemy_no_attacks").value_or(false);
+    if (!g_no_attacks) {
+        g_no_attack_patch.reset();
+        g_no_attack_patch2.reset();
+    }
+    else if (!g_no_attack_patch && std::memcmp(reinterpret_cast<const void*>(kGetAttackPermission), "\x57\x8B\xF8\x8B\x87", 5) == 0)
+        g_no_attack_patch = Patch::create(kGetAttackPermission, {0x32, 0xC0, 0xC2, 0x08, 0x00}, true);   // xor al, al / ret 8
+    if (g_no_attacks && !g_no_attack_patch2 && std::memcmp(reinterpret_cast<const void*>(kNoGroupFree), "\xB0\x01", 2) == 0)
+        g_no_attack_patch2 = Patch::create(kNoGroupFree, {0x32, 0xC0}, true);   // xor al, al
     mod_enabled         = cfg.get<bool>("provoke").value_or(false);
     radius              = cfg.get<float>("provoke_radius").value_or(radius);
     duration            = cfg.get<float>("provoke_duration").value_or(duration);
@@ -1117,6 +1144,7 @@ void EnemyAI::on_config_load(const utility::Config& cfg) {
 }
 
 void EnemyAI::on_config_save(utility::Config& cfg) {
+    cfg.set<bool>("enemy_no_attacks", g_no_attacks);
     cfg.set<bool>("provoke", mod_enabled);
     cfg.set<float>("provoke_radius", radius);
     cfg.set<float>("provoke_duration", duration);

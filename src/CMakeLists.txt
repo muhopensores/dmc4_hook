@@ -430,6 +430,10 @@ set(DEV_SRC
   dev/plugins/PluginPlayers.cpp
   dev/plugins/PluginRooms.hpp
   dev/plugins/PluginRooms.cpp
+  dev/plugins/PluginMods.hpp
+  dev/plugins/PluginMods.cpp
+  dev/plugins/PluginMenus.hpp
+  dev/plugins/PluginMenus.cpp
   dev/plugins/Plugins.hpp
   dev/plugins/Plugins.cpp
   dev/rooms/Rooms.hpp
@@ -524,6 +528,8 @@ set(SDK_SRC
     sdk/Menus.cpp
     sdk/MissionMenu.hpp
     sdk/MissionMenu.cpp
+    sdk/PauseMenu.hpp
+    sdk/PauseMenu.cpp
     sdk/FrameHooks.hpp
     sdk/FrameHooks.cpp
     sdk/ArcRows.hpp

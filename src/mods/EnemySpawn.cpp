@@ -225,6 +225,9 @@ static void set_enemy_position(uEnemySomething* em) {
     em->m_enemy_spawn_effect_something = enemy_spawn_type[(enemy_spawning)];
 }
 
+int EnemySpawn::enemy_count() { return (int)enemy_names.size(); }
+const char* EnemySpawn::enemy_name(int type) { return type >= 0 && type < enemy_count() ? enemy_names[type] : nullptr; }
+
 void EnemySpawn::spawn_em00x(SpawnableEnemyType index) {
     std::lock_guard<std::mutex> lk(g_mutex);
     uintptr_t em_function_pointer = fptr_em_factories.at((int)index);

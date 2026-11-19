@@ -1,0 +1,104 @@
+#include "PluginMenus.hpp"
+#include "PluginHost.hpp"
+#include "../../../plugin_sdk/include/dmc4_plugin.h"
+#include "../../sdk/PauseMenu.hpp"
+#include <cstring>
+#include <mutex>
+
+namespace plugins {
+namespace {
+
+std::mutex g_mutex;
+dmc4_plugin* g_owner = nullptr;   // the plugin whose row is set
+
+// one callback call with its arguments, through run_guarded (which takes a plain fn(user))
+struct Call {
+    const dmc4_list_menu* menu;
+    int row = 0, step = 0, result = 0;
+    char label[96] = {}, value[96] = {};
+};
+dmc4_list_menu g_menu;   // the plugin's callbacks (copied)
+
+bool owns(dmc4_plugin* self) {   // a stopped plugin's open menu goes on with empty rows
+    std::lock_guard<std::mutex> lock(g_mutex);
+    return g_owner == self;
+}
+
+void c_count(void* p) { auto* c = static_cast<Call*>(p); c->result = c->menu->row_count(c->menu->user); }
+void c_text(void* p) {
+    auto* c = static_cast<Call*>(p);
+    c->menu->row_text(c->menu->user, c->row, c->label, sizeof c->label, c->value, sizeof c->value);
+    c->label[sizeof c->label - 1] = c->value[sizeof c->value - 1] = 0;
+}
+void c_change(void* p) { auto* c = static_cast<Call*>(p); c->menu->change(c->menu->user, c->row, c->step); }
+void c_decide(void* p) { auto* c = static_cast<Call*>(p); c->menu->decide(c->menu->user, c->row); }
+
+int __cdecl api_pause_row(dmc4_plugin* self, const dmc4_pause_row* row) {
+    if (!self || !row || row->size < sizeof(dmc4_pause_row) || !row->label || !row->menu.row_count || !row->menu.row_text)
+        return 0;
+    if (!pause_menu::install()) {
+        plugin_log(self, DMC4_LOG_ERROR, "menus->pause_row: the pause menu isn't the expected code");
+        return 0;
+    }
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        g_owner = self;
+        g_menu = row->menu;
+    }
+    pause_menu::Row r;
+    r.room = row->room;
+    r.label = row->label;
+    r.description = row->description ? row->description : "";
+    r.menu.title = row->menu.title ? row->menu.title : "";
+    r.menu.rows = [self]() {
+        Call c{&g_menu};
+        if (!owns(self)) return 0;
+        return run_guarded(self, c_count, &c, "a list menu's row_count") ? c.result : 0;
+    };
+    r.menu.text = [self](int i, std::string& label, std::string& value) {
+        Call c{&g_menu};
+        c.row = i;
+        if (owns(self) && run_guarded(self, c_text, &c, "a list menu's row_text")) {
+            label = c.label;
+            value = c.value;
+        }
+    };
+    if (row->menu.change)
+        r.menu.change = [self](int i, int step) {
+            Call c{&g_menu};
+            c.row = i;
+            c.step = step;
+            if (owns(self)) run_guarded(self, c_change, &c, "a list menu's change");
+        };
+    if (row->menu.decide)
+        r.menu.decide = [self](int i) {
+            Call c{&g_menu};
+            c.row = i;
+            if (owns(self)) run_guarded(self, c_decide, &c, "a list menu's decide");
+        };
+    pause_menu::set_row(r);
+    return 1;
+}
+
+void __cdecl api_clear_pause_row(dmc4_plugin* self) { release_menus(self); }
+int __cdecl api_menu_open() { return pause_menu::menu_open() ? 1 : 0; }
+
+const dmc4_menus_api g_menus = {
+    sizeof(dmc4_menus_api),
+    api_pause_row,
+    api_clear_pause_row,
+    api_menu_open,
+};
+
+} // namespace
+
+const dmc4_menus_api* menus_api() { return &g_menus; }
+
+void release_menus(dmc4_plugin* self) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (g_owner != self) return;
+    g_owner = nullptr;
+    pause_menu::clear_row();
+}
+
+} // namespace plugins

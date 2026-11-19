@@ -43,7 +43,7 @@ extern "C" {
 #endif
 
 #define DMC4_PLUGIN_ABI 1          /* breaking changes: a plugin built for another ABI isn't loaded */
-#define DMC4_PLUGIN_API_VERSION 4 /* additions: functions appended to dmc4_api (and to the tables it points to) */
+#define DMC4_PLUGIN_API_VERSION 5 /* additions: functions appended to dmc4_api (and to the tables it points to) */
 
 #define DMC4_PLUGIN_EXPORT DMC4_EXTERN_C __declspec(dllexport)
 #define DMC4_PLUGIN_ABI_EXPORT() DMC4_PLUGIN_EXPORT uint32_t dmc4_plugin_abi(void) { return DMC4_PLUGIN_ABI; }
@@ -149,6 +149,14 @@ typedef struct dmc4_game_api {
      * in memory (it must outlive the motion; call on the tick after the motion request) */
     void (*borrow_ctn)(void* player, uint32_t bank, uint32_t index);
     void (*install_ctn_script)(void* player, const void* script);
+
+    /* ---- version 5 ---- */
+
+    /* enemies the hook can spawn (its EnemySpawn list: 0 Scarecrow (Leg) ... 22 Dante); the English name, NULL past it */
+    int (*enemy_type_count)(void);
+    const char* (*enemy_type_name)(int type);
+    /* spawns one enemy of that type near the local player; 1 = spawned, 0 = no player or no such type */
+    int (*spawn_enemy)(int type);
 } dmc4_game_api;
 
 /* ---- the players (api->players, version 3): which player is which, with and without co-op ---- */
@@ -233,6 +241,63 @@ typedef struct dmc4_rooms_api {
     int (*check_script)(const char* text, char* error, uint32_t error_size);
 } dmc4_rooms_api;
 
+/* ---- the hook's mods (api->mods, version 5): read their settings, hold one for a while ----
+ *
+ * Mods are named as in the debug server's mods list (their class names: "InfDT", "HealthSettings", ...) and a setting
+ * by its dmc4_hook.cfg key ("infinite_dt", "one_hit_kill"); values are text as in the cfg ("true", "1.5"). A held
+ * setting is applied at once (as when the config loads) and stays until the plugin releases it or stops; the user's
+ * own value is kept: it's what the config saves, and it comes back on release. Game thread (hold / release apply the
+ * mod's settings). */
+typedef struct dmc4_mods_api {
+    uint32_t size;   /* sizeof(dmc4_mods_api) in the hook: functions are only appended */
+
+    /* ---- version 5 ---- */
+
+    /* the setting's current value, NULL = no such mod / key; the string stays valid until the plugin's next get */
+    const char* (*get)(dmc4_plugin* self, const char* mod, const char* key);
+    /* holds the setting at alue: 1 = applied, 0 = no such mod / key (logged) */
+    int (*hold)(dmc4_plugin* self, const char* mod, const char* key, const char* value);
+    /* gives one setting back (the user's value comes back), or every one the plugin holds */
+    void (*release)(dmc4_plugin* self, const char* mod, const char* key);
+    void (*release_all)(dmc4_plugin* self);
+} dmc4_mods_api;
+
+/* ---- menus (api->menus, version 5): a row of the plugin's in the pause menu, opening a list menu ----
+ *
+ * The pause menu has five rows (Items, Skill List, Map, System, Return) and no room for more, so the plugin's row takes
+ * the Map row's place, in one room or everywhere. Choosing it opens a list menu in the game's look (rows of
+ * "label  < value >" over a dim backdrop, the game's cursor and sounds): up / down picks a row, left / right calls
+ * change(-1 / +1) on a row with a value, A calls decide, B closes it (back to the pause menu). The callbacks run on the
+ * game thread, while the game is paused. One pause row at a time (the last plugin to set one). */
+typedef struct dmc4_list_menu {
+    const char* title;
+    void* user;                                                                    /* passed to every callback */
+    int (*row_count)(void* user);
+    /* row's text into label / value (both zero-terminated, at most size - 1 bytes); an empty value = an action row */
+    void (*row_text)(void* user, int row, char* label, uint32_t label_size, char* value, uint32_t value_size);
+    void (*change)(void* user, int row, int step);                                /* left / right: -1 / +1 */
+    void (*decide)(void* user, int row);                                           /* A */
+} dmc4_list_menu;
+
+typedef struct dmc4_pause_row {
+    uint32_t size;              /* sizeof(dmc4_pause_row) where the plugin was built */
+    int room;                   /* only in this room (a room number, e.g. one of the plugin's 900-999); -1 = everywhere */
+    const char* label;          /* drawn in place of "Map" */
+    const char* description;    /* the pause menu's help line while the row is selected */
+    dmc4_list_menu menu;        /* opened when the row is chosen */
+} dmc4_pause_row;
+
+typedef struct dmc4_menus_api {
+    uint32_t size;   /* sizeof(dmc4_menus_api) in the hook: functions are only appended */
+
+    /* ---- version 5 ---- */
+
+    /* sets the plugin's pause row (strings are copied; the callbacks and user must stay valid); 1 = set */
+    int (*pause_row)(dmc4_plugin* self, const dmc4_pause_row* row);
+    void (*clear_pause_row)(dmc4_plugin* self);
+    int (*menu_open)(void);     /* a list menu is open now */
+} dmc4_menus_api;
+
 typedef struct dmc4_api {
     uint32_t abi;             /* DMC4_PLUGIN_ABI of the hook */
     uint32_t version;         /* DMC4_PLUGIN_API_VERSION of the hook: the functions up to that version are present */
@@ -292,6 +357,20 @@ typedef struct dmc4_api {
 
     /* room classes derived from the game's: new rooms with their own code, scripts and memory (dmc4_rooms_api above) */
     const dmc4_rooms_api* rooms;
+
+    /* ---- version 5 ---- */
+
+    /* the hook's mods: their settings, held for a while (dmc4_mods_api above) */
+    const dmc4_mods_api* mods;
+
+    /* byte patches on the game's code or data, undone when the plugin stops (and by unpatch). expect (size bytes, or
+     * NULL) must match what's there now, else nothing is written. Returns an id > 0, 0 on failure (logged). Game thread
+     * or init. Don't patch over another mod's patch or hook. */
+    int (*patch)(dmc4_plugin* self, uintptr_t address, const void* bytes, uint32_t size, const void* expect);
+    void (*unpatch)(dmc4_plugin* self, int id);
+
+    /* a row in the pause menu opening a list menu (dmc4_menus_api above) */
+    const dmc4_menus_api* menus;
 } dmc4_api;
 
 #ifdef __cplusplus

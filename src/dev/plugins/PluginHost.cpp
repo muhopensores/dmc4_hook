@@ -2,11 +2,14 @@
 #include "PluginGame.hpp"
 #include "PluginPlayers.hpp"
 #include "PluginRooms.hpp"
+#include "PluginMods.hpp"
+#include "PluginMenus.hpp"
 #include "../../../plugin_sdk/include/dmc4_plugin.h"
 #include "../../mod.hpp"
 #include "imgui/imgui_internal.h"
 #include "utility/Config.hpp"
 #include "utility/FunctionHook.hpp"
+#include "utility/Patch.hpp"
 #include <spdlog/spdlog.h>
 #include <malloc.h>
 #include <algorithm>
@@ -48,6 +51,8 @@ struct dmc4_plugin {
     std::deque<LogLine> log;
     std::map<std::string, std::string> config;
     std::vector<std::unique_ptr<FunctionHook>> hooks;
+    std::vector<std::pair<int, std::unique_ptr<Patch>>> patches;   // api->patch, undone when it stops
+    int next_patch = 1;
     bool warned_imgui = false;   // its panel left ImGui unbalanced (warned once)
 };
 
@@ -85,10 +90,14 @@ void add_log(dmc4_plugin& p, int level, const std::string& text) {
     while (p.log.size() > kLogLines) p.log.pop_front();
 }
 
-// the plugin stops: its callbacks go, the DLL stays loaded (its hooks may still be in the game's code)
+// the plugin stops: its callbacks go, its held mod settings and patches are undone, the DLL stays loaded (its hooks may
+// still be in the game's code)
 void stop(dmc4_plugin& p, State state, const std::string& message) {
     add_log(p, DMC4_LOG_ERROR, message);
+    release_mods(&p);
+    release_menus(&p);
     std::lock_guard<std::mutex> lock(g_mutex);
+    p.patches.clear();
     p.state = state;
     p.error = message;
     g_callbacks.erase(std::remove_if(g_callbacks.begin(), g_callbacks.end(), [&](const Callback& c) { return c.owner == &p; }),
@@ -244,6 +253,31 @@ int install(dmc4_plugin* self, uintptr_t address, void* detour, uint32_t size, u
     self->hooks.push_back(std::move(hook));
     return 1;
 }
+int __cdecl api_patch(dmc4_plugin* self, uintptr_t address, const void* bytes, uint32_t size, const void* expect) {
+    if (!self || !address || !bytes || !size) return 0;
+    if (IsBadReadPtr(reinterpret_cast<const void*>(address), size)) {
+        add_log(*self, DMC4_LOG_ERROR, fmt::format("patch 0x{:X}: not readable memory", address));
+        return 0;
+    }
+    if (expect && std::memcmp(reinterpret_cast<const void*>(address), expect, size) != 0) {
+        add_log(*self, DMC4_LOG_ERROR, fmt::format("patch 0x{:X}: the bytes there aren't the expected ones (another mod, or another exe)", address));
+        return 0;
+    }
+    std::vector<int16_t> b(size);
+    for (uint32_t i = 0; i < size; ++i) b[i] = static_cast<const uint8_t*>(bytes)[i];
+    auto patch = Patch::create(address, b, true);
+    std::lock_guard<std::mutex> lock(g_mutex);
+    const int id = self->next_patch++;
+    self->patches.emplace_back(id, std::move(patch));
+    return id;
+}
+void __cdecl api_unpatch(dmc4_plugin* self, int id) {
+    if (!self) return;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    auto& v = self->patches;
+    v.erase(std::remove_if(v.begin(), v.end(), [&](const auto& e) { return e.first == id; }), v.end());   // restores
+}
+
 int __cdecl api_hook(dmc4_plugin* self, uintptr_t address, void* detour, uintptr_t* original) {
     return install(self, address, detour, 0, original);
 }
@@ -274,6 +308,10 @@ const dmc4_api g_api = {
     game_api(),
     players_api(),
     rooms_api(),
+    mods_api(),
+    api_patch,
+    api_unpatch,
+    menus_api(),
 };
 
 // ---- loading ----
@@ -529,6 +567,7 @@ void save_config(utility::Config& cfg) {
     cfg.set("plugins_disabled", disabled);
     for (auto& up : g_plugins)
         for (const auto& [key, value] : up->config) cfg.set("plugin." + up->stem + "." + key, value);
+    saved_mods(cfg);   // settings plugins hold: the user's own values go to the file
 }
 
 } // namespace plugins

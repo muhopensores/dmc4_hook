@@ -46,7 +46,7 @@ constexpr uintptr_t kResourceSize = 0x50;        // cResource: m_size = the file
 // ---- load generation ----
 
 uint32_t g_load_gen = 1;
-uintptr_t g_last_layers[3] = {};
+uintptr_t g_last_layers[5] = {};
 
 // ---- live schedulers (the move hook) ----
 
@@ -370,12 +370,23 @@ json prop(const char* type, const char* description) { return json{{"type", type
 
 uint32_t load_gen() { return g_load_gen; }
 
+// A reloaded room is often allocated where the old one was freed (950 -> 900 -> 950 kept every pointer, 2026-11-19), so
+// the layer pointers alone miss it: a room / stage number change and a load starting (aRoom +7 load state leaving 0)
+// count too.
+int8_t g_last_busy = 0;
+
 void sdl_frame() {
     sArea* area = devil4_sdk::get_sArea();
-    const uintptr_t now[3] = {area ? reinterpret_cast<uintptr_t>(area->aGamePtr) : 0,
+    aRoom* room = area ? area->aRoomPtr : nullptr;
+    const uintptr_t now[5] = {area ? reinterpret_cast<uintptr_t>(area->aGamePtr) : 0,
                               area ? reinterpret_cast<uintptr_t>(area->currentMissionPtr) : 0,
-                              area ? reinterpret_cast<uintptr_t>(area->aRoomPtr) : 0};
-    if (std::memcmp(now, g_last_layers, sizeof(now)) != 0) {
+                              reinterpret_cast<uintptr_t>(room),
+                              room ? static_cast<uintptr_t>(room->room_no) : 0,
+                              room ? static_cast<uintptr_t>(room->stage_no) : 0};
+    const int8_t busy = room ? room->busy : 0;
+    const bool load_started = busy != 0 && g_last_busy == 0;
+    g_last_busy = busy;
+    if (std::memcmp(now, g_last_layers, sizeof(now)) != 0 || load_started) {
         std::memcpy(g_last_layers, now, sizeof(now));
         ++g_load_gen;
         std::lock_guard<std::mutex> lock(g_mutex);

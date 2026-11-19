@@ -1,6 +1,7 @@
 #include "PluginGame.hpp"
 #include "../../../plugin_sdk/include/dmc4_plugin.h"
 #include "../../sdk/Devil4.hpp"
+#include "../../mods/EnemySpawn.hpp"
 
 // Thin __cdecl wrappers: devil4_sdk's functions are mostly __stdcall and take C++ types; plugins get C types and NULL
 // checks. Left out on purpose: unit creation and the raw allocators (spawn_or_something, easy_spawn, mt_allocate_heap,
@@ -118,6 +119,15 @@ void __cdecl install_ctn_script(void* player, const void* script) {
     if (player && script) devil4_sdk::install_ctn_script(player, script);
 }
 
+// version 5: EnemySpawn's list and factories (spawned near the local player, as its hotkeys do)
+int __cdecl enemy_type_count() { return EnemySpawn::enemy_count(); }
+const char* __cdecl enemy_type_name(int type) { return EnemySpawn::enemy_name(type); }
+int __cdecl spawn_enemy(int type) {
+    if (!EnemySpawn::enemy_name(type) || !devil4_sdk::get_local_player()) return 0;
+    EnemySpawn::spawn_em00x(static_cast<SpawnableEnemyType>(type));
+    return 1;
+}
+
 const dmc4_game_api g_game = {
     sizeof(dmc4_game_api),
     object,
@@ -153,6 +163,9 @@ const dmc4_game_api g_game = {
     motion_bank,
     borrow_ctn,
     install_ctn_script,
+    enemy_type_count,
+    enemy_type_name,
+    spawn_enemy,
 };
 
 } // namespace

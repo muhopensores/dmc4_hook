@@ -291,9 +291,7 @@ void HealthSettings::on_update_input(utility::Input& input) {
 void HealthSettings::on_config_load(const utility::Config& cfg) {
     player_invincible = cfg.get<bool>("infinite_health_player").value_or(false);
     enemy_invincible  = cfg.get<bool>("infinite_health_enemy").value_or(false);
-    if (player_invincible && enemy_invincible) {
-        all_invincible = true;
-    }
+    all_invincible = player_invincible && enemy_invincible;
     outgoingDamageMultiplier = cfg.get<float>("outgoing_damage_multiplier").value_or(1.0f);
     incomingDamageMultiplier = cfg.get<float>("incoming_damage_multiplier").value_or(1.0f);
     mustStyleToggle = cfg.get<bool>("must_style").value_or(false);
@@ -301,7 +299,7 @@ void HealthSettings::on_config_load(const utility::Config& cfg) {
 
     cant_die = cfg.get<bool>("no_death").value_or(false);
     one_hit_kill = cfg.get<bool>("one_hit_kill").value_or(false);
-    if (cant_die) no_death_toggle(cant_die);
+    no_death_toggle(cant_die);   // both ways: a live config load (debug server, plugin api->mods) can switch it off
 
 };
 

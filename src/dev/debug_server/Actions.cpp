@@ -349,6 +349,13 @@ bool mark_deleted(uintptr_t unit) {
     uint32_t flags = 0;
     if (!rd(unit + 4, flags)) return false;
     if ((flags & 7) >= 3) return true;   // already on its way out
+    // the unit's own kill (vtable +0x30): enemies take their lock-on targets out of sLockOnTargetMgr before they mark
+    // themselves for deletion; the flag alone left the targets on freed units (crash in cLockOnTarget::sort 0x48BB43,
+    // 2026-11-19). The flag stays the fallback when the call fails.
+    const uintptr_t kill = rd_ptr(rd_ptr(unit) + 0x30);
+    const uint32_t this_arg = (uint32_t)unit;
+    if (executable(kill) && mem::call(kill, Conv::Thiscall, &this_arg, 1, false).ok && rd(unit + 4, flags) && (flags & 7) >= 3)
+        return true;
     flags = (flags & ~7u) | 3u;          // BEFLAG_PRE_DELETE: sUnit deletes it (as PhotoMode's Remove)
     return safe_write(unit + 4, &flags, 4);
 }

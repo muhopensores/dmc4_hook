@@ -37,6 +37,8 @@ public:
     static void spawn_em00x(SpawnableEnemyType index);
     static void spawn_random_enemy();
     static void spawn_dante();
+    static int enemy_count();                 // the spawnable list (SpawnableEnemyType)
+    static const char* enemy_name(int type);  // English, nullptr past the list
 
     std::optional<std::string> on_initialize() override;
 
