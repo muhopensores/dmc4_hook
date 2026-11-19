@@ -2,6 +2,7 @@
 #include "PluginHost.hpp"
 #include "../../../plugin_sdk/include/dmc4_plugin.h"
 #include "../../sdk/PauseMenu.hpp"
+#include "../../sdk/MissionMenu.hpp"
 #include <cstring>
 #include <mutex>
 
@@ -9,7 +10,11 @@ namespace plugins {
 namespace {
 
 std::mutex g_mutex;
-dmc4_plugin* g_owner = nullptr;   // the plugin whose row is set
+dmc4_plugin* g_owner = nullptr;   // the plugin whose pause row is set
+dmc4_plugin* g_mission_owner = nullptr;   // the plugin whose Mission Menu row is set
+dmc4_mission_row g_mission;   // its callback (copied)
+
+void c_mission(void* p) { auto* r = static_cast<dmc4_mission_row*>(p); r->decide(r->user); }
 
 // one callback call with its arguments, through run_guarded (which takes a plain fn(user))
 struct Call {
@@ -80,7 +85,45 @@ int __cdecl api_pause_row(dmc4_plugin* self, const dmc4_pause_row* row) {
     return 1;
 }
 
-void __cdecl api_clear_pause_row(dmc4_plugin* self) { release_menus(self); }
+void __cdecl api_clear_pause_row(dmc4_plugin* self) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (g_owner != self) return;
+    g_owner = nullptr;
+    pause_menu::clear_row();
+}
+
+int __cdecl api_mission_row(dmc4_plugin* self, const dmc4_mission_row* row) {
+    if (!self || !row || row->size < sizeof(dmc4_mission_row) || !row->label || !row->decide) return 0;
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        g_mission_owner = self;
+        g_mission = *row;
+    }
+    mission_menu::Row r;
+    r.label = row->label;
+    r.description = row->description ? row->description : "";
+    r.decide = [self]() {
+        dmc4_mission_row copy;
+        {
+            std::lock_guard<std::mutex> lock(g_mutex);
+            if (g_mission_owner != self) return;
+            copy = g_mission;
+        }
+        run_guarded(self, c_mission, &copy, "a Mission Menu row's decide");
+    };
+    if (!mission_menu::set_row(r)) {
+        plugin_log(self, DMC4_LOG_ERROR, "menus->mission_row: the Mission Menu isn't the expected code");
+        return 0;
+    }
+    return 1;
+}
+
+void __cdecl api_clear_mission_row(dmc4_plugin* self) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (g_mission_owner != self) return;
+    g_mission_owner = nullptr;
+    mission_menu::clear_row();
+}
 int __cdecl api_menu_open() { return pause_menu::menu_open() ? 1 : 0; }
 
 const dmc4_menus_api g_menus = {
@@ -88,6 +131,8 @@ const dmc4_menus_api g_menus = {
     api_pause_row,
     api_clear_pause_row,
     api_menu_open,
+    api_mission_row,
+    api_clear_mission_row,
 };
 
 } // namespace
@@ -95,10 +140,8 @@ const dmc4_menus_api g_menus = {
 const dmc4_menus_api* menus_api() { return &g_menus; }
 
 void release_menus(dmc4_plugin* self) {
-    std::lock_guard<std::mutex> lock(g_mutex);
-    if (g_owner != self) return;
-    g_owner = nullptr;
-    pause_menu::clear_row();
+    api_clear_pause_row(self);
+    api_clear_mission_row(self);
 }
 
 } // namespace plugins

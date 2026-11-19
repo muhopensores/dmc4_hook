@@ -19,6 +19,8 @@ namespace {
 // ---- the game ----
 constexpr uintptr_t kPauseVtable = 0xBE2270;            // uPauseMenu
 constexpr uintptr_t kPauseMainSlot = kPauseVtable + 17 * 4;
+constexpr uintptr_t kPauseTransBeforeSlot = kPauseVtable + 14 * 4;
+constexpr uintptr_t kPauseTransBefore = 0x7A0630;   // uPauseMenu::transBefore: draw only while no child (mpChild == 0)
 constexpr uintptr_t kPauseMain = 0x79FE30;              // uPauseMenu::main
 constexpr uintptr_t kMapCtorCall = 0x7A01A1;            // result, case 2 / cursor 2: call uMapMgr::uMapMgr (usercall eax)
 constexpr uintptr_t kMapCtor = 0x774450;
@@ -112,6 +114,8 @@ std::mutex g_mutex;
 std::shared_ptr<Row> g_row;              // set by set_row (any thread), read on the game thread
 std::unique_ptr<Patch> g_ctor_patch;
 uintptr_t g_main_original = kPauseMain;
+uintptr_t g_trans_before_original = kPauseTransBefore;
+volatile bool g_list_shown = false;     // the list menu is on screen: the pause menu draws under it (its frame, title, prompts)
 bool g_installed = false;
 uintptr_t g_vtable[kMapSlots];
 
@@ -140,19 +144,55 @@ bool row_here(const Row& r) {
 // ---- the pause menu: our label and description in the Map row's place (after its main, game thread) ----
 constexpr int kPrio = 100;   // sMessage::printf priority: over the menus' layers (MenuRows, 2026-11-18)
 
+// The pause layout (dumped in the game 2026-11-19): sprite 0 the title, 2 / 4 background and ornament, 3 the description
+// box, 11-15 the rows' labels, 16-20 the cursor's highlight bar on each row; font entries 0-5 the description texts.
+constexpr int kDescriptionBox = 3, kFirstRowSprite = 11, kLastRowSprite = 20, kFonts = 6;
+constexpr int kArrowSprite = 16;   // row 0's highlight arrow, borrowed for the list's cursor
+
+uintptr_t g_pause = 0;   // the pause menu our row was last drawn in (the list menu's parent); game thread
+// what hide_pause_rows changed, put back when the list closes (the pause menu goes back to selecting without its intro)
+bool g_saved = false, g_saved_sprites[kLastRowSprite + 1] = {}, g_saved_fonts[kFonts] = {};
+
+void save_pause_rows(uintptr_t menu) {
+    for (int i = 0; i <= kLastRowSprite; ++i)
+        if (sprMap* s = sprite(menu, i)) g_saved_sprites[i] = s->isDisp;
+    for (int i = 0; i < kFonts; ++i)
+        if (fontMap* f = font(menu, i)) g_saved_fonts[i] = f->isDisp;
+    g_saved = true;
+}
+
+void restore_pause_rows(uintptr_t menu) {
+    if (!g_saved) return;
+    g_saved = false;
+    for (int i = 0; i <= kLastRowSprite; ++i)
+        if (i == kDescriptionBox || i >= kFirstRowSprite)
+            if (sprMap* s = sprite(menu, i)) s->isDisp = g_saved_sprites[i];
+    for (int i = 0; i < kFonts; ++i)
+        if (fontMap* f = font(menu, i)) f->isDisp = g_saved_fonts[i];
+    if (sprMap* arrow = sprite(menu, kArrowSprite)) arrow->posHDTV = arrow->posHDTVOrg;
+}
+
+// our list is up: the pause menu is its frame (title, background, prompts), not its rows. Done from the list's own
+// move: the pause menu doesn't run its main while a child is up.
+void hide_pause_rows(uintptr_t menu) {
+    if (sprMap* s = sprite(menu, kDescriptionBox)) s->isDisp = false;
+    for (int i = kFirstRowSprite; i <= kLastRowSprite; ++i)
+        if (sprMap* s = sprite(menu, i)) s->isDisp = false;
+    for (int i = 0; i < kFonts; ++i)
+        if (fontMap* f = font(menu, i)) f->isDisp = false;
+}
+
 void __stdcall after_pause_main(uintptr_t menu) {
+    g_pause = menu;
     std::shared_ptr<Row> r = row_now();
     if (!r || !row_here(*r)) return;
     at<uint8_t>(menu, 0xF4 + kMapRow) = 1;   // selectable whatever the mission says
-    sprMap* normal = sprite(menu, kLabelSprite);
-    sprMap* lit = sprite(menu, kLitSprite);
-    if (!normal || !lit) return;
+    sprMap* normal = sprite(menu, kLabelSprite);   // the "Map" label image; its highlight bar (kLitSprite) stays
+    if (!normal) return;
     const bool on = at<int>(menu, 0x40) == kMapRow;
-    const sprMap* shown = lit->isDisp ? lit : normal->isDisp ? normal : nullptr;
-    const uint8_t alpha = shown ? shown->color.a : 0;
-    const MtPoint pos = (shown ? shown : normal)->posHDTV;
+    const uint8_t alpha = normal->isDisp ? normal->color.a : 0;
+    const MtPoint pos = normal->posHDTV;
     normal->isDisp = false;
-    lit->isDisp = false;
     if (fontMap* f = font(menu, kMapRow)) {
         if (on && f->isDisp && !r->description.empty() && menus::load_menu_font())
             menus::print(menus::kMenuFontSlot, f->posHDTV.x, f->posHDTV.y, 26, 26, white(0xFF), kPrio, r->description.c_str());
@@ -163,6 +203,17 @@ void __stdcall after_pause_main(uintptr_t menu) {
         menus::print(menus::kMenuFontSlot, pos.x + 8, pos.y - 4, 32, 32, on ? white(alpha) : grey(alpha), kPrio, r->label.c_str());
     else
         menus::print(menus::kDebugFontSlot, pos.x, pos.y, 24, 30, on ? white(alpha) : grey(alpha), kPrio, r->label.c_str());
+}
+
+naked void pause_trans_before_thunk() {   // thiscall, al: draw this frame
+    __asm {
+        cmp byte ptr [g_list_shown], 0
+        je stock
+        mov al, 1
+        ret
+    stock:
+        jmp dword ptr [g_trans_before_original]
+    }
 }
 
 naked void pause_main_thunk() {   // thiscall (ecx = the menu)
@@ -179,13 +230,14 @@ naked void pause_main_thunk() {   // thiscall (ecx = the menu)
 }
 
 // ---- the list menu: a uMapMgr with our move / transMain / isEnd / getDecValue ----
-constexpr int kTitleX = 160, kTitleY = 110, kRowX = 200, kValueX = 720, kRowY = 190, kRowStep = 44, kTextSize = 30;
+// inside the pause menu's window, where its rows and description box were (HDTV coordinates)
+constexpr int kTitleX = 640, kTitleY = 166, kRowX = 300, kValueX = 660, kRowY = 262, kRowStep = 30, kTextSize = 26;
 
 void draw_menu(const Open& o) {
     const ListMenu& m = o.row->menu;
     const bool menu_font = menus::load_menu_font();
     const int slot = menu_font ? menus::kMenuFontSlot : menus::kDebugFontSlot;
-    menus::print(slot, kTitleX, kTitleY, 40, 40, white(0xFF), kPrio, m.title.c_str());
+    menus::print(slot, kTitleX, kTitleY, 36, 36, white(0xFF), kPrio, m.title.c_str());
     const int n = m.rows ? m.rows() : 0;
     std::string label, value;
     for (int i = 0; i < n; ++i) {
@@ -200,7 +252,7 @@ void draw_menu(const Open& o) {
             menus::print(slot, on ? kValueX - 22 : kValueX, y, kTextSize, kTextSize, on ? white(0xFF) : grey(0xFF), kPrio, shown.c_str());
         }
     }
-    menus::print(slot, kRowX, kRowY + n * kRowStep + 24, 24, 24, grey(0xFF), kPrio, "Left / Right: change      A: select      B: back");
+    menus::print(slot, kRowX, 600, 22, 22, grey(0xFF), kPrio, "Up / Down: choose      Left / Right: change");
 }
 
 void __stdcall list_move(uintptr_t unit) {
@@ -238,31 +290,35 @@ void __stdcall list_move(uintptr_t unit) {
     default:
         break;
     }
-    if (o.phase == Phase::Running || o.phase == Phase::Closing) draw_menu(o);
+    g_list_shown = o.phase == Phase::Running || o.phase == Phase::Closing;
+    if (g_list_shown) {
+        if (g_pause) {
+            hide_pause_rows(g_pause);
+            if (sprMap* arrow = sprite(g_pause, kArrowSprite)) {   // the game's arrow on our row (its anchor sits on the label's right)
+                arrow->posHDTV.x = kRowX + 12;
+                arrow->posHDTV.y = kRowY + o.cursor * kRowStep + 9;
+                arrow->isDisp = true;
+            }
+        }
+        draw_menu(o);
+    }
 }
 
-bool __stdcall list_is_end(uintptr_t unit) { return g_open.unit != unit || g_open.phase == Phase::Done; }
-
-void __stdcall list_trans(uintptr_t unit, uintptr_t draw) {
-    if (g_open.unit == unit && (g_open.phase == Phase::Running || g_open.phase == Phase::Closing)) {
-        const uint32_t colour = 0xA0000000;   // black, a little darker than uPracPlSet's 0x90 backdrop
-        __asm {
-            sub esp, 8
-            mov dword ptr [esp], 1280         // size (pushed first: the deepest argument)
-            mov dword ptr [esp + 4], 720
-            sub esp, 8
-            mov dword ptr [esp], 0            // position
-            mov dword ptr [esp + 4], 0
-            push 1
-            push 300                          // priority, as uPracPlSet's backdrop
-            push colour
-            mov eax, unit
-            mov ecx, draw
-            mov edx, kDrawRect
-            call edx
-        }
+bool __stdcall list_is_end(uintptr_t unit) {
+    const bool end = g_open.unit != unit || g_open.phase == Phase::Done;
+    if (end && g_open.unit == unit) {
+        g_list_shown = false;
+        if (g_pause) restore_pause_rows(g_pause);
     }
-    // not uDevilCock::transMain (kDevilCockTransMain): it would draw the layout uMapMgr loads, under our rows
+    return end;
+}
+
+// Draws nothing: the pause menu's own window is the backdrop (g_list_shown keeps it drawn). Not uMapMgr's draw (a
+// rectangle) nor uDevilCock::transMain (kDevilCockTransMain: the layout uMapMgr loads would show under our rows). A dim
+// full-screen rectangle, if one is ever wanted: kDrawRect (Vibed\RE\pause_menu.md "Calls").
+void __stdcall list_trans(uintptr_t unit, uintptr_t draw) {
+    (void)unit;
+    (void)draw;
 }
 
 naked void list_move_thunk() {
@@ -310,6 +366,10 @@ uintptr_t __stdcall after_map_ctor(uintptr_t unit) {
     g_open.unit = unit;
     g_open.row = r;
     g_open.phase = Phase::Opening;
+    if (g_pause) {
+        save_pause_rows(g_pause);
+        hide_pause_rows(g_pause);
+    }
     g_menu_open = true;
     return unit;
 }
@@ -353,6 +413,12 @@ bool install() {
     const int32_t rel = static_cast<int32_t>(reinterpret_cast<uintptr_t>(&map_ctor_thunk) - (kMapCtorCall + 5));
     g_ctor_patch = Patch::create(kMapCtorCall, {0xE8, int16_t(rel & 0xFF), int16_t((rel >> 8) & 0xFF),
                                                 int16_t((rel >> 16) & 0xFF), int16_t((rel >> 24) & 0xFF)}, true);
+    auto* tb = reinterpret_cast<uintptr_t*>(kPauseTransBeforeSlot);
+    DWORD old_tb = 0;
+    if (*tb == kPauseTransBefore && VirtualProtect(tb, sizeof *tb, PAGE_READWRITE, &old_tb)) {
+        *tb = reinterpret_cast<uintptr_t>(&pause_trans_before_thunk);
+        VirtualProtect(tb, sizeof *tb, old_tb, &old_tb);
+    }
     auto* slot = reinterpret_cast<uintptr_t*>(kPauseMainSlot);
     DWORD old = 0;
     if (VirtualProtect(slot, sizeof *slot, PAGE_READWRITE, &old)) {

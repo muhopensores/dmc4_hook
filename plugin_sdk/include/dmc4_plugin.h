@@ -287,6 +287,17 @@ typedef struct dmc4_pause_row {
     dmc4_list_menu menu;        /* opened when the row is chosen */
 } dmc4_pause_row;
 
+/* A row of the plugin's in the Mission Menu, in My History's place (its row tables hold 15 rows: one is taken over, not
+ * added). Choosing it calls decide on the game thread; the menu then goes on selecting (decide can start a mission into
+ * one of the plugin's rooms with api->rooms->enter). */
+typedef struct dmc4_mission_row {
+    uint32_t size;              /* sizeof(dmc4_mission_row) where the plugin was built */
+    const char* label;          /* drawn in place of "My History" */
+    const char* description;    /* the menu's description box while the row is selected */
+    void* user;
+    void (*decide)(void* user);
+} dmc4_mission_row;
+
 typedef struct dmc4_menus_api {
     uint32_t size;   /* sizeof(dmc4_menus_api) in the hook: functions are only appended */
 
@@ -296,6 +307,9 @@ typedef struct dmc4_menus_api {
     int (*pause_row)(dmc4_plugin* self, const dmc4_pause_row* row);
     void (*clear_pause_row)(dmc4_plugin* self);
     int (*menu_open)(void);     /* a list menu is open now */
+    /* sets / clears the plugin's Mission Menu row (strings copied; decide and user must stay valid); 1 = set */
+    int (*mission_row)(dmc4_plugin* self, const dmc4_mission_row* row);
+    void (*clear_mission_row)(dmc4_plugin* self);
 } dmc4_menus_api;
 
 typedef struct dmc4_api {
