@@ -4,6 +4,7 @@
 #include "PluginRooms.hpp"
 #include "PluginMods.hpp"
 #include "PluginMenus.hpp"
+#include "PluginUnits.hpp"
 #include "../../../plugin_sdk/include/dmc4_plugin.h"
 #include "../../mod.hpp"
 #include "imgui/imgui_internal.h"
@@ -96,6 +97,7 @@ void stop(dmc4_plugin& p, State state, const std::string& message) {
     add_log(p, DMC4_LOG_ERROR, message);
     release_mods(&p);
     release_menus(&p);
+    release_units(&p);
     std::lock_guard<std::mutex> lock(g_mutex);
     p.patches.clear();
     p.state = state;
@@ -312,6 +314,7 @@ const dmc4_api g_api = {
     api_patch,
     api_unpatch,
     menus_api(),
+    units_api(),
 };
 
 // ---- loading ----
@@ -492,6 +495,7 @@ std::vector<Info> list() {
 
 void frame() {
     ++g_frame;
+    units_frame();
     run(true);
 }
 

@@ -64,14 +64,20 @@ struct Room {
 };
 
 int  read_manifest();                     // game thread; releases what the old manifest's units loaded; -> unit count
+void ensure_manifest();                   // game thread; reads it the first time only (the plugin api's units stay loaded)
 const std::vector<Room>& rooms();
 const std::string& manifest_error();
 bool load_unit(int room, int unit);       // game thread
 void release_unit(int room, int unit);    // game thread
 // The unit as its room creates it: a .pla of just this unit (mPos replaced by `pos` when given) handed to a one-shot
-// uPlacement, which makes the unit, sets its values and kills itself (as rooms do). Returns the uPlacement or 0.
-uintptr_t spawn_unit(int room, int unit, const float* pos, std::string& error);   // game thread
-std::vector<uint8_t> build_pla(const Unit& u, const float* pos);
+// uPlacement, which makes the unit, sets its values and kills itself (as rooms do). With `yaw` (radians), the y of its
+// mAngle (units without one keep their rotation). Returns the uPlacement or 0.
+uintptr_t spawn_unit(int room, int unit, const float* pos, std::string& error, const float* yaw = nullptr);   // game thread
+std::vector<uint8_t> build_pla(const Unit& u, const float* pos, const float* yaw = nullptr);
+// Removes a unit through its own kill (vtable +0x30): stage units take their lock-on / Snatch targets out of
+// sLockOnTargetMgr there (uStageSetSnatch::kill 0x88F770); the bare delete flag left them on freed units (crash in
+// sub_820840 walking mpSnatchTop, 2026-11-19). Game thread.
+void kill_unit(uintptr_t unit);
 
 } // namespace unit_packs
 

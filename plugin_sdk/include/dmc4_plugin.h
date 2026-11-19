@@ -43,7 +43,7 @@ extern "C" {
 #endif
 
 #define DMC4_PLUGIN_ABI 1          /* breaking changes: a plugin built for another ABI isn't loaded */
-#define DMC4_PLUGIN_API_VERSION 5 /* additions: functions appended to dmc4_api (and to the tables it points to) */
+#define DMC4_PLUGIN_API_VERSION 6 /* additions: functions appended to dmc4_api (and to the tables it points to) */
 
 #define DMC4_PLUGIN_EXPORT DMC4_EXTERN_C __declspec(dllexport)
 #define DMC4_PLUGIN_ABI_EXPORT() DMC4_PLUGIN_EXPORT uint32_t dmc4_plugin_abi(void) { return DMC4_PLUGIN_ABI; }
@@ -329,6 +329,42 @@ typedef struct dmc4_menus_api {
     void (*clear_mission_row)(dmc4_plugin* self);
 } dmc4_menus_api;
 
+/* ---- stage units from other rooms (api->units, version 6): props, gimmicks, breakables in any room ----
+ *
+ * The hook knows every unit the stock rooms' .pla / .sdl place (dmc4_hook's UnitPacks manifest: st001, st008, st105,
+ * st200, st209, st300, st305, st307, st400, st401, st405, st406, st705), with the files each needs. load reads those
+ * files from the game's own arcs into the file cache (only the rows the unit needs, not the room's arc); spawn then
+ * makes the unit the way its room does (a one-unit .pla given to the game's uPlacement), with every value the room
+ * gives it, at a position of the plugin's. A unit is found by its room ("st008") and its class or its name in the
+ * room's files ("uStageSetSnatch", "StageSetBreak"), nth = which of the matches (0 = the first, in file order).
+ * Units whose files are all in the always-loaded arcs need no load. Everything runs on the game thread; loads and
+ * spawned units are the plugin's until it releases / despawns them or stops. The room's own exit takes spawned units
+ * with it (the loaded files stay until released). */
+typedef struct dmc4_units_api {
+    uint32_t size;   /* sizeof(dmc4_units_api) in the hook: functions are only appended */
+
+    /* ---- version 6 ---- */
+
+    /* the unit's id (>= 0), -1 = no such unit */
+    int (*find)(const char* room, const char* class_or_name, int nth);
+    const char* (*name)(int unit);          /* its name in its room's files, NULL = no such unit */
+    const char* (*class_name)(int unit);    /* "uStageSetSnatch" */
+    uint32_t (*file_bytes)(int unit);       /* bytes of its files outside the always-loaded arcs (0 = needs no load) */
+    /* its files into the cache: 1 = loaded (or nothing to load), 0 = failed (logged). Synchronous (reads the arcs) */
+    int (*load)(dmc4_plugin* self, int unit);
+    void (*release)(dmc4_plugin* self, int unit);
+    /* makes it: pos (cm, game axes, NULL = where its room puts it) and yaw (radians about the up axis: replaces the y of
+     * its mAngle, for classes that have one). Returns a spawn id > 0, 0 = failed (logged: files not loaded, ...).
+     * The units appear a frame or two later (the uPlacement makes them on its first move). */
+    int (*spawn)(dmc4_plugin* self, int unit, const float* pos, float yaw);
+    /* the units a spawn made: their count (up to max into out), -1 = not made yet, 0 = nothing (or gone) */
+    int (*spawned)(int spawn, void** out, int max);
+    /* removes what a spawn made (each unit's own kill: it takes its lock-on targets out; the game frees it), or every
+     * spawn of the plugin's */
+    void (*despawn)(dmc4_plugin* self, int spawn);
+    void (*despawn_all)(dmc4_plugin* self);
+} dmc4_units_api;
+
 typedef struct dmc4_api {
     uint32_t abi;             /* DMC4_PLUGIN_ABI of the hook */
     uint32_t version;         /* DMC4_PLUGIN_API_VERSION of the hook: the functions up to that version are present */
@@ -402,6 +438,11 @@ typedef struct dmc4_api {
 
     /* a row in the pause menu opening a list menu (dmc4_menus_api above) */
     const dmc4_menus_api* menus;
+
+    /* ---- version 6 ---- */
+
+    /* stage units from any room's files: load and spawn them anywhere (dmc4_units_api above) */
+    const dmc4_units_api* units;
 } dmc4_api;
 
 #ifdef __cplusplus

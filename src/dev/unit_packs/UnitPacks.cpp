@@ -127,6 +127,12 @@ void parse_tracks(const pugi::xml_node x, Unit& u) {
 }
 
 const std::vector<Room>& rooms() { return g_rooms; }
+bool g_manifest_done = false;
+void ensure_manifest() {
+    if (g_manifest_done) return;
+    g_manifest_done = true;
+    read_manifest();
+}
 const std::string& manifest_error() { return g_manifest_error; }
 
 int read_manifest() {
@@ -200,9 +206,13 @@ void release_unit(int room, int unit) {
 // The .pla bytes (dmc4xml/pla.py layout, PLA\0 v17): header 0x10, tracks 0x1C (type, prop, parent, move line, name
 // offset, dti / index, value offset), each value at the next 16-byte boundary (4 bytes, 16 for a vector; a resource
 // value = the offset of its "u32 dti + path" entry in the name area), then the name area at a 4-byte boundary. With
-// `pos`, the unit's mPos value becomes `pos` (added when the unit has none: classes without one skip it).
-std::vector<uint8_t> build_pla(const Unit& u, const float* pos) {
+// `pos`, the unit's mPos value becomes `pos` (added when the unit has none: classes without one skip it); with `yaw`, the
+// y of its mAngle (only when it has one).
+std::vector<uint8_t> build_pla(const Unit& u, const float* pos, const float* yaw) {
     std::vector<PlaTrack> tracks = u.tracks;
+    if (yaw)
+        for (PlaTrack& t : tracks)
+            if (t.type == 9 && t.parent == 1 && t.name == "mAngle") t.v[1] = *yaw;
     if (pos) {
         bool found = false;
         for (PlaTrack& t : tracks)
@@ -261,6 +271,12 @@ std::vector<uint8_t> build_pla(const Unit& u, const float* pos) {
     return out;
 }
 
+void kill_unit(uintptr_t unit) {
+    if (!unit || (at<uint32_t>(unit, 4) & 7) >= 3) return;   // already on its way out
+    using Kill = void(__thiscall*)(uintptr_t);
+    reinterpret_cast<Kill>(at<uintptr_t>(at<uintptr_t>(unit, 0), 0x30))(unit);
+}
+
 // rPlacement::MyDTI::newInstance; uPlacement::MyDTI::newInstance and its fields (+0x18 mpPlacement, +0x1C create in
 // setup). A uPlacement's setup runs createUnitFromNative 0x7A4930 (per unit track: newInstance + sUnit::addBottom on
 // its move line, then every value through the class's MtPropertyList, uPlacement::apply 0x7A4B10), then kills itself
@@ -269,13 +285,13 @@ constexpr uintptr_t kPlacementNew = 0x00472860, kUPlacementNew = 0x007A4650;
 constexpr uintptr_t kUPlaRes = 0x18, kUPlaCreate = 0x1C;
 constexpr int       kUPlaLine = 1;
 
-uintptr_t spawn_unit(int room, int unit, const float* pos, std::string& error) {
+uintptr_t spawn_unit(int room, int unit, const float* pos, std::string& error, const float* yaw) {
     if (room < 0 || room >= (int)g_rooms.size() || unit < 0 || unit >= (int)g_rooms[room].units.size()) { error = "no such unit"; return 0; }
     const Unit& u = g_rooms[room].units[unit];
     if (u.stored && !u.loaded.arc) { error = u.name + ": load its files first"; return 0; }
     if (u.line < 0 || u.line >= 32) { error = "move line out of range"; return 0; }
     if (!devil4_sdk::get_sUnit()) { error = "no sUnit"; return 0; }
-    const std::vector<uint8_t> bytes = build_pla(u, pos);
+    const std::vector<uint8_t> bytes = build_pla(u, pos, yaw);
     const uintptr_t res = reinterpret_cast<uintptr_t(*)()>(kPlacementNew)();   // refcount 1, ours
     if (!res) { error = "rPlacement allocation failed"; return 0; }
     std::snprintf(&at<char>(res, kPath), 64, "unit_packs\\%s\\%s", g_rooms[room].name.c_str(), u.name.c_str());
@@ -677,13 +693,13 @@ void UnitPacks::on_frame(fmilliseconds& dt) {
         case Request::DESPAWN:
             for (size_t i = 0; i < g_spawned.size(); ++i) {
                 if (g_spawned[i].unit != r.unit) continue;
-                if (alive(g_spawned[i])) uactor_sdk::despawn((void*)g_spawned[i].unit);   // its kill state; the game frees it
+                if (alive(g_spawned[i])) kill_unit(g_spawned[i].unit);   // its own kill; the game frees it
                 g_spawned.erase(g_spawned.begin() + i);
                 break;
             }
             break;
         case Request::READ_MANIFEST:
-            read_manifest();
+            ensure_manifest();   // once: a re-read would release what plugins loaded
             if (g_room_pick >= (int)rooms().size()) g_room_pick = 0;
             break;
         case Request::LOAD_UNIT:
@@ -705,7 +721,7 @@ void UnitPacks::on_frame(fmilliseconds& dt) {
         case Request::DESPAWN_UNIT:
             for (size_t i = 0; i < g_made.size(); ++i) {
                 if (g_made[i].unit != r.unit) continue;
-                if (devil4_sdk::check_exists_in_moveline((void*)g_made[i].unit, g_made[i].line)) uactor_sdk::despawn((void*)g_made[i].unit);
+                if (devil4_sdk::check_exists_in_moveline((void*)g_made[i].unit, g_made[i].line)) kill_unit(g_made[i].unit);
                 g_made.erase(g_made.begin() + i);
                 break;
             }
