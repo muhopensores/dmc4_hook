@@ -130,6 +130,7 @@ struct Open {
     int frames = 0;
     int page = 0;
     std::map<int, int> cursors;   // per page
+    int top = 0;                  // the first row shown (lists longer than the window scroll)
 };
 Open g_open;                             // the list menu (one at a time); game thread
 std::atomic<bool> g_menu_open{false};
@@ -256,6 +257,97 @@ constexpr int kImageRowX = 280, kImageRowSelX = 305, kImageRowY = 284, kImageRow
 const int kLabelPool[] = {11, 12, 13, 14, 15};
 const int kValuePool[] = {5, 6, 7, 8, 17, 18, 19, 20};
 constexpr int kArrowLeft = 44, kArrowRight = 43;   // the pause sheet's ◁ / ▷ (the cut practice menus' value arrows)
+constexpr int kTextVisible = 7, kImageVisible = 5;   // rows in the window; longer pages scroll
+
+// ---- the scroll element: the settings menus' own, from the key config's layout (uOptionConfigKey, DX9 0x791A30 /
+// 0x791AE0: arc rom_pc\id\option\option_config_key, layout 0x1B9 = id\pc\opt_key_pc, sheet id\pc\key_pc). Its sprites
+// 29 (up arrow, frame 72), 30 (down arrow, 73) and 31 (the bar, frame 68, 256 tall at a 3712 / 4096 scale = 232 px);
+// moveScrIcon / init: the bar is scaled to visible / rows and moves along a 200-px track by top / (rows - visible).
+// The list menu's unit (a uDevilCock) loads that layout when the arc is in and shows only those three. ----
+constexpr uintptr_t kResourceInstance = 0xE552D0;   // sDevil4Resource*
+constexpr uintptr_t kResCreate = 0x8DF530;          // sResource::create: eax = instance; DTI, path, flags; retn 0Ch
+constexpr uintptr_t kResRelease = 0x8DDA00;         // cResource::release: eax = instance, edi = the resource
+constexpr uintptr_t kArchiveDti = 0xEAD4A0;         // rArchive::DTI
+constexpr uintptr_t kSetData = 0x85FCD0;            // uSprLayout::setData(this, id): stack, retn 8
+constexpr uintptr_t kLoadResource = 0x532E60;       // uDevilCock::loadResource: thiscall
+constexpr uintptr_t kSetPrio2 = 0x4AD7C0;           // uDevilCock::setResourcePrio2: edi = this, push prio; retn 4
+const char* const kScrollArc = "rom_pc\\id\\option\\option_config_key";
+constexpr uint32_t kScrollLayout = 0x1B9;
+constexpr int kScrollUp = 29, kScrollDown = 30, kScrollBar = 31, kScrollX = 1010;
+uintptr_t g_scroll_arc = 0;
+bool g_scroll_ready = false;
+
+uintptr_t resource_create(uintptr_t dti, const char* path, uint32_t flags) {
+    const uintptr_t inst = *reinterpret_cast<const uintptr_t*>(kResourceInstance);
+    uintptr_t r = 0;
+    if (!inst) return 0;
+    __asm {
+        push flags
+        push path
+        push dti
+        mov eax, inst
+        mov ecx, kResCreate
+        call ecx
+        mov r, eax
+    }
+    return r;
+}
+
+void resource_release(uintptr_t res) {
+    const uintptr_t inst = *reinterpret_cast<const uintptr_t*>(kResourceInstance);
+    if (!inst || !res) return;
+    __asm {
+        push edi
+        mov eax, inst
+        mov edi, res
+        mov ecx, kResRelease
+        call ecx
+        pop edi
+    }
+}
+
+// the arc in: the unit takes the key config's layout (as uOptionConfigKey::loadResource, without its fonts)
+void load_scroll_layout(uintptr_t unit) {
+    if (g_scroll_ready || !g_scroll_arc || !(at<uint32_t>(g_scroll_arc, 0x4C) & 1)) return;
+    const uint32_t id = kScrollLayout;
+    __asm {
+        push id
+        push unit
+        mov eax, kSetData
+        call eax
+        mov ecx, unit
+        mov eax, kLoadResource
+        call eax
+        push edi
+        mov edi, unit
+        push 0x64
+        mov eax, kSetPrio2
+        call eax
+        pop edi
+    }
+    g_scroll_ready = at<uintptr_t>(unit, 0x18) != 0;
+}
+
+// only the up / down arrows and the bar, at the list's right, for a list of n rows showing isible from 	op
+void update_scroll(uintptr_t unit, int n, int visible, int top, int window_top, int window_h) {
+    const uintptr_t rs = at<uintptr_t>(unit, 0x18);
+    if (!g_scroll_ready || !rs) return;
+    for (uint32_t i = 0; i < at<uint32_t>(rs, 0x68); ++i)
+        if (sprMap* s = sprite(unit, i)) s->isDisp = false;
+    if (n <= visible) return;
+    sprMap* up = sprite(unit, kScrollUp);
+    sprMap* down = sprite(unit, kScrollDown);
+    sprMap* bar = sprite(unit, kScrollBar);
+    if (!up || !down || !bar) return;
+    const int track_top = window_top + 24, track = window_h - 48;   // the arrows above and below the track
+    const int bar_len = track * visible / n, travel = track - bar_len;
+    const int bar_y = top >= n - visible ? travel : travel * top / (n - visible);
+    up->posHDTV = MtPoint{kScrollX, track_top - 24};
+    down->posHDTV = MtPoint{kScrollX, track_top + track};
+    bar->posHDTV = MtPoint{kScrollX, track_top + bar_y};
+    bar->scaleHDTV.h = static_cast<uint32_t>(static_cast<uint64_t>(bar->scaleHDTVOrg.h) * bar_len / 232);   // 232 px at its own scale
+    up->isDisp = down->isDisp = bar->isDisp = true;
+}
 
 struct RowView {
     std::string label, value;
@@ -308,10 +400,11 @@ void draw_menu(const Open& o) {
     const int n = m.rows ? m.rows() : 0;
     const bool images = image_page(m, n);
     size_t labels = 0, values = 0;
-    for (int i = 0; i < n; ++i) {
+    const int visible = images ? kImageVisible : kTextVisible;
+    for (int i = o.top; i < n && i < o.top + visible; ++i) {
         const RowView v = row_view(m, i);
         const bool on = i == o.cursor;
-        const int cy = row_centre(images, i);
+        const int cy = row_centre(images, i - o.top);
         if (v.label_image >= 0 && labels < std::size(kLabelPool))
             show_image(kLabelPool[labels++], v.label_image, on ? kImageRowSelX : kImageRowX, cy, on);
         else if (!v.label.empty())
@@ -333,8 +426,8 @@ void draw_menu(const Open& o) {
         }
     }
     if (sprMap* arrow = g_pause ? sprite(g_pause, kArrowSprite) : nullptr) {   // the game's arrow on our row
-        arrow->posHDTV = images ? MtPoint{kImageRowSelX + 7, row_centre(true, o.cursor) - 4}
-                                : MtPoint{kRowX + 12, kRowY + o.cursor * kRowStep + 9};
+        arrow->posHDTV = images ? MtPoint{kImageRowSelX + 7, row_centre(true, o.cursor - o.top) - 4}
+                                : MtPoint{kRowX + 12, kRowY + (o.cursor - o.top) * kRowStep + 9};
         arrow->isDisp = true;
     }
     menus::print(slot, kRowX, 600, 22, 22, grey(0xFF), kPrio, "Up / Down: choose      Left / Right: change");
@@ -348,6 +441,7 @@ void __stdcall list_move(uintptr_t unit) {
     switch (o.phase) {
     case Phase::Opening:
         fade(true);   // the pause menu faded to black before making us
+        if (!g_scroll_arc) g_scroll_arc = resource_create(kArchiveDti, kScrollArc, 2);   // async; the layout once it's in
         o.phase = Phase::Running;
         break;
     case Phase::Running: {
@@ -357,11 +451,16 @@ void __stdcall list_move(uintptr_t unit) {
             o.page = page;
             const auto it = o.cursors.find(page);
             o.cursor = it != o.cursors.end() ? it->second : 0;
+            o.top = 0;
         }
         const int n = m.rows ? m.rows() : 0;
         if (n > 0) {
             if (o.cursor >= n) o.cursor = n - 1;
             o.cursor = get_cursor(unit, 0, n, o.cursor, true);
+            const int visible = image_page(m, n) ? kImageVisible : kTextVisible;   // keep the cursor in the window
+            if (o.cursor < o.top) o.top = o.cursor;
+            if (o.cursor >= o.top + visible) o.top = o.cursor - visible + 1;
+            if (o.top > (std::max)(0, n - visible)) o.top = (std::max)(0, n - visible);
             const RowView v = row_view(m, o.cursor);
             if ((!v.value.empty() || v.value_image >= 0) && m.change) {
                 const int step = get_cursor(unit, 1, 3, 1, false) - 1;   // left / right as -1 / +1
@@ -385,6 +484,12 @@ void __stdcall list_move(uintptr_t unit) {
     if (g_list_shown) {
         if (g_pause) hide_pause_rows(g_pause);
         draw_menu(o);
+        load_scroll_layout(unit);
+        const int n = m.rows ? m.rows() : 0;
+        const bool images = image_page(m, n);
+        const int visible = images ? kImageVisible : kTextVisible;
+        update_scroll(unit, n, visible, o.top, images ? kImageRowY - 28 : kRowY,
+                      visible * (images ? kImageRowStep : kRowStep));
     }
 }
 bool __stdcall list_is_end(uintptr_t unit) {
@@ -392,6 +497,9 @@ bool __stdcall list_is_end(uintptr_t unit) {
     if (end && g_open.unit == unit) {
         g_list_shown = false;
         if (g_pause) restore_pause_rows(g_pause);
+        resource_release(g_scroll_arc);   // the unit's layout goes with the unit
+        g_scroll_arc = 0;
+        g_scroll_ready = false;
     }
     return end;
 }
@@ -399,9 +507,15 @@ bool __stdcall list_is_end(uintptr_t unit) {
 // Draws nothing: the pause menu's own window is the backdrop (g_list_shown keeps it drawn). Not uMapMgr's draw (a
 // rectangle) nor uDevilCock::transMain (kDevilCockTransMain: the layout uMapMgr loads would show under our rows). A dim
 // full-screen rectangle, if one is ever wanted: kDrawRect (Vibed\RE\pause_menu.md "Calls").
+// Draws the scroll element only (the unit's layout = the key config's, every other sprite hidden by update_scroll).
 void __stdcall list_trans(uintptr_t unit, uintptr_t draw) {
-    (void)unit;
-    (void)draw;
+    if (!g_scroll_ready || unit != g_open.unit || !g_list_shown || !at<uintptr_t>(unit, 0x18)) return;
+    __asm {
+        push draw
+        mov ecx, unit
+        mov eax, kDevilCockTransMain
+        call eax
+    }
 }
 
 naked void list_move_thunk() {
