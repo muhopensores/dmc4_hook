@@ -9,6 +9,8 @@
 #include <atomic>
 #include <cstring>
 #include <memory>
+#include <iterator>
+#include <map>
 #include <mutex>
 
 // Notes and addresses: PauseMenu.hpp (DX9 exe, read in IDA 2026-11-19).
@@ -126,6 +128,8 @@ struct Open {
     Phase phase = Phase::Off;
     int cursor = 0;
     int frames = 0;
+    int page = 0;
+    std::map<int, int> cursors;   // per page
 };
 Open g_open;                             // the list menu (one at a time); game thread
 std::atomic<bool> g_menu_open{false};
@@ -151,13 +155,14 @@ constexpr int kArrowSprite = 16;   // row 0's highlight arrow, borrowed for the 
 
 uintptr_t g_pause = 0;   // the pause menu our row was last drawn in (the list menu's parent); game thread
 // what hide_pause_rows changed, put back when the list closes (the pause menu goes back to selecting without its intro)
-bool g_saved = false, g_saved_sprites[kLastRowSprite + 1] = {}, g_saved_fonts[kFonts] = {};
+bool g_saved = false, g_saved_fonts[kFonts] = {};
+sprMap g_saved_sprites[kLastRowSprite + 1];   // whole: the list borrows them as image rows (frame, position, colour)
 uint16_t g_saved_title = 0;   // the title sprite's frame (Row::title_image swaps it while the list is up)
 constexpr int kTitleSprite = 0;
 
 void save_pause_rows(uintptr_t menu) {
     for (int i = 0; i <= kLastRowSprite; ++i)
-        if (sprMap* s = sprite(menu, i)) g_saved_sprites[i] = s->isDisp;
+        if (sprMap* s = sprite(menu, i)) g_saved_sprites[i] = *s;
     for (int i = 0; i < kFonts; ++i)
         if (fontMap* f = font(menu, i)) g_saved_fonts[i] = f->isDisp;
     if (sprMap* t = sprite(menu, kTitleSprite)) g_saved_title = t->sprId;
@@ -168,8 +173,7 @@ void restore_pause_rows(uintptr_t menu) {
     if (!g_saved) return;
     g_saved = false;
     for (int i = 0; i <= kLastRowSprite; ++i)
-        if (i == kDescriptionBox || i >= kFirstRowSprite)
-            if (sprMap* s = sprite(menu, i)) s->isDisp = g_saved_sprites[i];
+        if (sprMap* s = sprite(menu, i)) *s = g_saved_sprites[i];
     for (int i = 0; i < kFonts; ++i)
         if (fontMap* f = font(menu, i)) f->isDisp = g_saved_fonts[i];
     if (sprMap* arrow = sprite(menu, kArrowSprite)) arrow->posHDTV = arrow->posHDTVOrg;
@@ -180,6 +184,8 @@ void restore_pause_rows(uintptr_t menu) {
 // move: the pause menu doesn't run its main while a child is up.
 void hide_pause_rows(uintptr_t menu) {
     if (sprMap* s = sprite(menu, kDescriptionBox)) s->isDisp = false;
+    for (int i = 5; i <= 8; ++i)   // hidden icons, borrowed as value images
+        if (sprMap* s = sprite(menu, i)) s->isDisp = false;
     for (int i = kFirstRowSprite; i <= kLastRowSprite; ++i)
         if (sprMap* s = sprite(menu, i)) s->isDisp = false;
     for (int i = 0; i < kFonts; ++i)
@@ -242,27 +248,94 @@ naked void pause_main_thunk() {   // thiscall (ecx = the menu)
 }
 
 // ---- the list menu: a uMapMgr with our move / transMain / isEnd / getDecValue ----
-// inside the pause menu's window, where its rows and description box were (HDTV coordinates)
+// inside the pause menu's window, where its rows and description box were (HDTV coordinates). Text pages: rows 30 apart.
+// Pages with images use the pause menu's own spacing: label anchors at x 280 (305 selected), centres 284 + 56 n.
 constexpr int kTitleX = 640, kTitleY = 166, kRowX = 300, kValueX = 660, kRowY = 262, kRowStep = 30, kTextSize = 26;
+constexpr int kImageRowX = 280, kImageRowSelX = 305, kImageRowY = 284, kImageRowStep = 56, kImageValueX = 640;
+// the pause sprites shown as our rows' images while the list is up (hidden otherwise; all restored when it closes)
+const int kLabelPool[] = {11, 12, 13, 14, 15};
+const int kValuePool[] = {5, 6, 7, 8, 17, 18, 19, 20};
+constexpr int kArrowLeft = 44, kArrowRight = 43;   // the pause sheet's ◁ / ▷ (the cut practice menus' value arrows)
+
+struct RowView {
+    std::string label, value;
+    int label_image = -1, value_image = -1;
+};
+
+RowView row_view(const ListMenu& m, int i) {
+    RowView v;
+    if (m.text) m.text(i, v.label, v.value);
+    if (m.images) m.images(i, v.label_image, v.value_image);
+    return v;
+}
+
+bool image_page(const ListMenu& m, int n) {
+    for (int i = 0; i < n; ++i) {
+        const RowView v = row_view(m, i);
+        if (v.label_image >= 0 || v.value_image >= 0) return true;
+    }
+    return false;
+}
+
+int row_centre(bool images, int i) { return images ? kImageRowY + i * kImageRowStep : kRowY + i * kRowStep + 13; }
+
+// A frame with its left edge at left and its middle at cy. Frames anchor two ways (pause sheet, 2026-11-19): m_CBA 6
+// (the row labels) from their left edge + ofsX, m_CBA 5 (titles, arrows) from their middle - w / 2 + ofsX; both put the
+// top at the sprite's y + ofsY.
+void show_image(int index, int frame, int left, int cy, bool on) {
+    sprMap* s = g_pause ? sprite(g_pause, index) : nullptr;
+    const ANM_SPRITE* f = g_pause ? menus::anm_sprite(reinterpret_cast<uSprLayout*>(g_pause), frame) : nullptr;
+    if (!s || !f) return;
+    const int ox = static_cast<int8_t>(f->m_ofsX), oy = static_cast<int8_t>(f->m_ofsY);
+    s->sprId = static_cast<uint16_t>(frame);
+    s->posHDTV = MtPoint{f->m_CBA == 5 ? left + f->m_sizeW / 2 - ox : left - ox, cy - f->m_sizeH / 2 - oy};
+    const uint8_t v = on ? 0xFF : 0x80;
+    s->color = MtColor{v, v, v, 0xFF};
+    s->isDisp = true;
+}
 
 void draw_menu(const Open& o) {
     const ListMenu& m = o.row->menu;
     const bool menu_font = menus::load_menu_font();
     const int slot = menu_font ? menus::kMenuFontSlot : menus::kDebugFontSlot;
-    if (o.row->title_image < 0) menus::print(slot, kTitleX, kTitleY, 36, 36, white(0xFF), kPrio, m.title.c_str());
+    int title = m.title_image ? m.title_image() : -1;
+    if (title < 0) title = o.row->title_image;
+    if (title >= 0) {
+        if (sprMap* t = g_pause ? sprite(g_pause, kTitleSprite) : nullptr) t->sprId = static_cast<uint16_t>(title);
+    } else {
+        menus::print(slot, kTitleX, kTitleY, 36, 36, white(0xFF), kPrio, m.title.c_str());
+    }
     const int n = m.rows ? m.rows() : 0;
-    std::string label, value;
+    const bool images = image_page(m, n);
+    size_t labels = 0, values = 0;
     for (int i = 0; i < n; ++i) {
-        label.clear();
-        value.clear();
-        if (m.text) m.text(i, label, value);
+        const RowView v = row_view(m, i);
         const bool on = i == o.cursor;
-        const int y = kRowY + i * kRowStep;
-        menus::print(slot, kRowX, y, kTextSize, kTextSize, on ? gold(0xFF) : grey(0xFF), kPrio, label.c_str());
-        if (!value.empty()) {
-            const std::string shown = on ? "[  " + value + "  ]" : value;   // moji00 has no < >
-            menus::print(slot, on ? kValueX - 22 : kValueX, y, kTextSize, kTextSize, on ? white(0xFF) : grey(0xFF), kPrio, shown.c_str());
+        const int cy = row_centre(images, i);
+        if (v.label_image >= 0 && labels < std::size(kLabelPool))
+            show_image(kLabelPool[labels++], v.label_image, on ? kImageRowSelX : kImageRowX, cy, on);
+        else if (!v.label.empty())
+            menus::print(slot, images ? kImageRowX + 8 : kRowX, cy - (images ? 16 : 13), images ? 32 : kTextSize,
+                         images ? 32 : kTextSize, on ? gold(0xFF) : grey(0xFF), kPrio, v.label.c_str());
+        const int vx = images ? kImageValueX : kValueX;
+        if (v.value_image >= 0 && values < std::size(kValuePool)) {
+            show_image(kValuePool[values++], v.value_image, vx, cy, on);
+            if (on && values + 2 <= std::size(kValuePool)) {   // the cut menu's value arrows: 44 (mirrored) and 43, 32 x 32
+                const ANM_SPRITE* f = menus::anm_sprite(reinterpret_cast<uSprLayout*>(g_pause), v.value_image);
+                const int w = f ? f->m_sizeW : 256;   // the value frames are 256 wide, their words centred: arrows just inside
+                show_image(kValuePool[values++], kArrowLeft, vx + w * 6 / 100 - 16, cy, true);
+                show_image(kValuePool[values++], kArrowRight, vx + w * 96 / 100 - 16, cy, true);
+            }
+        } else if (!v.value.empty()) {
+            const std::string shown = on ? "[  " + v.value + "  ]" : v.value;
+            menus::print(slot, on ? vx - 22 : vx, cy - 13, kTextSize, kTextSize, on ? white(0xFF) : grey(0xFF), kPrio,
+                         shown.c_str());
         }
+    }
+    if (sprMap* arrow = g_pause ? sprite(g_pause, kArrowSprite) : nullptr) {   // the game's arrow on our row
+        arrow->posHDTV = images ? MtPoint{kImageRowSelX + 7, row_centre(true, o.cursor) - 4}
+                                : MtPoint{kRowX + 12, kRowY + o.cursor * kRowStep + 9};
+        arrow->isDisp = true;
     }
     menus::print(slot, kRowX, 600, 22, 22, grey(0xFF), kPrio, "Up / Down: choose      Left / Right: change");
 }
@@ -278,19 +351,25 @@ void __stdcall list_move(uintptr_t unit) {
         o.phase = Phase::Running;
         break;
     case Phase::Running: {
+        const int page = m.page ? m.page() : 0;
+        if (page != o.page) {   // the cursor is kept per page (back to a page: where it was)
+            o.cursors[o.page] = o.cursor;
+            o.page = page;
+            const auto it = o.cursors.find(page);
+            o.cursor = it != o.cursors.end() ? it->second : 0;
+        }
         const int n = m.rows ? m.rows() : 0;
         if (n > 0) {
             if (o.cursor >= n) o.cursor = n - 1;
             o.cursor = get_cursor(unit, 0, n, o.cursor, true);
-            std::string label, value;
-            if (m.text) m.text(o.cursor, label, value);
-            if (!value.empty() && m.change) {
+            const RowView v = row_view(m, o.cursor);
+            if ((!v.value.empty() || v.value_image >= 0) && m.change) {
                 const int step = get_cursor(unit, 1, 3, 1, false) - 1;   // left / right as -1 / +1
                 if (step) m.change(o.cursor, step);
             }
             if (o.frames > 2 && pad_decide() && m.decide) m.decide(o.cursor);
         }
-        if (o.frames > 2 && pad_cancel()) {
+        if (o.frames > 2 && pad_cancel() && !(m.back && m.back())) {   // B: the page's back first, else close
             fade(false);
             o.phase = Phase::Closing;
         }
@@ -304,20 +383,10 @@ void __stdcall list_move(uintptr_t unit) {
     }
     g_list_shown = o.phase == Phase::Running || o.phase == Phase::Closing;
     if (g_list_shown) {
-        if (g_pause) {
-            hide_pause_rows(g_pause);
-            if (o.row->title_image >= 0)
-                if (sprMap* t = sprite(g_pause, kTitleSprite)) t->sprId = static_cast<uint16_t>(o.row->title_image);
-            if (sprMap* arrow = sprite(g_pause, kArrowSprite)) {   // the game's arrow on our row (its anchor sits on the label's right)
-                arrow->posHDTV.x = kRowX + 12;
-                arrow->posHDTV.y = kRowY + o.cursor * kRowStep + 9;
-                arrow->isDisp = true;
-            }
-        }
+        if (g_pause) hide_pause_rows(g_pause);
         draw_menu(o);
     }
 }
-
 bool __stdcall list_is_end(uintptr_t unit) {
     const bool end = g_open.unit != unit || g_open.phase == Phase::Done;
     if (end && g_open.unit == unit) {

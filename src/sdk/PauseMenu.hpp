@@ -23,6 +23,10 @@ struct ListMenu {
     std::function<void(int row, std::string& label, std::string& value)> text;   // value "" = an action row (A runs it)
     std::function<void(int row, int step)> change;                          // left / right: -1 / +1
     std::function<void(int row)> decide;                                    // A on a row
+    std::function<int()> page;                     // the page shown (any number): the cursor is kept per page
+    std::function<int()> title_image;              // the page's title frame (-1: Row::title_image, else the title text)
+    std::function<void(int row, int& label_image, int& value_image)> images;   // frames of the pause sheet (-1 = text)
+    std::function<bool()> back;                    // B: true = handled (back a page), false = close the menu
 };
 
 struct Row {

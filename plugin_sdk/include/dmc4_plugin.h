@@ -277,6 +277,13 @@ typedef struct dmc4_list_menu {
     void (*row_text)(void* user, int row, char* label, uint32_t label_size, char* value, uint32_t value_size);
     void (*change)(void* user, int row, int step);                                /* left / right: -1 / +1 */
     void (*decide)(void* user, int row);                                           /* A */
+    /* pages (each NULL = none): the menu shows one page; the plugin switches it (from decide), and the cursor is kept
+     * per page. Images are frames of the pause sheet + 1 (0 = text), drawn with the pause menu's own sprites: up to 5
+     * labels and 8 values a page; a page with images uses the pause menu's row spacing (5 rows fit). */
+    int (*page)(void* user);
+    int (*title_image)(void* user);                                                /* the page's title frame + 1 */
+    void (*row_images)(void* user, int row, int* label_image, int* value_image);
+    int (*back)(void* user);                                                       /* B: nonzero = handled */
 } dmc4_list_menu;
 
 typedef struct dmc4_pause_row {

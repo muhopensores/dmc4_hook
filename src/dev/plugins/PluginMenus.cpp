@@ -37,6 +37,16 @@ void c_text(void* p) {
 }
 void c_change(void* p) { auto* c = static_cast<Call*>(p); c->menu->change(c->menu->user, c->row, c->step); }
 void c_decide(void* p) { auto* c = static_cast<Call*>(p); c->menu->decide(c->menu->user, c->row); }
+void c_page(void* p) { auto* c = static_cast<Call*>(p); c->result = c->menu->page(c->menu->user); }
+void c_title(void* p) { auto* c = static_cast<Call*>(p); c->result = c->menu->title_image(c->menu->user); }
+void c_back(void* p) { auto* c = static_cast<Call*>(p); c->result = c->menu->back(c->menu->user); }
+void c_images(void* p) {
+    auto* c = static_cast<Call*>(p);
+    int label = 0, value = 0;
+    c->menu->row_images(c->menu->user, c->row, &label, &value);
+    c->result = label;
+    c->step = value;
+}
 
 int __cdecl api_pause_row(dmc4_plugin* self, const dmc4_pause_row* row) {
     if (!self || !row || row->size < sizeof(dmc4_pause_row) || !row->label || !row->menu.row_count || !row->menu.row_text)
@@ -83,6 +93,30 @@ int __cdecl api_pause_row(dmc4_plugin* self, const dmc4_pause_row* row) {
             Call c{&g_menu};
             c.row = i;
             if (owns(self)) run_guarded(self, c_decide, &c, "a list menu's decide");
+        };
+    if (row->menu.page)
+        r.menu.page = [self]() {
+            Call c{&g_menu};
+            return owns(self) && run_guarded(self, c_page, &c, "a list menu's page") ? c.result : 0;
+        };
+    if (row->menu.title_image)
+        r.menu.title_image = [self]() {
+            Call c{&g_menu};
+            return owns(self) && run_guarded(self, c_title, &c, "a list menu's title_image") ? c.result - 1 : -1;
+        };
+    if (row->menu.row_images)
+        r.menu.images = [self](int i, int& label, int& value) {
+            Call c{&g_menu};
+            c.row = i;
+            if (owns(self) && run_guarded(self, c_images, &c, "a list menu's row_images")) {
+                label = c.result - 1;
+                value = c.step - 1;
+            }
+        };
+    if (row->menu.back)
+        r.menu.back = [self]() {
+            Call c{&g_menu};
+            return owns(self) && run_guarded(self, c_back, &c, "a list menu's back") && c.result != 0;
         };
     pause_menu::set_row(r);
     return 1;
