@@ -21,6 +21,11 @@ constexpr uintptr_t kSave     = 0xE558C8;           // sSave*: +0x98 the menu's 
 constexpr uintptr_t kResultSite = 0x778ADD;         // result, case 0: mov ecx, [ebp+40h] / cmp ecx, 0Eh (6 bytes)
 constexpr uintptr_t kResultDefault = 0x7791AC;      // the switch's default: back to selecting
 constexpr uint8_t kResultBytes[6] = {0x8B, 0x4D, 0x40, 0x83, 0xF9, 0x0E};
+// aMissionTitle::move (vtable 0xB90F04 slot 7) step 2, after it dropped its last unit: before it creates the mission-start
+// screen (uMissionStart 0x785D90, or uBloodyPalaceStart for mission 50). mov eax, [sMediator::mpInstance] (5 bytes).
+constexpr uintptr_t kTitleSite = 0x4077A2;
+constexpr uint8_t kTitleBytes[5] = {0xA1, 0xB8, 0x58, 0xE5, 0x00};
+constexpr uintptr_t kTitleStart = 0x4078C9;         // step 3's "no screen" path: this->next area (vtable +0x2C), step + 1
 
 // the row a plugin can take over: 12 My History (rows: 0-6 difficulties, 7 Bloody Palace, 8 Story Theater, 9 Total
 // Ranking, 10 Gallery, 11 Library, 12 My History, 13 Options, 14 Save / Load; Vibed\RE\menus.md "uMissionMenu")
@@ -33,6 +38,10 @@ uintptr_t g_main_original = kMain;
 uintptr_t g_ret_result = 0;
 uintptr_t g_ret_result_default = kResultDefault;
 std::unique_ptr<FunctionHook> g_hook_result;
+uintptr_t g_ret_title = kTitleSite + 5;
+uintptr_t g_title_start = kTitleStart;
+std::unique_ptr<FunctionHook> g_hook_title;
+volatile bool g_skip_start = false;                  // the menu went into a room: no mission-start screen
 std::atomic<int> g_room_request{-1};
 std::atomic<uint64_t> g_last_seen{0};               // GetTickCount64 of the menu's last frame
 std::mutex g_mutex;
@@ -78,13 +87,16 @@ void start_into_room(uintptr_t menu, int room) {
     at<uint8_t>(menu, 0x15) = 0;
     at<uint8_t>(menu, 0x16) = 0;   // result step 0: the row's action
     at<uint8_t>(menu, 0x17) = 2;   // a difficulty row's last step: fade out, setDanteStyle, then isEnd
+    g_skip_start = g_hook_title != nullptr;
     spdlog::info("MissionMenu: starting mission {} (difficulty row {}) in room {}", at<int>(menu, 0x70 + 4 * d), d, room);
 }
 
 // before uMissionMenu::main, every frame the menu runs (game thread)
 void __stdcall before_main(uintptr_t menu) {
     g_last_seen = GetTickCount64();
-    if (g_room_request.load() >= 0 && at<uint8_t>(menu, 0x14) == 1) start_into_room(menu, g_room_request.exchange(-1));
+    if (at<uint8_t>(menu, 0x14) != 1) return;   // selecting
+    if (g_room_request.load() >= 0) start_into_room(menu, g_room_request.exchange(-1));
+    else g_skip_start = false;                  // back in the menu: a mission picked here gets its screen
 }
 
 // after it: the plugin's row in My History's place (its label images and preview picture hidden, ours drawn)
@@ -165,6 +177,18 @@ naked void detour_result() {   // ebp = the menu
     }
 }
 
+naked void detour_title() {   // ebp = aMissionTitle; ebx, esi, edi, ebp pushed by move
+    __asm {
+        cmp byte ptr [g_skip_start], 0
+        jne skip
+        mov eax, dword ptr ds:[0xE558B8]   // sMediator::mpInstance
+        jmp dword ptr [g_ret_title]
+    skip:
+        mov byte ptr [g_skip_start], 0
+        jmp dword ptr [g_title_start]      // as if the screen had ended on Mission Start
+    }
+}
+
 } // namespace
 
 bool install() {
@@ -185,6 +209,11 @@ bool install() {
         else g_hook_result.reset();
     }
     if (!g_hook_result) spdlog::error("MissionMenu: couldn't hook the menu's result (0x{:X}); no rows of plugins", kResultSite);
+    if (std::memcmp(reinterpret_cast<const void*>(kTitleSite), kTitleBytes, sizeof kTitleBytes) == 0) {
+        g_hook_title = std::make_unique<FunctionHook>(kTitleSite, reinterpret_cast<uintptr_t>(&detour_title));
+        if (!g_hook_title->create()) g_hook_title.reset();
+    }
+    if (!g_hook_title) spdlog::warn("MissionMenu: couldn't hook aMissionTitle (0x{:X}); rooms keep the mission-start screen", kTitleSite);
     g_installed = true;
     return true;
 }

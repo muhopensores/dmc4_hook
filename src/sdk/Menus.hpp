@@ -431,6 +431,21 @@ constexpr int kMenuFontSlot = 10;                   // empty in the Mission Menu
 bool load_menu_font(int slot = kMenuFontSlot);
 bool menu_font_ready(int slot = kMenuFontSlot);
 
+// A label font: the menus' slanted metal lettering (the pause / option labels: capitals and small caps) as a message
+// file + its sheet, `<path>.msg` and `<path>.tex` (loose files under nativePC; made by the practice mode's
+// tools\font\make_game_font.py from letters cut out of the game's own sheets). Message 0 is an ASCII table as print
+// wants; message 1 holds, per character 0x20-0x7E, the pen advance (code, px) and how far left of the pen its cell
+// starts (advance byte, px). The letters lean over their neighbours and printf cuts each character to its own width, so
+// print_label draws them one at a time. Upper case = capitals, lower case = small caps ("D.t. Gauge").
+// load_label_font loads both files (synchronously, once per path) and puts them into `slot` if it's empty or already
+// theirs; game thread, call it every frame you print. False if the files aren't there or the slot is the game's.
+constexpr int kLabelFontSlot = 9;                   // empty in the pause menu and the Mission Menu
+bool load_label_font(const char* path, int slot = kLabelFontSlot);
+int label_width(const char* text, int slot = kLabelFontSlot);   // px, at the font's own size
+// text with its first letter's pen at x and the 40-px lettering row's top at y (the row's middle at y + 20, as the
+// pause sheet's 40-px label frames), at the font's own size; HDTV coordinates
+bool print_label(int x, int y, MtColor color, int prio, const char* text, int slot = kLabelFontSlot);
+
 // A layout's sprite frame (sprite group `frame` of its .anm, the first part), nullptr past the .anm's groups. A sprite
 // shows frame n with sprMap::sprId = n; frames are shared by every unit using that .anm (edit them with care).
 inline ANM_SPRITE* anm_sprite(const uSprLayout* layout, int frame) {

@@ -3,6 +3,7 @@
 #include "../../../plugin_sdk/include/dmc4_plugin.h"
 #include "../../sdk/PauseMenu.hpp"
 #include "../../sdk/MissionMenu.hpp"
+#include <cstddef>
 #include <cstring>
 #include <mutex>
 
@@ -49,7 +50,9 @@ void c_images(void* p) {
 }
 
 int __cdecl api_pause_row(dmc4_plugin* self, const dmc4_pause_row* row) {
-    if (!self || !row || row->size < sizeof(dmc4_pause_row) || !row->label || !row->menu.row_count || !row->menu.row_text)
+    // plugins built before version 8 end at title_image
+    if (!self || !row || row->size < offsetof(dmc4_pause_row, font) || !row->label || !row->menu.row_count ||
+        !row->menu.row_text)
         return 0;
     if (!pause_menu::install()) {
         plugin_log(self, DMC4_LOG_ERROR, "menus->pause_row: the pause menu isn't the expected code");
@@ -67,6 +70,7 @@ int __cdecl api_pause_row(dmc4_plugin* self, const dmc4_pause_row* row) {
     r.label_image = row->label_image - 1;
     r.label_image_width = row->label_image_width;
     r.title_image = row->title_image - 1;
+    if (row->size >= offsetof(dmc4_pause_row, font) + sizeof row->font && row->font) r.font = row->font;
     r.menu.title = row->menu.title ? row->menu.title : "";
     r.menu.rows = [self]() {
         Call c{&g_menu};

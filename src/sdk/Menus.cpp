@@ -3,6 +3,7 @@
 #include "MtMemoryStream.hpp"
 #include <cstdio>
 #include <cstring>
+#include <string>
 
 namespace menus {
 namespace {
@@ -127,6 +128,111 @@ void fill_slot(uintptr_t m, int slot, uintptr_t msg, uintptr_t tex) {
 }
 
 } // namespace
+
+// ---- label fonts ----
+
+namespace {
+
+constexpr uintptr_t kTextureDti = 0xEAD680;         // rTexture::DTI
+
+struct LabelFont {
+    std::string path;
+    uintptr_t msg = 0, tex = 0;   // our references, kept while the path is in use
+    bool failed = false;          // not there (tried once per path)
+};
+LabelFont g_label;
+
+bool loaded(uintptr_t r) { return r && (*reinterpret_cast<const uint32_t*>(r + 0x4C) & 1); }
+
+void drop(LabelFont& f) {
+    if (f.msg) devil4_sdk::release_resource(reinterpret_cast<cResource*>(f.msg));
+    if (f.tex) devil4_sdk::release_resource(reinterpret_cast<cResource*>(f.tex));
+    f.msg = f.tex = 0;
+}
+
+uintptr_t slot_message(int slot) {
+    const uintptr_t m = message();
+    return m && slot >= 0 && slot < kMessageSlots ? *reinterpret_cast<const uintptr_t*>(slot_data(m, slot) + 0x20) : 0;
+}
+
+// message k's entries (u16 code, u8 advance, u8 flag) of an rMessage: +0x60 the message index, +0x64 the header
+const uint8_t* message_entries(uintptr_t msg, int k) {
+    const uintptr_t index = *reinterpret_cast<const uintptr_t*>(msg + 0x60);
+    const uintptr_t head = *reinterpret_cast<const uintptr_t*>(msg + 0x64);
+    if (!index || !head || k >= *reinterpret_cast<const uint16_t*>(head + 0x1C)) return nullptr;
+    return *reinterpret_cast<const uint8_t* const*>(index + 4 * k);
+}
+
+// a label font in `slot` (ours): its metrics (message 1) and cell size (2 x font width, font height)
+struct Metrics {
+    const uint8_t* m1 = nullptr;
+    unsigned w = 0, h = 0;
+};
+Metrics metrics(int slot) {
+    Metrics r;
+    const uintptr_t msg = slot_message(slot);
+    if (!msg || msg != g_label.msg || !slot_loaded(slot)) return r;
+    const uintptr_t head = *reinterpret_cast<const uintptr_t*>(msg + 0x64);
+    r.m1 = message_entries(msg, 1);
+    r.w = 2u * *reinterpret_cast<const uint16_t*>(head + 0x14);
+    r.h = *reinterpret_cast<const uint16_t*>(head + 0x16);
+    return r;
+}
+
+} // namespace
+
+bool load_label_font(const char* path, int slot) {
+    if (!path || !*path) return false;
+    const uintptr_t m = message();
+    if (!m || slot < 0 || slot >= kMessageSlots) return false;
+    if (g_label.path != path) {
+        const uintptr_t held = slot_message(slot);
+        if (held && held == g_label.msg) return false;   // another font of ours still in the slot: not swapped under it
+        drop(g_label);
+        g_label = LabelFont{path};
+    }
+    if (g_label.failed) return false;
+    if (!g_label.msg) {
+        const std::string p = g_label.path;
+        g_label.msg = reinterpret_cast<uintptr_t>(devil4_sdk::get_stuff_from_files(reinterpret_cast<MtDTI*>(kMessageDti), const_cast<char*>(p.c_str()), 1));
+        g_label.tex = reinterpret_cast<uintptr_t>(devil4_sdk::get_stuff_from_files(reinterpret_cast<MtDTI*>(kTextureDti), const_cast<char*>(p.c_str()), 1));
+        if (!loaded(g_label.msg) || !loaded(g_label.tex) || !message_entries(g_label.msg, 1)) {
+            drop(g_label);
+            g_label.failed = true;
+            return false;
+        }
+    }
+    const uintptr_t held = slot_message(slot);
+    if (held == g_label.msg && slot_loaded(slot)) return true;
+    if (held && held != g_label.msg) return false;   // the game's
+    fill_slot(m, slot, g_label.msg, g_label.tex);
+    return slot_message(slot) == g_label.msg && slot_loaded(slot);
+}
+
+int label_width(const char* text, int slot) {
+    const Metrics f = metrics(slot);
+    if (!f.m1 || !text) return 0;
+    int w = 0;
+    for (const char* c = text; *c; ++c)
+        if (*c >= 0x20 && *c < 0x7F) w += *reinterpret_cast<const uint16_t*>(f.m1 + 4 * (*c - 0x20));
+    return w;
+}
+
+bool print_label(int x, int y, MtColor color, int prio, const char* text, int slot) {
+    const Metrics f = metrics(slot);
+    if (!f.m1 || !text) return false;
+    char one[2] = {0, 0};
+    for (const char* c = text; *c; ++c) {
+        if (*c < 0x20 || *c >= 0x7F) continue;
+        const uint8_t* e = f.m1 + 4 * (*c - 0x20);
+        if (*c != ' ') {
+            one[0] = *c;
+            print(slot, x - e[2], y, f.w, f.h, color, prio, one);
+        }
+        x += *reinterpret_cast<const uint16_t*>(e);
+    }
+    return true;
+}
 
 bool menu_font_ready(int slot) {
     const uintptr_t m = message();

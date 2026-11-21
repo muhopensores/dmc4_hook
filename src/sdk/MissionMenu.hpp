@@ -11,6 +11,9 @@
 //   step, and the mission start takes the jump: the room loads instead of the mission's first room. Done in the menu's
 //   own frame (a thunk on uMissionMenu::main, vtable 0xBDFD88 slot 17), while it's selecting.
 //   Checked: Mission Menu -> room 900 through Mission 20's mission-start screen (needs a press) and its first room.
+//   The mission-start screen is skipped (2026-11-21): aMissionTitle::move's step 2 (0x4077A2) goes straight to its
+//   "screen ended on Mission Start" path (0x4078C9) for a mission the menu started into a room (ArcadeMode ends the
+//   screen at once instead).
 namespace mission_menu {
 
 bool install();             // the main thunk, once (idempotent); false if the vtable slot isn't the game's

@@ -36,6 +36,8 @@ struct Row {
     int label_image = -1;        // a frame of the pause sheet (main01.anm) shown in the Map label's place instead of the text
     int label_image_width = 0;   // narrows that frame (pixels; edits the shared frame, so only for frames nothing else shows)
     int title_image = -1;        // a frame shown in place of the PAUSE MENU title while the list is up (instead of the title text)
+    std::string font;            // a label font (menus::load_label_font: <font>.msg + .tex) for the list's text rows, which
+                                 // then take the image rows' spacing; "" or not loadable = the menus' own text font
     ListMenu menu;
 };
 

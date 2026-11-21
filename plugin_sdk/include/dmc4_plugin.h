@@ -43,7 +43,7 @@ extern "C" {
 #endif
 
 #define DMC4_PLUGIN_ABI 1          /* breaking changes: a plugin built for another ABI isn't loaded */
-#define DMC4_PLUGIN_API_VERSION 7 /* additions: functions appended to dmc4_api (and to the tables it points to) */
+#define DMC4_PLUGIN_API_VERSION 8 /* additions: functions appended to dmc4_api (and to the tables it points to) */
 
 #define DMC4_PLUGIN_EXPORT DMC4_EXTERN_C __declspec(dllexport)
 #define DMC4_PLUGIN_ABI_EXPORT() DMC4_PLUGIN_EXPORT uint32_t dmc4_plugin_abi(void) { return DMC4_PLUGIN_ABI; }
@@ -328,6 +328,11 @@ typedef struct dmc4_pause_row {
     int label_image;            /* the row's label, in the Map label's place */
     int label_image_width;      /* narrows that frame (pixels, 0 = as it is): edits the frame for every user of the sheet */
     int title_image;            /* in place of the PAUSE MENU title while the list is up */
+    /* version 8 (an older hook ignores it): the list's text rows in a label font, the pause menu labels' slanted metal
+     * lettering (upper case = capitals, lower case = small caps): a resource path whose .msg + .tex are loose files
+     * under nativePC (e.g. "practice\\label_font"; the practice mode's tools\font\make_game_font.py makes them). Text
+     * rows then take the image rows' spacing. NULL = the menus' own text font, as is the font if the files aren't there. */
+    const char* font;
 } dmc4_pause_row;
 
 /* A row of the plugin's in the Mission Menu, in My History's place (its row tables hold 15 rows: one is taken over, not

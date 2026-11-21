@@ -328,7 +328,7 @@ void load_scroll_layout(uintptr_t unit) {
     g_scroll_ready = at<uintptr_t>(unit, 0x18) != 0;
 }
 
-// only the up / down arrows and the bar, at the list's right, for a list of n rows showing isible from 	op
+// only the up / down arrows and the bar, at the list's right, for a list of n rows showing `visible` from `top`
 void update_scroll(uintptr_t unit, int n, int visible, int top, int window_top, int window_h) {
     const uintptr_t rs = at<uintptr_t>(unit, 0x18);
     if (!g_scroll_ready || !rs) return;
@@ -369,21 +369,27 @@ bool image_page(const ListMenu& m, int n) {
     return false;
 }
 
+// the row's label font, loaded (its text rows then take the image rows' spacing)
+bool label_font(const Open& o) { return o.row && !o.row->font.empty() && menus::load_label_font(o.row->font.c_str()); }
+bool spaced(const Open& o, const ListMenu& m, int n) { return label_font(o) || image_page(m, n); }
+
 int row_centre(bool images, int i) { return images ? kImageRowY + i * kImageRowStep : kRowY + i * kRowStep + 13; }
 
 // A frame with its left edge at left and its middle at cy. Frames anchor two ways (pause sheet, 2026-11-19): m_CBA 6
 // (the row labels) from their left edge + ofsX, m_CBA 5 (titles, arrows) from their middle - w / 2 + ofsX; both put the
 // top at the sprite's y + ofsY.
-void show_image(int index, int frame, int left, int cy, bool on) {
+// False when the sheet has no such frame (a plugin's own frame on the game's sheet): the row's text is drawn instead.
+bool show_image(int index, int frame, int left, int cy, bool on) {
     sprMap* s = g_pause ? sprite(g_pause, index) : nullptr;
     const ANM_SPRITE* f = g_pause ? menus::anm_sprite(reinterpret_cast<uSprLayout*>(g_pause), frame) : nullptr;
-    if (!s || !f) return;
+    if (!s || !f) return false;
     const int ox = static_cast<int8_t>(f->m_ofsX), oy = static_cast<int8_t>(f->m_ofsY);
     s->sprId = static_cast<uint16_t>(frame);
     s->posHDTV = MtPoint{f->m_CBA == 5 ? left + f->m_sizeW / 2 - ox : left - ox, cy - f->m_sizeH / 2 - oy};
     const uint8_t v = on ? 0xFF : 0x80;
     s->color = MtColor{v, v, v, 0xFF};
     s->isDisp = true;
+    return true;
 }
 
 void draw_menu(const Open& o) {
@@ -398,16 +404,21 @@ void draw_menu(const Open& o) {
         menus::print(slot, kTitleX, kTitleY, 36, 36, white(0xFF), kPrio, m.title.c_str());
     }
     const int n = m.rows ? m.rows() : 0;
-    const bool images = image_page(m, n);
+    const bool font = label_font(o);   // the text rows in the label font, as the image rows
+    const bool images = font || image_page(m, n);
     size_t labels = 0, values = 0;
     const int visible = images ? kImageVisible : kTextVisible;
     for (int i = o.top; i < n && i < o.top + visible; ++i) {
         const RowView v = row_view(m, i);
         const bool on = i == o.cursor;
         const int cy = row_centre(images, i - o.top);
+        bool label_shown = false;
         if (v.label_image >= 0 && labels < std::size(kLabelPool))
-            show_image(kLabelPool[labels++], v.label_image, on ? kImageRowSelX : kImageRowX, cy, on);
-        else if (!v.label.empty())
+            label_shown = show_image(kLabelPool[labels++], v.label_image, on ? kImageRowSelX : kImageRowX, cy, on);
+        const MtColor lit = on ? white(0xFF) : MtColor{0x80, 0x80, 0x80, 0xFF};   // as show_image dims the frames
+        if (!label_shown && !v.label.empty() && font)
+            menus::print_label(on ? kImageRowSelX : kImageRowX, cy - 20, lit, kPrio, v.label.c_str());
+        else if (!label_shown && !v.label.empty())
             menus::print(slot, images ? kImageRowX + 8 : kRowX, cy - (images ? 16 : 13), images ? 32 : kTextSize,
                          images ? 32 : kTextSize, on ? gold(0xFF) : grey(0xFF), kPrio, v.label.c_str());
         const int vx = images ? kImageValueX : kValueX;
@@ -418,6 +429,15 @@ void draw_menu(const Open& o) {
                 const int w = f ? f->m_sizeW : 256;   // the value frames are 256 wide, their words centred: arrows just inside
                 show_image(kValuePool[values++], kArrowLeft, vx + w * 6 / 100 - 16, cy, true);
                 show_image(kValuePool[values++], kArrowRight, vx + w * 96 / 100 - 16, cy, true);
+            }
+        } else if (!v.value.empty() && font) {   // centred in a value frame's place, the arrows where the frames' are
+            const int tw = menus::label_width(v.value.c_str()), start = vx + 128 - tw / 2 - 2;
+            // the sheet's value words (NORMAL, ON) are gold metal: the silver letters tinted (B, G, R, A), dimmed off the cursor
+            const MtColor brass = on ? MtColor{0x90, 0xD8, 0xFF, 0xFF} : MtColor{0x48, 0x6C, 0x80, 0xFF};
+            menus::print_label(start, cy - 20, brass, kPrio, v.value.c_str());
+            if (on && values + 2 <= std::size(kValuePool)) {   // or further out, clear of a long value
+                show_image(kValuePool[values++], kArrowLeft, (std::min)(vx - 1, start - 48), cy, true);
+                show_image(kValuePool[values++], kArrowRight, (std::max)(vx + 229, start + tw - 4), cy, true);
             }
         } else if (!v.value.empty()) {
             const std::string shown = on ? "[  " + v.value + "  ]" : v.value;
@@ -457,7 +477,7 @@ void __stdcall list_move(uintptr_t unit) {
         if (n > 0) {
             if (o.cursor >= n) o.cursor = n - 1;
             o.cursor = get_cursor(unit, 0, n, o.cursor, true);
-            const int visible = image_page(m, n) ? kImageVisible : kTextVisible;   // keep the cursor in the window
+            const int visible = spaced(o, m, n) ? kImageVisible : kTextVisible;   // keep the cursor in the window
             if (o.cursor < o.top) o.top = o.cursor;
             if (o.cursor >= o.top + visible) o.top = o.cursor - visible + 1;
             if (o.top > (std::max)(0, n - visible)) o.top = (std::max)(0, n - visible);
@@ -486,7 +506,7 @@ void __stdcall list_move(uintptr_t unit) {
         draw_menu(o);
         load_scroll_layout(unit);
         const int n = m.rows ? m.rows() : 0;
-        const bool images = image_page(m, n);
+        const bool images = spaced(o, m, n);
         const int visible = images ? kImageVisible : kTextVisible;
         update_scroll(unit, n, visible, o.top, images ? kImageRowY - 28 : kRowY,
                       visible * (images ? kImageRowStep : kRowStep));
