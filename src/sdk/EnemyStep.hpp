@@ -18,6 +18,9 @@
 //     enemy_step::add_target_source(&my_source);
 namespace enemy_step {
 
+// Would a fresh Jump be eligible for an Enemy Step on a native enemy right now?
+bool local_player_can_step_on_enemy();
+
 constexpr uintptr_t kSite = 0x804A37;   // bytes replaced: `mov eax, sUnit::mpInstance` (5); jmp_ret = 0x804A3C
 
 // A target for this jumper, or 0. Runs in the jumper's tick (the jumper's move line), so it must only read.

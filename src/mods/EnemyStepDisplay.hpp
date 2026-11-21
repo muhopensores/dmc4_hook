@@ -14,7 +14,7 @@ public:
     static float jc_possible_timer;
     static bool showExtraStats;
     static ImVec2 windowPos;
-    static void update_jc_possible();
+    static void update_display();
 
     static bool chart_enabled;
     static void record_damage();
