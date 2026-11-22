@@ -2,7 +2,7 @@
 #include "AreaJump.hpp"
 #include "CharSwitcher.hpp"
 #include "EnemySpawn.hpp"
-#include "EnemyStepDisplay.hpp"
+#include "../sdk/EnemyStep.hpp"
 #include "EnemyTracker.hpp"
 #include "HealthSettings.hpp"
 #include "WorkRate.hpp"
@@ -407,6 +407,7 @@ cPeripheral* last_player_peripheral = nullptr;
 uint32_t last_player_index = 0;
 uint32_t last_global_routed_buttons[4] = {};
 bool last_global_right_analog[4] = {};
+uint32_t last_player_owned_buttons[4] = {};
 std::string known_macro_file_time_path{};
 uint64_t known_macro_file_write_time = 0;
 uint64_t known_macro_file_size = 0;
@@ -855,13 +856,25 @@ void consume_gamepad_hotkey_buttons(cPeripheral* peripheral, uint32_t buttons) {
     clear_peripheral_buttons(peripheral, buttons);
 }
 
-bool clear_peripheral_output(cPeripheral* peripheral, uint32_t player_index) {
+enum class InputCleanup { Reset, PauseMenu };
+
+bool clear_peripheral_output(cPeripheral* peripheral, uint32_t player_index, InputCleanup cleanup, uint32_t held_buttons) {
     if (!peripheral) {
         return false;
     }
 
     __try {
-        const uint32_t release_buttons = player_index < 4 ? Macro::last_buttons[player_index] : 0;
+        const uint32_t release_buttons = player_index < 4 ? last_player_owned_buttons[player_index] : 0;
+        if (cleanup == InputCleanup::PauseMenu) {
+            const uint32_t released = release_buttons & ~held_buttons;
+            if (released != 0) {
+                peripheral->mPadBtnRel |= peripheral->mPadBtnOn & released;
+                peripheral->mPadBtnOn &= ~released;
+                peripheral->mPadBtnTrg &= ~released;
+                clear_press_values_for_buttons(*reinterpret_cast<kPressInfo*>(&peripheral->mPadBtnPress), released);
+            }
+            return true;
+        }
         peripheral->mPadBtnOn = 0;
         peripheral->mPadBtnTrg = 0;
         peripheral->mPadBtnRel = release_buttons;
@@ -901,42 +914,21 @@ void set_global_pad_press(kPressInfo& press, uint32_t buttons) {
     }
 }
 
-void clear_global_macro_route(uint32_t player_index) {
+void clear_global_macro_route(uint32_t player_index, InputCleanup cleanup = InputCleanup::Reset, uint32_t held_buttons = 0) {
     if (player_index >= 4) {
         player_index = 0;
     }
 
-    const uint32_t release_buttons = last_global_routed_buttons[player_index];
+    const uint32_t release_buttons = last_global_routed_buttons[player_index] & ~held_buttons;
     const bool release_right_analog = last_global_right_analog[player_index];
     auto* pad = get_global_pad_safe();
-    if (pad) {
+    if (pad && (release_buttons != 0 || release_right_analog)) {
         auto& pad_info = pad->mPadInfo[0];
+        pad_info.mBtn.rel |= cleanup == InputCleanup::PauseMenu ? (release_buttons & pad_info.mBtn.on) : release_buttons;
         pad_info.mBtn.on &= ~release_buttons;
         pad_info.mBtn.trg &= ~release_buttons;
-        pad_info.mBtn.rel |= release_buttons;
-
-        if ((release_buttons & PAD_BUTTON_L3) != 0) {
-            pad_info.mPress.L3 = 0.0f;
-        }
-        if ((release_buttons & PAD_BUTTON_R3) != 0) {
-            pad_info.mPress.R3 = 0.0f;
-        }
-        if ((release_buttons & PAD_BUTTON_L1) != 0) {
-            pad_info.mPress.L1 = 0.0f;
-        }
-        if ((release_buttons & PAD_BUTTON_L2) != 0) {
-            pad_info.mPress.L2 = 0.0f;
-        }
-        if ((release_buttons & PAD_BUTTON_R1) != 0) {
-            pad_info.mPress.R1 = 0.0f;
-        }
-        if ((release_buttons & PAD_BUTTON_R2) != 0) {
-            pad_info.mPress.R2 = 0.0f;
-        }
-        if ((release_buttons & PAD_BUTTON_SELECT) != 0) {
-            pad_info.mPress.Select = 0.0f;
-        }
-        if (release_right_analog) {
+        clear_press_values_for_buttons(pad_info.mPress, release_buttons);
+        if (release_right_analog && cleanup != InputCleanup::PauseMenu) {
             pad_info.mAnlg[1].x = 0.0f;
             pad_info.mAnlg[1].y = 0.0f;
         }
@@ -946,15 +938,30 @@ void clear_global_macro_route(uint32_t player_index) {
     last_global_right_analog[player_index] = false;
 }
 
-bool clear_last_peripheral_output() {
-    const bool cleared_peripheral = clear_peripheral_output(last_player_peripheral, last_player_index);
+void clear_last_peripheral_output(InputCleanup cleanup = InputCleanup::Reset) {
+    uint32_t held_buttons = 0;
+    if (cleanup == InputCleanup::PauseMenu) {
+        auto* pad = get_global_pad_safe();
+        if (pad) {
+            uint32_t routed = 0;
+            for (const auto buttons : last_global_routed_buttons) {
+                routed |= buttons;
+            }
+            // Routed bits may be ours in mPadInfo; the underlying pad sample is not playback output.
+            held_buttons = pad->mPad[0].field10_0x15c.On | (pad->mPadInfo[0].mBtn.on & ~routed);
+        } else {
+            // No live sample: let native polling rebuild inputs rather than guessing at releases.
+            held_buttons = UINT32_MAX;
+        }
+    }
+    clear_peripheral_output(last_player_peripheral, last_player_index, cleanup, held_buttons);
     for (uint32_t player_index = 0; player_index < 4; ++player_index) {
-        clear_global_macro_route(player_index);
+        clear_global_macro_route(player_index, cleanup, held_buttons);
     }
     std::fill_n(Macro::last_buttons, 4, 0);
+    std::fill_n(last_player_owned_buttons, 4, 0);
     last_player_peripheral = nullptr;
     last_player_index = 0;
-    return cleared_peripheral;
 }
 
 bool macro_setup_load_pending() {
@@ -992,7 +999,7 @@ bool has_pending_macro_output() {
     }
 
     for (uint32_t player_index = 0; player_index < 4; ++player_index) {
-        if (Macro::last_buttons[player_index] != 0 || last_global_routed_buttons[player_index] != 0 || last_global_right_analog[player_index]) {
+        if (last_player_owned_buttons[player_index] != 0 || last_global_routed_buttons[player_index] != 0 || last_global_right_analog[player_index]) {
             return true;
         }
     }
@@ -1023,14 +1030,14 @@ uint32_t character_role_from_player_safe(uPlayer_old* player) {
     return MACRO_CHARACTER_INVALID;
 }
 
-void suspend_macro_runtime_for_transition() {
+void suspend_macro_runtime_for_transition(InputCleanup cleanup) {
     macro_cached_runtime_ready = false;
-    const bool should_clear_on_resume = has_pending_macro_output();
+    const bool should_clear_on_resume = cleanup != InputCleanup::PauseMenu && has_pending_macro_output();
     const bool preserve_setup_load = macro_setup_transition_expected();
     if (Macro::screen_pause_active) {
         set_screen_pause(false);
     }
-    clear_last_peripheral_output();
+    clear_last_peripheral_output(cleanup);
     Macro::playback_enabled = false;
     Macro::playback_current_frame_index = INVALID_PLAYBACK_FRAME_INDEX;
     Macro::clear_input_frames = should_clear_on_resume ? 4 : 0;
@@ -1057,11 +1064,13 @@ void suspend_macro_runtime_for_transition() {
 }
 
 void suspend_macro_runtime_for_transition_once() {
-    if (macro_suspended_for_transition) {
+    if (macro_suspended_for_transition || !has_pending_macro_output()) {
         return;
     }
 
-    suspend_macro_runtime_for_transition();
+    auto* area = get_s_area_safe();
+    const bool menu_paused = area && area->aGamePtr && area->aGamePtr->m_paused;
+    suspend_macro_runtime_for_transition(menu_paused ? InputCleanup::PauseMenu : InputCleanup::Reset);
 }
 
 void ensure_keyboard_hotkeys(std::vector<std::unique_ptr<utility::Hotkey>>& hotkeys) {
@@ -5405,8 +5414,7 @@ bool evaluate_wait_condition(MacroFrame& frame) {
     }
 
     if (frame.wait_condition == MACRO_WAIT_ENEMY_STEP) {
-        EnemyStepDisplay::update_jc_possible();
-        return EnemyStepDisplay::jc_possible;
+        return enemy_step::local_player_can_step_on_enemy();
     }
 
     auto* player = get_local_player_safe();
@@ -6291,7 +6299,7 @@ void Macro::prepare_for_external_transition() {
     if (!has_pending_macro_output()) {
         return;
     }
-    suspend_macro_runtime_for_transition();
+    suspend_macro_runtime_for_transition(InputCleanup::Reset);
 }
 
 void Macro::on_stage_start() {
@@ -6308,9 +6316,7 @@ void __stdcall Macro::on_pad_update_tick(cPeripheral* peripheral) {
     }
 
     if (!macro_cached_runtime_ready) {
-        if (has_pending_macro_output()) {
-            suspend_macro_runtime_for_transition_once();
-        }
+        suspend_macro_runtime_for_transition_once();
         poll_gamepad_hotkeys(peripheral, false);
         return;
     }
@@ -6393,6 +6399,7 @@ bool apply_macro_output_to_peripheral(
     apply_character_switch_action(macro_frame);
     apply_one_hit_kill_action(macro_frame);
 
+    last_player_owned_buttons[player_index] = buttons;
     Macro::last_buttons[player_index] = output_buttons;
     return true;
 }
@@ -6468,6 +6475,7 @@ void Macro::write_test_input(cPeripheral* peripheral, uint32_t player_index) {
 
 void Macro::reset_input_state() {
     std::fill_n(last_buttons, 4, 0);
+    std::fill_n(last_player_owned_buttons, 4, 0);
     for (uint32_t player_index = 0; player_index < 4; ++player_index) {
         clear_global_macro_route(player_index);
     }
@@ -7385,9 +7393,7 @@ void Macro::on_frame(fmilliseconds& dt) {
     macro_cached_runtime_ready = mod_enabled && macro_runtime_ready();
     const bool runtime_ready = macro_cached_runtime_ready;
     if (mod_enabled && !runtime_ready) {
-        if (has_pending_macro_output()) {
-            suspend_macro_runtime_for_transition_once();
-        }
+        suspend_macro_runtime_for_transition_once();
         poll_raw_keyboard(false);
         poll_gamepad_hotkeys(nullptr, false);
         return;
@@ -7648,7 +7654,7 @@ void Macro::on_gui_frame(int display) {
             }
 
             if (!macro_runtime_ready()) {
-                suspend_macro_runtime_for_transition();
+                suspend_macro_runtime_for_transition_once();
                 ImGui::TextWrapped(_("Macro status: %s"), playback_status);
                 ImGui::Unindent(lineIndent);
                 ImGui::EndGroup();

@@ -1,4 +1,8 @@
 #include "EnemyStep.hpp"
+#include "Devil4.hpp"
+#include "sUnit.hpp"
+#include <cmath>
+#include <Windows.h>
 #include <vector>
 
 #define naked __declspec(naked)
@@ -25,7 +29,33 @@ std::vector<TargetFn>& sources() { static std::vector<TargetFn> v; return v; }
 uintptr_t sunit_ptr = kSUnit;
 uintptr_t hit_addr  = kHit;
 
+bool has_enemy_in_range(cUnit* actor) {
+    const auto is_kind_of = reinterpret_cast<bool(__thiscall*)(void*, const void*)>(0x402BD0);
+    const auto is_em_jump = reinterpret_cast<bool(__stdcall*)(void*)>(0x4AB170);
+    const auto* actor_dti = reinterpret_cast<const void*>(0xE58158);
+    for (unsigned i = 0; actor && i < 256; ++i, actor = actor->mp_next_unit) {
+        if (is_kind_of(actor, actor_dti) && is_em_jump(actor)) return true;
+    }
+    return false;
+}
+
 } // namespace
+
+bool local_player_can_step_on_enemy() {
+    __try {
+        const auto* player = devil4_sdk::get_local_player();
+        const auto* unit = devil4_sdk::get_sUnit();
+        const auto* save = *reinterpret_cast<const uint8_t* const*>(0xE558C8);
+        if (!player || !unit || !save || player->controllerID > 1) return false;
+        if (save[player->controllerID == 0 ? 0xDA : 0x1DA] != 1 ||
+            !player->enemyStepEnabled || !(player->cancels2 & 2) ||
+            !std::isfinite(player->jcTimer) || player->jcTimer > 0.0f) return false;
+        return has_enemy_in_range(unit->mMoveLine[15].mTop) || has_enemy_in_range(unit->mMoveLine[16].mTop);
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return false;
+    }
+}
 
 bool add_target_source(TargetFn fn) {
     if (!fn) return false;
