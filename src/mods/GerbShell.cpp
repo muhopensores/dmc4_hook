@@ -16,7 +16,7 @@ bool  shell_enabled       = true;
 bool  shell_show          = false;
 char  shell_atk_path[128] = "Collision\\pl000";   // Nero's own file
 int   shell_atk_index     = 14;                     // Dropkick: 180 dmg, LvI 3 / LvB 3, TypeB 3 (blown 2), ANG, hit stop 7
-float shell_radius        = 200.0f;
+float shell_radius        = 120.0f;
 float shell_length        = 120.0f;
 float shell_height        = 80.0f;
 float shell_life          = 30.0f;
@@ -269,10 +269,10 @@ void shell_gui() {
                       "(blown angle type POS, the game's position mode). Vertical jumps use the facing for the first two."));
         if (shell_knock_mode != KNOCK_AWAY_FROM_PLAYER) ImGui::SliderFloat(_("Knock angle offset"), &shell_knock_angle, -180.0f, 180.0f);
     }
-    ImGui::SliderFloat(_("Shell radius"), &shell_radius, 5.0f, 300.0f);
-    ImGui::SliderFloat(_("Shell length"), &shell_length, 0.0f, 400.0f);
-    ImGui::SliderFloat(_("Shell height"), &shell_height, 0.0f, 200.0f);
-    ImGui::SliderFloat(_("Shell life (frames)"), &shell_life, 1.0f, 300.0f);
+    //ImGui::SliderFloat(_("Shell radius"), &shell_radius, 5.0f, 300.0f);
+    //ImGui::SliderFloat(_("Shell length"), &shell_length, 0.0f, 400.0f);
+    //ImGui::SliderFloat(_("Shell height"), &shell_height, 0.0f, 200.0f);
+    //ImGui::SliderFloat(_("Shell life (frames)"), &shell_life, 1.0f, 300.0f);
     ImGui::Checkbox(_("One hit then end"), &shell_one_hit);
 
     // ---- the attack entry and every field of it ---------------------------------------------------------------
@@ -354,10 +354,10 @@ void shell_config_load(const utility::Config& cfg) {
     shell_show          = cfg.get<bool>("gerb_shell_show").value_or(shell_show);
     // the .atk path isn't persisted: utility::Config has no string values (WallRun's LMT paths aren't either)
     shell_atk_index     = cfg.get<int>("gerb_shell_atk_index").value_or(shell_atk_index);
-    shell_radius        = cfg.get<float>("gerb_shell_radius").value_or(shell_radius);
-    shell_length        = cfg.get<float>("gerb_shell_length").value_or(shell_length);
-    shell_height        = cfg.get<float>("gerb_shell_height").value_or(shell_height);
-    shell_life          = cfg.get<float>("gerb_shell_life").value_or(shell_life);
+    //shell_radius        = cfg.get<float>("gerb_shell_radius").value_or(shell_radius);
+    //shell_length        = cfg.get<float>("gerb_shell_length").value_or(shell_length);
+    //shell_height        = cfg.get<float>("gerb_shell_height").value_or(shell_height);
+    //shell_life          = cfg.get<float>("gerb_shell_life").value_or(shell_life);
     shell_knock_mode    = cfg.get<int>("gerb_shell_knock_mode").value_or(shell_knock_mode);
     shell_knock_angle   = cfg.get<float>("gerb_shell_knock_angle").value_or(shell_knock_angle);
     shell_damage_type   = cfg.get<int>("gerb_shell_damage_type").value_or(shell_damage_type);
@@ -388,10 +388,10 @@ void shell_config_save(utility::Config& cfg) {
     cfg.set<bool>("gerb_shell", shell_enabled);
     cfg.set<bool>("gerb_shell_show", shell_show);
     cfg.set<int>("gerb_shell_atk_index", shell_atk_index);
-    cfg.set<float>("gerb_shell_radius", shell_radius);
-    cfg.set<float>("gerb_shell_length", shell_length);
-    cfg.set<float>("gerb_shell_height", shell_height);
-    cfg.set<float>("gerb_shell_life", shell_life);
+    //cfg.set<float>("gerb_shell_radius", shell_radius);
+    //cfg.set<float>("gerb_shell_length", shell_length);
+    //cfg.set<float>("gerb_shell_height", shell_height);
+    //cfg.set<float>("gerb_shell_life", shell_life);
     cfg.set<int>("gerb_shell_knock_mode", shell_knock_mode);
     cfg.set<float>("gerb_shell_knock_angle", shell_knock_angle);
     cfg.set<int>("gerb_shell_damage_type", shell_damage_type);

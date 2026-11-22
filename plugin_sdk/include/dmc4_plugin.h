@@ -265,7 +265,9 @@ typedef struct dmc4_rooms_api {
     int (*room_number)(void* room);           /* aRoom +0x28, -1 for NULL */
     int (*stage_number)(void* room);          /* aRoom +0x2C, -1 for NULL */
     void* (*fields)(void* room);              /* the fields of a registered class's room, NULL for other rooms */
-    /* starts going to room n (a vanilla room or a registered one), as AreaJump does; 1 = started. Game thread, in a stage */
+    /* starts going to room n (a vanilla room or a registered one); 1 = started. In a room: AreaJump's jump (it waits
+     * while the pause menu is open). In the Mission Menu: the menu's mission on its difficulty, starting in room n
+     * (no mission-start screen). 0 elsewhere (title, loading, other screens) or for a room that doesn't exist. */
     int (*enter)(int room);
     /* checks event script text without registering anything: 1 = fine; else 0 and the error (with the line) in error */
     int (*check_script)(const char* text, char* error, uint32_t error_size);
