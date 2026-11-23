@@ -858,10 +858,10 @@ namespace gui {
                 ImGui::SeparatorText(_("Contact shadows and ambient occlusion"));
                 pmods->on_draw_ui<PostFX>(DISPLAY_SYSTEM_A);
 
-                ImGui::SeparatorText(_("Outlines"));
+                ImGui::SeparatorText(_("Anti-aliasing"));
                 pmods->on_draw_ui<PostFX>(DISPLAY_SYSTEM_B);
 
-                ImGui::SeparatorText(_("Cel shading"));
+                ImGui::SeparatorText(_("Cel look"));
                 pmods->on_draw_ui<PostFX>(DISPLAY_SYSTEM_C);
 
                 ImGui::SeparatorText(_("Test spheres"));

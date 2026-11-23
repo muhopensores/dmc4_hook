@@ -58,7 +58,7 @@ D3DCompileFn compiler() {
 // ---- compile (worker thread) -> shaders (render thread) ----
 
 std::mutex             g_mutex;
-std::vector<uint8_t>   g_code_ao, g_code_blur, g_code_outline, g_code_contact;   // guarded by g_mutex
+std::vector<uint8_t>   g_code_ao, g_code_blur, g_code_outline, g_code_contact, g_code_fxaa;   // guarded by g_mutex
 std::string            g_error;                  // guarded by g_mutex
 int                    g_code_generation = 0;    // guarded by g_mutex: bumped by each finished compile
 bool                   g_from_file = false;      // guarded by g_mutex
@@ -107,10 +107,11 @@ void start_compile() {
     std::thread([fn] {
         bool from_file = false;
         const std::string src = read_source(from_file);
-        std::vector<uint8_t> ao, blur, outline, contact;
+        std::vector<uint8_t> ao, blur, outline, contact, fxaa;
         std::string error;
         const bool ok = compile_one(fn, src, "ps_ao", ao, error) && compile_one(fn, src, "ps_blur", blur, error) &&
-                        compile_one(fn, src, "ps_outline", outline, error) && compile_one(fn, src, "ps_contact", contact, error);
+                        compile_one(fn, src, "ps_outline", outline, error) && compile_one(fn, src, "ps_contact", contact, error) &&
+                        compile_one(fn, src, "ps_fxaa", fxaa, error);
         {
             std::lock_guard lock(g_mutex);
             g_from_file = from_file;
@@ -120,6 +121,7 @@ void start_compile() {
                 g_code_blur = std::move(blur);
                 g_code_outline = std::move(outline);
                 g_code_contact = std::move(contact);
+                g_code_fxaa = std::move(fxaa);
                 ++g_code_generation;
             }
         }
@@ -134,6 +136,10 @@ IDirect3DPixelShader9* g_ps_ao = nullptr;
 IDirect3DPixelShader9* g_ps_blur = nullptr;
 IDirect3DPixelShader9* g_ps_outline = nullptr;
 IDirect3DPixelShader9* g_ps_contact = nullptr;
+IDirect3DPixelShader9* g_ps_fxaa = nullptr;
+IDirect3DTexture9*     g_scene_copy = nullptr;  // D3DPOOL_DEFAULT: released on reset
+UINT                   g_copy_w = 0, g_copy_h = 0;
+D3DFORMAT              g_copy_fmt = D3DFMT_UNKNOWN;
 float                  g_sun[3] = { 0.0f, -1.0f, 0.0f };   // the way the sun's light travels (game axes), from on_frame
 int                    g_ps_generation = 0;
 IDirect3DTexture9*     g_ao_target = nullptr;   // D3DPOOL_DEFAULT: released on reset
@@ -167,27 +173,33 @@ template <class T> void release(T*& p) {
 
 void release_device_objects() {
     release(g_ao_target);
+    release(g_scene_copy);
     release(g_state);
     g_ao_w = g_ao_h = 0;
 }
 
 bool ensure_shaders(IDirect3DDevice9* dev) {
     std::lock_guard lock(g_mutex);
-    if (g_code_generation == g_ps_generation) return g_ps_ao && g_ps_blur && g_ps_outline && g_ps_contact;
+    if (g_code_generation == g_ps_generation) return g_ps_ao && g_ps_blur && g_ps_outline && g_ps_contact && g_ps_fxaa;
     release(g_ps_ao);
     release(g_ps_blur);
     release(g_ps_outline);
     release(g_ps_contact);
+    release(g_ps_fxaa);
     g_ps_generation = g_code_generation;
-    if (g_code_ao.empty() || g_code_blur.empty() || g_code_outline.empty() || g_code_contact.empty()) return false;
+    if (g_code_ao.empty() || g_code_blur.empty() || g_code_outline.empty() || g_code_contact.empty() ||
+        g_code_fxaa.empty())
+        return false;
     if (FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_ao.data()), &g_ps_ao)) ||
         FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_blur.data()), &g_ps_blur)) ||
         FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_outline.data()), &g_ps_outline)) ||
-        FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_contact.data()), &g_ps_contact))) {
+        FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_contact.data()), &g_ps_contact)) ||
+        FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_fxaa.data()), &g_ps_fxaa))) {
         release(g_ps_ao);
         release(g_ps_blur);
         release(g_ps_outline);
         release(g_ps_contact);
+        release(g_ps_fxaa);
         g_error = "CreatePixelShader failed";
         return false;
     }
@@ -201,6 +213,19 @@ bool ensure_target(IDirect3DDevice9* dev, UINT w, UINT h) {
         return false;
     g_ao_w = w;
     g_ao_h = h;
+    return true;
+}
+
+// a texture to copy the scene into (its size and format), for FXAA
+bool ensure_scene_copy(IDirect3DDevice9* dev, const D3DSURFACE_DESC& d) {
+    if (g_scene_copy && g_copy_w == d.Width && g_copy_h == d.Height && g_copy_fmt == d.Format) return true;
+    release(g_scene_copy);
+    if (FAILED(dev->CreateTexture(d.Width, d.Height, 1, D3DUSAGE_RENDERTARGET, d.Format, D3DPOOL_DEFAULT, &g_scene_copy,
+                                  nullptr)))
+        return false;
+    g_copy_w = d.Width;
+    g_copy_h = d.Height;
+    g_copy_fmt = d.Format;
     return true;
 }
 
@@ -242,6 +267,9 @@ void dump_target(IDirect3DDevice9* dev, IDirect3DSurface9* rt, UINT w, UINT h, c
     }
     sys->Release();
 }
+
+// outlines and cel shading go together (the user, 2026-11-23): the cel shading switch turns both on
+bool outlines_on() { return cel::settings.on && settings.outline; }
 
 void draw_post() {
     g_diag.stage = 1;
@@ -295,6 +323,7 @@ void draw_post() {
     if (ll > 1e-6f) { lx /= ll; ly /= ll; lz /= ll; }
     const float c7[4] = { lx, ly, lz, settings.contact_length };
     const float c8[4] = { 25.0f, settings.contact_darkness, 3000.0f, 0.0f };   // thickness (cm), darkness, gone at (cm)
+    const float c9[4] = { settings.aa_softness, 0.125f, 0.0312f, 0.0f };          // FXAA: subpixel, edge thresholds
 
     g_state->Capture();
     IDirect3DSurface9* scene = nullptr;
@@ -325,6 +354,7 @@ void draw_post() {
     dev->SetPixelShaderConstantF(6, c6, 1);
     dev->SetPixelShaderConstantF(7, c7, 1);
     dev->SetPixelShaderConstantF(8, c8, 1);
+    dev->SetPixelShaderConstantF(9, c9, 1);
     set_point_clamp(dev, 0, depth);
 
     // the passes below multiply onto the scene (dest x src; the scene's alpha kept)
@@ -368,14 +398,39 @@ void draw_post() {
         draw_fullscreen(dev, desc.Width, desc.Height);
     }
 
-    // 3: ink lines, multiplied onto the scene
-    if (settings.outline) {
+    // 3: ink lines, multiplied onto the scene (part of the cel look: only with cel shading on)
+    if (outlines_on()) {
         dev->SetRenderTarget(0, scene);
         dev->SetDepthStencilSurface(nullptr);
         dev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
         dev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE);
         dev->SetPixelShader(g_ps_outline);
         draw_fullscreen(dev, desc.Width, desc.Height);
+    }
+
+    // anti-aliasing, last: the scene (with everything above) copied out, FXAA'd back over it
+    if (settings.aa) {
+        D3DSURFACE_DESC sd;
+        IDirect3DSurface9* copy = nullptr;
+        if (SUCCEEDED(scene->GetDesc(&sd)) && ensure_scene_copy(dev, sd) &&
+            SUCCEEDED(g_scene_copy->GetSurfaceLevel(0, &copy)) &&
+            SUCCEEDED(dev->StretchRect(scene, nullptr, copy, nullptr, D3DTEXF_NONE))) {
+            dev->SetRenderTarget(0, scene);
+            dev->SetDepthStencilSurface(nullptr);
+            dev->SetTexture(2, g_scene_copy);
+            dev->SetSamplerState(2, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+            dev->SetSamplerState(2, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+            dev->SetSamplerState(2, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
+            dev->SetSamplerState(2, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+            dev->SetSamplerState(2, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+            dev->SetSamplerState(2, D3DSAMP_SRGBTEXTURE, FALSE);
+            dev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+            dev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE);
+            dev->SetPixelShader(g_ps_fxaa);
+            draw_fullscreen(dev, sd.Width, sd.Height);
+            dev->SetTexture(2, nullptr);
+        }
+        release(copy);
     }
 
     // back as the game had it (SetRenderTarget resets the viewport, so the state block goes last)
@@ -409,7 +464,7 @@ void __stdcall on_tag(const uint32_t* tags, uint32_t index, uint32_t count) {
         if (g_diag.nseq == 0 || (g_diag.seq[g_diag.nseq - 1] & 0xFFF) != k) g_diag.seq[g_diag.nseq++] = (index << 12) | k;
     }
     ++g_diag.tags;
-    if (g_done || !(settings.ao || settings.outline || settings.contact)) return;
+    if (g_done || !(settings.ao || outlines_on() || settings.contact || settings.aa)) return;
     const uint32_t key = tags[index * 2 + 1];
     if (((key >> 24) & 0x1F) == kMainScene) {
         ++g_diag.main_tags;
@@ -478,7 +533,7 @@ std::optional<std::string> PostFX::on_initialize() {
 }
 
 void PostFX::on_frame(fmilliseconds& dt) {
-    if ((settings.ao || settings.outline || settings.contact) && g_want_compile && !g_compiling) start_compile();
+    if ((settings.ao || outlines_on() || settings.contact || settings.aa) && g_want_compile && !g_compiling) start_compile();
     // the sun for contact shadows: the stage's shadow light (uShadow mInfiniteLightDir +0x40), straight down without one
     {
         const shadows::Status sh = shadows::status();
@@ -512,11 +567,26 @@ static void draw_contact_gui() {
 
 void PostFX::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_B) {
-        draw_outline_gui();
+        ImGui::Checkbox(_("Anti-aliasing (FXAA)"), &settings.aa);
+        ImGui::SameLine();
+        help_marker(_("Smooths jagged edges on models, the stage and outlines. Runs before effects and the HUD, so those stay "
+                      "as sharp as they were."));
+        if (settings.aa) {
+            ImGui::Indent(lineIndent);
+            ImGui::SliderFloat(_("Softness"), &settings.aa_softness, 0.0f, 1.0f, "%.2f");
+            ImGui::SameLine();
+            help_marker(_("How much fine detail inside surfaces is smoothed too (0 = only edges, sharpest)."));
+            ImGui::Unindent(lineIndent);
+        }
         return;
     }
-    if (display == DISPLAY_SYSTEM_C) {
+    if (display == DISPLAY_SYSTEM_C) {     // the cel look: cel shading, and outlines with it
         cel::draw_gui();
+        if (cel::settings.on) {
+            ImGui::Indent(lineIndent);
+            draw_outline_gui();
+            ImGui::Unindent(lineIndent);
+        }
         return;
     }
     if (display != DISPLAY_SYSTEM_A) return;
@@ -553,8 +623,8 @@ void PostFX::on_gui_frame(int display) {
 static void draw_outline_gui() {
     ImGui::Checkbox(_("Outlines"), &settings.outline);
     ImGui::SameLine();
-    Mod::help_marker(_("Ink lines around objects and along their edges, for a drawn / cel-shaded look. Found from the frame's "
-                       "depth after the solid scene, so effects and glows draw over them."));
+    Mod::help_marker(_("Ink lines around objects and along their edges, part of the cel look (they show while cel shading is "
+                       "on). Found from the frame's depth after the solid scene, so effects and glows draw over them."));
     if (!settings.outline) return;
     ImGui::Indent(Mod::lineIndent);
     ImGui::PushID("PostFX_Outline");
@@ -582,6 +652,8 @@ void PostFX::on_config_load(const utility::Config& cfg) {
     settings.ao_radius = std::clamp(cfg.get<float>("postfx_ao_radius").value_or(d.ao_radius), 10.0f, 300.0f);
     cel::load(cfg);
     settings.contact = cfg.get<bool>("postfx_contact").value_or(d.contact);
+    settings.aa = cfg.get<bool>("postfx_aa").value_or(d.aa);
+    settings.aa_softness = std::clamp(cfg.get<float>("postfx_aa_softness").value_or(d.aa_softness), 0.0f, 1.0f);
     settings.contact_length = std::clamp(cfg.get<float>("postfx_contact_length").value_or(d.contact_length), 5.0f, 150.0f);
     settings.contact_darkness = std::clamp(cfg.get<float>("postfx_contact_darkness").value_or(d.contact_darkness), 0.0f, 1.0f);
     settings.outline = cfg.get<bool>("postfx_outline").value_or(d.outline);
@@ -600,6 +672,8 @@ void PostFX::on_config_save(utility::Config& cfg) {
     cfg.set<float>("postfx_ao_radius", settings.ao_radius);
     cel::save(cfg);
     cfg.set<bool>("postfx_contact", settings.contact);
+    cfg.set<bool>("postfx_aa", settings.aa);
+    cfg.set<float>("postfx_aa_softness", settings.aa_softness);
     cfg.set<float>("postfx_contact_length", settings.contact_length);
     cfg.set<float>("postfx_contact_darkness", settings.contact_darkness);
     cfg.set<bool>("postfx_outline", settings.outline);

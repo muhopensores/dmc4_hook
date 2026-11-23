@@ -11,6 +11,7 @@
 // Vibed\RE\depth_texture.md), writes occlusion into a target of its own, blurs it and multiplies it onto the scene's
 // render target. The device's state is put back with a state block (render target and depth surface by hand: a state
 // block doesn't hold them), so the game's own state cache stays right.
+// Anti-aliasing: FXAA from a copy of the scene (StretchRect, which also resolves MSAA) back onto it, last in the pass.
 // Step 5, contact shadows: in the same pass before the outlines, a short march toward the sun (the stage's uShadow light).
 // Step 3, outlines: in the same pass after AO, ink lines from the depth (silhouettes and creases), multiplied onto the scene.
 namespace post_fx {
@@ -20,7 +21,7 @@ struct Settings {
     float ao_strength = 4.0f;     // how dark a fully occluded corner gets
     float ao_radius = 120.0f;     // cm: how far occluders count
     int   ao_view = 0;            // debug: 0 the picture, 1 the occlusion alone, 2 the depth (distance)
-    bool  outline = false;
+    bool  outline = true;         // part of the cel look: drawn only while cel shading is on (cel::settings.on)
     float outline_width = 1.5f;   // px at 1080 lines (scaled with the screen height)
     float outline_detail = 0.5f;  // 0 silhouettes only .. 1 every crease
     float outline_opacity = 1.0f;
@@ -29,6 +30,8 @@ struct Settings {
     bool  contact = false;        // contact shadows
     float contact_length = 40.0f; // cm: how far toward the sun the march looks
     float contact_darkness = 0.6f;
+    bool  aa = false;             // FXAA, last in the pass (after the outlines)
+    float aa_softness = 0.75f;    // FXAA's subpixel softening
 };
 extern Settings settings;
 

@@ -423,11 +423,11 @@ Status status() {
 }
 
 void draw_gui() {
-    ImGui::Checkbox(_("Cel shading (characters)"), &settings.on);
+    ImGui::Checkbox(_("Cel shading"), &settings.on);
     ImGui::SameLine();
     Mod::help_marker(_("Players, enemies and their weapons lit like a cartoon: each light either lights a surface or doesn't, "
                        "with a soft edge between, the surroundings' light evened out, and a hard-edged highlight. Stages keep "
-                       "their lighting. Goes well with Outlines."));
+                       "their lighting. Comes with ink outlines (below, on everything), which can be turned off on their own."));
     if (!settings.on) return;
     ImGui::Indent(Mod::lineIndent);
     ImGui::PushID("PostFX_Cel");

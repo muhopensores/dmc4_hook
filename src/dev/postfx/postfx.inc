@@ -5,7 +5,8 @@ R"hlsl(// postfx.hlsl: dmc4_hook PostFX (Vibed\PostFX\README.md). Pixel shaders 
 //   ps_ao       ambient occlusion from the frame's depth texture into an 8-bit target of its own;
 //   ps_blur     a depth-aware 4 x 4 blur of it (the sample pattern repeats every 4 x 4 pixels), multiplied onto the scene;
 //   ps_outline  ink lines from the depth (silhouettes and creases), multiplied onto the scene;
-//   ps_contact  contact shadows: a short march toward the sun through the depth, multiplied onto the scene.
+//   ps_contact  contact shadows: a short march toward the sun through the depth, multiplied onto the scene;
+//   ps_fxaa     anti-aliasing (FXAA 3.11's quality algorithm, Lottes 2011) from a copy of the scene, written over it.
 // The depth texture (sRender +0x1700C, Vibed\RE\depth_texture.md) holds clip z / w packed into A (top byte), R and G.
 // Positions are rebuilt in a camera space of the screen's own axes (x right, y up, z = distance ahead), so the
 // projection's sign conventions don't matter.
@@ -22,6 +23,8 @@ float4 gLine    : register(c5);     // offset (px), silhouette threshold, crease
 float4 gLineColor: register(c6);    // rgb, the distance (cm) where lines are gone
 float4 gContact : register(c7);     // toward the sun in this camera space (x right, y up, z ahead), ray length (cm)
 float4 gContact2: register(c8);     // thickness (cm), darkness, the distance (cm) where they're gone, -
+float4 gAA      : register(c9);     // subpixel softening (0 .. 1), edge threshold, darkest edge threshold, -
+sampler2D gScene : register(s2);    // the scene's copy (linear, clamp; ps_fxaa)
 
 static const int kSamples = 16;
 
@@ -157,5 +160,69 @@ float4 ps_contact(float2 uv : TEXCOORD0) : COLOR0 {
     }
     float shade = 1 - gContact2.y * occ * fade;
     return float4(shade, shade, shade, 1);
+}
+// ---- FXAA ----
+// The scene is the game's "LDR x 2" encoding (gamma, up to 2): luma of half of it, clamped. Edges are found by luma
+// contrast, followed along their length up to 12 steps each way to find where they end, and the pixel is re-sampled
+// across the edge by how far along it sits (plus a little subpixel softening).
+float aa_luma(float3 c) { return dot(saturate(c * 0.5), float3(0.299, 0.587, 0.114)); }
+float3 aa_rgb(float2 uv) { return tex2Dlod(gScene, float4(uv, 0, 0)).rgb; }
+float aa_lum(float2 uv) { return aa_luma(aa_rgb(uv)); }
+
+float4 ps_fxaa(float2 uv : TEXCOORD0) : COLOR0 {
+    const float2 px = gScreen.xy;
+    const float3 rgbM = aa_rgb(uv);
+    const float lM = aa_luma(rgbM);
+    const float lN = aa_lum(uv + float2(0, -px.y)), lS = aa_lum(uv + float2(0, px.y));
+    const float lW = aa_lum(uv + float2(-px.x, 0)), lE = aa_lum(uv + float2(px.x, 0));
+    const float hi = max(max(lN, lS), max(max(lW, lE), lM));
+    const float lo = min(min(lN, lS), min(min(lW, lE), lM));
+    const float range = hi - lo;
+    if (range < max(gAA.z, hi * gAA.y)) return float4(rgbM, 1);
+
+    const float lNW = aa_lum(uv - px), lSE = aa_lum(uv + px);
+    const float lNE = aa_lum(uv + float2(px.x, -px.y)), lSW = aa_lum(uv + float2(-px.x, px.y));
+
+    // subpixel: how far the pixel stands out from its neighbourhood
+    const float avg = (2.0 * (lN + lS + lW + lE) + (lNW + lNE + lSW + lSE)) / 12.0;
+    float sub = saturate(abs(avg - lM) / range);
+    sub = smoothstep(0.0, 1.0, sub);
+    sub = sub * sub * gAA.x;
+
+    // the edge's orientation
+    const float horz = abs(lNW + lSW - 2.0 * lW) + 2.0 * abs(lN + lS - 2.0 * lM) + abs(lNE + lSE - 2.0 * lE);
+    const float vert = abs(lNW + lNE - 2.0 * lN) + 2.0 * abs(lW + lE - 2.0 * lM) + abs(lSW + lSE - 2.0 * lS);
+    const bool horzSpan = horz >= vert;
+    const float l1 = horzSpan ? lN : lW, l2 = horzSpan ? lS : lE;
+    const float g1 = l1 - lM, g2 = l2 - lM;
+    const bool side1 = abs(g1) >= abs(g2);
+    const float gradient = max(abs(g1), abs(g2));
+    float stepLen = horzSpan ? px.y : px.x;
+    if (side1) stepLen = -stepLen;
+    const float localAvg = 0.5 * ((side1 ? l1 : l2) + lM);
+
+    // walk along the edge both ways until the luma leaves it
+    float2 posB = uv;
+    if (horzSpan) posB.y += stepLen * 0.5; else posB.x += stepLen * 0.5;
+    const float2 off = horzSpan ? float2(px.x, 0) : float2(0, px.y);
+    float2 posN = posB - off, posP = posB + off;
+    const float gScaled = gradient * 0.25;
+    float endN = aa_lum(posN) - localAvg, endP = aa_lum(posP) - localAvg;
+    bool doneN = abs(endN) >= gScaled, doneP = abs(endP) >= gScaled;
+    [unroll] for (int i = 1; i < 12; ++i) {
+        const float q = i < 5 ? 1.0 : i == 5 ? 1.5 : i < 10 ? 2.0 : i == 10 ? 4.0 : 8.0;
+        if (!doneN) { posN -= off * q; endN = aa_lum(posN) - localAvg; doneN = abs(endN) >= gScaled; }
+        if (!doneP) { posP += off * q; endP = aa_lum(posP) - localAvg; doneP = abs(endP) >= gScaled; }
+    }
+    const float dN = horzSpan ? uv.x - posN.x : uv.y - posN.y;
+    const float dP = horzSpan ? posP.x - uv.x : posP.y - uv.y;
+    const bool nearN = dN < dP;
+    const float endL = nearN ? endN : endP;
+    const bool mBelow = lM - localAvg < 0.0;
+    const float edgeOfs = ((endL < 0.0) == mBelow) ? 0.0 : 0.5 - min(dN, dP) / (dN + dP);
+    const float ofs = max(edgeOfs, sub);
+    float2 uvF = uv;
+    if (horzSpan) uvF.y += ofs * stepLen; else uvF.x += ofs * stepLen;
+    return float4(aa_rgb(uvF), 1);
 }
 )hlsl"
