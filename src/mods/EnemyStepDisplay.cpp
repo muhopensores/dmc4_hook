@@ -1,6 +1,9 @@
 #include "EnemyStepDisplay.hpp"
+#include "../sdk/EnemyStep.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/sRender.hpp"
+#include "../sdk/sUnit.hpp"
+#include <cmath>
 
 #if 1
 bool EnemyStepDisplay::mod_enabled = false;
@@ -11,10 +14,6 @@ bool EnemyStepDisplay::jc_possible = false;
 float EnemyStepDisplay::jc_possible_timer = 0.0f;
 bool EnemyStepDisplay::showExtraStats = false;
 ImVec2 EnemyStepDisplay::windowPos{ 0.0f, 0.0f };
-static constexpr uintptr_t sUnit = 0xE552CC;
-static constexpr uintptr_t sMediator = 0xE558B8;
-static constexpr uintptr_t detour1_getEnemies = 0x402BD0;
-static constexpr uintptr_t detour1_getCanJC = 0x4AB170;
 
 bool EnemyStepDisplay::chart_enabled = false;
 static constexpr int STEP_CHART_SIZE = 512;
@@ -63,84 +62,16 @@ void EnemyStepDisplay::record_enemy_step_attempt() {
     stepAttemptIndex = (stepAttemptIndex + 1) % STEP_CHART_SIZE;
 }
 
-naked void call1(void) {
-    _asm {
-        pushad
-        movzx ebx, byte ptr [EnemyStepDisplay::jc_possible]
-        
-        mov esi, [sUnit]
-        mov esi, [esi]
-        mov edx, [esi+0xD4] // get delta time
-        test edx, edx
-        je popcode
-        sub esp, 4
-        movss xmm0, [edx+0x10]
-        movss [esp], xmm0 // Store delta time
-        mov esi, [esi+0x194] // get enemies
-        test esi, esi
-        je cleanup
-        jmp CheckCanJC
-
-    GetNextEnemy:
-        mov esi, [esi+0x8]
-        test esi, esi
-        je save_and_exit_false
-    CheckCanJC:
-        push esi // enemy arg
-        call dword ptr [detour1_getCanJC] // call 0x4AB170
-        
-        mov cl, al
-        cmp cl, 1
-        jne GetNextEnemy
-        
-        mov esi, [sMediator]
-        mov esi, [esi]
-        test esi, esi
-        je save_and_exit_false
-        
-        mov esi, [esi+0x24]
-        test esi, esi
-        je save_and_exit_false
-        
-        cmp dword ptr [esi+0x1FF4], 0 // has jc timer expired 
-        jne save_and_exit_false
-
-        cmp byte ptr [esi+0x2005], 0 // is enemy step banned
-        je save_and_exit_false
-        
-        test dword ptr [esi+0x1554], 2
-        je save_and_exit_false
-
-        //mov esi, [esi+0x1e8c]
-        //cmp dword ptr [esi+0x1c], 0 // groundedActual
-        //jne save_and_exit_false
-        
-        cmp ebx, 0
-        jne just_update_timer
-        
-        mov dword ptr [EnemyStepDisplay::jc_possible_timer], 0
-        
-    just_update_timer:
-        movss xmm0, [EnemyStepDisplay::jc_possible_timer]
-        movss xmm1, [esp]
-        addss xmm0, xmm1
-        movss [EnemyStepDisplay::jc_possible_timer], xmm0
-        
-        mov al, 1
-        jmp save_and_exit
-        
-    save_and_exit_false:
-        xor al, al
-        
-    save_and_exit:
-        mov [EnemyStepDisplay::jc_possible], al
-        
-    cleanup:
-        add esp, 4
-        
-    popcode:
-        popad
-        ret
+static float display_tick_delta() {
+    // Moveline 7 can be empty in custom rooms. The clock is optional, not a JC gate.
+    __try {
+        const auto* unit = devil4_sdk::get_sUnit();
+        const auto* clock = unit ? unit->mMoveLine[7].mTop : nullptr;
+        const float delta = clock ? clock->m_delta_time : 0.0f;
+        return std::isfinite(delta) && delta > 0.0f ? delta : 0.0f;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return 0.0f;
     }
 }
 
@@ -153,7 +84,7 @@ naked void detour1(void) {
 
     jcDisplay: // both mods depend on this
         pushad
-        call EnemyStepDisplay::update_jc_possible
+        call EnemyStepDisplay::update_display
         popad
 
         cmp byte ptr [EnemyStepDisplay::chart_enabled], 0
@@ -220,13 +151,11 @@ naked void detour3(void) { // called when player tries to enemy step
     }
 }
 
-void EnemyStepDisplay::update_jc_possible() {
-    __try {
-        call1();
-    }
-    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        jc_possible = false;
-        jc_possible_timer = 0.0f;
+void EnemyStepDisplay::update_display() {
+    const bool previously_possible = jc_possible;
+    jc_possible = enemy_step::local_player_can_step_on_enemy();
+    if (jc_possible) {
+        jc_possible_timer = (previously_possible ? jc_possible_timer : 0.0f) + display_tick_delta();
     }
 }
 
