@@ -7,6 +7,7 @@
 #include "MoveTable.hpp"             // HookNeroKADTbl / HookDanteKADTbl: the gun rows the run matches itself
 #include "../sdk/SpineAim.hpp"       // the torso lean while shooting
 #include "UpperGun.hpp"              // the gun during the run: the run is one of its hosts
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <filesystem>
@@ -34,6 +35,8 @@ constexpr float check_height = 10.0f;   // cm above the feet (the game: 10)
 // The run. It lasts while jump is held; releasing it (or losing the wall) kicks off with the game's wall jump.
 constexpr float run_speed     = 12.0f;  // cm per frame along the wall
 constexpr float stick_speed   = 2.0f;   // cm per frame pushed into the wall so the capsule stays on it
+constexpr float run_gravity   = 0.04f;  // cm per frame added to a sideways run's sink speed every frame (a slow arc down)
+constexpr float run_max_sink  = 3.0f;   // cm per frame: the fastest a sideways run sinks
 constexpr float wall_gap      = 30.0f;  // cm the position is kept away from the wall plane each tick: the root-motion backstop
 constexpr float lose_grace    = 4.0f;   // frames the run keeps going on the last wall after the casts stop hitting, before jumping off
 constexpr float climb_angle   = 35.0f;  // degrees between the heading and the wall normal below which the run goes up, not sideways
@@ -354,6 +357,7 @@ struct RunState {                   // what the game's phase word can't hold
     bool custom_kickoff = false;    // a jump-out cycle is playing: it is the whole jump, the port adds no fall motion
     bool from_run = false;          // the port's next phase 0 follows a sideways run (set by hand_to_wall_jump, read once)
     float lost = 0.0f;              // frames since the casts last hit (the wall ended, or bent too sharply)
+    float sink = 0.0f;              // the sideways run's downward speed, cm per frame (run_gravity builds it up)
     uint32_t motion_attr = 0;      // the attribute the run cycle was requested with (the arms go back to it after a shot)
     Wall wall{};
     uint32_t last_seen = 0;         // state_for's tick when this player was last seen (eviction order)
@@ -478,6 +482,7 @@ void __stdcall WallRun::move(uintptr_t pl) {
     if (phase == 0) {                                   // entry: this tick's jump press near a wall
         s.motion = -1;
         s.lost   = 0.0f;
+        s.sink   = 0.0f;
         s.custom_kickoff = false;
         const glm::vec3 h = heading(pl, nullptr);
         if (!detect(pl, s.wall, h)) { hand_to_wall_jump(s, pl, false); return; }   // nothing runnable that way: plain wall jump
@@ -510,7 +515,14 @@ void __stdcall WallRun::move(uintptr_t pl) {
     const float speed = s.wall.vertical ? climb_speed : run_speed;
     const glm::vec3 v = glm::vec3(s.wall.run_dir) * speed - glm::vec3(s.wall.normal) * stick_speed;
     vel.x = v.x; vel.z = v.z;
-    vel.y = s.wall.vertical ? v.y : 0.0f;               // climb: up the wall; sideways: level
+    // climb: up the wall; sideways: along it, sinking slowly faster (landing on the way down ends the run below)
+    if (s.wall.vertical) {
+        s.sink = 0.0f;
+        vel.y  = v.y;
+    } else {
+        s.sink = std::min(s.sink + run_gravity * at<float>(pl, pl::m_delta_time), run_max_sink);
+        vel.y  = -s.sink;
+    }
     acc.x = acc.y = acc.z = 0.0f;
     clear_add_speed(pl);
     keep_off_wall(pl, s.wall);
