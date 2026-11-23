@@ -30,7 +30,7 @@ struct Settings {
     float outline_distance = 40.0f;   // m: lines fade out toward it
     bool  contact = false;        // contact shadows
     float contact_length = 40.0f; // cm: how far toward the sun the march looks
-    float contact_darkness = 0.6f;
+    float contact_darkness = 0.45f;   // 0.6 until 2026-11-23: "quite harsh" on top of the stage shadow
     bool  aa = false;             // FXAA, last in the pass (after the outlines)
     float aa_softness = 0.75f;    // FXAA's subpixel softening
     bool  highlight = true;       // outline the selected object (sdk/Selection)
@@ -83,4 +83,5 @@ public:
     void on_reset() override;
 
     std::unique_ptr<FunctionHook> hook_tag;
+    std::unique_ptr<FunctionHook> hook_tex;   // RTX Remix bridge: the albedo onto stage 0
 };

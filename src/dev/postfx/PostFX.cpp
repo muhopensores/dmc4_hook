@@ -2,6 +2,8 @@
 #include "../../sdk/Selection.hpp"
 #include "Cel.hpp"
 #include "Tags.hpp"
+#include "TexFilter.hpp"
+#include "Remix.hpp"
 #include "../shadows/Shadows.hpp"
 #include "../../ModFramework.hpp"
 #include "../shader_file.hpp"
@@ -456,14 +458,21 @@ void draw_post() {
     dev->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
     dev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ZERO);
     dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_SRCCOLOR);
-    if (settings.ao) {
-        // 1: occlusion into our target
+    if (settings.ao || settings.contact) {
+        // 1: occlusion into our target: AO, then contact shadows multiplied into it (both dithered in 4 x 4 cells)
         dev->SetRenderTarget(0, ao_surface);
         dev->SetDepthStencilSurface(nullptr);
-        dev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
         dev->SetRenderState(D3DRS_COLORWRITEENABLE, 0xF);
-        dev->SetPixelShader(g_ps_ao);
-        draw_fullscreen(dev, desc.Width, desc.Height);
+        if (settings.ao) {
+            dev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+            dev->SetPixelShader(g_ps_ao);
+            draw_fullscreen(dev, desc.Width, desc.Height);
+        }
+        if (settings.contact) {
+            dev->SetRenderState(D3DRS_ALPHABLENDENABLE, settings.ao ? TRUE : FALSE);
+            dev->SetPixelShader(g_ps_contact);
+            draw_fullscreen(dev, desc.Width, desc.Height);
+        }
 
         if (g_diag.capture == 5) {
             IDirect3DSurface9* depth_surface = nullptr;
@@ -480,16 +489,6 @@ void draw_post() {
         dev->SetRenderState(D3DRS_ALPHABLENDENABLE, settings.ao_view ? FALSE : TRUE);
         dev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE);
         dev->SetPixelShader(g_ps_blur);
-        draw_fullscreen(dev, desc.Width, desc.Height);
-    }
-
-    // contact shadows, multiplied onto the scene (before the lines, which stay black on top)
-    if (settings.contact) {
-        dev->SetRenderTarget(0, scene);
-        dev->SetDepthStencilSurface(nullptr);
-        dev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-        dev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE);
-        dev->SetPixelShader(g_ps_contact);
         draw_fullscreen(dev, desc.Width, desc.Height);
     }
 
@@ -563,8 +562,10 @@ void draw_post() {
 // are {command, key} pairs sorted by key: bits 29-31 the view, 24-28 the sub-scene (0x1F = the main scene), 20-23 the
 // pass, 0-19 priority / depth (Vibed\Shadows\README.md). The loop's back-edge (0x8F5EBD) jumps here, so every tag passes.
 uintptr_t jmp_ret_tag = 0;
+uintptr_t kTagContinue = 0x8F5EAB;   // dispatchCommands: ++index, back to 0x8F4460 while tags remain
 
-void __stdcall on_tag(const uint32_t* list, uint32_t index, uint32_t count) {
+// returns non-zero to skip the tag (the RTX Remix bridge's filtering): the detour then jumps to the loop's continue
+int __stdcall on_tag(const uint32_t* list, uint32_t index, uint32_t count) {
     if (index == 0) {
         g_done = false;
         ++g_diag.dispatches;
@@ -582,17 +583,22 @@ void __stdcall on_tag(const uint32_t* list, uint32_t index, uint32_t count) {
         if (g_diag.nseq == 0 || (g_diag.seq[g_diag.nseq - 1] & 0xFFF) != k) g_diag.seq[g_diag.nseq++] = (index << 12) | k;
     }
     ++g_diag.tags;
-    if (g_done || !(settings.ao || outlines_on() || settings.contact || settings.aa || highlight_on() || g_pick_pending)) return;
+    if (remix::settings.on) {
+        const uintptr_t render = *reinterpret_cast<uintptr_t*>(kRenderInstance);
+        if (render && remix::on_tag(at<void*>(render, kDevice), list, index, count)) return 1;
+    }
+    if (g_done || !(settings.ao || outlines_on() || settings.contact || settings.aa || highlight_on() || g_pick_pending)) return 0;
     const uint32_t key = list[index * 2 + 1];
     if (((key >> 24) & 0x1F) == kMainScene) {
         ++g_diag.main_tags;
         g_diag.max_pass_main = (std::max)(g_diag.max_pass_main, (key >> 20) & 0xF);
     }
-    if (((key >> 24) & 0x1F) != kMainScene || ((key >> 20) & 0xF) < kPassTransparent) return;
+    if (((key >> 24) & 0x1F) != kMainScene || ((key >> 20) & 0xF) < kPassTransparent) return 0;
     g_done = true;
     ++g_diag.triggers;
     g_diag.last_key = key;
     draw_post();
+    return 0;
 }
 
 naked void detour_tag() {
@@ -604,8 +610,13 @@ naked void detour_tag() {
         push eax
         push ecx
         call on_tag                 // __stdcall: pops its arguments
+        test eax, eax
+        jnz skip
         popad
         jmp dword ptr [jmp_ret_tag]
+    skip:
+        popad
+        jmp dword ptr [kTagContinue]  // the loop's index increment (0x8F5EAB)
     }
 }
 
@@ -686,6 +697,12 @@ using namespace post_fx;
 std::optional<std::string> PostFX::on_initialize() {
     g_hooked = install_hook_absolute(0x8F4460, hook_tag, &detour_tag, &jmp_ret_tag, 11);
     if (!g_hooked) spdlog::error("PostFX: failed to hook sRender::dispatchCommands' tag loop (0x8F4460)");
+    if (!install_hook_absolute(remix::kTexLoop, hook_tex, remix::tex_detour(), &remix::jmp_ret_tex, 10))
+        spdlog::error("PostFX: failed to hook sRender::dispatchCommands' texture loop (0x8F545E)");
+    if (!install_hook_absolute(remix::kShaderCreate, remix::shader_hook(), remix::shader_detour(), &remix::jmp_ret_shader, 7))
+        spdlog::error("PostFX: failed to hook sRender::dispatchCommands' shader creation (0x8F49BC)");
+    if (!install_hook_absolute(remix::kVsArrays, remix::vsarr_hook(), remix::vsarr_detour(), &remix::jmp_ret_vsarr, 10))
+        spdlog::error("PostFX: failed to hook sRender::dispatchCommands' vertex shader arrays (0x8F5380)");
     cel::init();
     tags::init();
     return Mod::on_initialize();
@@ -700,13 +717,15 @@ void PostFX::on_frame(fmilliseconds& dt) {
         if (sh.units > 0 && sh.unit[0].unit) read_sun(sh.unit[0].unit, d);
         const float l = std::sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
         if (l > 1e-6f) for (int i = 0; i < 3; ++i) g_sun[i] = d[i] / l;
+        remix::set_sun(g_sun);
     }
     cel::update();
+    tex_filter::update();
     tags::enabled = true;   // object IDs are cheap (a lookup per depth-pass command): always on, for pick
     tags::update();
 }
 
-void PostFX::on_reset() { release_device_objects(); }
+void PostFX::on_reset() { release_device_objects(); remix::on_reset(); }
 
 static void draw_outline_gui();
 
@@ -761,6 +780,8 @@ void PostFX::on_gui_frame(int display) {
         return;
     }
     if (display != DISPLAY_SYSTEM_A) return;
+    tex_filter::draw_gui();
+    remix::draw_gui();
     draw_contact_gui();
     ImGui::Checkbox(_("Ambient occlusion"), &settings.ao);
     ImGui::SameLine();
@@ -822,6 +843,8 @@ void PostFX::on_config_load(const utility::Config& cfg) {
     settings.ao_strength = std::clamp(cfg.get<float>("postfx_ao_strength").value_or(d.ao_strength), 0.0f, 8.0f);
     settings.ao_radius = std::clamp(cfg.get<float>("postfx_ao_radius").value_or(d.ao_radius), 10.0f, 300.0f);
     cel::load(cfg);
+    tex_filter::load(cfg);
+    remix::load(cfg);
     settings.contact = cfg.get<bool>("postfx_contact").value_or(d.contact);
     settings.aa = cfg.get<bool>("postfx_aa").value_or(d.aa);
     settings.highlight = cfg.get<bool>("postfx_highlight").value_or(d.highlight);
@@ -843,6 +866,8 @@ void PostFX::on_config_save(utility::Config& cfg) {
     cfg.set<float>("postfx_ao_strength", settings.ao_strength);
     cfg.set<float>("postfx_ao_radius", settings.ao_radius);
     cel::save(cfg);
+    tex_filter::save(cfg);
+    remix::save(cfg);
     cfg.set<bool>("postfx_contact", settings.contact);
     cfg.set<bool>("postfx_aa", settings.aa);
     cfg.set<bool>("postfx_highlight", settings.highlight);

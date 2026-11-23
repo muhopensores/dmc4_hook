@@ -428,6 +428,10 @@ set(DEV_SRC
   dev/postfx/Cel.cpp
   dev/postfx/Tags.hpp
   dev/postfx/Tags.cpp
+  dev/postfx/TexFilter.hpp
+  dev/postfx/TexFilter.cpp
+  dev/postfx/Remix.hpp
+  dev/postfx/Remix.cpp
   dev/lights/LightSwitches.hpp
   dev/lights/LightSwitches.cpp
   dev/plugins/PluginHost.hpp

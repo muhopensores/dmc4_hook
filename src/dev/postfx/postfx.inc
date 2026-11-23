@@ -3,9 +3,9 @@
 R"hlsl(// postfx.hlsl: dmc4_hook PostFX (Vibed\PostFX\README.md). Pixel shaders over a full-screen triangle, drawn after the
 // opaque scene and before anything transparent:
 //   ps_ao       ambient occlusion from the frame's depth texture into an 8-bit target of its own;
-//   ps_blur     a depth-aware 4 x 4 blur of it (the sample pattern repeats every 4 x 4 pixels), multiplied onto the scene;
+//   ps_contact  contact shadows: a short march toward the sun through the depth, into the same target (times the AO);
+//   ps_blur     a depth-aware 4 x 4 blur of it (the sample patterns repeat every 4 x 4 pixels), multiplied onto the scene;
 //   ps_outline  ink lines from the depth (silhouettes and creases), multiplied onto the scene;
-//   ps_contact  contact shadows: a short march toward the sun through the depth, multiplied onto the scene;
 //   ps_fxaa     anti-aliasing (FXAA 3.11's quality algorithm, Lottes 2011) from a copy of the scene, written over it.
 // The depth texture (sRender +0x1700C, Vibed\RE\depth_texture.md) holds clip z / w packed into A (top byte), R and G.
 // Positions are rebuilt in a camera space of the screen's own axes (x right, y up, z = distance ahead), so the
@@ -137,7 +137,19 @@ float4 ps_outline(float2 uv : TEXCOORD0) : COLOR0 {
 // Contact shadows: from the pixel (lifted off its surface) toward the sun in 16 steps; the first step that lands behind
 // the depth by less than the thickness is a nearby occluder. Nearer hits shade more. Surfaces facing away from the sun
 // are left alone (the lighting already shades them).
-float4 ps_contact(float2 uv : TEXCOORD0) : COLOR0 {
+// the 4 x 4 Bayer matrix at a pixel, 0 .. 15/16: a step offset whose pattern ps_blur's 4 x 4 cell averages out
+float bayer4(float2 vpos) {
+    float2 c = fmod(vpos, 4.0);
+    float2 lo = fmod(c, 2.0), hi = floor(c / 2.0);
+    return (4.0 * fmod(lo.x * 2.0 + lo.y * 3.0, 4.0) + fmod(hi.x * 2.0 + hi.y * 3.0, 4.0)) / 16.0;
+}
+
+// Contact shadows: 16 steps toward the sun, each pixel's steps shifted by its Bayer value (so thin occluders aren't hit
+// on some frames and missed on others as they move by a pixel), soft hits (ramping in over the depth bias, out toward the
+// thickness) and a soft cut where the surface turns from the sun (its normal is rebuilt from the depth: noisy). Written
+// into the AO target and blurred with it (ps_blur), not straight onto the scene: 2026-11-23, "prone to bugging out and
+// shimmering".
+float4 ps_contact(float2 uv : TEXCOORD0, float2 vpos : VPOS) : COLOR0 {
     float z = raw_depth(uv);
     if (z >= 0.99999) return 1;
     float3 p = position(uv, z);
@@ -145,22 +157,23 @@ float4 ps_contact(float2 uv : TEXCOORD0) : COLOR0 {
     if (fade <= 0) return 1;
     float3 L = gContact.xyz;
     float3 n = normal_at(uv, p);
-    if (dot(n, L) <= 0.05) return 1;
+    float facing = saturate((dot(n, L) - 0.03) / 0.2);
+    if (facing <= 0) return 1;
     float3 start = p + n * (0.5 + p.z * 0.002);             // off the surface: depth precision and the normal's error
+    float jitter = bayer4(vpos);
     float occ = 0;
-    [loop] for (int i = 1; i <= 16; ++i) {
-        float t = gContact.w * i / 16.0;
-        float3 q = start + L * t;
+    [loop] for (int i = 0; i < 16; ++i) {
+        float f = (i + jitter) / 16.0;
+        float3 q = start + L * (gContact.w * f);
         if (q.z < 15.0) break;                                // behind the near plane
         float2 s = uv_of(q);
         if (any(s != saturate(s))) break;
         float behind = q.z - distance_of(raw_depth(s));
-        if (behind > 0.3 + q.z * 0.001 && behind < gContact2.x) {
-            occ = 1 - (i - 1) / 16.0;
-            break;
-        }
+        float bias = 0.3 + q.z * 0.001;
+        float hit = saturate((behind - bias) / bias) * saturate((gContact2.x - behind) / (0.5 * gContact2.x));
+        occ = max(occ, hit * (1 - f));                        // nearer occluders darker
     }
-    float shade = 1 - gContact2.y * occ * fade;
+    float shade = 1 - gContact2.y * occ * fade * facing;
     return float4(shade, shade, shade, 1);
 }
 // ---- FXAA ----
