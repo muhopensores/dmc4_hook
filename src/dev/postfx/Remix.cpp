@@ -12,6 +12,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
+#include <deque>
 #include <cstdio>
 #include <cmath>
 
@@ -648,6 +649,16 @@ int __stdcall bind_texture(IDirect3DDevice9* dev, const uint32_t* entry, const u
 // TEXCOORD0 -> COLOR0 (or TEXCOORD1 when the shader already has a COLOR0 output) and TEXCOORD1 -> TEXCOORD0.
 // A vertex shader qualifies when an instruction writes its COLOR input into its TEXCOORD0 output. Only while the bridge
 // is on, and only for shaders created after it was turned on (they're created on first use).
+// Normals: the capture takes a vertex's normal from the shader's NORMAL0 output, else from its NORMAL input
+// (dxso_compiler.cpp m_vs.oNormal0, d3d9_rtx.cpp prepareVertexCapture). No DMC4 vertex shader outputs one, and the input
+// is UBYTE4N 0..1 in the model's own space, which the shader decodes (mad r, v1, 2, -1) and turns with the world or bone
+// matrices: Remix shaded every material draw with skewed, unskinned normals. Each material shader passes its world normal
+// to the pixel shader in a TEXCOORD output; normal_output finds it by following which inputs each output component
+// depends on (the NORMAL input and no POSITION / TANGENT / BINORMAL one, in .x .y .z of one register: all 149
+// XfMaterialStandard vertex shaders, the 114 shadow receivers, 46 of XfMaterialBase's 87 with a normal input, whose
+// others only output positions), and add_normal_output gives the shader a NORMAL0 output in a free register, written by
+// copies (.xyz) of the instructions writing that one. The pixel shader is untouched (it doesn't read the new output). The
+// bytecode grows, so the game gets a copy: it reads the pointer after this hook (0x8F49F4, CreateVertexShader).
 namespace sm3 {
 constexpr uint32_t kDcl = 0x1F, kComment = 0xFFFE, kEnd = 0x0000FFFF;
 constexpr uint32_t kInput = 1, kOutput = 6, kTexcoord = 5, kColor = 10;   // D3DSPR_INPUT, D3DSPR_OUTPUT (vs_3_0)
@@ -738,11 +749,136 @@ void relabel(uint32_t* code, uint32_t type, int mode) {
     if (t0) *t0 = mode == 1 ? usage_token(kColor, 0) : usage_token(kTexcoord, k);
     if (tk) *tk = usage_token(kTexcoord, 0);
 }
+
+// ---- normals ----
+constexpr uint32_t kNormalUsage = 3, kOutputs = 12;   // D3DDECLUSAGE_NORMAL; vs_3_0 has o0-o11
+constexpr uint32_t kUsePosition = 1u << 0, kUseNormal = 1u << 3, kUseTangent = 1u << 6, kUseBinormal = 1u << 7;
+
+// the components of source token `src` that instruction `op` reads to make destination component c (swizzle applied)
+uint32_t read_comps(uint32_t op, uint32_t src, uint32_t c, uint32_t* out) {
+    const auto sel = [src](uint32_t k) { return (src >> (16 + 2 * k)) & 3; };
+    switch (op) {
+    case 1: case 2: case 3: case 4: case 5: case 10: case 11: case 12: case 13: case 18: case 19: case 34: case 35: case 0x2E:
+        out[0] = sel(c);                                    // component-wise: mov add sub mad mul min max slt sge lrp frc
+        return 1;                                           // sgn abs mova
+    case 6: case 7: case 14: case 15: case 32: case 37:
+        out[0] = sel(0);                                    // scalar, replicate swizzle: rcp rsq exp log pow sincos
+        return 1;
+    case 8: case 33: case 0x24:
+        for (uint32_t k = 0; k < 3; ++k) out[k] = sel(k);   // dp3 crs nrm
+        return 3;
+    case 9:
+        for (uint32_t k = 0; k < 4; ++k) out[k] = sel(k);   // dp4
+        return 4;
+    default:
+        for (uint32_t k = 0; k < 4; ++k) out[k] = k;        // anything else: all of it (the safe side)
+        return 4;
+    }
+}
+
+// the output register carrying the world normal, or -1 (none, more than one, or loops / calls / indexed outputs, which
+// this doesn't follow). What each component depends on is a mask of D3DDECLUSAGE bits (bit 31: an undeclared input).
+int normal_output(uint32_t* code) {
+    if ((code[0] & 0xFFFF0000u) != 0xFFFE0000u || (code[0] & 0xFFFF) < 0x0300) return -1;   // vs_3_0 only
+    std::vector<Dcl> d;
+    std::vector<std::pair<uint32_t*, uint32_t>> ins;
+    if (!walk(code, d, [&](uint32_t* p, uint32_t len) { ins.push_back({ p, len }); })) return -1;
+    uint32_t in_use[16];
+    for (auto& u : in_use) u = 1u << 31;
+    bool has_normal = false;
+    for (auto& x : d)
+        if (x.type == kInput && x.num < 16) { in_use[x.num] = 1u << x.use; has_normal |= x.use == kNormalUsage; }
+    if (!has_normal) return -1;
+    uint32_t temp[32][4] = {}, out[kOutputs][4] = {};
+    int depth = 0;
+    for (auto& [p, len] : ins) {
+        const uint32_t op = p[0] & 0xFFFF;
+        switch (op) {
+        case 0x28: case 0x29: ++depth; continue;            // if, ifc: writes inside add to what was there
+        case 0x2A: continue;                                // else
+        case 0x2B: --depth; continue;                       // endif
+        case 0: case 0x2F: case 0x30: case 0x51: continue;  // nop defb defi def
+        case 0x19: case 0x1A: case 0x1B: case 0x1C: case 0x1D: case 0x1E: case 0x26: case 0x27: case 0x2C: case 0x2D:
+        case 0x61:
+            return -1;                                      // call callnz loop ret endloop label rep endrep break breakc breakp
+        }
+        if (len < 1) continue;
+        const uint32_t dst = p[1], mask = (dst >> 16) & 0xF;
+        if (dst & 0x2000) return -1;                        // indexed destination
+        const bool merge = depth > 0 || (p[0] & 0x10000000);   // conditional or predicated write
+        uint32_t res[4] = {};
+        for (uint32_t k = 2; k <= len; k += (p[k] & 0x2000) ? 2 : 1) {   // an indexed source is followed by its index
+            const uint32_t s = p[k], t = reg_type(s), n = reg_num(s);
+            for (uint32_t c = 0; c < 4; ++c) {
+                if (!(mask >> c & 1)) continue;
+                uint32_t cs[4];
+                const uint32_t m = read_comps(op, s, c, cs);
+                for (uint32_t i = 0; i < m; ++i) {
+                    if (t == kInput && n < 16) res[c] |= in_use[n];
+                    else if (t == 0 && n < 32) res[c] |= temp[n][cs[i]];
+                }
+            }
+        }
+        const uint32_t t = reg_type(dst), n = reg_num(dst);
+        for (uint32_t c = 0; c < 4; ++c) {
+            if (!(mask >> c & 1)) continue;
+            if (t == 0 && n < 32) temp[n][c] = merge ? temp[n][c] | res[c] : res[c];
+            else if (t == kOutput && n < kOutputs) out[n][c] |= res[c];
+        }
+    }
+    int found = -1;
+    for (uint32_t o = 0; o < kOutputs; ++o) {
+        bool ok = true;
+        for (uint32_t c = 0; c < 3; ++c)
+            ok = ok && (out[o][c] & kUseNormal) && !(out[o][c] & (kUsePosition | kUseTangent | kUseBinormal));
+        if (!ok) continue;
+        if (found >= 0) return -1;                          // two: don't guess
+        found = static_cast<int>(o);
+    }
+    return found;
+}
+
+// a copy of the shader with a NORMAL0 output in the first free output register, written by a copy (.xyz) of every
+// instruction writing output `from`, right after it (so it reads the same values); empty when no register is free
+std::vector<uint32_t> add_normal_output(uint32_t* code, uint32_t from) {
+    std::vector<Dcl> d;
+    if (!walk(code, d, [](uint32_t*, uint32_t) {})) return {};
+    uint32_t used = 0;
+    for (auto& x : d) if (x.type == kOutput && x.num < 32) used |= 1u << x.num;
+    uint32_t k = 0;
+    while (k < kOutputs && (used >> k & 1)) ++k;
+    if (k == kOutputs || !(used >> from & 1)) return {};
+    const auto retarget = [k](uint32_t tok, uint32_t mask) { return (tok & ~0x000F07FFu) | k | (mask << 16); };
+    std::vector<uint32_t> out;
+    const uint32_t* p = code;
+    out.push_back(*p++);                                    // version
+    for (int guard = 0; guard < 65536; ++guard) {
+        const uint32_t t = *p;
+        if (t == kEnd) { out.push_back(t); return out; }
+        const uint32_t op = t & 0xFFFF;
+        const uint32_t n = op == kComment ? 1 + ((t >> 16) & 0x7FFF) : 1 + ((t >> 24) & 0xF);
+        out.insert(out.end(), p, p + n);
+        if (op == kDcl && n >= 3 && reg_type(p[2]) == kOutput && reg_num(p[2]) == from) {
+            out.push_back(t);
+            out.push_back(usage_token(kNormalUsage, 0));
+            out.push_back(retarget(p[2], 7));
+        } else if (op != kComment && op != kDcl && n >= 2 && reg_type(p[1]) == kOutput && reg_num(p[1]) == from &&
+                   ((p[1] >> 16) & 7)) {
+            const size_t at = out.size();
+            out.insert(out.end(), p, p + n);
+            out[at + 1] = retarget(p[1], (p[1] >> 16) & 7);
+        }
+        p += n;
+    }
+    return {};
+}
 } // namespace sm3
 
 std::unordered_map<const void*, int> g_vs_mode;      // vertex shader bytecode -> its relabelling
 std::unordered_set<const void*> g_ps_done;            // pixel shader bytecode already relabelled
 uint32_t g_relabelled = 0;
+std::deque<std::vector<uint32_t>> g_vs_copies;        // vertex shaders with a NORMAL0 output (the game creates from these)
+uint32_t g_normals = 0;
 
 // pair = the pass's {pixel shader object, vertex shader object}, each {IDirect3D*Shader9* handle, bytecode}
 void __stdcall patch_pair(uint32_t* pair) {
@@ -762,6 +898,18 @@ void __stdcall patch_pair(uint32_t* pair) {
         if ((mode & 0xF) != 3 && settings.inject_pass > 0 && settings.inject_pass <= 6) mode = 0;
         if (mode) { sm3::relabel(vcode, sm3::kOutput, mode); ++g_relabelled; }
         g_vs_mode[vcode] = mode;
+        // a NORMAL0 output (see "Normals" above): the game creates the shader from the copy
+        const int nout = vs[0] ? -1 : sm3::normal_output(vcode);
+        if (nout >= 0) {
+            auto copy = sm3::add_normal_output(vcode, static_cast<uint32_t>(nout));
+            if (!copy.empty()) {
+                g_vs_copies.push_back(std::move(copy));
+                uint32_t* ncode = g_vs_copies.back().data();
+                vs[1] = reinterpret_cast<uint32_t>(ncode);
+                g_vs_mode[ncode] = mode;
+                ++g_normals;
+            }
+        }
     }
     if (!mode || !ps || ps[0] || !ps[1]) return;
     auto* pcode = reinterpret_cast<uint32_t*>(ps[1]);
@@ -1145,10 +1293,12 @@ void draw_gui() {
             ImGui::SliderFloat(_("Exposure"), &settings.exposure, 0.1f, 4.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
         }
     }
-    ImGui::Checkbox(_("Relabel effect shaders (restart)"), &settings.relabel);
+    ImGui::Checkbox(_("Patch shaders for Remix (restart)"), &settings.relabel);
     ImGui::SameLine();
-    Mod::help_marker(_("Swaps texture-coordinate labels in effect and flat-water shaders so Remix finds their UVs and colours. "
-                       "Applied as the game creates its shaders: change it, save the config, restart."));
+    Mod::help_marker(_("Swaps texture-coordinate labels in effect and flat-water shaders so Remix finds their UVs and colours, "
+                       "and gives material shaders a normal output so Remix shades with the game's world-space normals "
+                       "(needs rtx.useVertexCapturedNormals = True in rtx.conf). Applied as the game creates its shaders: "
+                       "change it, save the config, restart."));
     ImGui::Checkbox(_("Sky as sky"), &settings.sky);
     ImGui::SameLine();
     Mod::help_marker(_("Tells Remix which draws are the sky, so it draws them as the background and lights the scene with "
@@ -1165,8 +1315,8 @@ void draw_gui() {
                        "distortion texture, which shows as a purple colour."));
     ImGui::TextDisabled(_("Last frame: %u of %u draws skipped, %u textures moved, %u water passes"), g_skipped_last,
                         g_seen_last, g_moved_last, g_water_last);
-    ImGui::TextDisabled(_("Effect shaders relabelled for Remix: %u (needs the bridge on at startup), %u draws hidden, %u sky"),
-                        g_relabelled, g_hidden_last, g_sky_last);
+    ImGui::TextDisabled(_("Shaders patched (needs the bridge on at startup): %u relabelled, %u with a normal output; "
+                          "%u draws hidden, %u sky"), g_relabelled, g_normals, g_hidden_last, g_sky_last);
     ImGui::TextDisabled(_("Camera from the drawn frame: %u updates, %u other views passed over (%s layout)"), g_vp_sets_last,
                         g_vp_rejected_last, g_vp_transposed < 0 ? "?" : g_vp_transposed ? "transposed" : "row");
     ImGui::PopID();
