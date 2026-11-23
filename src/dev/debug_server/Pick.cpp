@@ -91,18 +91,39 @@ json pick_tool(const json& a) {
     if (!a.contains("x") || !a.contains("y") || !parse_number(a["x"], x) || !parse_number(a["y"], y))
         throw ToolError("bad_args", "x and y (back-buffer pixels) are needed");
     const double max_dist = a.value("max_dist", 60.0);
+    const bool select = a.value("select", false);
     const post_fx::DepthSample s = post_fx::sample_world((int)x, (int)y, 2000);
     if (!s.ok) throw ToolError("no_point", s.error, json{{"texel", json::array({s.texel[0], s.texel[1]})}});
-    const json units = run_on_game_thread([p = s.world, max_dist]() -> json {
+    const uintptr_t tagged = s.unit;
+    const json units = run_on_game_thread([p = s.world, max_dist, tagged]() -> json {
         const std::vector<Candidate> c = score_units(p);
         json out{{"candidates", json::array()}};
         for (size_t i = 0; i < c.size() && i < 5; ++i) out["candidates"].push_back(candidate_json(c[i]));
-        if (!c.empty() && c[0].dist <= max_dist) out["unit"] = candidate_json(c[0]);
+        if (tagged) {                       // the model that drew the pixel (its ID in the depth): exact
+            json u{{"address", hex(tagged)}, {"by", "id"}};
+            const uintptr_t dti = dti_of(tagged);
+            if (dti) u["class"] = dti_name(dti);
+            for (const Candidate& k : c)
+                if (k.unit == tagged) {
+                    u = candidate_json(k);
+                    u["by"] = "id";
+                    break;
+                }
+            out["unit"] = u;
+        } else if (!c.empty() && c[0].dist <= max_dist) {
+            out["unit"] = candidate_json(c[0]);   // no ID there: the nearest joint
+        }
         return out;
     });
     json out{{"point", json::array({s.world[0], s.world[1], s.world[2]})}, {"distance", s.distance},
-             {"texel", json::array({s.texel[0], s.texel[1]})}, {"candidates", units["candidates"]}};
+             {"texel", json::array({s.texel[0], s.texel[1]})}, {"id", s.id}, {"candidates", units["candidates"]}};
     out["unit"] = units.contains("unit") ? units["unit"] : json();
+    if (select) {
+        long long sel = 0;
+        if (units.contains("unit")) parse_number(units["unit"]["address"], sel);
+        post_fx::select((uintptr_t)sel);
+        out["selected"] = sel != 0;
+    }
     return out;
 }
 
@@ -113,13 +134,15 @@ void register_pick() {
                 {"properties",
                  {{"x", {{"type", "integer"}, {"description", "back-buffer pixel x"}}},
                   {"y", {{"type", "integer"}, {"description", "back-buffer pixel y"}}},
-                  {"max_dist", {{"type", "number"}, {"description", "cm from the point to a unit's nearest joint for a pick (default 60)"}}}}},
+                  {"max_dist", {{"type", "number"}, {"description", "cm from the point to a unit's nearest joint for a pick (default 60)"}}},
+                  {"select", {{"type", "boolean"}, {"description", "also select it: PostFX outlines the picked unit (none = clear)"}}}}},
                 {"required", json::array({"x", "y"})}};
     add_tool({"pick",
               "What's under a screen pixel (back-buffer pixels, as screenshot's crop): the world point there (game cm, from "
-              "the frame's depth; nothing for sky), and the model unit whose nearest joint is closest to it (the pick when "
-              "within max_dist cm) with up to 5 candidates (address, class, move line, joint, distance). Depth holds opaque "
-              "geometry only: effects and transparent meshes can't be picked. Waits for the next frame.",
+              "the frame's depth; nothing for sky), the object ID there (each model draws its own into the depth: the exact "
+              "unit, by = id) else the model unit whose nearest joint is closest (within max_dist cm), and up to 5 "
+              "candidates by joint (address, class, move line, joint, distance). select = true outlines it in the scene. "
+              "Depth holds opaque geometry only: effects and transparent meshes can't be picked. Waits for the next frame.",
               schema, false, pick_tool});
 }
 

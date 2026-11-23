@@ -32,6 +32,8 @@ struct Settings {
     float contact_darkness = 0.6f;
     bool  aa = false;             // FXAA, last in the pass (after the outlines)
     float aa_softness = 0.75f;    // FXAA's subpixel softening
+    bool  highlight = true;       // outline the selected object (select())
+    float highlight_color[3] = { 1.0f, 0.55f, 0.1f };
 };
 extern Settings settings;
 
@@ -54,9 +56,15 @@ struct DepthSample {
     float       world[3] = {};
     float       distance = 0.0f;  // cm ahead of the camera
     int         texel[2] = {};    // the depth texel read
+    int         id = 0;           // the object ID there (the depth texture's blue byte; 0 = none)
+    uintptr_t   unit = 0;         // the model unit drawn with that ID
     std::string error;
 };
 DepthSample sample_world(int x, int y, int timeout_ms = 2000);
+
+// The selected object, outlined in the scene while settings.highlight (0 = none). Any thread.
+void select(uintptr_t unit);
+uintptr_t selected();
 
 } // namespace post_fx
 

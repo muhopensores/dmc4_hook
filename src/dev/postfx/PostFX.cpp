@@ -1,5 +1,6 @@
 #include "PostFX.hpp"
 #include "Cel.hpp"
+#include "Tags.hpp"
 #include "../shadows/Shadows.hpp"
 #include "../../ModFramework.hpp"
 #include "../shader_file.hpp"
@@ -61,7 +62,7 @@ D3DCompileFn compiler() {
 // ---- compile (worker thread) -> shaders (render thread) ----
 
 std::mutex             g_mutex;
-std::vector<uint8_t>   g_code_ao, g_code_blur, g_code_outline, g_code_contact, g_code_fxaa;   // guarded by g_mutex
+std::vector<uint8_t>   g_code_ao, g_code_blur, g_code_outline, g_code_contact, g_code_fxaa, g_code_highlight;   // guarded by g_mutex
 std::string            g_error;                  // guarded by g_mutex
 int                    g_code_generation = 0;    // guarded by g_mutex: bumped by each finished compile
 bool                   g_from_file = false;      // guarded by g_mutex
@@ -110,11 +111,11 @@ void start_compile() {
     std::thread([fn] {
         bool from_file = false;
         const std::string src = read_source(from_file);
-        std::vector<uint8_t> ao, blur, outline, contact, fxaa;
+        std::vector<uint8_t> ao, blur, outline, contact, fxaa, highlight;
         std::string error;
         const bool ok = compile_one(fn, src, "ps_ao", ao, error) && compile_one(fn, src, "ps_blur", blur, error) &&
                         compile_one(fn, src, "ps_outline", outline, error) && compile_one(fn, src, "ps_contact", contact, error) &&
-                        compile_one(fn, src, "ps_fxaa", fxaa, error);
+                        compile_one(fn, src, "ps_fxaa", fxaa, error) && compile_one(fn, src, "ps_highlight", highlight, error);
         {
             std::lock_guard lock(g_mutex);
             g_from_file = from_file;
@@ -125,6 +126,7 @@ void start_compile() {
                 g_code_outline = std::move(outline);
                 g_code_contact = std::move(contact);
                 g_code_fxaa = std::move(fxaa);
+                g_code_highlight = std::move(highlight);
                 ++g_code_generation;
             }
         }
@@ -140,6 +142,8 @@ IDirect3DPixelShader9* g_ps_blur = nullptr;
 IDirect3DPixelShader9* g_ps_outline = nullptr;
 IDirect3DPixelShader9* g_ps_contact = nullptr;
 IDirect3DPixelShader9* g_ps_fxaa = nullptr;
+IDirect3DPixelShader9* g_ps_highlight = nullptr;
+std::atomic<uintptr_t> g_selected{ 0 };
 IDirect3DTexture9*     g_scene_copy = nullptr;  // D3DPOOL_DEFAULT: released on reset
 UINT                   g_copy_w = 0, g_copy_h = 0;
 D3DFORMAT              g_copy_fmt = D3DFMT_UNKNOWN;
@@ -196,26 +200,30 @@ void release_device_objects() {
 
 bool ensure_shaders(IDirect3DDevice9* dev) {
     std::lock_guard lock(g_mutex);
-    if (g_code_generation == g_ps_generation) return g_ps_ao && g_ps_blur && g_ps_outline && g_ps_contact && g_ps_fxaa;
+    if (g_code_generation == g_ps_generation) return g_ps_ao && g_ps_blur && g_ps_outline && g_ps_contact && g_ps_fxaa &&
+                                                       g_ps_highlight;
     release(g_ps_ao);
     release(g_ps_blur);
     release(g_ps_outline);
     release(g_ps_contact);
     release(g_ps_fxaa);
+    release(g_ps_highlight);
     g_ps_generation = g_code_generation;
     if (g_code_ao.empty() || g_code_blur.empty() || g_code_outline.empty() || g_code_contact.empty() ||
-        g_code_fxaa.empty())
+        g_code_fxaa.empty() || g_code_highlight.empty())
         return false;
     if (FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_ao.data()), &g_ps_ao)) ||
         FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_blur.data()), &g_ps_blur)) ||
         FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_outline.data()), &g_ps_outline)) ||
         FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_contact.data()), &g_ps_contact)) ||
-        FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_fxaa.data()), &g_ps_fxaa))) {
+        FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_fxaa.data()), &g_ps_fxaa)) ||
+        FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_highlight.data()), &g_ps_highlight))) {
         release(g_ps_ao);
         release(g_ps_blur);
         release(g_ps_outline);
         release(g_ps_contact);
         release(g_ps_fxaa);
+        release(g_ps_highlight);
         g_error = "CreatePixelShader failed";
         return false;
     }
@@ -323,6 +331,8 @@ void service_pick(IDirect3DDevice9* dev, IDirect3DTexture9* depth, const D3DSURF
     release(dst);
     if (s.error.empty()) {
         const uint8_t* p = static_cast<const uint8_t*>(lr.pBits);     // B G R A
+        s.id = p[0];                                                  // the object ID (tag.inc)
+        s.unit = tags::unit_of(p[0]);
         const float z = p[2] / 255.0f * 0.00389099144f + p[1] / 255.0f * 1.51991853e-5f + p[3] / 255.0f * 0.99609381f;
         g_pick_sys->UnlockRect();
         const MtMatrix& P = cam->viewports[0].mProjMat;
@@ -348,6 +358,7 @@ void service_pick(IDirect3DDevice9* dev, IDirect3DTexture9* depth, const D3DSURF
 
 // outlines and cel shading go together (the user, 2026-11-23): the cel shading switch turns both on
 bool outlines_on() { return cel::settings.on && settings.outline; }
+bool highlight_on() { return settings.highlight && g_selected.load() != 0; }
 
 void draw_post() {
     g_diag.stage = 1;
@@ -365,7 +376,7 @@ void draw_post() {
         D3DSURFACE_DESC pd;
         if (SUCCEEDED(depth->GetLevelDesc(0, &pd))) service_pick(dev, depth, pd, reinterpret_cast<const sCamera*>(camera));
     }
-    if (!(settings.ao || outlines_on() || settings.contact || settings.aa)) return;   // only a pick this frame
+    if (!(settings.ao || outlines_on() || settings.contact || settings.aa || highlight_on())) return;   // only a pick this frame
     g_diag.stage = 4;
     if (!ensure_shaders(dev)) return;
     g_diag.stage = 5;
@@ -491,6 +502,23 @@ void draw_post() {
         draw_fullscreen(dev, desc.Width, desc.Height);
     }
 
+    // the selected object's outline (its ID in the depth texture's blue byte), alpha blended
+    const uint8_t sel_id = settings.highlight ? tags::id_of(g_selected.load()) : 0;
+    if (sel_id) {
+        const float c10[4] = { sel_id / 255.0f, (std::max)(1.0f, 2.0f * fh / 1080.0f), 0.0f, 0.0f };
+        const float c11[4] = { settings.highlight_color[0], settings.highlight_color[1], settings.highlight_color[2], 1.0f };
+        dev->SetPixelShaderConstantF(10, c10, 1);
+        dev->SetPixelShaderConstantF(11, c11, 1);
+        dev->SetRenderTarget(0, scene);
+        dev->SetDepthStencilSurface(nullptr);
+        dev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+        dev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+        dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+        dev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE);
+        dev->SetPixelShader(g_ps_highlight);
+        draw_fullscreen(dev, desc.Width, desc.Height);
+    }
+
     // anti-aliasing, last: the scene (with everything above) copied out, FXAA'd back over it
     if (settings.aa) {
         D3DSURFACE_DESC sd;
@@ -535,20 +563,26 @@ void draw_post() {
 // pass, 0-19 priority / depth (Vibed\Shadows\README.md). The loop's back-edge (0x8F5EBD) jumps here, so every tag passes.
 uintptr_t jmp_ret_tag = 0;
 
-void __stdcall on_tag(const uint32_t* tags, uint32_t index, uint32_t count) {
+void __stdcall on_tag(const uint32_t* list, uint32_t index, uint32_t count) {
     if (index == 0) {
         g_done = false;
         ++g_diag.dispatches;
         if (g_diag.capture == 3) g_diag.capture = 2;
         if (g_diag.capture == 1) { g_diag.capture = 3; g_diag.nseq = 0; g_diag.count = count; }
+        tags::on_dispatch_start();
+    }
+    // object IDs: before each depth-pass command (any view), c220 = the ID of the model that made it
+    if (tags::enabled && ((list[index * 2 + 1] >> 20) & 0xF) == 1) {
+        const uintptr_t render = *reinterpret_cast<uintptr_t*>(kRenderInstance);
+        if (render) tags::on_depth_tag(at<void*>(render, kDevice), list[index * 2]);
     }
     if (g_diag.capture == 3 && g_diag.nseq < 64) {
-        const uint32_t k = tags[index * 2 + 1] >> 20;
+        const uint32_t k = list[index * 2 + 1] >> 20;
         if (g_diag.nseq == 0 || (g_diag.seq[g_diag.nseq - 1] & 0xFFF) != k) g_diag.seq[g_diag.nseq++] = (index << 12) | k;
     }
     ++g_diag.tags;
-    if (g_done || !(settings.ao || outlines_on() || settings.contact || settings.aa || g_pick_pending)) return;
-    const uint32_t key = tags[index * 2 + 1];
+    if (g_done || !(settings.ao || outlines_on() || settings.contact || settings.aa || highlight_on() || g_pick_pending)) return;
+    const uint32_t key = list[index * 2 + 1];
     if (((key >> 24) & 0x1F) == kMainScene) {
         ++g_diag.main_tags;
         g_diag.max_pass_main = (std::max)(g_diag.max_pass_main, (key >> 20) & 0xF);
@@ -632,6 +666,9 @@ DepthSample sample_world(int x, int y, int timeout_ms) {
     return f.get();
 }
 
+void select(uintptr_t unit) { g_selected = unit; }
+uintptr_t selected() { return g_selected.load(); }
+
 } // namespace post_fx
 
 using namespace post_fx;
@@ -640,6 +677,7 @@ std::optional<std::string> PostFX::on_initialize() {
     g_hooked = install_hook_absolute(0x8F4460, hook_tag, &detour_tag, &jmp_ret_tag, 11);
     if (!g_hooked) spdlog::error("PostFX: failed to hook sRender::dispatchCommands' tag loop (0x8F4460)");
     cel::init();
+    tags::init();
     return Mod::on_initialize();
 }
 
@@ -654,6 +692,8 @@ void PostFX::on_frame(fmilliseconds& dt) {
         if (l > 1e-6f) for (int i = 0; i < 3; ++i) g_sun[i] = d[i] / l;
     }
     cel::update();
+    tags::enabled = true;   // object IDs are cheap (a lookup per depth-pass command): always on, for pick
+    tags::update();
 }
 
 void PostFX::on_reset() { release_device_objects(); }
@@ -687,6 +727,16 @@ void PostFX::on_gui_frame(int display) {
             ImGui::SliderFloat(_("Softness"), &settings.aa_softness, 0.0f, 1.0f, "%.2f");
             ImGui::SameLine();
             help_marker(_("How much fine detail inside surfaces is smoothed too (0 = only edges, sharpest)."));
+            ImGui::Unindent(lineIndent);
+        }
+        ImGui::Checkbox(_("Outline the picked object"), &settings.highlight);
+        ImGui::SameLine();
+        help_marker(_("An outline around the object picked (photo mode, the debug server's pick): every model draws its "
+                      "own ID into the frame's depth, so the outline follows its exact shape."));
+        if (settings.highlight) {
+            ImGui::Indent(lineIndent);
+            ImGui::ColorEdit3(_("Outline colour"), settings.highlight_color);
+            if (g_selected.load() && ImGui::Button(_("Clear the pick"))) g_selected = 0;
             ImGui::Unindent(lineIndent);
         }
         return;
@@ -764,6 +814,7 @@ void PostFX::on_config_load(const utility::Config& cfg) {
     cel::load(cfg);
     settings.contact = cfg.get<bool>("postfx_contact").value_or(d.contact);
     settings.aa = cfg.get<bool>("postfx_aa").value_or(d.aa);
+    settings.highlight = cfg.get<bool>("postfx_highlight").value_or(d.highlight);
     settings.aa_softness = std::clamp(cfg.get<float>("postfx_aa_softness").value_or(d.aa_softness), 0.0f, 1.0f);
     settings.contact_length = std::clamp(cfg.get<float>("postfx_contact_length").value_or(d.contact_length), 5.0f, 150.0f);
     settings.contact_darkness = std::clamp(cfg.get<float>("postfx_contact_darkness").value_or(d.contact_darkness), 0.0f, 1.0f);
@@ -784,6 +835,7 @@ void PostFX::on_config_save(utility::Config& cfg) {
     cel::save(cfg);
     cfg.set<bool>("postfx_contact", settings.contact);
     cfg.set<bool>("postfx_aa", settings.aa);
+    cfg.set<bool>("postfx_highlight", settings.highlight);
     cfg.set<float>("postfx_aa_softness", settings.aa_softness);
     cfg.set<float>("postfx_contact_length", settings.contact_length);
     cfg.set<float>("postfx_contact_darkness", settings.contact_darkness);

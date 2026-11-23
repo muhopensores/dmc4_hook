@@ -24,6 +24,8 @@ float4 gLineColor: register(c6);    // rgb, the distance (cm) where lines are go
 float4 gContact : register(c7);     // toward the sun in this camera space (x right, y up, z ahead), ray length (cm)
 float4 gContact2: register(c8);     // thickness (cm), darkness, the distance (cm) where they're gone, -
 float4 gAA      : register(c9);     // subpixel softening (0 .. 1), edge threshold, darkest edge threshold, -
+float4 gSel     : register(c10);    // the selected object's ID / 255, line width (px), -, -
+float4 gSelColor: register(c11);    // the highlight's colour
 sampler2D gScene : register(s2);    // the scene's copy (linear, clamp; ps_fxaa)
 
 static const int kSamples = 16;
@@ -224,5 +226,28 @@ float4 ps_fxaa(float2 uv : TEXCOORD0) : COLOR0 {
     float2 uvF = uv;
     if (horzSpan) uvF.y += ofs * stepLen; else uvF.x += ofs * stepLen;
     return float4(aa_rgb(uvF), 1);
+}
+// ---- the selection highlight ----
+// The depth texture's blue byte holds each model's ID (Tags.cpp, tag.inc): a line where the selected ID meets anything
+// else, on both sides, and a faint tint inside.
+float tag_at(float2 uv) { return tex2Dlod(gDepth, float4(uv, 0, 0)).b; }
+bool is_sel(float2 uv) { return abs(tag_at(uv) - gSel.x) < 0.002; }
+
+float4 ps_highlight(float2 uv : TEXCOORD0) : COLOR0 {
+    const bool inside = is_sel(uv);
+    const float2 o = gSel.y * gScreen.xy;
+    float around = 0;
+    around += is_sel(uv + float2(o.x, 0)) ? 1 : 0;
+    around += is_sel(uv - float2(o.x, 0)) ? 1 : 0;
+    around += is_sel(uv + float2(0, o.y)) ? 1 : 0;
+    around += is_sel(uv - float2(0, o.y)) ? 1 : 0;
+    around += is_sel(uv + o) ? 1 : 0;
+    around += is_sel(uv - o) ? 1 : 0;
+    around += is_sel(uv + float2(o.x, -o.y)) ? 1 : 0;
+    around += is_sel(uv + float2(-o.x, o.y)) ? 1 : 0;
+    float a = 0;
+    if (inside) a = around < 8 ? 1.0 : 0.12;
+    else if (around > 0) a = 1.0;
+    return float4(gSelColor.rgb, a);
 }
 )hlsl"

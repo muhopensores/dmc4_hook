@@ -424,6 +424,8 @@ set(DEV_SRC
   dev/postfx/PostFX.cpp
   dev/postfx/Cel.hpp
   dev/postfx/Cel.cpp
+  dev/postfx/Tags.hpp
+  dev/postfx/Tags.cpp
   dev/lights/LightSwitches.hpp
   dev/lights/LightSwitches.cpp
   dev/plugins/PluginHost.hpp
