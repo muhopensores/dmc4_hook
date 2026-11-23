@@ -518,6 +518,132 @@ static void ImGuizmoManipulators() {
     w2s::ImGuizmoDeselection(selectedLightIndex, isManipulatingLight);
 }
 
+// ---- Filter controls ----
+// What the fields do, from the filters' code and their XfFilter.bfx pixel shaders (read 2026-11-23; the filter list is
+// Vibed\RE\filters_se.md):
+// - Level Correct, per channel: out = saturate(OutBlack + (OutWhite - OutBlack) x (in - InBlack) / (InWhite - InBlack))
+//   ^ (1 / InputGamma); the w components aren't used (alpha passes through).
+// - Colour Space: out = M x (r, g, b, 1), M from Scale (R, G, B) and the rotation of Angle (radians,
+//   MtMatrix::setRotateZYX), built into mMatrix by 0x91DF60 (the game's own builder); Angle.w / Scale.w aren't used.
+// - HSV: the hue shift is in degrees (x 1/360), saturation and value are added (0-1 scale) and clamped.
+// - Contrast: the shader gets (1 / c, 0.5 - 0.5 / c), a scale about mid grey: 1 = unchanged, below 1 stronger, above
+//   flatter (0 would divide by zero; the game then uses 100).
+
+using ColourMatrixFn = void(__thiscall*)(uColorSpaceFilter*);
+static const ColourMatrixFn colour_space_matrix = (ColourMatrixFn)0x0091DF60;
+
+static constexpr float kRadToDeg = 57.2957795f;
+static constexpr float kMinLevelGap = 1.0f / 255.0f;
+
+// one level setting: a slider for red, green and blue together, or a colour (each channel its own)
+static bool level_value(const char* label, MtVector4& v, bool per_channel) {
+    if (per_channel)
+        return ImGui::ColorEdit3(label, &v.x, ImGuiColorEditFlags_Float);
+    float k = (v.x + v.y + v.z) / 3.0f;
+    if (!ImGui::SliderFloat(label, &k, 0.0f, 1.0f, "%.3f"))
+        return false;
+    v.x = v.y = v.z = k;
+    return true;
+}
+
+static bool level_gamma(const char* label, MtVector4& v, bool per_channel) {
+    if (per_channel)
+        return ImGui::SliderFloat3(label, &v.x, 0.1f, 4.0f, "%.2f");
+    float k = (v.x + v.y + v.z) / 3.0f;
+    if (!ImGui::SliderFloat(label, &k, 0.1f, 4.0f, "%.2f"))
+        return false;
+    v.x = v.y = v.z = k;
+    return true;
+}
+
+static void level_correct_ui(uLevelCorrectFilter* f) {
+    bool* per_channel = ImGui::GetStateStorage()->GetBoolRef(ImGui::GetID("per_channel"), false);
+    ImGui::Checkbox(_("Per channel"), per_channel);
+    ImGui::SameLine();
+    Mod::help_marker(_("Off: each slider moves red, green and blue together.\nOn: each setting is a colour, so red, green and "
+                  "blue get their own levels."));
+    level_value(_("In Black"), f->mInBlack, *per_channel);
+    ImGui::SameLine();
+    Mod::help_marker(_("This brightness and anything darker becomes Out Black."));
+    level_value(_("In White"), f->mInWhite, *per_channel);
+    ImGui::SameLine();
+    Mod::help_marker(_("This brightness and anything brighter becomes Out White."));
+    level_gamma(_("Gamma"), f->mInputGamma, *per_channel);
+    ImGui::SameLine();
+    Mod::help_marker(_("Midtones: above 1 brightens them, below 1 darkens them. 1 = unchanged."));
+    level_value(_("Out Black"), f->mOutBlack, *per_channel);
+    ImGui::SameLine();
+    Mod::help_marker(_("The darkest the picture gets. Raise it for faded blacks."));
+    level_value(_("Out White"), f->mOutWhite, *per_channel);
+    ImGui::SameLine();
+    Mod::help_marker(_("The brightest the picture gets. Lower it to dim the highlights."));
+    if (ImGui::Button(_("Reset##levels"))) {
+        f->mInBlack = {0.0f, 0.0f, 0.0f, 1.0f};
+        f->mInWhite = {1.0f, 1.0f, 1.0f, 1.0f};
+        f->mInputGamma = {1.0f, 1.0f, 1.0f, 0.0f};
+        f->mOutBlack = {0.0f, 0.0f, 0.0f, 1.0f};
+        f->mOutWhite = {1.0f, 1.0f, 1.0f, 1.0f};
+    }
+    // the shader divides by In White - In Black and by Gamma
+    float* in_black = &f->mInBlack.x;
+    float* in_white = &f->mInWhite.x;
+    float* gamma = &f->mInputGamma.x;
+    for (int i = 0; i < 3; ++i) {
+        if (in_white[i] < in_black[i] + kMinLevelGap)
+            in_white[i] = in_black[i] + kMinLevelGap;
+        if (gamma[i] < 0.01f)
+            gamma[i] = 0.01f;
+    }
+}
+
+static void colour_space_ui(uColorSpaceFilter* f) {
+    bool changed = false;
+    float deg[3] = {f->mAngle.x * kRadToDeg, f->mAngle.y * kRadToDeg, f->mAngle.z * kRadToDeg};
+    if (ImGui::SliderFloat3(_("Turn (R / G / B axis)"), deg, -180.0f, 180.0f, "%.0f deg")) {
+        f->mAngle.x = deg[0] / kRadToDeg;
+        f->mAngle.y = deg[1] / kRadToDeg;
+        f->mAngle.z = deg[2] / kRadToDeg;
+        changed = true;
+    }
+    ImGui::SameLine();
+    Mod::help_marker(_("Turns the colours around the red, green and blue axes of the colour cube, which swaps and mixes "
+                  "channels. For a plain hue shift use the HSV filter."));
+    changed |= ImGui::SliderFloat3(_("Scale R / G / B"), &f->mScale.x, 0.0f, 2.0f, "%.2f");
+    ImGui::SameLine();
+    Mod::help_marker(_("Multiplies red, green and blue. 1 = unchanged."));
+    if (ImGui::Button(_("Reset##colour_space"))) {
+        f->mAngle = {0.0f, 0.0f, 0.0f, f->mAngle.w};
+        f->mScale = {1.0f, 1.0f, 1.0f, f->mScale.w};
+        changed = true;
+    }
+    if (changed)
+        colour_space_matrix(f);   // the shader reads mMatrix, not Angle / Scale
+}
+
+static void hsv_ui(uHSVFilter* f) {
+    ImGui::SliderFloat(_("Hue"), &f->mShiftHue, -180.0f, 180.0f, "%.0f deg");
+    ImGui::SameLine();
+    Mod::help_marker(_("Turns every colour around the colour wheel."));
+    ImGui::SliderFloat(_("Saturation"), &f->mShiftSaturation, -1.0f, 1.0f, "%.2f");
+    ImGui::SameLine();
+    Mod::help_marker(_("-1 = grey, 0 = unchanged, above 0 more vivid."));
+    ImGui::SliderFloat(_("Brightness"), &f->mShiftValue, -1.0f, 1.0f, "%.2f");
+    ImGui::SameLine();
+    Mod::help_marker(_("Added to every colour's brightness. 0 = unchanged."));
+    if (ImGui::Button(_("Reset##hsv")))
+        f->mShiftHue = f->mShiftSaturation = f->mShiftValue = 0.0f;
+}
+
+static void contrast_ui(uContrastFilter* f) {
+    ImGui::SliderFloat(_("Contrast"), &f->mContrast, 0.05f, 3.0f, "%.2f");
+    ImGui::SameLine();
+    Mod::help_marker(_("1 = unchanged, below 1 stronger contrast, above 1 flatter. A new filter starts at 0.5."));
+    if (f->mContrast < 0.01f)
+        f->mContrast = 0.01f;
+    if (ImGui::Button(_("Reset##contrast")))
+        f->mContrast = 1.0f;
+}
+
 void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
     cUnit* obj    = moveline->mTop;
     while (obj != nullptr) {
@@ -604,7 +730,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                     ImGui::InputInt(_("Blur count"), (int*)&dof_filter->mBlurCount);
                     ImGui::SliderInt(_("Type"), (int*)&dof_filter->mType, 0, 2);
                     ImGui::SliderInt(_("Blur type"), (int*)&dof_filter->mBlurType, 1, 2);
-                    ImGui::ColorEdit4(_("Gradate Color"), (float*)&dof_filter->mGradateColor);
+                    ImGui::ColorEdit3(_("Gradate Color"), (float*)&dof_filter->mGradateColor);
                     ImGui::InputFloat(_("Blur Size"), &dof_filter->mBlurSize);
                     ImGui::InputFloat(_("Aperture"), &dof_filter->mAperture);
                     ImGui::InputFloat(_("Focal Length"), &dof_filter->mFocalLength);
@@ -638,8 +764,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                     ImGui::Text(_("Colour Space Filter"));
                     if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
-                    ImGui::InputFloat4(_("Angle"), (float*)&cs_filter->mAngle);
-                    ImGui::InputFloat4(_("Scale"), (float*)&cs_filter->mScale);
+                    colour_space_ui(cs_filter);
                     break;
                 }
 
@@ -648,11 +773,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                     ImGui::Text(_("Level Correct Filter"));
                     if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
-                    ImGui::InputFloat4(_("In Black"), (float*)&lvl_filter->mInBlack);
-                    ImGui::InputFloat4(_("In White"), (float*)&lvl_filter->mInWhite);
-                    ImGui::InputFloat4(_("Input Gamma"), (float*)&lvl_filter->mInputGamma);
-                    ImGui::InputFloat4(_("Out Black"), (float*)&lvl_filter->mOutBlack);
-                    ImGui::InputFloat4(_("Out White"), (float*)&lvl_filter->mOutWhite);
+                    level_correct_ui(lvl_filter);
                     break;
                 }
 
@@ -661,7 +782,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                     ImGui::Text(_("Contrast Filter"));
                     if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
-                    ImGui::InputFloat(_("Contrast"), &contr_filter->mContrast);
+                    contrast_ui(contr_filter);
                     break;
                 }
 
@@ -670,9 +791,7 @@ void PhotoMode::drawLightInfo(MoveLine* moveline, int& numOfObjs) {
                     ImGui::Text(_("HSV Filter"));
                     if (ImGui::Button(_("Remove")))
                         obj->flags.bits.mBeFlag = 3;
-                    ImGui::InputFloat(_("Shift Hue"), &hsv_filter->mShiftHue);
-                    ImGui::InputFloat(_("Shift Saturation"), &hsv_filter->mShiftSaturation);
-                    ImGui::InputFloat(_("Shift Value"), &hsv_filter->mShiftValue);
+                    hsv_ui(hsv_filter);
                     break;
                 }
             }
