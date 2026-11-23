@@ -422,6 +422,8 @@ set(DEV_SRC
   dev/tonemap/ToneMap.cpp
   dev/postfx/PostFX.hpp
   dev/postfx/PostFX.cpp
+  dev/postfx/Cel.hpp
+  dev/postfx/Cel.cpp
   dev/lights/LightSwitches.hpp
   dev/lights/LightSwitches.cpp
   dev/plugins/PluginHost.hpp

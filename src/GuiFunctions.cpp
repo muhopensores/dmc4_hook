@@ -855,8 +855,14 @@ namespace gui {
                 pmods->on_draw_ui<PbrMaterials>(DISPLAY_SYSTEM_B); // the scene buffer's format (the game's HDR option)
                 pmods->on_draw_ui<ToneMap>(DISPLAY_SYSTEM_A);
 
-                ImGui::SeparatorText(_("Ambient occlusion"));
+                ImGui::SeparatorText(_("Contact shadows and ambient occlusion"));
                 pmods->on_draw_ui<PostFX>(DISPLAY_SYSTEM_A);
+
+                ImGui::SeparatorText(_("Outlines"));
+                pmods->on_draw_ui<PostFX>(DISPLAY_SYSTEM_B);
+
+                ImGui::SeparatorText(_("Cel shading"));
+                pmods->on_draw_ui<PostFX>(DISPLAY_SYSTEM_C);
 
                 ImGui::SeparatorText(_("Test spheres"));
                 pmods->on_draw_ui<PbrMaterials>(DISPLAY_SYSTEM_C);

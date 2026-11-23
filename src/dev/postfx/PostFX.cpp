@@ -1,4 +1,6 @@
 #include "PostFX.hpp"
+#include "Cel.hpp"
+#include "../shadows/Shadows.hpp"
 #include "../../ModFramework.hpp"
 #include "../shader_file.hpp"
 #include "../../sdk/Cam.hpp"
@@ -6,6 +8,7 @@
 #include <d3d9.h>
 #include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <cstddef>
 #include <cstring>
 #include <fstream>
@@ -27,10 +30,10 @@ constexpr uintptr_t kDepthTexture   = 0x1700C;     // sRender: the frame's depth
 constexpr uintptr_t kTexD3D         = 0x10;        // cTrans texture: IDirect3DTexture9*
 constexpr uint32_t  kMainScene      = 0x1F;        // tag key bits 24-28 of the main scene (sub-scenes count down from 31)
 constexpr uint32_t  kPassTransparent = 6;          // tag key bits 20-23: BEGIN 0, ZPASS 1, SOLID 2 ... OVERLAP 5, TRANSPARENT 6
-constexpr char kSourcePath[] = "nativePC\\shader\\postfx\\ao.hlsl";
+constexpr char kSourcePath[] = "nativePC\\shader\\postfx\\postfx.hlsl";
 
 const char kEmbedded[] =
-#include "ao.inc"
+#include "postfx.inc"
     ;
 
 template <class T> inline T& at(uintptr_t base, uintptr_t off) { return *reinterpret_cast<T*>(base + off); }
@@ -55,7 +58,7 @@ D3DCompileFn compiler() {
 // ---- compile (worker thread) -> shaders (render thread) ----
 
 std::mutex             g_mutex;
-std::vector<uint8_t>   g_code_ao, g_code_blur;   // guarded by g_mutex
+std::vector<uint8_t>   g_code_ao, g_code_blur, g_code_outline, g_code_contact;   // guarded by g_mutex
 std::string            g_error;                  // guarded by g_mutex
 int                    g_code_generation = 0;    // guarded by g_mutex: bumped by each finished compile
 bool                   g_from_file = false;      // guarded by g_mutex
@@ -77,7 +80,7 @@ std::string read_source(bool& from_file) {
 bool compile_one(D3DCompileFn fn, const std::string& src, const char* entry, std::vector<uint8_t>& out, std::string& error) {
     Blob* code = nullptr;
     Blob* errors = nullptr;
-    const HRESULT hr = fn(src.data(), src.size(), "ao.hlsl", nullptr, nullptr, entry, "ps_3_0", kOptimize3, 0, &code, &errors);
+    const HRESULT hr = fn(src.data(), src.size(), "postfx.hlsl", nullptr, nullptr, entry, "ps_3_0", kOptimize3, 0, &code, &errors);
     if (errors) {
         if (FAILED(hr)) error = std::string(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize());
         errors->Release();
@@ -104,9 +107,10 @@ void start_compile() {
     std::thread([fn] {
         bool from_file = false;
         const std::string src = read_source(from_file);
-        std::vector<uint8_t> ao, blur;
+        std::vector<uint8_t> ao, blur, outline, contact;
         std::string error;
-        const bool ok = compile_one(fn, src, "ps_ao", ao, error) && compile_one(fn, src, "ps_blur", blur, error);
+        const bool ok = compile_one(fn, src, "ps_ao", ao, error) && compile_one(fn, src, "ps_blur", blur, error) &&
+                        compile_one(fn, src, "ps_outline", outline, error) && compile_one(fn, src, "ps_contact", contact, error);
         {
             std::lock_guard lock(g_mutex);
             g_from_file = from_file;
@@ -114,10 +118,12 @@ void start_compile() {
             if (ok) {
                 g_code_ao = std::move(ao);
                 g_code_blur = std::move(blur);
+                g_code_outline = std::move(outline);
+                g_code_contact = std::move(contact);
                 ++g_code_generation;
             }
         }
-        if (!ok) spdlog::error("PostFX: ao shaders: {}", error);
+        if (!ok) spdlog::error("PostFX: shaders: {}", error);
         g_compiling = false;
     }).detach();
 }
@@ -126,6 +132,9 @@ void start_compile() {
 
 IDirect3DPixelShader9* g_ps_ao = nullptr;
 IDirect3DPixelShader9* g_ps_blur = nullptr;
+IDirect3DPixelShader9* g_ps_outline = nullptr;
+IDirect3DPixelShader9* g_ps_contact = nullptr;
+float                  g_sun[3] = { 0.0f, -1.0f, 0.0f };   // the way the sun's light travels (game axes), from on_frame
 int                    g_ps_generation = 0;
 IDirect3DTexture9*     g_ao_target = nullptr;   // D3DPOOL_DEFAULT: released on reset
 UINT                   g_ao_w = 0, g_ao_h = 0;
@@ -164,15 +173,21 @@ void release_device_objects() {
 
 bool ensure_shaders(IDirect3DDevice9* dev) {
     std::lock_guard lock(g_mutex);
-    if (g_code_generation == g_ps_generation) return g_ps_ao && g_ps_blur;
+    if (g_code_generation == g_ps_generation) return g_ps_ao && g_ps_blur && g_ps_outline && g_ps_contact;
     release(g_ps_ao);
     release(g_ps_blur);
+    release(g_ps_outline);
+    release(g_ps_contact);
     g_ps_generation = g_code_generation;
-    if (g_code_ao.empty() || g_code_blur.empty()) return false;
+    if (g_code_ao.empty() || g_code_blur.empty() || g_code_outline.empty() || g_code_contact.empty()) return false;
     if (FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_ao.data()), &g_ps_ao)) ||
-        FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_blur.data()), &g_ps_blur))) {
+        FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_blur.data()), &g_ps_blur)) ||
+        FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_outline.data()), &g_ps_outline)) ||
+        FAILED(dev->CreatePixelShader(reinterpret_cast<const DWORD*>(g_code_contact.data()), &g_ps_contact))) {
         release(g_ps_ao);
         release(g_ps_blur);
+        release(g_ps_outline);
+        release(g_ps_contact);
         g_error = "CreatePixelShader failed";
         return false;
     }
@@ -228,7 +243,7 @@ void dump_target(IDirect3DDevice9* dev, IDirect3DSurface9* rt, UINT w, UINT h, c
     sys->Release();
 }
 
-void draw_ao() {
+void draw_post() {
     g_diag.stage = 1;
     const uintptr_t render = *reinterpret_cast<uintptr_t*>(kRenderInstance);
     const uintptr_t camera = *reinterpret_cast<uintptr_t*>(kCameraInstance);
@@ -262,6 +277,24 @@ void draw_ao() {
     const float c2[4] = { 1.0f / fw, 1.0f / fh, fw, fh };
     const float c3[4] = { settings.ao_radius, settings.ao_strength, 0.03f, 4000.0f };  // radius, strength, bias, fade start (cm)
     const float c4[4] = { 6000.0f, 0.08f, static_cast<float>(settings.ao_view), 0.0f };  // fade end (cm), max screen radius (uv), view
+    // outline: the neighbour offset in px (the width is per 1080 lines), silhouette / crease thresholds from Detail
+    const float detail = std::clamp(settings.outline_detail, 0.0f, 1.0f);
+    const float c5[4] = { (std::max)(1.0f, settings.outline_width * fh / 1080.0f), 0.05f,
+                          0.02f * std::pow(10.0f, (0.5f - detail) * 2.0f),   // Detail 0.5 = 0.02, 1 = 0.002, 0 = 0.2
+                          settings.outline_opacity };
+    const float c6[4] = { settings.outline_color[0], settings.outline_color[1], settings.outline_color[2],
+                          settings.outline_distance * 100.0f };
+    // contact shadows: toward the sun in the shader's camera space (x = view x * sign(P00), y = view y * sign(P11),
+    // z = view z * P23 = the distance ahead); the view matrix's rows turn a world direction (row vectors)
+    const MtMatrix& view = cam->viewports[0].mViewMat;
+    const float tx = -g_sun[0], ty = -g_sun[1], tz = -g_sun[2];
+    float lx = (tx * view.m1.x + ty * view.m2.x + tz * view.m3.x) * (proj.m1.x < 0.0f ? -1.0f : 1.0f);
+    float ly = (tx * view.m1.y + ty * view.m2.y + tz * view.m3.y) * (proj.m2.y < 0.0f ? -1.0f : 1.0f);
+    float lz = (tx * view.m1.z + ty * view.m2.z + tz * view.m3.z) * (proj.m3.w < 0.0f ? -1.0f : 1.0f);
+    const float ll = std::sqrt(lx * lx + ly * ly + lz * lz);
+    if (ll > 1e-6f) { lx /= ll; ly /= ll; lz /= ll; }
+    const float c7[4] = { lx, ly, lz, settings.contact_length };
+    const float c8[4] = { 25.0f, settings.contact_darkness, 3000.0f, 0.0f };   // thickness (cm), darkness, gone at (cm)
 
     g_state->Capture();
     IDirect3DSurface9* scene = nullptr;
@@ -288,35 +321,62 @@ void draw_ao() {
     dev->SetPixelShaderConstantF(2, c2, 1);
     dev->SetPixelShaderConstantF(3, c3, 1);
     dev->SetPixelShaderConstantF(4, c4, 1);
+    dev->SetPixelShaderConstantF(5, c5, 1);
+    dev->SetPixelShaderConstantF(6, c6, 1);
+    dev->SetPixelShaderConstantF(7, c7, 1);
+    dev->SetPixelShaderConstantF(8, c8, 1);
     set_point_clamp(dev, 0, depth);
 
-    // 1: occlusion into our target
-    dev->SetRenderTarget(0, ao_surface);
-    dev->SetDepthStencilSurface(nullptr);
-    dev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-    dev->SetRenderState(D3DRS_COLORWRITEENABLE, 0xF);
-    dev->SetPixelShader(g_ps_ao);
-    draw_fullscreen(dev, desc.Width, desc.Height);
-
-    if (g_diag.capture == 5) {
-        IDirect3DSurface9* depth_surface = nullptr;
-        depth->GetSurfaceLevel(0, &depth_surface);
-        dump_target(dev, depth_surface, desc.Width, desc.Height, "pfx_depth");
-        dump_target(dev, ao_surface, desc.Width, desc.Height, "pfx_ao");
-        release(depth_surface);
-        g_diag.capture = 6;
-    }
-
-    // 2: blurred, multiplied onto the scene (dest x src; the scene's alpha kept)
-    dev->SetRenderTarget(0, scene);
-    set_point_clamp(dev, 1, g_ao_target);
-    dev->SetRenderState(D3DRS_ALPHABLENDENABLE, settings.ao_view ? FALSE : TRUE);
+    // the passes below multiply onto the scene (dest x src; the scene's alpha kept)
     dev->SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
     dev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ZERO);
     dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_SRCCOLOR);
-    dev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE);
-    dev->SetPixelShader(g_ps_blur);
-    draw_fullscreen(dev, desc.Width, desc.Height);
+    if (settings.ao) {
+        // 1: occlusion into our target
+        dev->SetRenderTarget(0, ao_surface);
+        dev->SetDepthStencilSurface(nullptr);
+        dev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+        dev->SetRenderState(D3DRS_COLORWRITEENABLE, 0xF);
+        dev->SetPixelShader(g_ps_ao);
+        draw_fullscreen(dev, desc.Width, desc.Height);
+
+        if (g_diag.capture == 5) {
+            IDirect3DSurface9* depth_surface = nullptr;
+            depth->GetSurfaceLevel(0, &depth_surface);
+            dump_target(dev, depth_surface, desc.Width, desc.Height, "pfx_depth");
+            dump_target(dev, ao_surface, desc.Width, desc.Height, "pfx_ao");
+            release(depth_surface);
+            g_diag.capture = 6;
+        }
+
+        // 2: blurred, multiplied onto the scene (dest x src; the scene's alpha kept)
+        dev->SetRenderTarget(0, scene);
+        set_point_clamp(dev, 1, g_ao_target);
+        dev->SetRenderState(D3DRS_ALPHABLENDENABLE, settings.ao_view ? FALSE : TRUE);
+        dev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE);
+        dev->SetPixelShader(g_ps_blur);
+        draw_fullscreen(dev, desc.Width, desc.Height);
+    }
+
+    // contact shadows, multiplied onto the scene (before the lines, which stay black on top)
+    if (settings.contact) {
+        dev->SetRenderTarget(0, scene);
+        dev->SetDepthStencilSurface(nullptr);
+        dev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+        dev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE);
+        dev->SetPixelShader(g_ps_contact);
+        draw_fullscreen(dev, desc.Width, desc.Height);
+    }
+
+    // 3: ink lines, multiplied onto the scene
+    if (settings.outline) {
+        dev->SetRenderTarget(0, scene);
+        dev->SetDepthStencilSurface(nullptr);
+        dev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+        dev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE);
+        dev->SetPixelShader(g_ps_outline);
+        draw_fullscreen(dev, desc.Width, desc.Height);
+    }
 
     // back as the game had it (SetRenderTarget resets the viewport, so the state block goes last)
     dev->SetTexture(1, nullptr);
@@ -349,7 +409,7 @@ void __stdcall on_tag(const uint32_t* tags, uint32_t index, uint32_t count) {
         if (g_diag.nseq == 0 || (g_diag.seq[g_diag.nseq - 1] & 0xFFF) != k) g_diag.seq[g_diag.nseq++] = (index << 12) | k;
     }
     ++g_diag.tags;
-    if (g_done || !settings.ao) return;
+    if (g_done || !(settings.ao || settings.outline || settings.contact)) return;
     const uint32_t key = tags[index * 2 + 1];
     if (((key >> 24) & 0x1F) == kMainScene) {
         ++g_diag.main_tags;
@@ -359,7 +419,7 @@ void __stdcall on_tag(const uint32_t* tags, uint32_t index, uint32_t count) {
     g_done = true;
     ++g_diag.triggers;
     g_diag.last_key = key;
-    draw_ao();
+    draw_post();
 }
 
 naked void detour_tag() {
@@ -376,8 +436,20 @@ naked void detour_tag() {
     }
 }
 
+// uShadow +0x40 mInfiniteLightDir. The unit may have just gone with its room (Shadows lists units for a few seconds after
+// their last move), so the read is guarded.
+void read_sun(uintptr_t unit, float* d) {
+    __try {
+        const float* p = reinterpret_cast<const float*>(unit + 0x40);
+        d[0] = p[0];
+        d[1] = p[1];
+        d[2] = p[2];
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+    }
+}
+
 bool g_hooked = false;
-const bool g_listed = shader_file::add({ "Ambient occlusion", kSourcePath, kEmbedded, [] { g_want_compile = true; }, 3 });
+const bool g_listed = shader_file::add({ "Post effects (AO, outlines)", kSourcePath, kEmbedded, [] { g_want_compile = true; }, 3 });
 
 } // namespace
 
@@ -401,17 +473,54 @@ using namespace post_fx;
 std::optional<std::string> PostFX::on_initialize() {
     g_hooked = install_hook_absolute(0x8F4460, hook_tag, &detour_tag, &jmp_ret_tag, 11);
     if (!g_hooked) spdlog::error("PostFX: failed to hook sRender::dispatchCommands' tag loop (0x8F4460)");
+    cel::init();
     return Mod::on_initialize();
 }
 
 void PostFX::on_frame(fmilliseconds& dt) {
-    if (settings.ao && g_want_compile && !g_compiling) start_compile();
+    if ((settings.ao || settings.outline || settings.contact) && g_want_compile && !g_compiling) start_compile();
+    // the sun for contact shadows: the stage's shadow light (uShadow mInfiniteLightDir +0x40), straight down without one
+    {
+        const shadows::Status sh = shadows::status();
+        float d[3] = { 0.0f, -1.0f, 0.0f };
+        if (sh.units > 0 && sh.unit[0].unit) read_sun(sh.unit[0].unit, d);
+        const float l = std::sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
+        if (l > 1e-6f) for (int i = 0; i < 3; ++i) g_sun[i] = d[i] / l;
+    }
+    cel::update();
 }
 
 void PostFX::on_reset() { release_device_objects(); }
 
+static void draw_outline_gui();
+
+static void draw_contact_gui() {
+    ImGui::Checkbox(_("Contact shadows"), &settings.contact);
+    ImGui::SameLine();
+    Mod::help_marker(_("Small, sharp shadows where things meet (feet on the floor, a chin over the collar, coat folds), toward "
+                       "the stage's sun, where the stage's shadow map is too coarse to show them."));
+    if (!settings.contact) return;
+    ImGui::Indent(Mod::lineIndent);
+    ImGui::PushID("PostFX_Contact");
+    ImGui::SliderFloat(_("Length"), &settings.contact_length, 5.0f, 150.0f, "%.0f cm");
+    ImGui::SameLine();
+    Mod::help_marker(_("How far from a surface an object still casts one."));
+    ImGui::SliderFloat(_("Darkness"), &settings.contact_darkness, 0.0f, 1.0f, "%.2f");
+    ImGui::PopID();
+    ImGui::Unindent(Mod::lineIndent);
+}
+
 void PostFX::on_gui_frame(int display) {
+    if (display == DISPLAY_SYSTEM_B) {
+        draw_outline_gui();
+        return;
+    }
+    if (display == DISPLAY_SYSTEM_C) {
+        cel::draw_gui();
+        return;
+    }
     if (display != DISPLAY_SYSTEM_A) return;
+    draw_contact_gui();
     ImGui::Checkbox(_("Ambient occlusion"), &settings.ao);
     ImGui::SameLine();
     help_marker(_("Darkens creases, corners and the ground around characters, where light from the surroundings can't "
@@ -441,15 +550,64 @@ void PostFX::on_gui_frame(int display) {
     ImGui::Unindent(lineIndent);
 }
 
+static void draw_outline_gui() {
+    ImGui::Checkbox(_("Outlines"), &settings.outline);
+    ImGui::SameLine();
+    Mod::help_marker(_("Ink lines around objects and along their edges, for a drawn / cel-shaded look. Found from the frame's "
+                       "depth after the solid scene, so effects and glows draw over them."));
+    if (!settings.outline) return;
+    ImGui::Indent(Mod::lineIndent);
+    ImGui::PushID("PostFX_Outline");
+    ImGui::SliderFloat(_("Width"), &settings.outline_width, 0.5f, 4.0f, "%.1f px");
+    ImGui::SameLine();
+    Mod::help_marker(_("Line width at 1080p (wider screens scale it up)."));
+    ImGui::SliderFloat(_("Detail"), &settings.outline_detail, 0.0f, 1.0f, "%.2f");
+    ImGui::SameLine();
+    Mod::help_marker(_("0 = only outer silhouettes, 1 = also every fold and corner inside an object."));
+    ImGui::SliderFloat(_("Opacity"), &settings.outline_opacity, 0.0f, 1.0f, "%.2f");
+    ImGui::ColorEdit3(_("Colour"), settings.outline_color);
+    ImGui::SameLine();
+    Mod::help_marker(_("The lines multiply the picture: black = ink, a colour tints the edges."));
+    ImGui::SliderFloat(_("Distance"), &settings.outline_distance, 5.0f, 100.0f, "%.0f m");
+    ImGui::SameLine();
+    Mod::help_marker(_("Lines fade out toward this distance, so far-off detail doesn't turn into noise."));
+    ImGui::PopID();
+    ImGui::Unindent(Mod::lineIndent);
+}
+
 void PostFX::on_config_load(const utility::Config& cfg) {
     const Settings d;
     settings.ao = cfg.get<bool>("postfx_ao").value_or(d.ao);
     settings.ao_strength = std::clamp(cfg.get<float>("postfx_ao_strength").value_or(d.ao_strength), 0.0f, 8.0f);
     settings.ao_radius = std::clamp(cfg.get<float>("postfx_ao_radius").value_or(d.ao_radius), 10.0f, 300.0f);
+    cel::load(cfg);
+    settings.contact = cfg.get<bool>("postfx_contact").value_or(d.contact);
+    settings.contact_length = std::clamp(cfg.get<float>("postfx_contact_length").value_or(d.contact_length), 5.0f, 150.0f);
+    settings.contact_darkness = std::clamp(cfg.get<float>("postfx_contact_darkness").value_or(d.contact_darkness), 0.0f, 1.0f);
+    settings.outline = cfg.get<bool>("postfx_outline").value_or(d.outline);
+    settings.outline_width = std::clamp(cfg.get<float>("postfx_outline_width").value_or(d.outline_width), 0.5f, 4.0f);
+    settings.outline_detail = std::clamp(cfg.get<float>("postfx_outline_detail").value_or(d.outline_detail), 0.0f, 1.0f);
+    settings.outline_opacity = std::clamp(cfg.get<float>("postfx_outline_opacity").value_or(d.outline_opacity), 0.0f, 1.0f);
+    settings.outline_distance = std::clamp(cfg.get<float>("postfx_outline_distance").value_or(d.outline_distance), 5.0f, 100.0f);
+    settings.outline_color[0] = std::clamp(cfg.get<float>("postfx_outline_r").value_or(d.outline_color[0]), 0.0f, 1.0f);
+    settings.outline_color[1] = std::clamp(cfg.get<float>("postfx_outline_g").value_or(d.outline_color[1]), 0.0f, 1.0f);
+    settings.outline_color[2] = std::clamp(cfg.get<float>("postfx_outline_b").value_or(d.outline_color[2]), 0.0f, 1.0f);
 }
 
 void PostFX::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("postfx_ao", settings.ao);
     cfg.set<float>("postfx_ao_strength", settings.ao_strength);
     cfg.set<float>("postfx_ao_radius", settings.ao_radius);
+    cel::save(cfg);
+    cfg.set<bool>("postfx_contact", settings.contact);
+    cfg.set<float>("postfx_contact_length", settings.contact_length);
+    cfg.set<float>("postfx_contact_darkness", settings.contact_darkness);
+    cfg.set<bool>("postfx_outline", settings.outline);
+    cfg.set<float>("postfx_outline_width", settings.outline_width);
+    cfg.set<float>("postfx_outline_detail", settings.outline_detail);
+    cfg.set<float>("postfx_outline_opacity", settings.outline_opacity);
+    cfg.set<float>("postfx_outline_distance", settings.outline_distance);
+    cfg.set<float>("postfx_outline_r", settings.outline_color[0]);
+    cfg.set<float>("postfx_outline_g", settings.outline_color[1]);
+    cfg.set<float>("postfx_outline_b", settings.outline_color[2]);
 }
