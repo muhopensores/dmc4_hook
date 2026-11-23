@@ -78,6 +78,9 @@ std::vector<uint8_t> build_pla(const Unit& u, const float* pos, const float* yaw
 // sLockOnTargetMgr there (uStageSetSnatch::kill 0x88F770); the bare delete flag left them on freed units (crash in
 // sub_820840 walking mpSnatchTop, 2026-11-19). Game thread.
 void kill_unit(uintptr_t unit);
+// What UnitPacks made `unit` from ("blade01 (uStageSetScheduler) from st405", "made by the temple laser spawn"), "" if it
+// didn't: the object picker's window. Game thread.
+std::string origin(uintptr_t unit);
 
 } // namespace unit_packs
 

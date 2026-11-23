@@ -11,10 +11,10 @@ void actions_frame();    // game thread, every frame: print_text's texts
 void register_input();   // S3's input / pause / step / wait (Input.cpp), called by register_tools; hooks sDevil4Pad::move
 void input_frame();      // game thread, every frame before the jobs: counts step frames down
 nlohmann::json input_status();   // queued input frames, paused, stepping (for status)
-void register_sdl();     // S5's Albam link v1: sdl_list / sdl_layout / sdl_patch / sdl_clock (Sdl.cpp); hooks uScheduler::move
+void register_sdl();     // S5's Albam link v1: sdl_list / sdl_layout / sdl_patch / sdl_clock (Sdl.cpp; schedulers from sdk/Schedulers)
 void sdl_frame();        // game thread, every frame first: bumps load_gen on a room / area change
 uint32_t load_gen();     // changes whenever the room or area layer changes (tools.md)
 void register_screenshot();   // S4's screenshot (Screenshot.cpp), called by register_tools
 void screenshot_present();    // render thread, in the Present hook before ImGui: takes the queued shots
-void register_pick();         // the object picker's `pick` (Pick.cpp; depth from PostFX), called by register_tools
+void register_pick();         // the object picker's `pick` and `selection` (Pick.cpp; dev/picker), called by register_tools
 }

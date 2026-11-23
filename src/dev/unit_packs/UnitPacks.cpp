@@ -1,4 +1,5 @@
 #include "UnitPacks.hpp"
+#include "../../sdk/Selection.hpp"
 #include "../../sdk/Devil4.hpp"
 #include "../../sdk/MtMemoryStream.hpp"
 #include "../../sdk/cUnit.hpp"
@@ -376,7 +377,10 @@ std::vector<SpawnView> g_view;
 struct Placement { bool active = false; float target[3] = {}; float turn = 0.0f; float anchor[3] = {}; bool have_anchor = false; };
 std::map<uintptr_t, Placement> g_place;   // by spawned unit
 bool g_manifest_read = false;      // parsed once, the first time the window shows
-bool g_spawn_here = true;          // manifest spawns at the player's position (else where the room puts them)
+// Where spawns go: where the room's file puts them (room units only; packs then use the player), the player, or the
+// object picker's last picked point (sdk/Selection)
+enum SpawnAt { AT_ROOM = 0, AT_ME = 1, AT_PICK = 2 };
+int  g_spawn_at = AT_ME;
 
 // Units created from the manifest. The uPlacement makes them during its setup, a frame or so after the spawn, so the
 // target move line is noted before and compared once the uPlacement is gone: what's new on it is the spawn's.
@@ -462,6 +466,38 @@ float distance(const float a[3], const float b[3]) {
     const float x = a[0] - b[0], y = a[1] - b[1], z = a[2] - b[2];
     return std::sqrt(x * x + y * y + z * z);
 }
+
+// the spawn position Spawn at gives (false: where the room's file puts it)
+bool spawn_pos(float out[3]) {
+    if (g_spawn_at == AT_PICK && selection::point(out)) return true;
+    if (g_spawn_at == AT_ROOM || !g_have_player) return false;
+    memcpy(out, g_player_pos, sizeof(g_player_pos));
+    return true;
+}
+
+void spawn_at_ui() {
+    ImGui::PushItemWidth(170.0f);
+    const char* names[] = { _("where its room puts it"), _("my position"), _("the picked point") };
+    ImGui::Combo(_("Spawn at"), &g_spawn_at, names, 3);
+    ImGui::PopItemWidth();
+    float p[3];
+    ImGui::SameLine();
+    if (g_spawn_at == AT_PICK && !selection::point(p)) ImGui::TextDisabled(_("(nothing picked yet: your position)"));
+    else if (g_spawn_at == AT_PICK) ImGui::TextDisabled("%.0f %.0f %.0f", p[0], p[1], p[2]);
+    ImGui::SameLine();
+    Mod::help_marker(_("Where Spawn puts a unit: its mPos becomes your position, or the spot last picked with the Object picker "
+                       "(Ctrl + click in the game). Its rotation and the rest stay as its room has them. 'Where its room puts "
+                       "it' keeps the room's own position, in this room's space (room units only; packs use your position)."));
+}
+
+// a Select button: the shared selection (the object picker's window shows the unit, PostFX outlines it)
+void select_button(uintptr_t unit) {
+    ImGui::SameLine();
+    const bool on = selection::unit() == unit;
+    if (on) ImGui::BeginDisabled();
+    if (ImGui::SmallButton(on ? _("Selected") : _("Select"))) selection::select(unit, selection::By::List);
+    if (on) ImGui::EndDisabled();
+}
 // The manifest's rooms: pick a room, then load / release the files of any unit it places.
 void draw_rooms() {
     if (!g_manifest_read) { g_manifest_read = true; queue(Request{ Request::READ_MANIFEST }); }
@@ -492,11 +528,6 @@ void draw_rooms() {
     ImGui::Checkbox(_("Only units with room files"), &g_room_only);
     ImGui::SameLine();
     Mod::help_marker(_("Hides units whose files are all in the always-loaded arcs (lights, filters, ...): they need no loading."));
-    ImGui::SameLine();
-    ImGui::Checkbox(_("Spawn at my position"), &g_spawn_here);
-    ImGui::SameLine();
-    Mod::help_marker(_("On: the unit's mPos becomes your position (its rotation and the rest stay as its room has them). Off: "
-                       "it appears where its room puts it, in this room's space."));
     const Room& room = rs[g_room_pick];
     const ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_ScrollY |
                                   ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp;
@@ -535,8 +566,8 @@ void draw_rooms() {
         if (u.loaded.arc || !u.stored) {
             ImGui::SameLine();
             if (ImGui::SmallButton(_("Spawn"))) {
-                Request r{ Request::SPAWN_UNIT, g_room_pick, i, g_spawn_here && g_have_player ? 1u : 0u };
-                memcpy(r.pos, g_player_pos, sizeof(r.pos));
+                Request r{ Request::SPAWN_UNIT, g_room_pick, i };
+                r.unit = spawn_pos(r.pos) ? 1u : 0u;
                 queue(r);
             }
         }
@@ -554,6 +585,7 @@ void draw_rooms() {
             const Unit& u = rs[m.room].units[m.index];
             ImGui::PushID((int)k + 1000);
             ImGui::BulletText("%s  %s  (%s, line %d)", u.name.c_str(), u.cls.c_str(), rs[m.room].name.c_str(), m.line);
+            select_button(m.unit);
             ImGui::SameLine();
             if (ImGui::SmallButton(_("Despawn"))) queue(Request{ Request::DESPAWN_UNIT, 0, 0, m.unit });
             ImGui::PopID();
@@ -596,7 +628,11 @@ void draw_window() {
             }
             ImGui::PopItemWidth();
             ImGui::SameLine();
-            if (ImGui::Button(_("Spawn"))) queue(Request{ Request::SPAWN, i, pick });
+            if (ImGui::Button(_("Spawn"))) {
+                Request r{ Request::SPAWN, i, pick };
+                r.unit = spawn_pos(r.pos) ? 1u : 0u;
+                queue(r);
+            }
             ImGui::SameLine();
             Mod::help_marker(_("Spawns the unit the way its room does (for the laser: a stage scheduler playing the chosen .sdl, which "
                           "creates the laser). The .sdl's positions are the original room's world coordinates, so in another room "
@@ -605,6 +641,7 @@ void draw_window() {
         ImGui::PopID();
         ImGui::Separator();
     }
+    spawn_at_ui();
     draw_rooms();
     if (g_have_player) ImGui::Text(_("You: %.0f %.0f %.0f"), g_player_pos[0], g_player_pos[1], g_player_pos[2]);
     ImGui::SameLine();
@@ -616,6 +653,7 @@ void draw_window() {
             const Spawned& s = g_spawned[k];
             ImGui::PushID((int)k);
             ImGui::Text("%s  %s", kPacks[s.pack].spawn->cls, kPacks[s.pack].spawn->resources[s.resource]);
+            select_button(s.unit);
             ImGui::SameLine();
             if (ImGui::SmallButton(_("Despawn"))) queue(Request{ Request::DESPAWN, s.pack, s.resource, s.unit });
             Placement& pl = g_place[s.unit];
@@ -626,6 +664,9 @@ void draw_window() {
             if (pl.active) {
                 ImGui::SameLine();
                 if (ImGui::SmallButton(_("To me")) && g_have_player) memcpy(pl.target, g_player_pos, sizeof(pl.target));
+                ImGui::SameLine();
+                float pk[3];
+                if (ImGui::SmallButton(_("To the picked point")) && selection::point(pk)) memcpy(pl.target, pk, sizeof(pl.target));
                 ImGui::PushItemWidth(260.0f);
                 ImGui::DragFloat3(_("Target"), pl.target, 5.0f, 0.0f, 0.0f, "%.0f");
                 ImGui::SliderFloat(_("Turn"), &pl.turn, -180.0f, 180.0f, "%.0f deg");
@@ -639,6 +680,7 @@ void draw_window() {
                 ImGui::PushID((int)u);
                 auto row = [&](const char* label, const float* pos) {
                     ImGui::BulletText("%s  %.0f %.0f %.0f", label, pos[0], pos[1], pos[2]);
+                    if (u < v->objs.size()) select_button(v->objs[u]);
                     if (g_have_player) { ImGui::SameLine(); ImGui::TextDisabled(_("%.0f cm away"), distance(pos, g_player_pos)); }
                     ImGui::SameLine();
                     ImGui::PushID(label);
@@ -664,6 +706,23 @@ void draw_window() {
 }
 } // namespace
 
+std::string unit_packs::origin(uintptr_t unit) {
+    if (!unit) return {};
+    for (const Made& m : g_made)
+        if (m.unit == unit && m.room < (int)rooms().size() && m.index < (int)rooms()[m.room].units.size()) {
+            const Room& r = rooms()[m.room];
+            return r.units[m.index].name + " (" + r.units[m.index].cls + ") from " + r.name;
+        }
+    for (const Spawned& s : g_spawned)
+        if (s.unit == unit) return std::string(kPacks[s.pack].name) + ": " + kPacks[s.pack].spawn->resources[s.resource];
+    for (const SpawnView& v : g_view)
+        for (size_t k = 0; k < v.objs.size() && k < v.units.size(); ++k)
+            if (v.objs[k] == unit)
+                for (const Spawned& s : g_spawned)
+                    if (s.unit == v.unit) return std::string("made by the ") + kPacks[s.pack].name + " spawn (" + v.units[k].name + ")";
+    return {};
+}
+
 std::optional<std::string> UnitPacks::on_initialize() { return Mod::on_initialize(); }
 
 void UnitPacks::on_frame(fmilliseconds& dt) {
@@ -683,7 +742,7 @@ void UnitPacks::on_frame(fmilliseconds& dt) {
         case Request::SPAWN: {
             uPlayer_old* pl = devil4_sdk::get_local_player();
             if (!pl) { g_last_error = "no player"; break; }
-            const float* pp = reinterpret_cast<const float*>((uintptr_t)pl + 0x30);   // uCoord::mPos
+            const float* pp = r.unit ? r.pos : reinterpret_cast<const float*>((uintptr_t)pl + 0x30);   // uCoord::mPos
             std::string err;
             const uintptr_t u = spawn(r.pack, r.resource, pp, err);
             if (u) g_spawned.push_back(Spawned{ u, r.pack, r.resource, kPacks[r.pack].spawn->move_line });

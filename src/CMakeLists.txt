@@ -408,6 +408,8 @@ set(DEV_SRC
   dev/file_tracker/FileTracker.cpp
   dev/unit_packs/UnitPacks.hpp
   dev/unit_packs/UnitPacks.cpp
+  dev/picker/ObjectPicker.hpp
+  dev/picker/ObjectPicker.cpp
   dev/pbr/PbrMaterials.hpp
   dev/pbr/PbrMaterials.cpp
   dev/pbr/PbrSpheres.hpp
@@ -543,6 +545,10 @@ set(SDK_SRC
     sdk/PauseMenu.cpp
     sdk/FrameHooks.hpp
     sdk/FrameHooks.cpp
+    sdk/Schedulers.hpp
+    sdk/Schedulers.cpp
+    sdk/Selection.hpp
+    sdk/Selection.cpp
     sdk/ArcRows.hpp
     sdk/ArcRows.cpp
     sdk/MtMemoryStream.hpp

@@ -1,84 +1,26 @@
 #include "Tools.hpp"
 #include "Server.hpp"
 #include "Memory.hpp"
+#include "../picker/ObjectPicker.hpp"
 #include "../postfx/PostFX.hpp"
-#include "../../sdk/Devil4.hpp"
-#include "../../sdk/sUnit.hpp"
-#include "../../sdk/uActor.hpp"
-#include <algorithm>
-#include <cmath>
-#include <cstddef>
+#include "../unit_packs/UnitPacks.hpp"
+#include "../../sdk/Schedulers.hpp"
+#include "../../sdk/Selection.hpp"
 #include <vector>
 
-// The `pick` tool: what's under a screen pixel (the object picker, Vibed\PostFX\README.md "Object picker", depth only).
-// PostFX reads the frame's depth at the pixel and turns it into a world point; then, on the game thread, every unit that
-// is a uModel is scored by its joint nearest to that point (a model without joints by its position), and the best within
-// max_dist is the pick. Stage geometry has no unit of this kind nearby, so a click on a wall or floor gives the point and
-// no unit (or a far candidate, past max_dist).
+// The object picker's tools (Vibed\PostFX\README.md "Object picker"; the picking itself is dev/picker's, shared with
+// the in-game Ctrl + click):
+// - `pick`: PostFX reads the frame's depth at a pixel (world point + object ID); on the game thread picker::resolve
+//   turns it into a unit: the model that drew the pixel, else the model whose nearest joint is closest. select = true
+//   makes it the shared selection (sdk/Selection: PostFX outlines it, the picker's window shows it).
+// - `selection`: what's selected (with the .sdl track that made it), or select / clear by address.
 
 namespace debug_server {
 namespace {
 
 using namespace mem;
 
-constexpr uintptr_t kMoveLines = 0x20;   // sUnit::mMoveLine (as Queries.cpp)
-constexpr uintptr_t kJointNum = offsetof(uModel, mJointNum);
-constexpr uintptr_t kJoints = offsetof(uModel, mpJoint);
-constexpr uintptr_t kJointWmat = offsetof(UModelJoint, mWmat);
-constexpr uintptr_t kPos = 0x30;         // uCoord::mPos (as find_units)
-
-struct Candidate {
-    uintptr_t unit;
-    uintptr_t dti;
-    int       line;
-    int       joint;          // -1: scored by its position
-    float     dist;
-    float     at[3];          // the joint's (or the unit's) world position
-};
-
-float dist3(const float* a, const float* b) {
-    const float x = a[0] - b[0], y = a[1] - b[1], z = a[2] - b[2];
-    return std::sqrt(x * x + y * y + z * z);
-}
-
-std::vector<Candidate> score_units(const float* p) {
-    std::vector<Candidate> out;
-    const uintptr_t su = reinterpret_cast<uintptr_t>(devil4_sdk::get_sUnit());
-    if (!su) return out;
-    for (int line = 0; line < 32; ++line) {
-        MoveLine ml;
-        if (!rd(su + kMoveLines + line * sizeof(MoveLine), ml)) continue;
-        int n = 0;
-        for (uintptr_t u = reinterpret_cast<uintptr_t>(ml.mTop); u && n < 20000; ++n) {
-            cUnit cu;
-            if (!rd(u, cu)) break;
-            const uintptr_t dti = dti_of(u);
-            if (dti && dti_is_a(dti, "umodel") && cu.flags.bits.mBeFlag < 3) {
-                Candidate c{ u, dti, line, -1, 1e30f, {} };
-                uint32_t count = 0;
-                uintptr_t joints = 0;
-                if (rd(u + kJointNum, count) && rd(u + kJoints, joints) && joints && count > 0 && count <= 512) {
-                    for (uint32_t j = 0; j < count; ++j) {
-                        float w[3];
-                        if (!safe_read(joints + j * sizeof(UModelJoint) + kJointWmat + 0x30, w, sizeof w)) break;
-                        const float d = dist3(w, p);
-                        if (d < c.dist) { c.dist = d; c.joint = (int)j; std::copy(w, w + 3, c.at); }
-                    }
-                }
-                if (c.joint < 0) {
-                    float w[3];
-                    if (safe_read(u + kPos, w, sizeof w)) { c.dist = dist3(w, p); std::copy(w, w + 3, c.at); }
-                }
-                if (c.dist < 1e29f) out.push_back(c);
-            }
-            u = reinterpret_cast<uintptr_t>(cu.mp_next_unit);
-        }
-    }
-    std::sort(out.begin(), out.end(), [](const Candidate& a, const Candidate& b) { return a.dist < b.dist; });
-    return out;
-}
-
-json candidate_json(const Candidate& c) {
+json candidate_json(const picker::Candidate& c) {
     json j{{"address", hex(c.unit)}, {"class", dti_name(c.dti)}, {"line", c.line}, {"distance", c.dist},
            {"at", json::array({c.at[0], c.at[1], c.at[2]})}};
     if (c.joint >= 0) j["joint"] = c.joint;
@@ -86,44 +28,77 @@ json candidate_json(const Candidate& c) {
     return j;
 }
 
+// game thread: the unit's class, move line, position, and what made it (its .sdl track, a UnitPacks spawn)
+json unit_json(uintptr_t unit) {
+    json u{{"address", hex(unit)}};
+    const uintptr_t dti = dti_of(unit);
+    if (dti) u["class"] = dti_name(dti);
+    u["line"] = picker::line_of(unit);
+    if (dti && dti_is_a(dti, "ucoord")) {
+        float p[3];
+        if (safe_read(unit + 0xA0 + 0x30, p, sizeof p)) u["world"] = json::array({p[0], p[1], p[2]});
+    }
+    schedulers::Owner o;
+    if (schedulers::owner_of(unit, o)) {
+        json keyed = json::array();
+        for (const schedulers::Track& t : o.keyed) keyed.push_back(json{{"index", t.index}, {"type", t.type}, {"name", t.name}});
+        u["made_by"] = json{{"path", o.path}, {"scheduler", hex(o.scheduler)}, {"track", o.unit.index},
+                            {"name", o.unit.name}, {"keyed", keyed}};
+    }
+    const std::string from = unit_packs::origin(unit);
+    if (!from.empty()) u["unit_packs"] = from;
+    return u;
+}
+
 json pick_tool(const json& a) {
     long long x = 0, y = 0;
     if (!a.contains("x") || !a.contains("y") || !parse_number(a["x"], x) || !parse_number(a["y"], y))
         throw ToolError("bad_args", "x and y (back-buffer pixels) are needed");
-    const double max_dist = a.value("max_dist", 60.0);
+    const float max_dist = (float)a.value("max_dist", 60.0);
     const bool select = a.value("select", false);
     const post_fx::DepthSample s = post_fx::sample_world((int)x, (int)y, 2000);
     if (!s.ok) throw ToolError("no_point", s.error, json{{"texel", json::array({s.texel[0], s.texel[1]})}});
-    const uintptr_t tagged = s.unit;
-    const json units = run_on_game_thread([p = s.world, max_dist, tagged]() -> json {
-        const std::vector<Candidate> c = score_units(p);
+    const json picked = run_on_game_thread([s, max_dist, select]() -> json {
+        const picker::Result r = picker::resolve(s, max_dist);
         json out{{"candidates", json::array()}};
-        for (size_t i = 0; i < c.size() && i < 5; ++i) out["candidates"].push_back(candidate_json(c[i]));
-        if (tagged) {                       // the model that drew the pixel (its ID in the depth): exact
-            json u{{"address", hex(tagged)}, {"by", "id"}};
-            const uintptr_t dti = dti_of(tagged);
-            if (dti) u["class"] = dti_name(dti);
-            for (const Candidate& k : c)
-                if (k.unit == tagged) {
-                    u = candidate_json(k);
-                    u["by"] = "id";
-                    break;
+        for (const picker::Candidate& c : r.candidates) out["candidates"].push_back(candidate_json(c));
+        if (r.unit) {
+            json u = unit_json(r.unit);
+            for (const picker::Candidate& c : r.candidates)
+                if (c.unit == r.unit) {
+                    u["distance"] = c.dist;
+                    if (c.joint >= 0) u["joint"] = c.joint;
                 }
+            u["by"] = selection::by_name(r.by);
             out["unit"] = u;
-        } else if (!c.empty() && c[0].dist <= max_dist) {
-            out["unit"] = candidate_json(c[0]);   // no ID there: the nearest joint
+        }
+        if (select) {
+            selection::set_point(s.world);
+            selection::select(r.unit, r.by);
+            out["selected"] = r.unit != 0;
         }
         return out;
     });
     json out{{"point", json::array({s.world[0], s.world[1], s.world[2]})}, {"distance", s.distance},
-             {"texel", json::array({s.texel[0], s.texel[1]})}, {"id", s.id}, {"candidates", units["candidates"]}};
-    out["unit"] = units.contains("unit") ? units["unit"] : json();
-    if (select) {
-        long long sel = 0;
-        if (units.contains("unit")) parse_number(units["unit"]["address"], sel);
-        post_fx::select((uintptr_t)sel);
-        out["selected"] = sel != 0;
+             {"texel", json::array({s.texel[0], s.texel[1]})}, {"id", s.id}, {"candidates", picked["candidates"]}};
+    out["unit"] = picked.contains("unit") ? picked["unit"] : json();
+    if (picked.contains("selected")) out["selected"] = picked["selected"];
+    return out;
+}
+
+json selection_tool(const json& a) {
+    if (a.value("clear", false)) selection::clear();
+    if (a.contains("address")) {
+        long long v = 0;
+        if (!parse_number(a["address"], v)) throw ToolError("bad_args", "address: a number or a hex string");
+        if (v && !picker::alive((uintptr_t)v)) throw ToolError("not_found", "no unit " + hex((uintptr_t)v) + " on a move line or drawn lately");
+        selection::select((uintptr_t)v, selection::By::Tool);
     }
+    json out{{"by", selection::by_name(selection::by())}};
+    const uintptr_t unit = selection::unit();
+    out["unit"] = unit ? unit_json(unit) : json();
+    float p[3];
+    out["point"] = selection::point(p) ? json::array({p[0], p[1], p[2]}) : json();
     return out;
 }
 
@@ -135,15 +110,27 @@ void register_pick() {
                  {{"x", {{"type", "integer"}, {"description", "back-buffer pixel x"}}},
                   {"y", {{"type", "integer"}, {"description", "back-buffer pixel y"}}},
                   {"max_dist", {{"type", "number"}, {"description", "cm from the point to a unit's nearest joint for a pick (default 60)"}}},
-                  {"select", {{"type", "boolean"}, {"description", "also select it: PostFX outlines the picked unit (none = clear)"}}}}},
+                  {"select", {{"type", "boolean"}, {"description", "also make it the shared selection and the picked point (none = clear)"}}}}},
                 {"required", json::array({"x", "y"})}};
     add_tool({"pick",
               "What's under a screen pixel (back-buffer pixels, as screenshot's crop): the world point there (game cm, from "
               "the frame's depth; nothing for sky), the object ID there (each model draws its own into the depth: the exact "
-              "unit, by = id) else the model unit whose nearest joint is closest (within max_dist cm), and up to 5 "
-              "candidates by joint (address, class, move line, joint, distance). select = true outlines it in the scene. "
-              "Depth holds opaque geometry only: effects and transparent meshes can't be picked. Waits for the next frame.",
+              "unit, by = id) else the model unit whose nearest joint is closest (within max_dist cm, by = joint), with its "
+              "class, line, world position, made_by (the .sdl track that created it and the tracks keying it) and unit_packs "
+              "(the spawn it came from); up to 5 candidates by joint. select = true makes it the shared selection (outlined in "
+              "the scene, shown in the Object picker window) and the picked point. Depth holds opaque geometry only: effects "
+              "and transparent meshes can't be picked. Waits for the next frame.",
               schema, false, pick_tool});
+    json sel{{"type", "object"},
+             {"properties",
+              {{"address", {{"type", "string"}, {"description", "select this unit (0 = clear)"}}},
+               {"clear", {{"type", "boolean"}, {"description", "clear the selection"}}}}}};
+    add_tool({"selection",
+              "The shared selection (the object picker's, UnitPacks' Select, pick's select): unit {address, class, line, "
+              "world, made_by, unit_packs} or null, by (id / joint / list / tool), and the last picked point. address selects "
+              "a unit (on a move line, or a model drawn lately: not_found otherwise), clear clears it. line -1 = a part another "
+              "unit draws (Nero's coat, a weapon).",
+              sel, true, selection_tool});
 }
 
 } // namespace debug_server

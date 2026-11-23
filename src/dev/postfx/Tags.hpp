@@ -34,5 +34,7 @@ void on_dispatch_start();                      // render thread, the first tag o
 // the unit an ID belongs to, and a unit's ID (0 = none); any thread
 uintptr_t unit_of(uint8_t id);
 uint8_t id_of(uintptr_t unit);
+// the unit drew (lit) within the last few frames: alive, for models that aren't on a move line (a player's coat, weapons)
+bool drawn_lately(uintptr_t unit);
 
 } // namespace tags

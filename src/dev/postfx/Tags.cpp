@@ -59,6 +59,7 @@ struct Slot {
 Slot g_ids[256];                           // [id]; 0 unused (untagged)
 uint32_t g_draws = 0;                      // lit draws so far (guarded by g_push)
 constexpr uint32_t kForget = 20000;        // draws after which an unseen unit's ID is free again
+constexpr uint32_t kLately = 4000;         // draws within which a unit counts as still drawn (a few frames)
 std::atomic<int> g_live{ 0 };              // IDs in use (for the panel)
 
 using DrawFn = void(__fastcall*)(void* self, void* edx, void* trans);
@@ -311,6 +312,14 @@ uint8_t id_of(uintptr_t unit) {
     for (int i = 1; i < 256; ++i)
         if (g_ids[i].unit == unit) return (uint8_t)i;
     return 0;
+}
+
+bool drawn_lately(uintptr_t unit) {
+    if (!unit) return false;
+    std::lock_guard lock(g_push);
+    for (int i = 1; i < 256; ++i)
+        if (g_ids[i].unit == unit) return g_draws - g_ids[i].last < kLately;
+    return false;
 }
 
 Status status() {

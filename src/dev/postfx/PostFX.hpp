@@ -2,6 +2,7 @@
 
 #include "../../mod.hpp"
 #include <cstdint>
+#include <future>
 #include <string>
 
 // PostFX: screen passes the DX9 game doesn't have (SE's engine has them as filters: Vibed\RE\filters_se.md). Plan
@@ -32,7 +33,7 @@ struct Settings {
     float contact_darkness = 0.6f;
     bool  aa = false;             // FXAA, last in the pass (after the outlines)
     float aa_softness = 0.75f;    // FXAA's subpixel softening
-    bool  highlight = true;       // outline the selected object (select())
+    bool  highlight = true;       // outline the selected object (sdk/Selection)
     float highlight_color[3] = { 1.0f, 0.55f, 0.1f };
 };
 extern Settings settings;
@@ -61,10 +62,11 @@ struct DepthSample {
     std::string error;
 };
 DepthSample sample_world(int x, int y, int timeout_ms = 2000);
-
-// The selected object, outlined in the scene while settings.highlight (0 = none). Any thread.
-void select(uintptr_t unit);
-uintptr_t selected();
+// The same without waiting (the in-game picker, which runs on the thread that draws): poll the future each frame. An
+// invalid future when another sample is waiting.
+std::shared_future<DepthSample> request_sample(int x, int y);
+// What's selected is sdk/Selection's (shared with the picker, the debug server and the stage editor's lists): PostFX
+// outlines it while settings.highlight.
 
 } // namespace post_fx
 

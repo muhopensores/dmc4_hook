@@ -4,7 +4,7 @@
 #include "../../sdk/Devil4.hpp"
 #include "../../sdk/sArea.hpp"
 #include "../../sdk/FrameHooks.hpp"
-#include "../../utility/FunctionHook.hpp"
+#include "../../sdk/Schedulers.hpp"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <cctype>
@@ -21,7 +21,7 @@
 // clock. RE: Vibed/RE/sdl_scheduler_runtime.md "Live editing".
 //
 // - Every live scheduler (uScheduler, 0x3C) passes uScheduler::move (0x90A850) once a tick, whoever owns it (room,
-//   moving floor, enemy, title...), sometimes on a sMain job thread: an entry hook records it (under a mutex).
+//   moving floor, enemy, title...): sdk/Schedulers records them (shared with the object picker and the stage editor).
 // - A loaded .sdl is one file image at rScheduler+0x60, fixed up in place: header +0x10 name area and per track
 //   name / timing / data offsets become pointers (types 2 / 3 dti -> MtDTI*); key timing words and int / vector /
 //   float / bool values stay raw and are read at every re-key, so same-size writes there work. prev = -1 re-keys.
@@ -32,7 +32,6 @@ namespace {
 
 using namespace mem;
 
-constexpr uintptr_t kSchedulerMove = 0x90A850;   // uScheduler::move, thiscall
 constexpr uintptr_t kFrame = 0x1C;               // uScheduler: float current frame
 constexpr uintptr_t kPrev = 0x20;                // float previous frame (-1 = re-key next tick)
 constexpr uintptr_t kSpeed = 0x24;               // float
@@ -40,7 +39,6 @@ constexpr uintptr_t kPause = 0x28;               // u8, default 1
 constexpr uintptr_t kLoop = 0x29;                // u8, default 1
 constexpr uintptr_t kResource = 0x38;            // rScheduler*
 constexpr uintptr_t kImage = 0x60;               // rScheduler: the file image
-constexpr uintptr_t kPath = 0x04;                // cResource: char[64]
 constexpr uintptr_t kResourceSize = 0x50;        // cResource: m_size = the file size (blade01: 2078 = on disk)
 
 // ---- load generation ----
@@ -48,50 +46,12 @@ constexpr uintptr_t kResourceSize = 0x50;        // cResource: m_size = the file
 uint32_t g_load_gen = 1;
 uintptr_t g_last_layers[5] = {};
 
-// ---- live schedulers (the move hook) ----
+// ---- live schedulers (sdk/Schedulers: one uScheduler::move hook for every tool) ----
 
-std::mutex g_mutex;
-std::unordered_map<uintptr_t, uint64_t> g_seen;   // uScheduler -> frame_hooks::frames() at its last move
-std::unique_ptr<FunctionHook> g_hook;
-using Move = uintptr_t(__fastcall*)(void* self, void* edx);
-Move g_original = nullptr;
+using schedulers::Live;
+using schedulers::live;
 
-uintptr_t __fastcall scheduler_move(void* self, void* edx) {
-    {
-        std::lock_guard<std::mutex> lock(g_mutex);
-        g_seen[reinterpret_cast<uintptr_t>(self)] = frame_hooks::frames();
-    }
-    return g_original(self, edx);
-}
-
-bool is_scheduler(uintptr_t s) {   // still a uScheduler: its vtable's move slot is uScheduler::move, and it has a file
-    const uintptr_t vt = rd_ptr(s);
-    return vt && rd_ptr(vt + 0x18) == kSchedulerMove && rd_ptr(s + kResource);
-}
-
-struct Live {
-    uintptr_t id, rsrc;
-    uint64_t seen;
-};
-
-// the schedulers seen since the last load (paused ones stop moving but stay listed while their object is a scheduler)
-std::vector<Live> live() {
-    std::vector<std::pair<uintptr_t, uint64_t>> seen;
-    {
-        std::lock_guard<std::mutex> lock(g_mutex);
-        seen.assign(g_seen.begin(), g_seen.end());
-    }
-    std::vector<Live> out;
-    for (const auto& [s, f] : seen)
-        if (is_scheduler(s)) out.push_back({s, rd_ptr(s + kResource), f});
-    std::sort(out.begin(), out.end(), [](const Live& a, const Live& b) { return a.id < b.id; });
-    return out;
-}
-
-std::string path_of(uintptr_t rsrc) {
-    const json p = safe_cstr(rsrc + kPath, 64);
-    return p.is_string() ? p.get<std::string>() : std::string();
-}
+std::string path_of(uintptr_t rsrc) { return schedulers::path_of(rsrc); }
 
 bool same_path(std::string a, std::string b) {
     for (auto* s : {&a, &b})
@@ -389,17 +349,12 @@ void sdl_frame() {
     if (std::memcmp(now, g_last_layers, sizeof(now)) != 0 || load_started) {
         std::memcpy(g_last_layers, now, sizeof(now));
         ++g_load_gen;
-        std::lock_guard<std::mutex> lock(g_mutex);
-        g_seen.clear();   // ids are valid until load_gen changes
+        schedulers::forget();   // ids are valid until load_gen changes
     }
 }
 
 void register_sdl() {
-    if (!g_hook) {
-        g_hook = std::make_unique<FunctionHook>(kSchedulerMove, &scheduler_move);
-        if (g_hook->create()) g_original = g_hook->get_original<std::remove_pointer_t<Move>>();
-        else spdlog::error("DebugServer: can't hook uScheduler::move (0x90A850): the sdl tools won't see schedulers");
-    }
+    schedulers::install();
     add_tool({"sdl_list",
               "The loaded .sdl files (rScheduler) with the schedulers playing them: path, rsrc, and per scheduler id, "
               "frame, prev, length, loop, pause, speed. ids are valid until load_gen (also in status) changes. tools.md.",

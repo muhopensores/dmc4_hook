@@ -1,4 +1,5 @@
 #include "PostFX.hpp"
+#include "../../sdk/Selection.hpp"
 #include "Cel.hpp"
 #include "Tags.hpp"
 #include "../shadows/Shadows.hpp"
@@ -143,7 +144,6 @@ IDirect3DPixelShader9* g_ps_outline = nullptr;
 IDirect3DPixelShader9* g_ps_contact = nullptr;
 IDirect3DPixelShader9* g_ps_fxaa = nullptr;
 IDirect3DPixelShader9* g_ps_highlight = nullptr;
-std::atomic<uintptr_t> g_selected{ 0 };
 IDirect3DTexture9*     g_scene_copy = nullptr;  // D3DPOOL_DEFAULT: released on reset
 UINT                   g_copy_w = 0, g_copy_h = 0;
 D3DFORMAT              g_copy_fmt = D3DFMT_UNKNOWN;
@@ -157,6 +157,7 @@ IDirect3DStateBlock9*  g_state = nullptr;       // released on reset
 struct PickRequest {
     int x = 0, y = 0;
     std::promise<DepthSample> done;
+    std::shared_future<DepthSample> future;
 };
 std::mutex                   g_pick_mutex;
 std::shared_ptr<PickRequest> g_pick;              // guarded by g_pick_mutex
@@ -358,7 +359,7 @@ void service_pick(IDirect3DDevice9* dev, IDirect3DTexture9* depth, const D3DSURF
 
 // outlines and cel shading go together (the user, 2026-11-23): the cel shading switch turns both on
 bool outlines_on() { return cel::settings.on && settings.outline; }
-bool highlight_on() { return settings.highlight && g_selected.load() != 0; }
+bool highlight_on() { return settings.highlight && selection::unit() != 0; }
 
 void draw_post() {
     g_diag.stage = 1;
@@ -503,7 +504,7 @@ void draw_post() {
     }
 
     // the selected object's outline (its ID in the depth texture's blue byte), alpha blended
-    const uint8_t sel_id = settings.highlight ? tags::id_of(g_selected.load()) : 0;
+    const uint8_t sel_id = settings.highlight ? tags::id_of(selection::unit()) : 0;
     if (sel_id) {
         const float c10[4] = { sel_id / 255.0f, (std::max)(1.0f, 2.0f * fh / 1080.0f), 0.0f, 0.0f };
         const float c11[4] = { settings.highlight_color[0], settings.highlight_color[1], settings.highlight_color[2], 1.0f };
@@ -638,22 +639,34 @@ Status status() {
     return s;
 }
 
-DepthSample sample_world(int x, int y, int timeout_ms) {
+namespace {
+// queues a depth sample (nullptr when one is already waiting)
+std::shared_ptr<PickRequest> queue_pick(int x, int y) {
     auto req = std::make_shared<PickRequest>();
     req->x = x;
     req->y = y;
-    std::future<DepthSample> f = req->done.get_future();
-    {
-        std::lock_guard lock(g_pick_mutex);
-        if (g_pick) {
-            DepthSample s;
-            s.error = "busy: another pick is waiting";
-            return s;
-        }
-        g_pick = req;
-        g_pick_pending = true;
+    req->future = req->done.get_future().share();
+    std::lock_guard lock(g_pick_mutex);
+    if (g_pick) return nullptr;
+    g_pick = req;
+    g_pick_pending = true;
+    return req;
+}
+} // namespace
+
+std::shared_future<DepthSample> request_sample(int x, int y) {
+    const std::shared_ptr<PickRequest> req = queue_pick(x, y);
+    return req ? req->future : std::shared_future<DepthSample>();
+}
+
+DepthSample sample_world(int x, int y, int timeout_ms) {
+    const std::shared_ptr<PickRequest> req = queue_pick(x, y);
+    if (!req) {
+        DepthSample s;
+        s.error = "busy: another pick is waiting";
+        return s;
     }
-    if (f.wait_for(std::chrono::milliseconds(timeout_ms)) != std::future_status::ready) {
+    if (req->future.wait_for(std::chrono::milliseconds(timeout_ms)) != std::future_status::ready) {
         std::lock_guard lock(g_pick_mutex);
         if (g_pick == req) {
             g_pick.reset();
@@ -663,11 +676,8 @@ DepthSample sample_world(int x, int y, int timeout_ms) {
         s.error = "no frame drew the main scene in time (loading, a menu over it, or minimised)";
         return s;
     }
-    return f.get();
+    return req->future.get();
 }
-
-void select(uintptr_t unit) { g_selected = unit; }
-uintptr_t selected() { return g_selected.load(); }
 
 } // namespace post_fx
 
@@ -736,7 +746,7 @@ void PostFX::on_gui_frame(int display) {
         if (settings.highlight) {
             ImGui::Indent(lineIndent);
             ImGui::ColorEdit3(_("Outline colour"), settings.highlight_color);
-            if (g_selected.load() && ImGui::Button(_("Clear the pick"))) g_selected = 0;
+            if (selection::unit() && ImGui::Button(_("Clear the pick"))) selection::clear();
             ImGui::Unindent(lineIndent);
         }
         return;

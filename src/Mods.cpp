@@ -217,6 +217,7 @@ Mods::Mods() {
     ADD_MOD(ModelExtension); // runtime chains (and attachments) on models, from nativePC\model_ext\*.xml
     ADD_MOD(FileTracker);    // debug: what the game has loaded (files, arcs) and what it loads and drops
     ADD_MOD(UnitPacks);      // stage units' files from their rooms' arcs into the cache, for spawning them anywhere
+    ADD_MOD(ObjectPicker);   // Ctrl + click selects a unit (sdk/Selection, shared with UnitPacks, PostFX, the debug server)
     ADD_MOD(PbrMaterials);   // GGX shading for Albam's PBR materials (the unused SPECULAR_RIM pixel shaders swapped)
     ADD_MOD(Shadows);        // stage shadow map size and live overrides of its settings (uShadow)
     ADD_MOD(ToneMap);        // a filmic curve (ACES / AgX) in place of XfFilter's Reinhard tone map shaders

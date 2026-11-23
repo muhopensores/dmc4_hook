@@ -195,6 +195,7 @@
 #include "dev/movedef/MoveDef.hpp"
 #include "dev/file_tracker/FileTracker.hpp"
 #include "dev/unit_packs/UnitPacks.hpp"
+#include "dev/picker/ObjectPicker.hpp"
 #include "dev/pbr/PbrMaterials.hpp"
 #include "dev/shadows/Shadows.hpp"
 #include "dev/tonemap/ToneMap.hpp"
