@@ -83,6 +83,7 @@ void register_tools() {
     register_input();
     register_sdl();
     register_screenshot();
+    register_pick();
 }
 
 } // namespace debug_server

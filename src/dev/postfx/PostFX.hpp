@@ -45,6 +45,19 @@ struct Status {
 };
 Status status();
 
+// The world point under a pixel, from the frame's depth texture (the object picker's first half; Vibed\PostFX\README.md
+// "Object picker"). x, y are back-buffer pixels. The next frame's post pass (render thread) reads that one depth texel
+// (a 1 x 1 StretchRect + GetRenderTargetData) and turns it into game world coordinates (cm) with that frame's camera.
+// Blocks up to timeout_ms; not from the render thread. One request at a time (a second one gets "busy").
+struct DepthSample {
+    bool        ok = false;
+    float       world[3] = {};
+    float       distance = 0.0f;  // cm ahead of the camera
+    int         texel[2] = {};    // the depth texel read
+    std::string error;
+};
+DepthSample sample_world(int x, int y, int timeout_ms = 2000);
+
 } // namespace post_fx
 
 class PostFX : public Mod {

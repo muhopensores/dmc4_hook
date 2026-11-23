@@ -11,7 +11,10 @@
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <chrono>
 #include <fstream>
+#include <future>
+#include <memory>
 #include <mutex>
 #include <sstream>
 #include <thread>
@@ -145,6 +148,17 @@ int                    g_ps_generation = 0;
 IDirect3DTexture9*     g_ao_target = nullptr;   // D3DPOOL_DEFAULT: released on reset
 UINT                   g_ao_w = 0, g_ao_h = 0;
 IDirect3DStateBlock9*  g_state = nullptr;       // released on reset
+
+// the object picker's depth sample (sample_world)
+struct PickRequest {
+    int x = 0, y = 0;
+    std::promise<DepthSample> done;
+};
+std::mutex                   g_pick_mutex;
+std::shared_ptr<PickRequest> g_pick;              // guarded by g_pick_mutex
+std::atomic<bool>            g_pick_pending{ false };
+IDirect3DTexture9*           g_pick_rt = nullptr;  // 1 x 1, D3DPOOL_DEFAULT: released on reset
+IDirect3DSurface9*           g_pick_sys = nullptr; // 1 x 1 system memory copy
 bool                   g_done = false;          // AO drawn in this dispatch
 
 // Diagnostics, found in memory by their magic (the debug server's read; tests without the panel)
@@ -174,6 +188,8 @@ template <class T> void release(T*& p) {
 void release_device_objects() {
     release(g_ao_target);
     release(g_scene_copy);
+    release(g_pick_rt);
+    release(g_pick_sys);
     release(g_state);
     g_ao_w = g_ao_h = 0;
 }
@@ -268,6 +284,68 @@ void dump_target(IDirect3DDevice9* dev, IDirect3DSurface9* rt, UINT w, UINT h, c
     sys->Release();
 }
 
+// The object picker's depth sample: the requested pixel's depth texel (1 x 1 StretchRect, read back), decoded and turned
+// into a world point with this frame's camera (viewport 0; view rows are row vectors, the view is rigid).
+void service_pick(IDirect3DDevice9* dev, IDirect3DTexture9* depth, const D3DSURFACE_DESC& desc, const sCamera* cam) {
+    std::shared_ptr<PickRequest> req;
+    {
+        std::lock_guard lock(g_pick_mutex);
+        req = std::move(g_pick);
+        g_pick.reset();
+        g_pick_pending = false;
+    }
+    if (!req) return;
+    DepthSample s;
+    IDirect3DSurface9* bb = nullptr;
+    IDirect3DSurface9* src = nullptr;
+    IDirect3DSurface9* dst = nullptr;
+    D3DSURFACE_DESC bd{};
+    if (FAILED(dev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &bb)) || FAILED(bb->GetDesc(&bd))) bd = desc;
+    release(bb);
+    const int tx = std::clamp((int)((long long)req->x * desc.Width / (std::max)(bd.Width, 1u)), 0, (int)desc.Width - 1);
+    const int ty = std::clamp((int)((long long)req->y * desc.Height / (std::max)(bd.Height, 1u)), 0, (int)desc.Height - 1);
+    s.texel[0] = tx;
+    s.texel[1] = ty;
+    if (!g_pick_rt && FAILED(dev->CreateTexture(1, 1, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &g_pick_rt,
+                                                 nullptr)))
+        s.error = "can't make the 1 x 1 target";
+    if (s.error.empty() && !g_pick_sys &&
+        FAILED(dev->CreateOffscreenPlainSurface(1, 1, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &g_pick_sys, nullptr)))
+        s.error = "can't make the 1 x 1 copy";
+    D3DLOCKED_RECT lr{};
+    const RECT r{ tx, ty, tx + 1, ty + 1 };
+    if (s.error.empty() && (FAILED(depth->GetSurfaceLevel(0, &src)) || FAILED(g_pick_rt->GetSurfaceLevel(0, &dst)) ||
+                            FAILED(dev->StretchRect(src, &r, dst, nullptr, D3DTEXF_POINT)) ||
+                            FAILED(dev->GetRenderTargetData(dst, g_pick_sys)) ||
+                            FAILED(g_pick_sys->LockRect(&lr, nullptr, D3DLOCK_READONLY))))
+        s.error = "can't read the depth texture";
+    release(src);
+    release(dst);
+    if (s.error.empty()) {
+        const uint8_t* p = static_cast<const uint8_t*>(lr.pBits);     // B G R A
+        const float z = p[2] / 255.0f * 0.00389099144f + p[1] / 255.0f * 1.51991853e-5f + p[3] / 255.0f * 0.99609381f;
+        g_pick_sys->UnlockRect();
+        const MtMatrix& P = cam->viewports[0].mProjMat;
+        const MtMatrix& V = cam->viewports[0].mViewMat;
+        if (z >= 0.99999f) {
+            s.error = "nothing there (sky: no depth)";
+        } else if (P.m1.x == 0.0f || P.m2.y == 0.0f || P.m3.w == 0.0f) {
+            s.error = "no camera projection";
+        } else {
+            const float d = std::fabs(P.m4.z / (z * P.m3.w - P.m3.z));
+            const float nx = (tx + 0.5f) / desc.Width * 2.0f - 1.0f, ny = 1.0f - (ty + 0.5f) / desc.Height * 2.0f;
+            const float v[3] = { nx * d / P.m1.x, ny * d / P.m2.y, d / P.m3.w };   // view space (w = P23 x z = d)
+            const float t[3] = { v[0] - V.m4.x, v[1] - V.m4.y, v[2] - V.m4.z };
+            s.world[0] = t[0] * V.m1.x + t[1] * V.m1.y + t[2] * V.m1.z;
+            s.world[1] = t[0] * V.m2.x + t[1] * V.m2.y + t[2] * V.m2.z;
+            s.world[2] = t[0] * V.m3.x + t[1] * V.m3.y + t[2] * V.m3.z;
+            s.distance = d;
+            s.ok = true;
+        }
+    }
+    req->done.set_value(s);
+}
+
 // outlines and cel shading go together (the user, 2026-11-23): the cel shading switch turns both on
 bool outlines_on() { return cel::settings.on && settings.outline; }
 
@@ -283,6 +361,11 @@ void draw_post() {
     g_diag.stage = 3;
     IDirect3DTexture9* depth = at<IDirect3DTexture9*>(depth_obj, kTexD3D);
     if (!depth) return;
+    if (g_pick_pending) {
+        D3DSURFACE_DESC pd;
+        if (SUCCEEDED(depth->GetLevelDesc(0, &pd))) service_pick(dev, depth, pd, reinterpret_cast<const sCamera*>(camera));
+    }
+    if (!(settings.ao || outlines_on() || settings.contact || settings.aa)) return;   // only a pick this frame
     g_diag.stage = 4;
     if (!ensure_shaders(dev)) return;
     g_diag.stage = 5;
@@ -464,7 +547,7 @@ void __stdcall on_tag(const uint32_t* tags, uint32_t index, uint32_t count) {
         if (g_diag.nseq == 0 || (g_diag.seq[g_diag.nseq - 1] & 0xFFF) != k) g_diag.seq[g_diag.nseq++] = (index << 12) | k;
     }
     ++g_diag.tags;
-    if (g_done || !(settings.ao || outlines_on() || settings.contact || settings.aa)) return;
+    if (g_done || !(settings.ao || outlines_on() || settings.contact || settings.aa || g_pick_pending)) return;
     const uint32_t key = tags[index * 2 + 1];
     if (((key >> 24) & 0x1F) == kMainScene) {
         ++g_diag.main_tags;
@@ -519,6 +602,34 @@ Status status() {
     s.from_file = g_from_file;
     s.error = g_error;
     return s;
+}
+
+DepthSample sample_world(int x, int y, int timeout_ms) {
+    auto req = std::make_shared<PickRequest>();
+    req->x = x;
+    req->y = y;
+    std::future<DepthSample> f = req->done.get_future();
+    {
+        std::lock_guard lock(g_pick_mutex);
+        if (g_pick) {
+            DepthSample s;
+            s.error = "busy: another pick is waiting";
+            return s;
+        }
+        g_pick = req;
+        g_pick_pending = true;
+    }
+    if (f.wait_for(std::chrono::milliseconds(timeout_ms)) != std::future_status::ready) {
+        std::lock_guard lock(g_pick_mutex);
+        if (g_pick == req) {
+            g_pick.reset();
+            g_pick_pending = false;
+        }
+        DepthSample s;
+        s.error = "no frame drew the main scene in time (loading, a menu over it, or minimised)";
+        return s;
+    }
+    return f.get();
 }
 
 } // namespace post_fx

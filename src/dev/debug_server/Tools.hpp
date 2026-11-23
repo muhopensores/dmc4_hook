@@ -16,4 +16,5 @@ void sdl_frame();        // game thread, every frame first: bumps load_gen on a 
 uint32_t load_gen();     // changes whenever the room or area layer changes (tools.md)
 void register_screenshot();   // S4's screenshot (Screenshot.cpp), called by register_tools
 void screenshot_present();    // render thread, in the Present hook before ImGui: takes the queued shots
+void register_pick();         // the object picker's `pick` (Pick.cpp; depth from PostFX), called by register_tools
 }

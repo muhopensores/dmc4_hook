@@ -459,6 +459,7 @@ set(DEV_SRC
   dev/debug_server/Input.cpp
   dev/debug_server/Sdl.cpp
   dev/debug_server/Screenshot.cpp
+  dev/debug_server/Pick.cpp
   ../plugin_sdk/include/dmc4_plugin.h
   dev/ps_bind.hpp
   dev/shader_file.hpp
