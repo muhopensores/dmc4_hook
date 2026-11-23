@@ -198,6 +198,7 @@
 #include "dev/pbr/PbrMaterials.hpp"
 #include "dev/shadows/Shadows.hpp"
 #include "dev/tonemap/ToneMap.hpp"
+#include "dev/postfx/PostFX.hpp"
 #include "dev/lights/LightSwitches.hpp"
 #include "dev/plugins/Plugins.hpp"
 #include "dev/rooms/Rooms.hpp"
