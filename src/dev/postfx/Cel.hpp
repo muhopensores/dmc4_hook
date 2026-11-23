@@ -11,7 +11,10 @@ namespace utility { class Config; }
 //   - every skinned SPECULAR_POWMAP pixel shader record that is the twin (key + (3 - specular) x 140) of a skinned lit
 //     NONE / STANDARD key with the same vertex shader gets our cel.inc, compiled from its constant table;
 //   - those keys' permutation table entries point at the twin's pixel shader (their vertex shader stays).
-// Off: the table entries and the records' shaders go back. cMaterialStandard::beginDraw reads the key on every draw, so
+// The shader also inks the contours where the surface turns away from the eye, with the outlines' width / colour / opacity /
+// distance (post_fx::settings), while outlines are on.
+// Also PBR (RIM) keys, to the same twins, and the keys without normal map and specular (a shorter vertex output: on
+// pixel shaders only such keys use). Off: the table entries and the records' shaders go back. cMaterialStandard::beginDraw reads the key on every draw, so
 // both apply at once.
 namespace cel {
 
@@ -19,7 +22,8 @@ struct Settings {
     bool  on = false;
     float edge = 0.25f;        // N.L where light turns to shade
     float soft = 0.04f;        // half width of that edge
-    float flat = 0.7f;         // 0 ambient by the normal (stock) .. 1 one flat ambient colour
+    float flat = 0.9f;         // 0 ambient by the normal (stock) .. 1 one flat ambient colour
+    float detail = 0.3f;       // how much the normal map shapes the light (0 the mesh's own shape .. 1 stock)
     float highlight = 0.6f;    // the hard highlight's strength (0 none)
     float shaded = 0.3f;       // how much of the light the shaded side keeps
     float hl_size = 0.5f;      // the highlight's threshold on (N.H)^power: higher = smaller

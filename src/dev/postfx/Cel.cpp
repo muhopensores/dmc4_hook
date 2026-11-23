@@ -1,4 +1,5 @@
 #include "Cel.hpp"
+#include "PostFX.hpp"
 #include "../../mod.hpp"
 #include "../../ModFramework.hpp"
 #include "../ps_bind.hpp"
@@ -22,7 +23,8 @@ Settings settings;
 
 namespace {
 
-constexpr UINT kTuneRegister = 210;                // cel.inc gCelTune0 / gCelTune1
+constexpr UINT kTuneRegister = 210;                // cel.inc gCelTune0..3 (c210-c213)
+constexpr UINT kTuneCount = 4;
 constexpr uintptr_t kShaderInstance = 0x00E55700;  // sShader::mpInstance
 constexpr uintptr_t kTechniques     = 0x4838;      // sShader: mpTechnique[]
 constexpr uintptr_t kStandardSlot   = 0x00E55678;  // tXfMaterialStandard's slot (sShader::InitTechniques 0x8FFA00)
@@ -31,6 +33,8 @@ enum InfoField { kComponents = 1, kPermutations = 2, kPsCount = 3, kComponentRec
 constexpr uint32_t kRadix[6]  = { 7, 5, 4, 5, 8, 7 };          // skin, lighting, normal map, specular, lightmap, multitexture
 constexpr uint32_t kStride[6] = { 1, 7, 35, 140, 700, 5600 };
 constexpr uint32_t kPowmap = 3;
+constexpr uint32_t kRim = 4;                       // PbrMaterials' PBR materials: routed to the POWMAP twin too
+constexpr uint32_t kLightmapHost = 7;              // the short-layout keys' stand-in records (lightmap 7: skinned-only)
 constexpr char kSourcePath[] = "nativePC\\shader\\postfx\\cel.hlsl";
 
 const char kEmbedded[] =
@@ -75,7 +79,9 @@ bool read_registers(const uint32_t* code, Defines& out) {
                 const uint32_t name = *reinterpret_cast<const uint32_t*>(c);
                 const uint16_t set = *reinterpret_cast<const uint16_t*>(c + 4);
                 const uint16_t index = *reinterpret_cast<const uint16_t*>(c + 6);
+                const uint16_t regs = *reinterpret_cast<const uint16_t*>(c + 8);
                 if (set > 3) return false;
+                if (set == 2 && index + regs > kTuneRegister) return false;   // would collide with our tuning registers
                 std::string s;
                 for (uint32_t p = name; base[p] && s.size() < 64; ++p) {
                     const char ch = (char)base[p];
@@ -97,6 +103,7 @@ struct Target {
     int       ps = -1;
     uintptr_t rec = 0;                      // the pixel shader record: +0 handle, +4 bytecode
     uint8_t   lighting = 0, normalmap = 0, lightmap = 0;
+    bool      shortvs = false;                // the vertex shader writes TEXCOORD0-2 only (no normal map, no specular)
     Defines   regs;
     IDirect3DPixelShader9* orig_handle = nullptr;
     const void*            orig_code = nullptr;
@@ -136,7 +143,7 @@ std::atomic<bool>   g_want_compile{ true };
 constexpr int                   kMaxOurs = 32;
 IDirect3DPixelShader9* volatile g_bind_ours[kMaxOurs] = {};
 volatile int                    g_bind_count = 0;
-float                           g_bind_tune[8] = {};
+float                           g_bind_tune[4 * kTuneCount] = {};
 
 IDirect3DPixelShader9*& handle_of(const Target& t) { return at<IDirect3DPixelShader9*>(t.rec, 0); }
 const void*&            code_of(const Target& t) { return at<const void*>(t.rec, 4); }
@@ -145,7 +152,7 @@ void __stdcall on_bind_ps(IDirect3DDevice9* device, IDirect3DPixelShader9* ps) {
     const int n = g_bind_count;
     for (int i = 0; i < n; ++i)
         if (g_bind_ours[i] == ps) {
-            device->SetPixelShaderConstantF(kTuneRegister, g_bind_tune, 2);
+            device->SetPixelShaderConstantF(kTuneRegister, g_bind_tune, kTuneCount);
             return;
         }
 }
@@ -214,7 +221,13 @@ void decode(uint32_t key, uint32_t* sel) {
     for (int i = 0; i < 6; ++i) { sel[i] = key % kRadix[i]; key /= kRadix[i]; }
 }
 
-// The records and keys (the same rules as the scratch check postfx/cel_check.py, which compiled all 6 cleanly)
+// The records and keys (the same rules as the scratch check postfx/cel_check.py, which compiled all 6 cleanly):
+//   1. skinned lit keys (specular NONE / STANDARD, or RIM = PBR) whose POWMAP twin has the same vertex shader and is used
+//      only by skinned POWMAP keys: routed to it;
+//   2. the rest of the skinned lit keys without normal map, specular, lightmap and multitexture: their vertex shader
+//      writes only TEXCOORD0-2 (all 18 in XfMaterialStandard.bfx, 2026-11-23; Albam's New DMC4 Model makes these: Ellen).
+//      Their own pixel shader when only such keys use it (EMIT, THIN), else the lightmap-7 key's (SH4SPOT shares its
+//      own with a static key); cel.inc as SHORTVS there.
 bool locate() {
     uintptr_t tech = 0;
     const uint32_t* info = standard_info(tech);
@@ -233,32 +246,76 @@ bool locate() {
     std::vector<int> target_of(ps_count, -1);
     std::vector<Target> targets;
     std::vector<Route> routes;
-    for (uint32_t key = 0; key < perms; ++key) {
-        uint32_t s[6];
-        decode(key, s);
-        if (s[0] == 0 || s[1] == 0 || s[3] > 1 || (table[key] & 0xFFFF) >= ps_count) continue;
-        if (s[2] > 1 || (s[4] != 0 && s[4] != 5) || s[5] != 0) continue;    // what cel.inc reads
-        const uint32_t twin = key + (kPowmap - s[3]) * kStride[3];
-        const uint32_t tps = table[twin] & 0xFFFF;
-        if (tps >= ps_count || !powmap_only[tps] || (table[twin] >> 16) != (table[key] >> 16)) continue;
-        int& ti = target_of[tps];
+    std::vector<uint8_t> handled(perms, 0);
+    // the target for pixel shader ps compiled for these selectors, or -1 (no record / constant table, or another permutation)
+    auto target_for = [&](uint32_t ps, uint32_t lighting, uint32_t normalmap, uint32_t lightmap, bool shortvs) {
+        int& ti = target_of[ps];
         if (ti < 0) {
             Target t;
-            t.ps = (int)tps;
-            t.rec = at<uintptr_t>(info[kPsRecords], 4 * tps);
-            t.lighting = (uint8_t)s[1];
-            t.normalmap = (uint8_t)s[2];
-            t.lightmap = (uint8_t)s[4];
-            if (!t.rec || !read_registers(at<const uint32_t*>(t.rec, 4), t.regs)) continue;
+            t.ps = (int)ps;
+            t.rec = at<uintptr_t>(info[kPsRecords], 4 * ps);
+            t.lighting = (uint8_t)lighting;
+            t.normalmap = (uint8_t)normalmap;
+            t.lightmap = (uint8_t)lightmap;
+            t.shortvs = shortvs;
+            if (!t.rec || !read_registers(at<const uint32_t*>(t.rec, 4), t.regs)) return -1;
             t.orig_handle = handle_of(t);
             t.orig_code = code_of(t);
             ti = (int)targets.size();
             targets.push_back(std::move(t));
         }
         const Target& t = targets[ti];
-        if (t.lighting != s[1] || t.normalmap != s[2] || t.lightmap != s[4]) continue;   // compiled for another permutation
+        if (t.lighting != lighting || t.normalmap != normalmap || t.lightmap != lightmap || t.shortvs != shortvs) return -1;
+        return ti;
+    };
+    // 1. POWMAP twins
+    for (uint32_t key = 0; key < perms; ++key) {
+        uint32_t s[6];
+        decode(key, s);
+        if (s[0] == 0 || s[1] == 0 || (s[3] > 1 && s[3] != kRim) || (table[key] & 0xFFFF) >= ps_count) continue;
+        if (s[2] > 1 || (s[4] != 0 && s[4] != 5) || s[5] != 0) continue;    // what cel.inc reads
+        const uint32_t twin = key - s[3] * kStride[3] + kPowmap * kStride[3];
+        const uint32_t tps = table[twin] & 0xFFFF;
+        if (tps >= ps_count || !powmap_only[tps] || (table[twin] >> 16) != (table[key] >> 16)) continue;
+        if (target_for(tps, s[1], s[2], s[4], false) < 0) continue;
         routes.push_back({ key, table[key], (table[key] & 0xFFFF0000u) | tps });
+        handled[key] = 1;
     }
+    // 2. the short layout
+    auto is_short = [&](uint32_t key) {
+        uint32_t s[6];
+        decode(key, s);
+        return s[0] && s[1] && !s[2] && !s[3] && !s[4] && !s[5] && !handled[key] && (table[key] & 0xFFFF) < ps_count;
+    };
+    std::vector<uint8_t> short_vs(0x10000, 0);
+    for (uint32_t key = 0; key < perms; ++key)
+        if (is_short(key)) short_vs[table[key] >> 16] = 1;
+    std::vector<uint8_t> short_only(ps_count, 1);             // pixel shaders only skinned short-layout keys use
+    for (uint32_t key = 0; key < perms; ++key) {
+        const uint32_t ps = table[key] & 0xFFFF;
+        if (ps >= ps_count) continue;
+        uint32_t s[6];
+        decode(key, s);
+        if (s[0] == 0 || !short_vs[table[key] >> 16]) short_only[ps] = 0;
+    }
+    int direct = 0;
+    for (uint32_t key = 0; key < perms; ++key) {
+        if (!is_short(key)) continue;
+        uint32_t s[6];
+        decode(key, s);
+        const uint32_t own = table[key] & 0xFFFF;
+        if (short_only[own]) {                                // only characters draw with it: ours goes there directly
+            if (target_for(own, s[1], 0, 0, true) >= 0) ++direct;
+            continue;
+        }
+        const uint32_t host = key + kLightmapHost * kStride[4];
+        if (host >= perms) continue;
+        const uint32_t hps = table[host] & 0xFFFF;
+        if (hps >= ps_count || !short_only[hps] || (table[host] >> 16) != (table[key] >> 16)) continue;
+        if (target_for(hps, s[1], 0, 0, true) < 0) continue;
+        routes.push_back({ key, table[key], (table[key] & 0xFFFF0000u) | hps });
+    }
+    spdlog::info("[PostFX] cel shading: {} short-layout keys drawn directly", direct);
     g_targets = std::move(targets);
     g_routes = std::move(routes);
     g_table = table;
@@ -288,7 +345,7 @@ void start_compile() {
     auto jobs = std::make_shared<std::vector<Defines>>();
     for (const Target& t : g_targets) {
         Defines d = { { "LIGHTING", std::to_string(t.lighting) }, { "NORMALMAP", std::to_string(t.normalmap) },
-                      { "LIGHTMAP", std::to_string(t.lightmap) } };
+                      { "LIGHTMAP", std::to_string(t.lightmap) }, { "SHORTVS", t.shortvs ? "1" : "0" } };
         d.insert(d.end(), t.regs.begin(), t.regs.end());
         jobs->push_back(std::move(d));
     }
@@ -386,10 +443,22 @@ void update() {
     }
     IDirect3DDevice9* device = g_framework->get_d3d9_device();
     if (!device) return;
-    const float tune[8] = { settings.edge, std::max(settings.soft, 0.001f), settings.flat, settings.highlight,
-                            settings.shaded, settings.hl_size, settings.amb_shade, 1.0f };
+    // contour ink: the outlines' look, in back-buffer pixels (their width is at 1080 lines)
+    const post_fx::Settings& o = post_fx::settings;
+    float height = 1080.0f;
+    IDirect3DSurface9* bb = nullptr;
+    if (SUCCEEDED(device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &bb)) && bb) {
+        D3DSURFACE_DESC bd{};
+        if (SUCCEEDED(bb->GetDesc(&bd)) && bd.Height) height = (float)bd.Height;
+        bb->Release();
+    }
+    const float tune[4 * kTuneCount] = {
+        settings.edge, std::max(settings.soft, 0.001f), settings.flat, settings.highlight,
+        settings.shaded, settings.hl_size, settings.amb_shade, 1.0f,
+        o.outline_color[0], o.outline_color[1], o.outline_color[2], o.outline ? o.outline_opacity : 0.0f,
+        std::max(1.0f, o.outline_width * height / 1080.0f), o.outline_distance * 100.0f, settings.detail, 0.0f };
     std::memcpy(g_bind_tune, tune, sizeof tune);
-    device->SetPixelShaderConstantF(kTuneRegister, tune, 2);
+    device->SetPixelShaderConstantF(kTuneRegister, tune, kTuneCount);
     if (!g_tech) {
         if (g_compiling || !locate()) return;
         g_want_compile = true;
@@ -446,6 +515,10 @@ void draw_gui() {
     ImGui::SliderFloat(_("Flat ambient"), &settings.flat, 0.0f, 1.0f, "%.2f");
     ImGui::SameLine();
     Mod::help_marker(_("0 = the surroundings' light varies with the surface's direction (as the game), 1 = one even colour."));
+    ImGui::SliderFloat(_("Surface detail"), &settings.detail, 0.0f, 1.0f, "%.2f");
+    ImGui::SameLine();
+    Mod::help_marker(_("How much the bumps painted into the textures (normal maps) shape the light: 0 = only the model's own "
+                       "shape, so light and shade are clean areas; 1 = as the game, every fold and seam shaded."));
     ImGui::SliderFloat(_("Highlight"), &settings.highlight, 0.0f, 2.0f, "%.2f");
     ImGui::SliderFloat(_("Highlight size"), &settings.hl_size, 0.05f, 0.95f, "%.2f");
     ImGui::SameLine();
@@ -474,6 +547,7 @@ void load(const utility::Config& cfg) {
     settings.highlight = std::clamp(cfg.get<float>("postfx_cel_highlight").value_or(d.highlight), 0.0f, 2.0f);
     settings.hl_size = std::clamp(cfg.get<float>("postfx_cel_hl_size").value_or(d.hl_size), 0.05f, 0.95f);
     settings.amb_shade = std::clamp(cfg.get<float>("postfx_cel_amb_shade").value_or(d.amb_shade), 0.0f, 1.0f);
+    settings.detail = std::clamp(cfg.get<float>("postfx_cel_detail").value_or(d.detail), 0.0f, 1.0f);
 }
 
 void save(utility::Config& cfg) {
@@ -485,6 +559,7 @@ void save(utility::Config& cfg) {
     cfg.set<float>("postfx_cel_highlight", settings.highlight);
     cfg.set<float>("postfx_cel_hl_size", settings.hl_size);
     cfg.set<float>("postfx_cel_amb_shade", settings.amb_shade);
+    cfg.set<float>("postfx_cel_detail", settings.detail);
 }
 
 } // namespace cel

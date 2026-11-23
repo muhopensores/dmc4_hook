@@ -7,9 +7,17 @@ R"hlsl(// cel.hlsl: dmc4_hook PostFX cel shading, the pixel shader of XfMaterial
 //   - every parameter's register comes from the replaced shader's constant table: the mod defines REG_<name> and
 //     HAS_<name> for each one it lists, and nothing else may be read;
 //   - the permutation comes in as LIGHTING (1 4SPOT, 2 SH4SPOT, 3 EMITSH4SPOT, 4 THINSH4SPOT), NORMALMAP (0 / 1), LIGHTMAP
-//     (0 NONE, 5 VCOLOR).
+//     (0 NONE, 5 VCOLOR), and SHORTVS 1 for the keys without normal map and specular, whose vertex shader writes only
+//     TEXCOORD0-2 (uv0, world position, normal: no second UV, no mask);
+//   - PBR materials (dmc4_hook PbrMaterials, specular RIM) are routed here too: gXfFresnelFactor is then (roughness
+//     scale, metal scale, F0, reflection) with F0 < 1, where classic materials keep a specular power >= 1 (every DX9
+//     file), and the mask is ORM.
 // Lighting in the stock shaders' gamma space: light = band(N.L) per light instead of N.L (lit or shaded, a soft edge),
-// ambient flattened toward the scene's average, a hard-edged highlight.
+// ambient flattened toward the scene's average, a hard-edged highlight. The light reads a normal with only part of the
+// normal map in it (Surface detail), so bands follow the shape rather than the bumps. Contour ink: where the surface turns
+// away from the eye (N.V reaches 0: a chin over the neck, a jaw, an arm across the body), a line of the outlines' width,
+// measured in pixels as N.V / fwidth(N.V), front faces only; the depth outlines miss these, their depth steps are only a
+// few cm.
 
 #ifndef NORMALMAP
 #define NORMALMAP 1
@@ -20,12 +28,25 @@ R"hlsl(// cel.hlsl: dmc4_hook PostFX cel shading, the pixel shader of XfMaterial
 #ifndef LIGHTING
 #define LIGHTING 2
 #endif
+#ifndef SHORTVS
+#define SHORTVS 0
+#endif
+#if SHORTVS
+#undef NORMALMAP
+#define NORMALMAP 0
+#undef LIGHTMAP
+#define LIGHTMAP 0
+#endif
 
 // ---- tuning (the Graphics tab's sliders write c210 / c211 when one of these shaders is bound; defaults until then) ----
 float4 gCelTune0 : register(c210);     // band edge (N.L), edge softness, ambient flatness, highlight strength
 float4 gCelTune1 : register(c211);     // shaded side's share of the light, highlight size, ambient on the shaded side, 1 = written
-#define TUNE0 (gCelTune1.w > 0.5 ? gCelTune0 : float4(0.25, 0.04, 0.7, 0.6))
+float4 gCelTune2 : register(c212);     // contour ink colour, its opacity (0 = no ink)
+float4 gCelTune3 : register(c213);     // ink width (px), distance where ink is gone (cm), surface detail (normal map share), -
+#define TUNE0 (gCelTune1.w > 0.5 ? gCelTune0 : float4(0.25, 0.04, 0.9, 0.6))
 #define TUNE1 (gCelTune1.w > 0.5 ? gCelTune1.xyz : float3(0.3, 0.5, 0.6))
+#define TUNE2 (gCelTune1.w > 0.5 ? gCelTune2 : float4(0, 0, 0, 1))
+#define TUNE3 (gCelTune1.w > 0.5 ? gCelTune3.xyz : float3(1.5, 4000, 0.3))
 #define K_EDGE      (TUNE0.x)
 #define K_SOFT      (TUNE0.y)
 #define K_FLAT      (TUNE0.z)
@@ -33,6 +54,10 @@ float4 gCelTune1 : register(c211);     // shaded side's share of the light, high
 #define K_SHADED    (TUNE1.x)
 #define K_HL_SIZE   (TUNE1.y)
 #define K_AMB_SHADE (TUNE1.z)
+#define K_INK       (TUNE2)
+#define K_INK_W     (TUNE3.x)
+#define K_INK_FAR   (TUNE3.y)
+#define K_DETAIL    (TUNE3.z)
 
 // ---- parameters (registers from the replaced shader) ----
 #ifdef HAS_gXfLightEnable0
@@ -118,6 +143,10 @@ sampler2D XfSamplerAdditionalMap : register(REG_XfSamplerAdditionalMap);
 struct PSIn {
     float4 uv0  : TEXCOORD0;    // xy albedo UV, z blend factor (output alpha), w direct-light occlusion (tangent.w)
     float3 wpos : TEXCOORD1;    // world position
+#if SHORTVS
+    float3 nrm  : TEXCOORD2;    // the short layout: the normal right after the position, one UV
+};
+#else
     float2 uv2  : TEXCOORD2;    // normal / mask / additional map UV
 #if LIGHTMAP == 5
     float3 vcol : COLOR0;       // vertex colour: rgb ambient, r specular occlusion
@@ -130,6 +159,7 @@ struct PSIn {
     float3 nrm  : TEXCOORD3;
 #endif
 };
+#endif
 
 // lit (1) or shaded (K_SHADED), with a soft edge at K_EDGE
 float band(float nl) {
@@ -174,25 +204,40 @@ float4 main(PSIn i) : COLOR0 {
     const float3 albedo = base.rgb * max(base.a, bms.w) * bms.xyz;
     const float alpha = max(base.a, 1.0 - bms.w) * i.uv0.z;
     const float tw = i.uv0.w;
-#ifdef HAS_XfSamplerMaskMap
-    const float3 mask = tex2D(XfSamplerMaskMap, i.uv2).rgb;
+#if SHORTVS
+    const float2 uv2 = i.uv0.xy;
+#else
+    const float2 uv2 = i.uv2;
+#endif
+#if defined(HAS_XfSamplerMaskMap) && !SHORTVS
+    const float3 mask = tex2D(XfSamplerMaskMap, uv2).rgb;
 #else
     const float3 mask = 0.0;
 #endif
 #ifdef HAS_gXfFresnelFactor
-    const float power = max(gXfFresnelFactor.z, 1.0);
+    const float4 ff = gXfFresnelFactor;
 #else
-    const float power = 32.0;
+    const float4 ff = float4(0, 0, 32, 0);
 #endif
+    // PBR: a highlight as sharp as the roughness (Blinn power of GGX alpha = rough^2), as strong as the surface is
+    // smooth, metals tinted by their colour; the ORM's occlusion on the ambient light. Classic: power and mask as stock.
+    const float pbr = ff.z < 1.0 ? 1.0 : 0.0;
+    const float rough = saturate(mask.g * ff.x), metal = saturate(mask.b * ff.y);
+    const float a2 = max(rough * rough * rough * rough, 1e-4);
+    const float power = lerp(max(ff.z, 1.0), clamp(2.0 / a2 - 2.0, 2.0, 512.0), pbr);
+    const float3 hl_mask = lerp(mask, (1.0 - rough) * lerp(float3(1, 1, 1), albedo, metal), pbr);
+    const float occlusion = lerp(1.0, mask.r, pbr);
 
 #if NORMALMAP == 1
-    const float4 nm = tex2D(XfSamplerNormalMap, i.uv2);
+    const float4 nm = tex2D(XfSamplerNormalMap, uv2);
     const float3 t = float3(nm.r, nm.g, nm.a) * 2.0 - float3(1.0352941, 1.0196078, 1.0);
     const float nx = t.z * t.x, ny = t.y;
     const float nz = sqrt(saturate(1.0 - nx * nx - ny * ny));
-    const float3 N = normalize(nx * i.tan + ny * i.bin + nz * i.nrm);
+    const float3 Ng = normalize(i.nrm);
+    const float3 N = normalize(lerp(Ng, normalize(nx * i.tan + ny * i.bin + nz * i.nrm), K_DETAIL));
 #else
-    const float3 N = normalize(i.nrm);
+    const float3 Ng = normalize(i.nrm);
+    const float3 N = Ng;
 #endif
 #ifdef HAS_gXfEyePos
     const float3 eye_to = i.wpos - gXfEyePos;
@@ -201,6 +246,16 @@ float4 main(PSIn i) : COLOR0 {
 #endif
     const float dist = length(eye_to);
     const float3 V = -eye_to / dist;
+
+    // ---- contour ink: pixels to where the (unbumped) surface turns away from the eye. Front faces only: back faces
+    // (two-sided cloth, the inside of a mouth) showed as blots; a contour is still drawn on the front side of it, and
+    // half a pixel past (interpolated normals cross 0 there). Outside any branch (derivatives).
+    const float nv = dot(Ng, V);
+    const float to_contour = nv / max(fwidth(nv), 1e-5);
+    // a contour has N.V near 0: small, sharply curved parts (lips) have a large fwidth however they face, and inked as blots
+    const float ink = (1.0 - smoothstep(K_INK_W - 0.5, K_INK_W + 0.5, to_contour)) * step(-0.5, to_contour)
+                    * (1.0 - smoothstep(0.25, 0.4, nv)) * K_INK.a
+                    * saturate((K_INK_FAR - dist) / (0.4 * K_INK_FAR));
 
     // ---- direct light, banded ----
     float3 diff = 0, spec = 0;
@@ -235,7 +290,7 @@ float4 main(PSIn i) : COLOR0 {
     }
 #endif
     diff *= tw;
-    spec *= tw * mask * K_HIGHLIGHT;
+    spec *= tw * hl_mask * K_HIGHLIGHT;
 
     // ---- ambient, flattened toward its average ----
     float3 amb = 0;
@@ -245,7 +300,7 @@ float4 main(PSIn i) : COLOR0 {
     const float3 key = sh_key();
     amb = lerp(sh(N), sh(key), K_FLAT);
     // two tones from the ambient light too: lit toward its key direction, K_AMB_SHADE of it on the other side
-    amb *= lerp(K_AMB_SHADE, 1.0, smoothstep(K_EDGE - K_SOFT, K_EDGE + K_SOFT, dot(N, key)));
+    amb *= lerp(K_AMB_SHADE, 1.0, smoothstep(K_EDGE - K_SOFT, K_EDGE + K_SOFT, dot(N, key))) * occlusion;
 #endif
 #ifdef HAS_gXfDetailFactor
     const float ao_bias = gXfDetailFactor.w;
@@ -265,11 +320,11 @@ float4 main(PSIn i) : COLOR0 {
     float3 emit = 0;
 #if LIGHTING == 3
 #ifdef HAS_XfSamplerAdditionalMap
-    emit = tex2D(XfSamplerAdditionalMap, i.uv2).r * lms;   // EMITSH4SPOT: emission, times the albedo
+    emit = tex2D(XfSamplerAdditionalMap, uv2).r * lms;   // EMITSH4SPOT: emission, times the albedo
 #endif
 #endif
 
-    float3 col = albedo * (diff + amb + emit) + spec;
+    float3 col = (albedo * (diff + amb + emit) + spec) * lerp(1.0, K_INK.rgb, ink);   // as the outlines: multiplied
 
     // ---- out: fog, the "LDR x 2" encoding ----
 #if defined(HAS_gXfFogFactor) && defined(HAS_gXfFogPlane) && defined(HAS_gXfFogColor) && defined(HAS_gXfFogEnable)
