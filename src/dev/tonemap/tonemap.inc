@@ -60,7 +60,8 @@ sampler2D LinearSampler2 : register(REG_LinearSampler2);
 sampler2D LinearSampler3 : register(REG_LinearSampler3);
 #endif
 
-// x curve (0 stock, 1 ACES, 2 AgX), y exposure as a light factor (2^EV), z the same in gamma (2^(EV / 2.2)), w 1 = written
+// x curve (0 stock, 1 ACES, 2 AgX, 3 none: the stage-without-curve path, 2 x scene, for an image that is already
+// display-ready, the RTX Remix bridge's), y exposure as a light factor (2^EV), z the same in gamma (2^(EV / 2.2)), w 1 = written
 float4 gTmTune : register(c200);
 
 // the curves' input scales: light 1 (the stock's x = 1) -> 0.5 out in gamma. Without a tone map (TONE 0) the stock's mid
@@ -113,7 +114,10 @@ float4 main(PSIn i) : COLOR0 {
 #else
     const float w = max(0.5 - 2.0 * d, 0.0);
 #endif
-    const float3 colour = lerp(tex2D(PointSampler0, i.uv.xy).rgb, prev.rgb, w);
+    // the RTX Remix bridge's image (curve 3): no afterimage blend. The previous output it blends with is at twice the
+    // scene's scale, so on the handed-over image old frames hardly faded (characters trailed, 2026-11-24)
+    const float w_used = (gTmTune.w > 0.5 && gTmTune.x > 2.5) ? 0.0 : w;
+    const float3 colour = lerp(tex2D(PointSampler0, i.uv.xy).rgb, prev.rgb, w_used);
 #else
     const float3 colour = tex2D(PointSampler0, i.uv.xy).rgb;
 #endif
@@ -155,6 +159,8 @@ float4 main(PSIn i) : COLOR0 {
 #else
         o = curve_stock(x * (tuned ? gTmTune.z : 1.0), white);
 #endif
+    } else if (pick > 2.5) {
+        o = colour * 2.0;
     } else {
         const float3 lin = pow(max(x, 0.0), 2.2) * gTmTune.y;
         o = pick < 1.5 ? curve_aces(lin) : curve_agx(lin);

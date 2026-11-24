@@ -23,6 +23,7 @@
 namespace tone_map {
 
 Settings settings;
+bool passthrough = false;
 
 namespace {
 
@@ -463,7 +464,7 @@ void __stdcall on_bind(IDirect3DDevice9* device, IDirect3DPixelShader9* ps) {
 
 void update(bool on) {
     const float ev = std::clamp(settings.ev, -4.0f, 4.0f);
-    g_bind_regs[0] = (float)std::clamp(settings.curve, 0, 2);
+    g_bind_regs[0] = passthrough ? 3.0f : (float)std::clamp(settings.curve, 0, 2);
     g_bind_regs[1] = std::exp2(ev);                 // a light factor
     g_bind_regs[2] = std::exp2(ev / 2.2f);          // the same in gamma (for the stock curve)
     g_bind_regs[3] = 1.0f;
@@ -518,7 +519,7 @@ std::optional<std::string> ToneMap::on_initialize() {
     return Mod::on_initialize();
 }
 
-void ToneMap::on_frame(fmilliseconds& dt) { update(settings.on); }
+void ToneMap::on_frame(fmilliseconds& dt) { update(settings.on || passthrough); }
 
 void ToneMap::on_gui_frame(int display) {
     if (display != DISPLAY_SYSTEM_A) return;
@@ -528,6 +529,8 @@ void ToneMap::on_gui_frame(int display) {
                   "colours roll off toward white instead of flattening and shifting hue. The game's exposure, bloom, "
                   "afterimage blend and night-time blue shift stay as they are. Best with the Scene buffer above at "
                   "16-bit float, which keeps light above white for the curve to work with."));
+    if (passthrough)
+        ImGui::TextDisabled(_("The RTX Remix bridge has the final pass: no curve while it hands Remix's image over"));
     if (!settings.on) return;
     ImGui::Indent(lineIndent);
     ImGui::PushID("ToneMap");

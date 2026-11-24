@@ -32,6 +32,9 @@ struct Settings {
     float ev = 0.0f;            // exposure on top of the game's own, in stops
 };
 extern Settings settings;
+// set by the RTX Remix bridge while it hands Remix's image (already tone-mapped, display-ready) to the game: our shaders go
+// in whatever `on` says, with no curve (2 x scene, as a stage without tone mapping), so the image comes out as Remix made it
+extern bool passthrough;
 
 struct Status {
     bool        found = false;

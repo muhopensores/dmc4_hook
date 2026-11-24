@@ -5,26 +5,47 @@
 #include "../../sdk/cUnit.hpp"
 #include "../../sdk/Devil4.hpp"
 #include "../debug_server/Memory.hpp"
+#include "../tonemap/ToneMap.hpp"
+#include "../../utility/Patch.hpp"
 #include <d3d9.h>
 #include <atomic>
 #include <cstring>
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include <vector>
 #include <deque>
 #include <cstdio>
 #include <cmath>
+#include <algorithm>
 
 namespace remix {
 
 Settings settings;
 
+void count_view(uintptr_t vp);
+void view_position(const D3DMATRIX& v, float* out);
+extern int g_vp_transposed;     // -1 not decided, 1 = the game stores matrices transposed
+bool g_main_uploaded = false;   // the main camera's block was uploaded in this main scene (its matrices are the D3D ones)
+bool g_first_traced = false;    // the main scene's first draw Remix traces has gone by (its camera is Remix's for the frame)
+int g_world_param = -1;         // gXfWorld's parameter (world positions)
+uintptr_t g_cur_world = 0;      // its value now (a pointer to the matrix)
+bool g_world_this_draw = false; // this draw's vertex parameters included gXfWorld (else it has none: skinned, sky ...)
+D3DMATRIX g_world_set{};        // the WORLD transform last given to D3D
+// camera watch: the view / projection the frame's first traced draw carried (Remix's camera for the frame), the pass it
+// came in and whether the main camera had been uploaded, and the last frame's main camera
+D3DMATRIX g_first_view{}, g_first_proj{}, g_prev_main_view{};
+bool g_first_valid = false, g_first_after_main = false, g_prev_main_valid = false;
+uint32_t g_first_pass = 0, g_first_kind = 0, g_watch_lines = 0, g_watch_frame = 0;
+float g_frame_vp[16];           // this main scene's camera (its first main upload), for the probe's copy check
+bool g_have_frame_vp = false;   // the frame's camera (below): counts the draws per view block
 namespace {
 
 constexpr uintptr_t kCameraInstance = 0x00E552D4;  // sCamera::mpInstance
 constexpr uint32_t  kMainScene = 0x1F;              // tag key bits 24-28
-constexpr uint32_t  kMainView = 0;                  // tag key bits 29-31 of the main scene's tags (checked live: g_main_view)
+// tag key bits 29-31 = the drawing viewport's scene number (sCamera_ViewPort::mSceneNo: viewport 0 has 7, 1 has 6, ...)
+uint32_t g_main_view = 7;                           // the view Remix traces (pick_traced_view)
 // sRender's passes (tag key bits 20-23; names from off_E16B40, Vibed\RE\sRender_struct.md): 0 BEGIN, 1 ZPASS, 2 SOLID,
 // 3 NUKI, 4 OCCLUSION, 5 OVERLAP, 6 TRANSPARENT, 7 EFFECT, 8 TRANSPARENT_NZ, 9 FILTER, 10 SCREEN, 11 END
 constexpr uint32_t  kZPass = 1, kOcclusion = 4, kOverlap = 5, kFilter = 9, kScreen = 10, kEnd = 11;
@@ -38,10 +59,12 @@ constexpr uintptr_t kShaderInstance = 0x00E55700; // sShader::mpInstance
 constexpr uintptr_t kParamDescs  = 0x838;        // ParameterDesc[512], 20 bytes: +8 the name's ID
 // the water technique's samplers (XFUNIQUE IDs, as TexFilter): a pass sampling one of them without an albedo map is water
 constexpr uint32_t kWaterIds[] = { 0xC70A6632 /*gXfFlowingWaterSampler*/, 0x73A29EF8 /*XfWaterNormalMapSampler*/,
-                                   0xDEE93D6B /*XfWaterCausticsSampler*/, 0xF186BC12 /*SamplerNormalMapFilter (XfFlatWater)*/,
-                                   0x0FA373F0 /*SamplerReflectionMap*/, 0x46F9F252 /*SamplerRefractionMap*/ };
+                                   0xDEE93D6B /*XfWaterCausticsSampler*/,
+                                   0xF186BC12 /*SamplerNormalMapFilter (XfInteractiveWater: the practice stage, the BP floor)*/,
+                                   0x0FA373F0 /*SamplerReflectionMap*/, 0x46F9F252 /*SamplerRefractionMap*/,
+                                   0x30386F08 /*XfFlatWaterNormalMapSampler*/ };
 constexpr int kWaterCount = sizeof(kWaterIds) / sizeof(kWaterIds[0]);
-int      g_water_param[kWaterCount] = { -1, -1, -1, -1, -1, -1 };   // their parameter indices, looked up while missing
+int      g_water_param[kWaterCount] = { -1, -1, -1, -1, -1, -1, -1 };   // their parameter indices, looked up while missing
 constexpr uint32_t kShadowNearId = 0xFC61C500;   // XfSamplerShadowNear: on stage 0 of the shadow overlay pass
 int      g_shadow_param = -1;
 // an effect pass binding only the depth buffer (XfPrimDepthPointSampler) has no texture: its glow is shaped in the pixel
@@ -115,8 +138,10 @@ uint32_t g_hidden_last = 0;
 // ---- the stage's lights ----
 // Light units (sdk/uLight.hpp; values read live in room 400, 2026-11-24): uLight +0x18 attr, +0x1C light-group mask,
 // +0x20 mColor (linear rgb, above 1 for the main light); uInfiniteLight +0x30 mDir = toward the light (the bright one has
-// +y); MtVector3 is 16 bytes (x, y, z, pad): uPointLight +0x40 mWPos, +0x50 mStart, +0x54 mEnd; uSpotLight +0x60 mWPos,
-// +0x84 mEnd (taken as a point light). Remix makes its lights of the enabled D3D9 lights; D3D9 allows 8 at once:
+// +y); MtVector3 is 16 bytes (x, y, z, pad): uPointLight +0x30 mPos, +0x40 mWPos, +0x50 mStart, +0x54 mEnd, +0x58 mpParent;
+// uSpotLight +0x30 mPos, +0x60 mWPos, +0x84 mEnd, +0x94 mpParent (constructors 0xA6AEC0 / 0xA6B4D0; taken as a point
+// light). A light without a parent is where its mPos says: mWPos is the game's copy, made when the light moves, so a
+// light placed in photo mode (game paused) stayed at the origin. Remix makes its lights of the enabled D3D9 lights; D3D9 allows 8 at once:
 // directional ones first, then the point lights that matter most to the view (nearest to the camera relative to their range).
 struct GameLight { int kind; float col[3]; float v[3]; float range; uint32_t group; };   // kind 1 directional (v = travel), 2 point (v = pos)
 constexpr int kMaxLights = 8;              // D3D9 lights on at once
@@ -139,6 +164,15 @@ uintptr_t g_dti_model = 0;
 uint32_t  g_stage_group = 0;
 uintptr_t g_dti_inf = 0, g_dti_point = 0, g_dti_spot = 0;
 bool      g_dti_looked = false;
+// light watch: every directional light the walk found (before the group filter) and the models' light groups the stage's
+// group was picked from, kept by gather_lights_raw for light_watch
+GameLight g_dirs_all[kMaxLights];
+int       g_ndirs_all = 0;
+struct GroupCount { uint32_t mask, n; };
+GroupCount g_group_counts[16];
+int       g_ngroup_counts = 0;
+uint32_t  g_light_lines = 0;
+std::string g_light_sig;
 
 bool dti_under(uintptr_t dti, uintptr_t target) {
     for (int i = 0; dti && target && i < 16; ++i) {
@@ -193,7 +227,8 @@ int gather_lights_raw(GameLight* out, int max) {
                         dirs[nd++] = { 1, { col[0], col[1], col[2] }, { -d[0], -d[1], -d[2] }, 0.0f, group };
                     } else if (dti && (dti_under(dti, g_dti_point) || dti_under(dti, g_dti_spot)) && np < kMaxPoints) {
                         const bool spot = dti_under(dti, g_dti_spot);
-                        const float* p = reinterpret_cast<const float*>(u + (spot ? 0x60 : 0x40));
+                        const uintptr_t parent = *reinterpret_cast<const uintptr_t*>(u + (spot ? 0x94 : 0x58));
+                        const float* p = reinterpret_cast<const float*>(u + (parent ? (spot ? 0x60 : 0x40) : 0x30));
                         const float end = *reinterpret_cast<const float*>(u + (spot ? 0x84 : 0x54));
                         const float dx = p[0] - cam[0], dy = p[1] - cam[1], dz = p[2] - cam[2];
                         score[np] = std::sqrt(dx * dx + dy * dy + dz * dz) / (end > 1.0f ? end : 1.0f);
@@ -230,9 +265,46 @@ int gather_lights_raw(GameLight* out, int max) {
             score[best] = score[np - 1];
             --np;
         }
+        for (int i = 0; i < nd; ++i) g_dirs_all[i] = dirs[i];
+        g_ndirs_all = nd;
+        for (int i = 0; i < nm; ++i) g_group_counts[i] = { masks[i].mask, masks[i].n };
+        g_ngroup_counts = nm;
         return n;
     } __except (EXCEPTION_EXECUTE_HANDLER) {
         return -1;
+    }
+}
+
+// light watch (always on, like the camera watch): a line in remix_probe.txt whenever the suns handed to Remix or the stage
+// light group change (400 lines a session at most), with the models' light groups the group was picked from. A sun that
+// flips between two directions moves far shadow edges a lot: a Fortuna wall's lower half went from lit to shadowed and
+// back for a while, then stopped (2026-11-24), which this is meant to catch
+void light_watch() {
+    std::string sig;
+    char buf[192];
+    sprintf_s(buf, "stage group %08X;", g_stage_group);
+    sig += buf;
+    for (int i = 0; i < g_ndirs_all; ++i) {
+        const GameLight& d = g_dirs_all[i];
+        const bool kept = g_stage_group == 0 || (d.group & g_stage_group) != 0;
+        sprintf_s(buf, " sun %d%s: travels %.2f %.2f %.2f, colour %.2f %.2f %.2f, group %08X;", i, kept ? "" : " (left out)",
+                  d.v[0], d.v[1], d.v[2], d.col[0], d.col[1], d.col[2], d.group);
+        sig += buf;
+    }
+    if (sig == g_light_sig) return;
+    g_light_sig = sig;
+    if (g_light_lines >= 400) return;
+    std::string groups;
+    for (int i = 0; i < g_ngroup_counts; ++i) {
+        sprintf_s(buf, " %08X x%u", g_group_counts[i].mask, g_group_counts[i].n);
+        groups += buf;
+    }
+    FILE* f = nullptr;
+    if (fopen_s(&f, "remix_probe.txt", "a") == 0 && f) {
+        fprintf(f, "light watch, frame %u: %s %d point lights; models' light groups (3 left out):%s\n", g_watch_frame + 1,
+                sig.c_str(), g_npoint, groups.empty() ? " none" : groups.c_str());
+        fclose(f);
+        ++g_light_lines;
     }
 }
 
@@ -255,6 +327,7 @@ void gather_lights() {
         g_lights[i] = tmp[i];
         if (tmp[i].kind == 1) ++g_ndir; else ++g_npoint;
     }
+    light_watch();
 }
 
 // Remix rasterises every draw after the first one it takes for UI ("RTX injection", d3d9_rtx.cpp internalPrepareDraw /
@@ -262,19 +335,19 @@ void gather_lights() {
 // depth writes off). DMC4's HUD uses vertex shaders, so Remix traced it as world geometry (it slid around with the
 // camera). One degenerate fixed-function triangle like that at the start of the HUD pass starts the injection there; the
 // state block puts the device back as the game left it (its caches stay right).
-// Remix's final output pass tone-maps its image and encodes it as sRGB (rtx_context.cpp: dispatchToneMapping,
+// Remix's final output pass tone-maps its image and encodes it for the display (rtx_context.cpp: dispatchToneMapping,
 // dispatchSRGBDither with the hard-wired g_allowSrgbConversionForOutput) before blitting it into the target, here DMC4's
-// linear HDR scene buffer (A16B16G16R16F), which the game then tone-maps and blooms again: blown-out highlights. Right
-// after the injection the buffer is copied out and drawn back through a small shader: sRGB -> linear, then the tone curve
-// undone (inverse Reinhard, x / (1 - x), floored), so the game's tone map gets a scene-like HDR image.
+// scene buffer. DMC4 lights in gamma space and its final pass (XfFilter composites, Vibed\ToneMap\README.md) reads that
+// buffer back x 2: no curve on most stages (TONE 0), Reinhard at an adapting exposure on a few, and ToneMap's ACES / AgX
+// when that mod is on. Remix's image straight in came out blown out (x 2); converted to linear light (the old fix) it
+// crushed everything below mid grey (sRGB 0.2 -> 0.033 -> 0.066 on screen) and the curves darkened it again. Now: right
+// after the injection the buffer is copied out and drawn back at half (x exposure), and ToneMap's shaders take the final
+// pass with no curve (tone_map::passthrough, set in on_tag), so the screen shows Remix's image with the game's bloom.
 const char* kLinearizeSrc =
     "sampler2D s0 : register(s0);\n"
-    "float4 k : register(c0);\n"   // x = expand, y = floor of 1 - x, z = exposure
-    "float3 to_linear(float3 c) { return c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4); }\n"
+    "float4 k : register(c0);\n"   // x = 0.5 x exposure
     "float4 main(float2 uv : TEXCOORD0) : COLOR {\n"
-    "    float3 l = to_linear(saturate(tex2D(s0, uv).rgb));\n"
-    "    float3 h = l / max(1.0 - l, k.y);\n"
-    "    return float4(lerp(l, h, k.x) * k.z, 1.0);\n"
+    "    return float4(saturate(tex2D(s0, uv).rgb) * k.x, 1.0);\n"
     "}\n";
 IDirect3DPixelShader9* g_ps_linearize = nullptr;
 bool               g_lin_failed = false;
@@ -323,7 +396,7 @@ void linearize(IDirect3DDevice9* dev) {
         struct V { float x, y, z, rhw, u, v; };
         const float w = float(d.Width), h = float(d.Height);
         const V v[3] = { { -0.5f, -0.5f, 0, 1, 0, 0 }, { 2 * w - 0.5f, -0.5f, 0, 1, 2, 0 }, { -0.5f, 2 * h - 0.5f, 0, 1, 0, 2 } };
-        const float k[4] = { settings.expand, 0.25f, settings.exposure, 0 };   // the inverse curve capped at 4x
+        const float k[4] = { 0.5f * settings.exposure, 0, 0, 0 };   // the final pass doubles it
         dev->SetVertexShader(nullptr);
         dev->SetPixelShader(g_ps_linearize);
         dev->SetPixelShaderConstantF(0, k, 1);
@@ -378,6 +451,294 @@ void trigger_ui(IDirect3DDevice9* dev) {
     ++g_ui_triggers;
 }
 
+// --- one-frame probe (settings.probe): what the main view's target holds at each pass, around the injection and after the
+// present, read back through a 64 x 36 copy (GetRenderTargetData: the bridge sends the pixels back), to remix_probe.txt ---
+int g_probe = 0;                       // 2 = this frame is probed (its samples come in until the next frame's first tag)
+uintptr_t g_other_cam = 0;             // the camera block of the draws now under a passed-over camera (0 = the main one)
+uintptr_t g_cur_vp = 0;                // the camera block the main scene's draws use now (perspective ones only)
+bool g_other_ortho = false;            // ... and it's orthographic
+std::atomic<uint32_t> g_other_draws{ 0 };
+uint32_t g_other_draws_last = 0;
+std::unordered_set<std::string> g_probe_layouts;
+int g_block_kind = 0;                  // the view-projection block of the draws now: 0 the main one, 1 a copy of it, 2 another
+std::unordered_set<std::string> g_probe_paths;               // texture lines already in this probe
+std::unordered_set<std::string> g_probe_states;              // state lines already in this probe
+std::unordered_map<uintptr_t, int> g_probe_tex_count;        // draws per albedo map so far in the probed frame
+std::unordered_map<uintptr_t, std::string> g_tex_paths;      // cTrans::Texture -> its rTexture's path (built at probe start)
+
+// every loaded texture with its path: rTextures in sResource's table (+0x1038, 8192 cResource*; rTexture vtable 0xC035A8,
+// mPath +0x04, mpTexture +0xCC = the cTrans::Texture the bind reads)
+template <class F> void for_each_texture(F&& f) {
+    const uintptr_t res = *reinterpret_cast<const uintptr_t*>(0x00E552D0);   // sDevil4Resource::mpInstance
+    if (!res) return;
+    auto* cs = reinterpret_cast<LPCRITICAL_SECTION>(res + 0x04);
+    EnterCriticalSection(cs);
+    for (int i = 0; i < 8192; ++i) {
+        const uintptr_t r = *reinterpret_cast<const uintptr_t*>(res + 0x1038 + 4 * i);
+        if (!r || *reinterpret_cast<const uintptr_t*>(r) != 0xC035A8) continue;
+        const uintptr_t t = *reinterpret_cast<const uintptr_t*>(r + 0xCC);
+        char p[65];
+        memcpy(p, reinterpret_cast<const char*>(r + 4), 64);
+        p[64] = 0;
+        if (t) f(t, static_cast<const char*>(p));
+    }
+    LeaveCriticalSection(cs);
+}
+
+void build_tex_paths() {   // the probe's texture names
+    g_tex_paths.clear();
+    for_each_texture([](uintptr_t t, const char* p) { g_tex_paths[t] = p; });
+}
+
+// settings.hide_textures: the textures whose path matches, rebuilt when the text changes and every second (textures load
+// and unload)
+std::unordered_set<uintptr_t> g_hide_tex;
+char g_hide_built_for[64] = "";
+
+bool path_matches(const char* path, const char* filter) {   // any ';'-separated word of filter in path, any case
+    for (const char* f = filter; *f;) {
+        const char* end = strchr(f, ';');
+        const size_t len = end ? size_t(end - f) : strlen(f);
+        if (len)
+            for (const char* p = path; *p; ++p)
+                if (_strnicmp(p, f, len) == 0) return true;
+        if (!end) break;
+        f = end + 1;
+    }
+    return false;
+}
+
+std::unordered_set<uintptr_t> g_hide_water_tex;   // settings.hide_water_textures' textures
+char g_hide_water_built_for[64] = "";
+
+void build_hide_textures() {
+    g_hide_tex.clear();
+    g_hide_water_tex.clear();
+    memcpy(g_hide_built_for, settings.hide_textures, sizeof g_hide_built_for);
+    g_hide_built_for[sizeof g_hide_built_for - 1] = 0;
+    memcpy(g_hide_water_built_for, settings.hide_water_textures, sizeof g_hide_water_built_for);
+    g_hide_water_built_for[sizeof g_hide_water_built_for - 1] = 0;
+    if (!g_hide_built_for[0] && !g_hide_water_built_for[0]) return;
+    for_each_texture([](uintptr_t t, const char* p) {
+        if (g_hide_built_for[0] && path_matches(p, g_hide_built_for)) g_hide_tex.insert(t);
+        if (g_hide_water_built_for[0] && path_matches(p, g_hide_water_built_for)) g_hide_water_tex.insert(t);
+    });
+}
+
+// the probe's shader dumps: each draw's vertex / pixel shader bytecode (as Remix got it, the bridge's patches included)
+// to remix_shaders\vs_<handle>.bin / ps_<handle>.bin, once per pair
+std::unordered_set<uint64_t> g_dumped_pairs;
+void dump_shader_pair(IDirect3DVertexShader9* vs, IDirect3DPixelShader9* ps) {
+    const uint64_t key = (uint64_t(reinterpret_cast<uintptr_t>(vs)) << 32) | reinterpret_cast<uintptr_t>(ps);
+    if (g_dumped_pairs.size() >= 300 || !g_dumped_pairs.insert(key).second) return;
+    CreateDirectoryA("remix_shaders", nullptr);
+    auto save = [](const char* name, auto* sh) {
+        if (!sh) return;
+        UINT size = 0;
+        if (FAILED(sh->GetFunction(nullptr, &size)) || !size) return;
+        std::vector<char> buf(size);
+        if (FAILED(sh->GetFunction(buf.data(), &size))) return;
+        FILE* f = nullptr;
+        if (fopen_s(&f, name, "wb") == 0 && f) {
+            fwrite(buf.data(), 1, size, f);
+            fclose(f);
+        }
+    };
+    char name[96];
+    sprintf_s(name, "remix_shaders\\vs_%p.bin", static_cast<void*>(vs));
+    save(name, vs);
+    sprintf_s(name, "remix_shaders\\ps_%p.bin", static_cast<void*>(ps));
+    save(name, ps);
+}
+uint32_t g_probe_pass = 0xFF;          // the main pass sampled last
+IDirect3DSurface9* g_probe_scene = nullptr;   // the target the trigger drew into (sampled at every later tag too)
+int g_probe_tags = 0;
+std::string g_probe_text;
+
+float half_float(uint16_t h) {
+    const uint32_t e = (h >> 10) & 0x1F, m = h & 0x3FF;
+    const float v = e == 0 ? std::ldexp(float(m), -24) : e == 31 ? 65504.0f : std::ldexp(float(m | 0x400), int(e) - 25);
+    return (h & 0x8000) ? -v : v;
+}
+
+bool read_pixel(D3DFORMAT f, const uint8_t* row, UINT x, float* c) {
+    switch (f) {
+    case D3DFMT_A16B16G16R16F: { const auto* p = reinterpret_cast<const uint16_t*>(row) + 4 * x;
+                                for (int i = 0; i < 3; ++i) c[i] = half_float(p[i]);
+                                return true; }
+    case D3DFMT_A32B32G32R32F: { const auto* p = reinterpret_cast<const float*>(row) + 4 * x;
+                                for (int i = 0; i < 3; ++i) c[i] = p[i];
+                                return true; }
+    case D3DFMT_A8R8G8B8: case D3DFMT_X8R8G8B8: { const uint8_t* p = row + 4 * x;
+                                c[0] = p[2] / 255.0f; c[1] = p[1] / 255.0f; c[2] = p[0] / 255.0f;
+                                return true; }
+    case D3DFMT_A8B8G8R8: case D3DFMT_X8B8G8R8: { const uint8_t* p = row + 4 * x;
+                                c[0] = p[0] / 255.0f; c[1] = p[1] / 255.0f; c[2] = p[2] / 255.0f;
+                                return true; }
+    case D3DFMT_A2R10G10B10: { const uint32_t v = reinterpret_cast<const uint32_t*>(row)[x];
+                                c[0] = ((v >> 20) & 0x3FF) / 1023.0f; c[1] = ((v >> 10) & 0x3FF) / 1023.0f; c[2] = (v & 0x3FF) / 1023.0f;
+                                return true; }
+    default: return false;
+    }
+}
+
+// column 0 of the copy is the target's own first column (the one the user saw the traced image in), the rest a point sample
+void probe(IDirect3DDevice9* dev, const char* label, IDirect3DSurface9* surface = nullptr) {
+    char buf[320];
+    IDirect3DSurface9* rt = surface;
+    if (rt) rt->AddRef();
+    else if (FAILED(dev->GetRenderTarget(0, &rt)) || !rt) {
+        sprintf_s(buf, "%-40s no render target\n", label);
+        g_probe_text += buf;
+        return;
+    }
+    D3DSURFACE_DESC d{};
+    rt->GetDesc(&d);
+    if (d.Format == D3DFMT_UNKNOWN) d.Format = D3DFMT_A8R8G8B8;
+    constexpr UINT kW = 64, kH = 36;
+    IDirect3DSurface9 *full = nullptr, *shrunk = nullptr, *sys = nullptr, *from = rt;
+    HRESULT hr = S_OK;
+    const char* step = "resolve";
+    if (d.MultiSampleType != D3DMULTISAMPLE_NONE) {
+        hr = dev->CreateRenderTarget(d.Width, d.Height, d.Format, D3DMULTISAMPLE_NONE, 0, FALSE, &full, nullptr);
+        if (SUCCEEDED(hr)) hr = dev->StretchRect(rt, nullptr, full, nullptr, D3DTEXF_NONE);
+        if (SUCCEEDED(hr)) from = full;
+    }
+    if (SUCCEEDED(hr)) { step = "shrunk target"; hr = dev->CreateRenderTarget(kW, kH, d.Format, D3DMULTISAMPLE_NONE, 0, FALSE, &shrunk, nullptr); }
+    if (SUCCEEDED(hr)) { step = "shrink"; hr = dev->StretchRect(from, nullptr, shrunk, nullptr, D3DTEXF_POINT); }
+    if (SUCCEEDED(hr)) {
+        step = "first column";
+        const RECT src{ 0, 0, 1, LONG(d.Height) }, dst{ 0, 0, 1, LONG(kH) };
+        hr = dev->StretchRect(from, &src, shrunk, &dst, D3DTEXF_POINT);
+    }
+    if (SUCCEEDED(hr)) { step = "system copy"; hr = dev->CreateOffscreenPlainSurface(kW, kH, d.Format, D3DPOOL_SYSTEMMEM, &sys, nullptr); }
+    if (SUCCEEDED(hr)) { step = "read back"; hr = dev->GetRenderTargetData(shrunk, sys); }
+    D3DLOCKED_RECT lr{};
+    if (SUCCEEDED(hr)) { step = "lock"; hr = sys->LockRect(&lr, nullptr, D3DLOCK_READONLY); }
+    sprintf_s(buf, "%-40s rt %04X %ux%u f%u ms%u", label, unsigned(reinterpret_cast<uintptr_t>(rt) & 0xFFFF), d.Width, d.Height,
+              unsigned(d.Format), unsigned(d.MultiSampleType));
+    g_probe_text += buf;
+    if (SUCCEEDED(hr)) {
+        double sum[3] = { 0, 0, 0 }, col = 0;
+        float top = 0;
+        int lit = 0, n = 0;
+        bool known = true;
+        for (UINT y = 0; y < kH && known; ++y) {
+            const auto* row = static_cast<const uint8_t*>(lr.pBits) + y * lr.Pitch;
+            for (UINT x = 0; x < kW; ++x) {
+                float c[3];
+                if (!read_pixel(d.Format, row, x, c)) { known = false; break; }
+                const float l = (std::max)(c[0], (std::max)(c[1], c[2]));
+                if (x == 0) { col += l; continue; }
+                for (int i = 0; i < 3; ++i) sum[i] += c[i];
+                top = (std::max)(top, l);
+                if (l > 0.004f) ++lit;
+                ++n;
+            }
+        }
+        sys->UnlockRect();
+        if (known && n)
+            sprintf_s(buf, " | mean %.3f %.3f %.3f, max %.3f, lit %d of %d, first column %.3f\n", sum[0] / n, sum[1] / n,
+                      sum[2] / n, top, lit, n, col / kH);
+        else
+            sprintf_s(buf, " | format not read\n");
+    } else {
+        sprintf_s(buf, " | %s failed %08X\n", step, unsigned(hr));
+    }
+    g_probe_text += buf;
+    if (sys) sys->Release();
+    if (shrunk) shrunk->Release();
+    if (full) full->Release();
+    rt->Release();
+}
+
+// what Remix's makeDrawCallType / isRenderingUI read for the trigger, as the game left it
+void probe_state(IDirect3DDevice9* dev) {
+    static const struct { D3DRENDERSTATETYPE s; const char* n; } kStates[] = {
+        { D3DRS_ZENABLE, "z" }, { D3DRS_ZWRITEENABLE, "zwrite" }, { D3DRS_ZFUNC, "zfunc" }, { D3DRS_STENCILENABLE, "stencil" },
+        { D3DRS_STENCILFUNC, "sfunc" }, { D3DRS_STENCILPASS, "spass" }, { D3DRS_STENCILZFAIL, "szfail" },
+        { D3DRS_TWOSIDEDSTENCILMODE, "stencil2" }, { D3DRS_ALPHATESTENABLE, "atest" }, { D3DRS_ALPHABLENDENABLE, "blend" },
+        { D3DRS_COLORWRITEENABLE, "cwrite" }, { D3DRS_SCISSORTESTENABLE, "scissor" }, { D3DRS_SRGBWRITEENABLE, "srgbw" },
+        { D3DRS_CULLMODE, "cull" }, { D3DRS_FOGENABLE, "fog" }, { D3DRS_CLIPPING, "clip" } };
+    std::string s = "  trigger state:";
+    char buf[128];
+    for (const auto& k : kStates) {
+        DWORD v = 0;
+        dev->GetRenderState(k.s, &v);
+        sprintf_s(buf, " %s %lX", k.n, v);
+        s += buf;
+    }
+    D3DVIEWPORT9 vp{};
+    dev->GetViewport(&vp);
+    sprintf_s(buf, "\n  viewport %lu %lu %lux%lu z %.2f..%.2f", vp.X, vp.Y, vp.Width, vp.Height, vp.MinZ, vp.MaxZ);
+    s += buf;
+    IDirect3DVertexShader9* vs = nullptr;
+    IDirect3DPixelShader9* ps = nullptr;
+    dev->GetVertexShader(&vs);
+    dev->GetPixelShader(&ps);
+    sprintf_s(buf, " | vs %d ps %d", vs != nullptr, ps != nullptr);
+    s += buf;
+    if (vs) vs->Release();
+    if (ps) ps->Release();
+    DWORD tex = 0, rts = 0;
+    for (DWORD i = 0; i < 16; ++i) {
+        IDirect3DBaseTexture9* t = nullptr;
+        if (SUCCEEDED(dev->GetTexture(i, &t)) && t) { tex |= 1u << i; t->Release(); }
+    }
+    for (DWORD i = 1; i < 4; ++i) {
+        IDirect3DSurface9* r = nullptr;
+        if (SUCCEEDED(dev->GetRenderTarget(i, &r)) && r) { rts |= 1u << i; r->Release(); }
+    }
+    IDirect3DSurface9* ds = nullptr;
+    D3DSURFACE_DESC dd{};
+    if (SUCCEEDED(dev->GetDepthStencilSurface(&ds)) && ds) { ds->GetDesc(&dd); ds->Release(); }
+    sprintf_s(buf, " | textures %04lX | targets 1-3 %lX | depth %ux%u f%u ms%u", tex, rts, dd.Width, dd.Height,
+              unsigned(dd.Format), unsigned(dd.MultiSampleType));
+    s += buf;
+    D3DMATRIX p{};
+    dev->GetTransform(D3DTS_PROJECTION, &p);
+    sprintf_s(buf, " | projection _34 %.3f _44 %.3f\n", p._34, p._44);
+    s += buf;
+    g_probe_text += s;
+}
+
+void probe_frame_start(IDirect3DDevice9* dev) {
+    if (g_probe == 2) {   // the probed frame has been presented: what's on its targets now
+        probe(dev, "next frame, bound target");
+        IDirect3DSurface9* bb = nullptr;
+        if (SUCCEEDED(dev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &bb)) && bb) {
+            probe(dev, "next frame, backbuffer", bb);
+            bb->Release();
+        }
+        FILE* f = nullptr;
+        if (fopen_s(&f, "remix_probe.txt", "a") == 0 && f) {
+            fputs(g_probe_text.c_str(), f);
+            fputs("\n", f);
+            fclose(f);
+        }
+        g_probe_text.clear();
+        if (g_probe_scene) { g_probe_scene->Release(); g_probe_scene = nullptr; }
+        g_probe = 0;
+    }
+    if (settings.probe && !g_probe) {
+        settings.probe = 0;
+        g_probe = 2;
+        g_probe_pass = 0xFF;
+        g_probe_tags = 0;
+        g_probe_layouts.clear();
+        g_probe_paths.clear();
+        g_probe_states.clear();
+        g_probe_tex_count.clear();
+        g_dumped_pairs.clear();
+        build_tex_paths();
+        char buf[256];
+        sprintf_s(buf, "probe: hand-over at pass %d, skip filters %d, skip HUD %d, skip depth prepass %d, hand-over shader %d, "
+                       "exposure %.2f, traced view %u\n", settings.inject_pass, settings.skip_filters, settings.skip_hud,
+                  settings.skip_zpass, settings.linearize, settings.exposure, g_main_view);
+        g_probe_text = buf;
+    }
+}
+
 IDirect3DTexture9* hide_texture(IDirect3DDevice9* dev) {
     if (!g_hide && FAILED(dev->CreateTexture(4, 4, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &g_hide, nullptr)))
         g_hide = nullptr;
@@ -389,8 +750,13 @@ constexpr uint32_t kPrimBaseIds[] = { 0xBCB92646 /*XfPrimBaseLinearSampler*/, 0x
                                       0xB5E3E840 /*XfPrimSampler*/ };
 int      g_prim_param[3] = { -1, -1, -1 };
 float    g_sun_dir[3] = { 0.0f, -1.0f, 0.0f };
-IDirect3DTexture9* g_standin = nullptr;          // the water stand-in (managed: survives resets)
-uint32_t g_standin_rgb = 0;                       // the colour it was filled with
+// the water stand-ins, one per kind of water shader, each its own texture and so its own Remix material (DMC4Water mod):
+// 0 XfWater (its pixel shader without gXfViewProjI), 1 XfWater (with it), 2 XfInteractiveWater, 3 XfFlowingWater,
+// 4 XfFlatWater. Kind k is the water colour with k added to its blue byte (kind 0 = the colour itself, the mod's first
+// material). Managed: they survive resets
+constexpr int kWaterKinds = 5;
+IDirect3DTexture9* g_standin[kWaterKinds] = {};
+uint32_t g_standin_rgb[kWaterKinds] = {};          // the colour each was filled with
 std::atomic<uint32_t> g_water{ 0 };
 uint32_t g_water_last = 0;
 
@@ -420,23 +786,519 @@ uint32_t rgb_of(const float* c) {
 
 // a 4x4 solid texture of the water colour; refilled when the colour changes (Remix hashes the content, so one colour =
 // one texture for a Remix material replacement)
-IDirect3DTexture9* standin(IDirect3DDevice9* dev) {
-    const uint32_t rgb = rgb_of(settings.water_color);
-    if (!g_standin && FAILED(dev->CreateTexture(4, 4, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &g_standin, nullptr)))
-        g_standin = nullptr;
-    if (g_standin && rgb != g_standin_rgb) {
+IDirect3DTexture9* standin(IDirect3DDevice9* dev, int kind) {
+    if (kind < 0 || kind >= kWaterKinds) kind = 0;
+    uint32_t rgb = rgb_of(settings.water_color);
+    rgb = (rgb & 0xFFFFFF00u) | std::min<uint32_t>((rgb & 0xFFu) + static_cast<uint32_t>(kind), 0xFFu);
+    IDirect3DTexture9*& t = g_standin[kind];
+    if (!t && FAILED(dev->CreateTexture(4, 4, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &t, nullptr))) t = nullptr;
+    if (t && rgb != g_standin_rgb[kind]) {
         D3DLOCKED_RECT r;
-        if (SUCCEEDED(g_standin->LockRect(0, &r, nullptr, 0))) {
+        if (SUCCEEDED(t->LockRect(0, &r, nullptr, 0))) {
             for (int y = 0; y < 4; ++y) {
                 auto* row = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(r.pBits) + y * r.Pitch);
                 for (int x = 0; x < 4; ++x) row[x] = rgb;
             }
-            g_standin->UnlockRect(0);
-            g_standin_rgb = rgb;
+            t->UnlockRect(0);
+            g_standin_rgb[kind] = rgb;
         }
     }
-    return g_standin;
+    return t;
 }
+
+// ---- water shaders ----
+// a string in a shader's comment blocks (its constant table: DMC4's shaders keep their names)
+bool code_has(const uint32_t* code, const char* text) {
+    const size_t len = strlen(text);
+    const uint32_t* p = code + 1;
+    for (int guard = 0; guard < 65536 && *p != 0x0000FFFFu; ++guard) {
+        const uint32_t t = *p;
+        if ((t & 0xFFFF) == 0xFFFE) {
+            const uint32_t words = (t >> 16) & 0x7FFF;
+            const char* b = reinterpret_cast<const char*>(p + 1);
+            for (size_t i = 0; i + len <= words * 4u; ++i)
+                if (memcmp(b + i, text, len) == 0) return true;
+            p += 1 + words;
+            continue;
+        }
+        p += 1 + ((t >> 24) & 0xF);
+    }
+    return false;
+}
+
+std::vector<const uint32_t*> g_water_b_ps;   // XfWater pixel shader objects of kind 1 ({handle, bytecode}: gXfViewProjI)
+
+// the kind of water a draw is (see the stand-ins), from the samplers it binds and, for XfWater, its pixel shader
+int water_kind(IDirect3DDevice9* dev, const uint32_t* entries, uint32_t n) {
+    bool xfwater = false, flowing = false, inter = false, flat = false;
+    for (uint32_t i = 0; i < n; ++i) {
+        const int p = static_cast<int>(entries[i] & 0xFFFF);
+        if (p == g_water_param[1] || p == g_water_param[2]) xfwater = true;
+        else if (p == g_water_param[0]) flowing = true;
+        else if (p == g_water_param[3] || p == g_water_param[4] || p == g_water_param[5]) inter = true;
+        else if (p == g_water_param[6]) flat = true;
+    }
+    if (xfwater) {
+        IDirect3DPixelShader9* ps = nullptr;
+        dev->GetPixelShader(&ps);
+        if (ps) ps->Release();
+        for (const uint32_t* s : g_water_b_ps)
+            if (s[0] == reinterpret_cast<uint32_t>(ps)) return 1;
+        return 0;
+    }
+    if (flat) return 4;
+    if (flowing) return 3;
+    if (inter) return 2;
+    return 0;
+}
+
+// the interactive water surface for Remix (replaces XfInteractiveWater's tXfInteractiveWaterGeometory vertex shader: same
+// inputs, outputs and constants, plus the height map's lift and a NORMAL0 output). The simulation stores height as
+// 0.5 + 0.5 h / MaxAmplitude in .x, MaxAmplitude = mScale.y x 512 (uInteractiveWater::draw). Lifting by that (as
+// steep as the game's normal map draws the slopes) gave enormous waves: the lift is the world matrix's up row (which
+// carries mScale.y) x ripple_height cm x (2 x stored - 1). The normal map is n * 0.5 + 0.5 with x along the world matrix's X row, y along Z,
+// z along up, mixed with up by the vertex colour's x, as the pixel shader does. The grid has 128 cells over the 512-texel
+// maps, so both are averaged over each vertex's 4 x 4 texels (a 3 x 3 tent, taps 2 texels apart): drops smaller than a
+// cell came out as square spikes
+const char* kIwVsSrc = R"(
+float4 gXfViewProj[4] : register(c0);
+float4 gXfWorld[3] : register(c4);
+float4 kRipple : register(c250);
+sampler2D sHeight : register(s0);
+sampler2D sNormal : register(s1);
+struct VsIn { float4 pos : POSITION; float4 col : COLOR0; float2 uv : TEXCOORD0; };
+struct VsOut {
+    float4 pos : POSITION; float4 col : COLOR0; float2 uv : TEXCOORD0; float3 wpos : TEXCOORD1; float3 up : TEXCOORD2;
+    float3 ax : TEXCOORD3; float3 az : TEXCOORD4; float4 cpos : TEXCOORD5; float3 nrm : NORMAL0;
+};
+VsOut main(VsIn i) {
+    VsOut o;
+    float4 p = float4(i.pos.xyz, 1.0);
+    float3 wp = float3(dot(gXfWorld[0], p), dot(gXfWorld[1], p), dot(gXfWorld[2], p));
+    float3 up = float3(gXfWorld[0].y, gXfWorld[1].y, gXfWorld[2].y);
+    float3 ax = float3(gXfWorld[0].x, gXfWorld[1].x, gXfWorld[2].x);
+    float3 az = float3(gXfWorld[0].z, gXfWorld[1].z, gXfWorld[2].z);
+    float3 upn = normalize(up);
+    float3 n = upn;
+    if (kRipple.y > 0.5) {
+        float h = 0.0;
+        float3 m = float3(0.0, 0.0, 0.0);
+        for (int y = -1; y <= 1; ++y)
+            for (int x = -1; x <= 1; ++x) {
+                const float w = (2.0 - abs(x)) * (2.0 - abs(y));
+                const float4 uv = float4(i.uv + float2(x, y) * kRipple.z, 0.0, 0.0);
+                h += w * tex2Dlod(sHeight, uv).x;
+                m += w * tex2Dlod(sNormal, uv).xyz;
+            }
+        h = h * (2.0 / 16.0) - 1.0;
+        m = m * (2.0 / 16.0) - 1.0;
+        wp += up * (h * kRipple.x * i.col.x);
+        float3 rn = normalize(m.x * ax + m.y * az + m.z * up);
+        n = normalize(up + i.col.x * (rn - up));
+    }
+    float4 w4 = float4(wp, 1.0);
+    float4 c = float4(dot(w4, gXfViewProj[0]), dot(w4, gXfViewProj[1]), dot(w4, gXfViewProj[2]), dot(w4, gXfViewProj[3]));
+    o.pos = c; o.cpos = c; o.col = i.col; o.uv = i.uv; o.wpos = wp; o.up = up; o.ax = ax; o.az = az; o.nrm = n;
+    return o;
+}
+)";
+std::vector<uint32_t> g_iw_vs_code;   // kIwVsSrc compiled (vs_3_0), once
+bool g_iw_vs_failed = false;
+uint32_t g_iw_replaced = 0;          // surfaces given it (needs the bridge on when the stage's shaders are created)
+
+bool iw_vs_code() {
+    if (!g_iw_vs_code.empty() || g_iw_vs_failed) return !g_iw_vs_code.empty();
+    using D3DCompileFn = HRESULT(WINAPI*)(const void*, SIZE_T, const char*, const void*, void*, const char*, const char*, UINT,
+                                         UINT, LinBlob**, LinBlob**);
+    HMODULE dll = LoadLibraryA("d3dcompiler_47.dll");
+    auto compile = dll ? reinterpret_cast<D3DCompileFn>(GetProcAddress(dll, "D3DCompile")) : nullptr;
+    LinBlob *code = nullptr, *err = nullptr;
+    if (compile && SUCCEEDED(compile(kIwVsSrc, strlen(kIwVsSrc), "remix_iwater", nullptr, nullptr, "main", "vs_3_0", 0, 0,
+                                     &code, &err)) && code) {
+        const auto* w = static_cast<const uint32_t*>(code->GetBufferPointer());
+        g_iw_vs_code.assign(w, w + code->GetBufferSize() / 4);
+    } else {
+        g_iw_vs_failed = true;
+    }
+    if (code) code->Release();
+    if (err) err->Release();
+    return !g_iw_vs_code.empty();
+}
+
+// the uInteractiveWater units (their maps: +0xC4 the height map, +0xD8 the normal map the surface samples; cTrans::Texture
+// objects, the D3D9 texture at +0x10 / +0x14), found once a frame on the first surface draw
+uintptr_t g_dti_iwater = 0;
+uintptr_t g_iw_units[8];
+int g_iw_nunits = 0;
+uint32_t g_iw_units_frame = 0xFFFFFFFFu;
+bool g_vtf_bound = false;            // the surface's maps are on the vertex samplers (unbound at the next draw)
+
+int find_iw_units_raw(uintptr_t* out, int max) {   // render thread, units run on the game thread: SEH-guarded
+    __try {
+        const uintptr_t su = reinterpret_cast<uintptr_t>(devil4_sdk::get_sUnit());
+        if (!su || !g_dti_iwater) return 0;
+        int n = 0;
+        for (int line = 0; line < 32; ++line) {
+            const auto* ml = reinterpret_cast<const MoveLine*>(su + 0x20 + line * sizeof(MoveLine));
+            int guard = 0;
+            for (uintptr_t u = reinterpret_cast<uintptr_t>(ml->mTop); u && guard < 20000; ++guard) {
+                const auto* cu = reinterpret_cast<const cUnit*>(u);
+                const uintptr_t next = reinterpret_cast<uintptr_t>(cu->mp_next_unit);
+                if (n < max && debug_server::mem::dti_of(u) == g_dti_iwater) out[n++] = u;
+                u = next;
+            }
+        }
+        return n;
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return -1;
+    }
+}
+
+IDirect3DBaseTexture9* trans_texture(uintptr_t obj) {   // a cTrans::Texture's current D3D9 texture
+    if (!obj) return nullptr;
+    const uint32_t which = *reinterpret_cast<const uint8_t*>(obj + 0x22) & 1 & *reinterpret_cast<const uint32_t*>(kCameraBit);
+    return *reinterpret_cast<IDirect3DBaseTexture9* const*>(obj + 0x10 + 4 * which);
+}
+
+// the interactive water surface's draw: its height map and normal map on vertex samplers 0 / 1 and the lift in c250 (see
+// kIwVsSrc); any other draw: unbound again (the simulation renders into these maps next frame)
+void iw_bind(IDirect3DDevice9* dev, const uint32_t* first, const uint32_t* entries, uint32_t n) {
+    float k[4] = { 0, 0, 0, 0 };
+    IDirect3DBaseTexture9 *h = nullptr, *nm = nullptr;
+    if (first) {
+        uintptr_t nobj = 0;
+        for (uint32_t i = 0; i < n; ++i)
+            if (static_cast<int>(entries[i] & 0xFFFF) == g_water_param[3]) nobj = first[i];
+        if (!g_dti_iwater) g_dti_iwater = debug_server::mem::find_dti("uInteractiveWater");
+        if (g_iw_units_frame != g_frames) {
+            const int found = find_iw_units_raw(g_iw_units, 8);
+            if (found >= 0) g_iw_nunits = found;
+            g_iw_units_frame = g_frames;
+        }
+        for (int i = 0; i < g_iw_nunits && nobj; ++i)
+            if (*reinterpret_cast<const uintptr_t*>(g_iw_units[i] + 0xD8) == nobj) {
+                h = trans_texture(*reinterpret_cast<const uintptr_t*>(g_iw_units[i] + 0xC4));
+                nm = trans_texture(nobj);
+            }
+        if (h && nm) {
+            k[0] = settings.ripple_height;
+            k[1] = 1.0f;
+            // taps half a grid cell apart: 4 texels a cell, halved per subdivision level
+            k[2] = (2.0f / 512.0f) / static_cast<float>(1 << std::min(std::max(settings.water_detail, 0), 3));
+            if (k[2] < 1.0f / 512.0f) k[2] = 1.0f / 512.0f;
+        }
+    }
+    if (!h && !g_vtf_bound) return;
+    dev->SetTexture(D3DVERTEXTEXTURESAMPLER0, h);
+    dev->SetTexture(D3DVERTEXTEXTURESAMPLER1, nm);
+    if (h) {
+        for (DWORD s : { DWORD(D3DVERTEXTEXTURESAMPLER0), DWORD(D3DVERTEXTEXTURESAMPLER1) }) {
+            dev->SetSamplerState(s, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+            dev->SetSamplerState(s, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+            dev->SetSamplerState(s, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
+            dev->SetSamplerState(s, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+            dev->SetSamplerState(s, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+        }
+    }
+    dev->SetVertexShaderConstantF(250, k, 1);
+    g_vtf_bound = h != nullptr;
+}
+
+// ---- water mesh subdivision (settings.water_detail) ----
+// The waves of XfWater and the interactive surface are vertex positions, so Remix sees them only as finely as the mesh
+// is cut. Their draws are made by the bridge instead (the indexed draw hook, below) from a cached copy of the mesh with
+// every triangle split in four per level, each new vertex the mean of its edge's two (every declared element in its own
+// format), through the game's shaders and state. Copies are keyed by the buffers and the range and checked against the
+// first bytes of the game's data every few seconds (buffers are reused after a stage change).
+namespace subdiv {
+float half_to_float(uint16_t h) {
+    const uint32_t s = (h >> 15) & 1, e = (h >> 10) & 0x1F, m = h & 0x3FF;
+    float v;
+    if (e == 0) v = std::ldexp(static_cast<float>(m), -24);
+    else if (e == 31) v = m ? NAN : INFINITY;
+    else v = std::ldexp(static_cast<float>(m | 0x400), static_cast<int>(e) - 25);
+    return s ? -v : v;
+}
+uint16_t float_to_half(float f) {
+    uint32_t x;
+    std::memcpy(&x, &f, 4);
+    const uint32_t s = (x >> 16) & 0x8000;
+    int e = static_cast<int>((x >> 23) & 0xFF) - 127 + 15;
+    uint32_t m = x & 0x7FFFFF;
+    if (e >= 31) return static_cast<uint16_t>(s | 0x7C00);
+    if (e <= 0) {
+        if (e < -10) return static_cast<uint16_t>(s);
+        m |= 0x800000;
+        return static_cast<uint16_t>(s | ((m >> (1 - e + 13)) + ((m >> (1 - e + 12)) & 1)));
+    }
+    uint32_t r = s | (static_cast<uint32_t>(e) << 10) | (m >> 13);
+    if (m & 0x1000) ++r;   // round
+    return static_cast<uint16_t>(r);
+}
+// the midpoint of one declared element of two vertices, in its own format
+void mid_element(BYTE type, const uint8_t* a, const uint8_t* b, uint8_t* o) {
+    switch (type) {
+    case D3DDECLTYPE_FLOAT1: case D3DDECLTYPE_FLOAT2: case D3DDECLTYPE_FLOAT3: case D3DDECLTYPE_FLOAT4: {
+        const int n = type - D3DDECLTYPE_FLOAT1 + 1;
+        for (int i = 0; i < n; ++i) {
+            float x, y;
+            std::memcpy(&x, a + 4 * i, 4);
+            std::memcpy(&y, b + 4 * i, 4);
+            const float r = 0.5f * (x + y);
+            std::memcpy(o + 4 * i, &r, 4);
+        }
+        break;
+    }
+    case D3DDECLTYPE_D3DCOLOR: case D3DDECLTYPE_UBYTE4: case D3DDECLTYPE_UBYTE4N:
+        for (int i = 0; i < 4; ++i) o[i] = static_cast<uint8_t>((a[i] + b[i] + 1) / 2);
+        break;
+    case D3DDECLTYPE_SHORT2: case D3DDECLTYPE_SHORT4: case D3DDECLTYPE_SHORT2N: case D3DDECLTYPE_SHORT4N: {
+        const int n = (type == D3DDECLTYPE_SHORT2 || type == D3DDECLTYPE_SHORT2N) ? 2 : 4;
+        for (int i = 0; i < n; ++i) {
+            int16_t x, y;
+            std::memcpy(&x, a + 2 * i, 2);
+            std::memcpy(&y, b + 2 * i, 2);
+            const int16_t r = static_cast<int16_t>((static_cast<int>(x) + y) / 2);
+            std::memcpy(o + 2 * i, &r, 2);
+        }
+        break;
+    }
+    case D3DDECLTYPE_USHORT2N: case D3DDECLTYPE_USHORT4N: {
+        const int n = type == D3DDECLTYPE_USHORT2N ? 2 : 4;
+        for (int i = 0; i < n; ++i) {
+            uint16_t x, y;
+            std::memcpy(&x, a + 2 * i, 2);
+            std::memcpy(&y, b + 2 * i, 2);
+            const uint16_t r = static_cast<uint16_t>((static_cast<uint32_t>(x) + y + 1) / 2);
+            std::memcpy(o + 2 * i, &r, 2);
+        }
+        break;
+    }
+    case D3DDECLTYPE_FLOAT16_2: case D3DDECLTYPE_FLOAT16_4: {
+        const int n = type == D3DDECLTYPE_FLOAT16_2 ? 2 : 4;
+        for (int i = 0; i < n; ++i) {
+            uint16_t x, y;
+            std::memcpy(&x, a + 2 * i, 2);
+            std::memcpy(&y, b + 2 * i, 2);
+            const uint16_t r = float_to_half(0.5f * (half_to_float(x) + half_to_float(y)));
+            std::memcpy(o + 2 * i, &r, 2);
+        }
+        break;
+    }
+    case D3DDECLTYPE_UDEC3: case D3DDECLTYPE_DEC3N: {
+        uint32_t x, y, r = 0;
+        std::memcpy(&x, a, 4);
+        std::memcpy(&y, b, 4);
+        for (int i = 0; i < 3; ++i) {
+            int p = static_cast<int>((x >> (10 * i)) & 0x3FF), q = static_cast<int>((y >> (10 * i)) & 0x3FF);
+            if (type == D3DDECLTYPE_DEC3N) { if (p & 0x200) p -= 0x400; if (q & 0x200) q -= 0x400; }
+            r |= (static_cast<uint32_t>((p + q) / 2) & 0x3FF) << (10 * i);
+        }
+        r |= x & 0xC0000000u;
+        std::memcpy(o, &r, 4);
+        break;
+    }
+    default:
+        break;   // left as the first vertex's
+    }
+}
+uint32_t decl_size(BYTE type) {
+    switch (type) {
+    case D3DDECLTYPE_FLOAT1: case D3DDECLTYPE_D3DCOLOR: case D3DDECLTYPE_UBYTE4: case D3DDECLTYPE_SHORT2:
+    case D3DDECLTYPE_UBYTE4N: case D3DDECLTYPE_SHORT2N: case D3DDECLTYPE_USHORT2N: case D3DDECLTYPE_UDEC3:
+    case D3DDECLTYPE_DEC3N: case D3DDECLTYPE_FLOAT16_2: return 4;
+    case D3DDECLTYPE_FLOAT2: case D3DDECLTYPE_SHORT4: case D3DDECLTYPE_SHORT4N: case D3DDECLTYPE_USHORT4N:
+    case D3DDECLTYPE_FLOAT16_4: return 8;
+    case D3DDECLTYPE_FLOAT3: return 12;
+    case D3DDECLTYPE_FLOAT4: return 16;
+    default: return 0;
+    }
+}
+uint32_t fnv(const uint8_t* p, size_t n, uint32_t h = 2166136261u) {
+    for (size_t i = 0; i < n; ++i) h = (h ^ p[i]) * 16777619u;
+    return h;
+}
+
+struct Key {
+    uintptr_t vb, ib, decl;
+    uint32_t off, stride, base, start, prims, type, minidx, nverts, level;
+    bool operator<(const Key& k) const { return std::memcmp(this, &k, sizeof(Key)) < 0; }
+};
+struct Entry {
+    IDirect3DVertexBuffer9* vb = nullptr;
+    IDirect3DIndexBuffer9* ib = nullptr;
+    uint32_t nv = 0, nt = 0, check = 0, last = 0, verified = 0;
+    bool failed = false;
+};
+std::map<Key, Entry> g_cache;
+uint32_t g_drawn = 0, g_drawn_last = 0;
+
+void release(Entry& e) {
+    if (e.vb) e.vb->Release();
+    if (e.ib) e.ib->Release();
+    e.vb = nullptr;
+    e.ib = nullptr;
+}
+void clear() {
+    for (auto& [k, e] : g_cache) release(e);
+    g_cache.clear();
+}
+
+// reads the draw's vertices and triangles (a list or a strip, degenerate triangles dropped), rebased to its range
+bool read(const Key& k, IDirect3DVertexBuffer9* vb, IDirect3DIndexBuffer9* ib, std::vector<uint8_t>& verts,
+          std::vector<uint32_t>& tris, uint32_t* check) {
+    D3DINDEXBUFFER_DESC id{};
+    if (FAILED(ib->GetDesc(&id))) return false;
+    const uint32_t isz = id.Format == D3DFMT_INDEX32 ? 4 : 2;
+    const uint32_t nidx = k.type == D3DPT_TRIANGLELIST ? k.prims * 3 : k.prims + 2;
+    void* p = nullptr;
+    if (FAILED(ib->Lock(k.start * isz, nidx * isz, &p, D3DLOCK_READONLY)) || !p) return false;
+    std::vector<uint32_t> idx(nidx);
+    for (uint32_t i = 0; i < nidx; ++i)
+        idx[i] = isz == 4 ? static_cast<const uint32_t*>(p)[i] : static_cast<const uint16_t*>(p)[i];
+    *check = fnv(static_cast<const uint8_t*>(p), std::min<size_t>(nidx * isz, 256));
+    ib->Unlock();
+    const uint32_t first = k.off + (k.base + k.minidx) * k.stride;
+    if (FAILED(vb->Lock(first, k.nverts * k.stride, &p, D3DLOCK_READONLY)) || !p) return false;
+    verts.assign(static_cast<const uint8_t*>(p), static_cast<const uint8_t*>(p) + k.nverts * k.stride);
+    *check = fnv(verts.data(), std::min<size_t>(verts.size(), 256), *check);
+    vb->Unlock();
+    auto add = [&](uint32_t a, uint32_t b, uint32_t c) {
+        if (a == b || b == c || a == c) return;
+        a -= k.minidx; b -= k.minidx; c -= k.minidx;
+        if (a >= k.nverts || b >= k.nverts || c >= k.nverts) return;
+        tris.push_back(a); tris.push_back(b); tris.push_back(c);
+    };
+    if (k.type == D3DPT_TRIANGLELIST)
+        for (uint32_t t = 0; t < k.prims; ++t) add(idx[3 * t], idx[3 * t + 1], idx[3 * t + 2]);
+    else
+        for (uint32_t t = 0; t < k.prims; ++t)
+            if (t & 1) add(idx[t + 1], idx[t], idx[t + 2]); else add(idx[t], idx[t + 1], idx[t + 2]);
+    return !tris.empty();
+}
+
+bool build(IDirect3DDevice9* dev, const Key& k, IDirect3DVertexBuffer9* vb, IDirect3DIndexBuffer9* ib,
+           IDirect3DVertexDeclaration9* decl, Entry& e) {
+    D3DVERTEXELEMENT9 el[MAXD3DDECLLENGTH + 1];
+    UINT nel = 0;
+    if (FAILED(decl->GetDeclaration(nullptr, &nel)) || nel > MAXD3DDECLLENGTH + 1 || FAILED(decl->GetDeclaration(el, &nel)))
+        return false;
+    for (UINT i = 0; i < nel && el[i].Stream != 0xFF; ++i)
+        if (el[i].Stream != 0) return false;   // one stream only
+    std::vector<uint8_t> verts;
+    std::vector<uint32_t> tris;
+    if (!read(k, vb, ib, verts, tris, &e.check)) return false;
+    const uint32_t s = k.stride;
+    for (uint32_t level = 0; level < k.level; ++level) {
+        if (verts.size() / s + tris.size() > 4000000) break;   // a cap: 4 M vertices
+        std::map<uint64_t, uint32_t> mids;
+        auto mid = [&](uint32_t a, uint32_t b) {
+            const uint64_t key = a < b ? (uint64_t(a) << 32) | b : (uint64_t(b) << 32) | a;
+            const auto it = mids.find(key);
+            if (it != mids.end()) return it->second;
+            const uint32_t n = static_cast<uint32_t>(verts.size() / s);
+            verts.resize(verts.size() + s);
+            uint8_t* o = &verts[n * s];
+            const uint8_t* pa = &verts[a * s];
+            const uint8_t* pb = &verts[b * s];
+            std::memcpy(o, pa, s);
+            for (UINT i = 0; i < nel && el[i].Stream != 0xFF; ++i)
+                if (el[i].Offset + decl_size(el[i].Type) <= s) mid_element(el[i].Type, pa + el[i].Offset, pb + el[i].Offset, o + el[i].Offset);
+            mids.emplace(key, n);
+            return n;
+        };
+        std::vector<uint32_t> out;
+        out.reserve(tris.size() * 4);
+        for (size_t t = 0; t < tris.size(); t += 3) {
+            const uint32_t a = tris[t], b = tris[t + 1], c = tris[t + 2];
+            const uint32_t ab = mid(a, b), bc = mid(b, c), ca = mid(c, a);
+            const uint32_t q[12] = { a, ab, ca, ab, b, bc, ca, bc, c, ab, bc, ca };
+            out.insert(out.end(), q, q + 12);
+        }
+        tris.swap(out);
+    }
+    e.nv = static_cast<uint32_t>(verts.size() / s);
+    e.nt = static_cast<uint32_t>(tris.size() / 3);
+    const bool i32 = e.nv > 0xFFFF;
+    if (FAILED(dev->CreateVertexBuffer(static_cast<UINT>(verts.size()), D3DUSAGE_WRITEONLY, 0, D3DPOOL_MANAGED, &e.vb, nullptr)) ||
+        FAILED(dev->CreateIndexBuffer(static_cast<UINT>(tris.size() * (i32 ? 4 : 2)), D3DUSAGE_WRITEONLY,
+                                      i32 ? D3DFMT_INDEX32 : D3DFMT_INDEX16, D3DPOOL_MANAGED, &e.ib, nullptr))) {
+        release(e);
+        return false;
+    }
+    void* p = nullptr;
+    if (FAILED(e.vb->Lock(0, 0, &p, 0)) || !p) { release(e); return false; }
+    std::memcpy(p, verts.data(), verts.size());
+    e.vb->Unlock();
+    if (FAILED(e.ib->Lock(0, 0, &p, 0)) || !p) { release(e); return false; }
+    if (i32) std::memcpy(p, tris.data(), tris.size() * 4);
+    else for (size_t i = 0; i < tris.size(); ++i) static_cast<uint16_t*>(p)[i] = static_cast<uint16_t>(tris[i]);
+    e.ib->Unlock();
+    return true;
+}
+} // namespace subdiv
+
+volatile uint8_t g_subdiv_next = 0;            // the draws after this bind are water to subdivide
+IDirect3DPixelShader9* g_subdiv_ps = nullptr;  // ... made with this pixel shader (another one: not water any more)
+
+// the indexed draw hook: 1 = drawn here (subdivided), 0 = the game draws it
+int __stdcall water_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
+    if (!g_subdiv_next || settings.water_detail <= 0 || !dev || !cmd) return 0;   // cleared outside the main scene (on_tag)
+    IDirect3DPixelShader9* ps = nullptr;
+    dev->GetPixelShader(&ps);
+    if (ps) ps->Release();
+    if (ps != g_subdiv_ps) { g_subdiv_next = 0; return 0; }
+    subdiv::Key k{};
+    const uint32_t w = *reinterpret_cast<const uint32_t*>(cmd + 0x18);
+    k.type = w & 0xFF;
+    k.prims = w >> 8;
+    k.base = *reinterpret_cast<const uint32_t*>(cmd + 0x1C);
+    k.start = *reinterpret_cast<const uint32_t*>(cmd + 0x20);
+    k.nverts = *reinterpret_cast<const uint16_t*>(cmd + 0x24);
+    k.minidx = *reinterpret_cast<const uint16_t*>(cmd + 0x26);
+    k.level = static_cast<uint32_t>(std::min(settings.water_detail, 3));
+    if ((k.type != D3DPT_TRIANGLELIST && k.type != D3DPT_TRIANGLESTRIP) || !k.prims || !k.nverts) return 0;
+    IDirect3DVertexBuffer9* vb = nullptr;
+    IDirect3DIndexBuffer9* ib = nullptr;
+    IDirect3DVertexDeclaration9* decl = nullptr;
+    UINT off = 0, stride = 0;
+    int done = 0;
+    if (SUCCEEDED(dev->GetStreamSource(0, &vb, &off, &stride)) && vb && SUCCEEDED(dev->GetIndices(&ib)) && ib &&
+        SUCCEEDED(dev->GetVertexDeclaration(&decl)) && decl && stride) {
+        k.vb = reinterpret_cast<uintptr_t>(vb);
+        k.ib = reinterpret_cast<uintptr_t>(ib);
+        k.decl = reinterpret_cast<uintptr_t>(decl);
+        k.off = off;
+        k.stride = stride;
+        subdiv::Entry& e = subdiv::g_cache[k];
+        if (e.vb && g_frames - e.verified > 300) {   // the game's buffer still holds that mesh?
+            std::vector<uint8_t> v;
+            std::vector<uint32_t> t;
+            uint32_t check = 0;
+            if (!subdiv::read(k, vb, ib, v, t, &check) || check != e.check) { subdiv::release(e); e.failed = false; }
+            e.verified = g_frames;
+        }
+        if (!e.vb && !e.failed) {
+            e.failed = !subdiv::build(dev, k, vb, ib, decl, e);
+            e.verified = g_frames;
+        }
+        if (e.vb && e.ib) {
+            dev->SetStreamSource(0, e.vb, 0, stride);
+            dev->SetIndices(e.ib);
+            dev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, e.nv, 0, e.nt);
+            dev->SetStreamSource(0, vb, off, stride);
+            dev->SetIndices(ib);
+            e.last = g_frames;
+            ++subdiv::g_drawn;
+            done = 1;
+        }
+    }
+    if (vb) vb->Release();
+    if (ib) ib->Release();
+    if (decl) decl->Release();
+    return done;
+}
+
 bool     g_in_main = false;
 
 bool      g_have_main = false;          // the main camera's matrices of the last frame (vs_array)
@@ -463,6 +1325,7 @@ void set_transforms(IDirect3DDevice9* dev) {
     std::memset(&world, 0, sizeof world);
     world._11 = world._22 = world._33 = world._44 = 1.0f;
     dev->SetTransform(D3DTS_WORLD, &world);
+    g_world_set = world;
     dev->SetTransform(D3DTS_VIEW, &view);
     dev->SetTransform(D3DTS_PROJECTION, &proj);
     // a white fixed-function material: Remix colours the lights it adds to tagged textures ("Add Light to Texture",
@@ -555,12 +1418,76 @@ int __stdcall bind_texture(IDirect3DDevice9* dev, const uint32_t* entry, const u
     const uint32_t albedo = *reinterpret_cast<const uint32_t*>(kAlbedoParam);
     const uint32_t n = *reinterpret_cast<const uint32_t*>(record + 0x0C) & 0xF;
     const auto* entries = reinterpret_cast<const uint32_t*>(record + 0x10);
-    uint32_t albedo_stage = 0xFF;
+    uint32_t albedo_stage = 0xFF, albedo_index = 0xFF;
     bool water = false;
     for (uint32_t i = 0; i < n; ++i) {
         const uint32_t p = entries[i] & 0xFFFF;
-        if (albedo_stage == 0xFF && is_colour(p, albedo)) albedo_stage = (entries[i] >> 16) & 0xFF;
+        if (albedo_stage == 0xFF && is_colour(p, albedo)) { albedo_stage = (entries[i] >> 16) & 0xFF; albedo_index = i; }
         else if (is_water(p)) water = true;
+    }
+    // the probe: each textured draw's albedo map with the states Remix reads for it (alpha test, blending, depth write)
+    if (g_probe == 2 && entry == entries && albedo_index != 0xFF && g_pass >= 2 && g_pass <= 5 && g_probe_states.size() < 900) {
+        const uintptr_t tex = (slot - (entry - entries))[albedo_index];
+        const auto it = g_tex_paths.find(tex);
+        DWORD at = 0, af = 0, ar = 0, ab = 0, sb = 0, db = 0, op = 0, zw = 0, cull = 0, sep = 0;
+        dev->GetRenderState(D3DRS_ALPHATESTENABLE, &at);
+        dev->GetRenderState(D3DRS_ALPHAFUNC, &af);
+        dev->GetRenderState(D3DRS_ALPHAREF, &ar);
+        dev->GetRenderState(D3DRS_ALPHABLENDENABLE, &ab);
+        dev->GetRenderState(D3DRS_SRCBLEND, &sb);
+        dev->GetRenderState(D3DRS_DESTBLEND, &db);
+        dev->GetRenderState(D3DRS_BLENDOP, &op);
+        dev->GetRenderState(D3DRS_ZWRITEENABLE, &zw);
+        dev->GetRenderState(D3DRS_CULLMODE, &cull);
+        dev->GetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, &sep);
+        const uint32_t fmt = tex ? *reinterpret_cast<const uint32_t*>(tex + 0x24) : 0;
+        const int k = ++g_probe_tex_count[tex];
+        IDirect3DVertexShader9* vs = nullptr;
+        dev->GetVertexShader(&vs);
+        if (vs) vs->Release();
+        IDirect3DPixelShader9* ps = nullptr;
+        dev->GetPixelShader(&ps);
+        if (ps) ps->Release();
+        dump_shader_pair(vs, ps);
+        float wp[3] = { 0, 0, 0 };
+        if (g_cur_world && g_vp_transposed >= 0) {
+            const float* w = reinterpret_cast<const float*>(g_cur_world);
+            if (g_vp_transposed == 1) { wp[0] = w[3]; wp[1] = w[7]; wp[2] = w[11]; }
+            else { wp[0] = w[12]; wp[1] = w[13]; wp[2] = w[14]; }
+        }
+        char line[400];
+        sprintf_s(line, "  states pass %u, %s #%d (fmt %08X, %u maps): atest %lu func %lu ref %lu | blend %lu src %lu dst %lu op %lu "
+                        "sep %lu | zwrite %lu cull %lu | block %d | vs %p ps %p | world at %.1f %.1f %.1f\n",
+                  g_pass, it != g_tex_paths.end() ? it->second.c_str() : "(no path)", k, fmt, n, at, af, ar, ab, sb, db, op, sep,
+                  zw, cull, g_block_kind, static_cast<void*>(vs), static_cast<void*>(ps), wp[0], wp[1], wp[2]);
+        if (g_probe_states.insert(line).second) g_probe_text += line;
+    }
+    if (g_probe == 2 && g_block_kind != 0 && g_probe_paths.size() < 300) {
+        const auto it = g_tex_paths.find(*slot);
+        char line[200];
+        sprintf_s(line, "      %s, pass %u, stage %u: %s\n", g_block_kind == 1 ? "copy of the main camera" : "another camera",
+                  g_pass, (*entry >> 16) & 0xFF, !*slot ? "(none)" : it != g_tex_paths.end() ? it->second.c_str() : "(no path)");
+        if (g_probe_paths.insert(line).second) g_probe_text += line;
+    }
+    if (entry == entries && g_probe == 2 && g_block_kind != 0 && g_probe_layouts.size() < 64) {
+        const uintptr_t shader = *reinterpret_cast<uintptr_t*>(kShaderInstance);
+        std::string sig = (g_block_kind == 1 ? std::string("  draw under a copy of the main camera")
+                                             : "  draw under camera " + std::to_string(g_other_cam & 0xFFFF)) +
+                          ", pass " + std::to_string(g_pass) + ":";
+        char buf[40];
+        for (uint32_t i = 0; i < n; ++i) {
+            const uint32_t p = entries[i] & 0xFFFF, st = (entries[i] >> 16) & 0xFF;
+            const uint32_t id = shader && p < 512 ? *reinterpret_cast<const uint32_t*>(shader + kParamDescs + 20 * p + 8) : 0;
+            sprintf_s(buf, " s%u=%08X", st, id);
+            sig += buf;
+        }
+        if (g_probe_layouts.insert(sig).second) {
+            IDirect3DSurface9* rt = nullptr;
+            D3DSURFACE_DESC d{};
+            if (SUCCEEDED(dev->GetRenderTarget(0, &rt)) && rt) { rt->GetDesc(&d); rt->Release(); }
+            sprintf_s(buf, " | target %ux%u f%u", d.Width, d.Height, unsigned(d.Format));
+            g_probe_text += sig + buf + "\n";
+        }
     }
     if (entry == entries) {
         const bool hiding = albedo_stage == 0xFF && !water &&
@@ -572,14 +1499,25 @@ int __stdcall bind_texture(IDirect3DDevice9* dev, const uint32_t* entry, const u
     // draws Remix shouldn't trace: the occlusion-query quads (the depth texture on stage 0: white diamonds at the lights)
     // and the stage drawn again with only its shadow maps (duplicate surfaces with a shadow map as their colour)
     bool hide = false;
+    if (!g_hide_tex.empty()) {
+        const uint32_t* first = slot - (entry - entries);   // the draw's resources run beside its entries
+        for (uint32_t i = 0; i < n; ++i)
+            if (g_hide_tex.count(first[i])) hide = true;
+    }
     if (settings.hide_refraction && g_prim_scene_param >= 0)
         for (uint32_t i = 0; i < n; ++i)
             if ((entries[i] & 0xFFFF) == static_cast<uint32_t>(g_prim_scene_param)) hide = true;
+    const bool other = g_other_cam != 0 && settings.other_cameras != 0;
+    if (other && (settings.other_cameras == 1 || g_other_ortho)) hide = true;
+    if (other && entry == entries) ++g_other_draws;
+    // the main view = the block most draws use (counted per draw: uploads were too few to tell the main camera from the
+    // shadow overlay's projector, and with other cameras' draws hidden a wrong pick hid the whole scene for a frame)
+    if (entry == entries && g_cur_vp) count_view(g_cur_vp);
     if (entry == entries) {
         if (g_frame_next < g_frame_n) submit_lights(dev);   // the next batch of the frame's lights
         water_transform(dev, !hide && albedo_stage == 0xFF && water && settings.water_standin);
-        const bool sky = settings.sky && g_pass == 2 && n == 1 && g_base_param >= 0 &&
-                         (entries[0] & 0xFFFF) == static_cast<uint32_t>(g_base_param);
+        const bool sky = (settings.sky && g_pass == 2 && n == 1 && g_base_param >= 0 &&
+                          (entries[0] & 0xFFFF) == static_cast<uint32_t>(g_base_param));
         sky_viewport(dev, sky);
         if (sky) ++g_sky;
     }
@@ -604,11 +1542,91 @@ int __stdcall bind_texture(IDirect3DDevice9* dev, const uint32_t* entry, const u
         }
         if ((zbuf && settings.hide_water_depth) || (flat && settings.hide_water_flat) || (n == 1 && settings.hide_water_simple))
             hide = true;
+        if (!g_hide_water_tex.empty()) {
+            const uint32_t* first = slot - (entry - entries);
+            for (uint32_t i = 0; i < n; ++i)
+                if (g_hide_water_tex.count(first[i])) hide = true;
+        }
+        if (g_probe == 2 && entry == entries && g_probe_states.size() < 900) {
+            const uint32_t* first = slot - (entry - entries);
+            std::string line = "  water pass " + std::to_string(g_pass) + ", kind " + std::to_string(water_kind(dev, entries, n)) +
+                               (hide ? " (hidden)" : "") + ":";
+            for (uint32_t i = 0; i < n; ++i) {
+                const auto wt = g_tex_paths.find(first[i]);
+                line += " s" + std::to_string((entries[i] >> 16) & 0xFF) + "=" +
+                        (!first[i] ? std::string("(none)") : wt != g_tex_paths.end() ? wt->second : std::string("(no path)"));
+            }
+            char buf[96] = "";
+            if (g_cur_world && g_vp_transposed >= 0) {
+                const float* w = reinterpret_cast<const float*>(g_cur_world);
+                sprintf_s(buf, " | world at %.1f %.1f %.1f", g_vp_transposed == 1 ? w[3] : w[12], g_vp_transposed == 1 ? w[7] : w[13],
+                          g_vp_transposed == 1 ? w[11] : w[14]);
+            }
+            IDirect3DVertexShader9* wvs = nullptr;
+            IDirect3DPixelShader9* wps = nullptr;
+            dev->GetVertexShader(&wvs);
+            dev->GetPixelShader(&wps);
+            if (wvs) wvs->Release();
+            if (wps) wps->Release();
+            dump_shader_pair(wvs, wps);
+            char sh[64];
+            sprintf_s(sh, " | vs %p ps %p", static_cast<void*>(wvs), static_cast<void*>(wps));
+            line += std::string(buf) + sh + "\n";
+            if (g_probe_states.insert(line).second) g_probe_text += line;
+        }
+    }
+    if (entry == entries) {   // water whose vertex shader moves its vertices: its draws subdivided (water_draw)
+        const int kind = (!hide && water) ? water_kind(dev, entries, n) : -1;
+        g_subdiv_next = (settings.water_detail > 0 && (kind == 0 || kind == 1 || (kind == 2 && g_iw_replaced))) ? 1 : 0;
+        if (g_subdiv_next) {
+            IDirect3DPixelShader9* ps = nullptr;
+            dev->GetPixelShader(&ps);
+            if (ps) ps->Release();
+            g_subdiv_ps = ps;
+        }
+    }
+    if (entry == entries) {   // the interactive water surface's maps (kIwVsSrc), or unbound again
+        const bool iw = !hide && water && settings.water_ripples && g_iw_replaced && water_kind(dev, entries, n) == 2;
+        iw_bind(dev, iw ? slot - (entry - entries) : nullptr, entries, n);
+    }
+    if (entry == entries) {   // WORLD = the draw's position (settings.world_positions)
+        D3DMATRIX w{};
+        w._11 = w._22 = w._33 = w._44 = 1.0f;
+        if (settings.world_positions && g_world_this_draw && g_cur_world && g_vp_transposed >= 0) {
+            const float* m = reinterpret_cast<const float*>(g_cur_world);
+            if (g_vp_transposed == 1) { w._41 = m[3]; w._42 = m[7]; w._43 = m[11]; }
+            else { w._41 = m[12]; w._42 = m[13]; w._43 = m[14]; }
+            if (!std::isfinite(w._41) || !std::isfinite(w._42) || !std::isfinite(w._43)) w._41 = w._42 = w._43 = 0.0f;
+        }
+        g_world_this_draw = false;
+        if (std::memcmp(&w, &g_world_set, sizeof w) != 0) {
+            dev->SetTransform(D3DTS_WORLD, &w);
+            g_world_set = w;
+        }
+    }
+    if (entry == entries && !hide && !g_first_traced) {
+        g_first_traced = true;
+        dev->GetTransform(D3DTS_VIEW, &g_first_view);
+        dev->GetTransform(D3DTS_PROJECTION, &g_first_proj);
+        g_first_valid = true;
+        g_first_after_main = g_main_uploaded;
+        g_first_pass = g_pass;
+        g_first_kind = static_cast<uint32_t>(g_block_kind);
+        if (g_probe == 2) {
+            D3DMATRIX v{};
+            dev->GetTransform(D3DTS_VIEW, &v);
+            float pos[3];
+            view_position(v, pos);
+            char line[200];
+            sprintf_s(line, "  first traced draw: pass %u, the main camera %s, D3D view at %.1f %.1f %.1f\n", g_pass,
+                      g_main_uploaded ? "uploaded before it" : "NOT uploaded yet (last frame's)", pos[0], pos[1], pos[2]);
+            g_probe_text += line;
+        }
     }
     if (hide || (albedo_stage == 0xFF && water && settings.water_standin)) {
         if (entry == entries) {
             if (hide) { dev->SetTexture(0, hide_texture(dev)); ++g_hidden; }
-            else { dev->SetTexture(0, standin(dev)); ++g_water; }
+            else { dev->SetTexture(0, standin(dev, water_kind(dev, entries, n))); ++g_water; }
         }
         const uint32_t param = *entry & 0xFFFF, stage = (*entry >> 16) & 0xFF;
         const uintptr_t res = *slot;
@@ -887,6 +1905,21 @@ void __stdcall patch_pair(uint32_t* pair) {
     auto* vs = reinterpret_cast<uint32_t*>(pair[1]);
     if (!vs || !vs[1]) return;
     auto* vcode = reinterpret_cast<uint32_t*>(vs[1]);
+    if (ps && ps[1]) {
+        const auto* pcode = reinterpret_cast<const uint32_t*>(ps[1]);
+        if (code_has(pcode, "XfWaterDeepColor") && code_has(pcode, "gXfViewProjI") &&
+            std::find(g_water_b_ps.begin(), g_water_b_ps.end(), ps) == g_water_b_ps.end())
+            g_water_b_ps.push_back(ps);
+        // the interactive water surface (tXfInteractiveWaterGeometory, known by its pixel shader's constants): the game
+        // creates its vertex shader from kIwVsSrc instead (same inputs / outputs, so the pixel shader links as before)
+        if (!vs[0] && settings.water_ripples && vcode != g_iw_vs_code.data() &&
+            code_has(pcode, "XfInteractiveWaterRefractScale") && iw_vs_code()) {
+            vs[1] = reinterpret_cast<uint32_t>(g_iw_vs_code.data());
+            g_vs_mode[g_iw_vs_code.data()] = 0;
+            ++g_iw_replaced;
+            return;
+        }
+    }
     int mode;
     auto it = g_vs_mode.find(vcode);
     if (it != g_vs_mode.end()) mode = it->second;
@@ -963,6 +1996,7 @@ struct VpCount { uintptr_t vp; uint32_t n; };
 VpCount   g_vpc[8];
 int       g_nvpc = 0;
 uintptr_t g_main_vp = 0;
+uintptr_t g_last_copy = 0;   // the last copy block seen (the probe prints each once)
 
 bool same_view(uintptr_t a, uintptr_t b) { return a == b || a + 0x40 == b || b + 0x40 == a; }
 
@@ -971,21 +2005,162 @@ void count_view(uintptr_t vp) {
     if (g_nvpc < 8) g_vpc[g_nvpc++] = { vp, 1 };
 }
 
+// The view Remix traces: the gameplay viewport (0) while it's on and has a camera, else the first viewport that does (the
+// free camera with Gameplay Cam off). Every view draws its own main scene, and Remix traces one camera: with a second
+// one (photo mode / Free Camera leave a fullscreen free camera on viewport 1 when the gameplay camera comes back; co-op's
+// split; extra cameras) the injection went into whichever view drew first and the one on screen stayed raster.
+void pick_traced_view() {
+    const uintptr_t camera = *reinterpret_cast<uintptr_t*>(kCameraInstance);
+    if (!camera) return;
+    const auto* cam = reinterpret_cast<const sCamera*>(camera);
+    for (const auto& vp : cam->viewports)
+        if (vp.mActive && vp.mpCamera) { g_main_view = vp.mSceneNo & 7u; return; }
+}
+
 void pick_main_view() {   // at each dispatch's start: last frame's most-drawn view
     uint32_t best = 0;
     for (int i = 0; i < g_nvpc; ++i) if (g_vpc[i].n > best) { best = g_vpc[i].n; g_main_vp = g_vpc[i].vp; }
     g_nvpc = 0;
 }
 
+// 4 x 4 inverse (Gauss-Jordan, doubles); false when singular
+bool invert4(const D3DMATRIX& a, D3DMATRIX& out) {
+    double m[4][8];
+    for (int r = 0; r < 4; ++r)
+        for (int c = 0; c < 8; ++c) m[r][c] = c < 4 ? a.m[r][c] : (c - 4 == r ? 1.0 : 0.0);
+    for (int c = 0; c < 4; ++c) {
+        int piv = c;
+        for (int r = c + 1; r < 4; ++r) if (std::fabs(m[r][c]) > std::fabs(m[piv][c])) piv = r;
+        if (std::fabs(m[piv][c]) < 1e-12) return false;
+        if (piv != c) for (int k = 0; k < 8; ++k) std::swap(m[c][k], m[piv][k]);
+        const double d = m[c][c];
+        for (int k = 0; k < 8; ++k) m[c][k] /= d;
+        for (int r = 0; r < 4; ++r) {
+            if (r == c) continue;
+            const double f = m[r][c];
+            if (f != 0.0) for (int k = 0; k < 8; ++k) m[r][k] -= f * m[c][k];
+        }
+    }
+    for (int r = 0; r < 4; ++r)
+        for (int c = 0; c < 4; ++c) out.m[r][c] = static_cast<float>(m[r][c + 4]);
+    return true;
+}
+
+// A draw under another view-projection block, with the main camera's view: its own projection P = V^-1 . VP (row
+// vectors, VP = V . P). Fortuna's second block is the same camera with another projection for some objects (which ones
+// changes from frame to frame: the bridge and a tree popped); Remix then unprojects them with that projection
+bool own_projection(uintptr_t vp, D3DMATRIX& p) {
+    if (!g_have_main || g_vp_transposed < 0) return false;
+    D3DMATRIX m, inv;
+    load_matrix(m, reinterpret_cast<const float*>(vp), g_vp_transposed == 1);
+    if (!invert4(g_main_v, inv)) return false;
+    for (int r = 0; r < 4; ++r)
+        for (int c = 0; c < 4; ++c) {
+            float s = 0;
+            for (int k = 0; k < 4; ++k) s += inv.m[r][k] * m.m[k][c];
+            if (!std::isfinite(s)) return false;
+            p.m[r][c] = s;
+        }
+    return true;
+}
+
+// Another block holding the main camera's view-projection: the main block (or its twin, the other frame's) with the same
+// matrix, else 0. Fortuna's shadow overlays, its sea and some stage objects (the bridge, a tree) draw with per-draw copies
+// whose neighbours aren't a view and a projection, so they passed for another camera: hidden, the objects popped in and
+// out as they moved between the copies and the main block from frame to frame
+uintptr_t main_copy_of(uintptr_t vp) {
+    const float* a = reinterpret_cast<const float*>(vp);
+    for (const intptr_t d : { intptr_t(0), intptr_t(0x40), intptr_t(-0x40) }) {
+        const uintptr_t c = g_main_vp + d;
+        const float* b = reinterpret_cast<const float*>(c);
+        bool same = true;
+        for (int i = 0; i < 16 && same; ++i) same = std::fabs(a[i] - b[i]) <= 1e-4f * std::max(1.0f, std::fabs(b[i]));
+        if (same) return c;
+    }
+    return 0;
+}
+
+void probe_camera(uintptr_t vp, const float* view, const float* proj, const char* what) {
+    if (g_probe != 2) return;
+    D3DMATRIX v;
+    load_matrix(v, view, g_vp_transposed == 1);
+    float pos[3];
+    view_position(v, pos);
+    const float* m = reinterpret_cast<const float*>(vp);
+    float err = 0;
+    for (int r = 0; r < 4; ++r)
+        for (int c = 0; c < 4; ++c) {
+            float s = 0;
+            for (int k = 0; k < 4; ++k)
+                s += g_vp_transposed == 1 ? proj[r * 4 + k] * view[k * 4 + c] : view[r * 4 + k] * proj[k * 4 + c];
+            err += std::fabs(s - m[r * 4 + c]);
+        }
+    char buf[240];
+    sprintf_s(buf, "  camera upload: block %04X (main %04X) at %.1f %.1f %.1f, proj _11 %.3f _22 %.3f _44 %.1f, view x proj "
+                   "off by %.4f: %s\n",
+              unsigned(vp & 0xFFFF), unsigned(g_main_vp & 0xFFFF), pos[0], pos[1], pos[2],
+              proj[0], proj[5], proj[15], err, what);
+    g_probe_text += buf;
+    D3DMATRIX p;
+    const bool other = g_main_vp && !same_view(vp, g_main_vp) && proj[15] != 1.0f;
+    if (other && own_projection(vp, p)) {
+        char row[400];
+        sprintf_s(row, "    own projection (main view):  %.4f %.4f %.4f %.4f | %.4f %.4f %.4f %.4f | %.4f %.4f %.4f %.4f | %.4f %.4f "
+                       "%.4f %.4f\n    main projection:              %.4f %.4f %.4f %.4f | %.4f %.4f %.4f %.4f | %.4f %.4f %.4f %.4f | "
+                       "%.4f %.4f %.4f %.4f\n",
+                  p._11, p._12, p._13, p._14, p._21, p._22, p._23, p._24, p._31, p._32, p._33, p._34, p._41, p._42, p._43, p._44,
+                  g_main_p._11, g_main_p._12, g_main_p._13, g_main_p._14, g_main_p._21, g_main_p._22, g_main_p._23, g_main_p._24,
+                  g_main_p._31, g_main_p._32, g_main_p._33, g_main_p._34, g_main_p._41, g_main_p._42, g_main_p._43, g_main_p._44);
+        g_probe_text += row;
+    }
+}
+
 void __stdcall vs_array(IDirect3DDevice9* dev, const uint32_t* entry, const uintptr_t* value) {
     if (!settings.on || !g_in_main || !dev) return;
+    if (g_world_param >= 0 && (*entry & 0xFFFF) == static_cast<uint32_t>(g_world_param)) {
+        g_cur_world = *value;
+        g_world_this_draw = true;
+        return;
+    }
     if ((*entry & 0xFFFF) != *reinterpret_cast<const uint32_t*>(kViewProjParam)) return;
-    const uintptr_t vp = *value;
+    uintptr_t vp = *value;
     if (!vp) return;
+    bool copy = false;
+    if (g_main_vp && !same_view(vp, g_main_vp)) {
+        if (const uintptr_t m = main_copy_of(vp)) {
+            if (g_probe == 2 && vp != g_last_copy) {
+                float diff = -1;
+                if (g_have_frame_vp) {
+                    diff = 0;
+                    for (int i = 0; i < 16; ++i)
+                        diff = std::max(diff, std::fabs(reinterpret_cast<const float*>(vp)[i] - g_frame_vp[i]));
+                }
+                char buf[200];
+                sprintf_s(buf, "  camera upload: block %04X is a copy of the main camera (block %04X, %+d); off this frame's camera "
+                               "by %.6f\n", unsigned(vp & 0xFFFF), unsigned(m & 0xFFFF), int(intptr_t(m) - intptr_t(g_main_vp)), diff);
+                g_probe_text += buf;
+            }
+            g_last_copy = vp;
+            vp = m;
+            copy = true;
+        }
+    }
     const float* view = reinterpret_cast<const float*>(vp - 0x100);
     const float* proj = reinterpret_cast<const float*>(vp - 0x80);
+    if (g_probe == 2 && vp != g_last_vp)
+        probe_camera(vp, view, proj, proj[15] == 1.0f ? "orthographic, passed over"
+                                     : (g_main_vp && !same_view(vp, g_main_vp)) ? "another view, passed over"
+                                     : "used");
+    g_other_cam = (proj[15] == 1.0f || (g_main_vp && !same_view(vp, g_main_vp))) ? vp : 0;
+    g_block_kind = copy ? 1 : g_other_cam ? 2 : 0;
+    if (!g_other_cam) g_main_uploaded = true;
+    if (!g_other_cam && !copy && !g_have_frame_vp) {
+        std::memcpy(g_frame_vp, reinterpret_cast<const float*>(vp), sizeof g_frame_vp);
+        g_have_frame_vp = true;
+    }
+    g_cur_vp = proj[15] == 1.0f ? 0 : vp;
+    g_other_ortho = proj[15] == 1.0f;
     if (proj[15] == 1.0f) { if (vp != g_last_vp) { g_last_vp = vp; ++g_vp_rejected; } return; }   // orthographic: 2D
-    count_view(vp);
     if (vp == g_last_vp) return;
     if (g_vp_transposed < 0) {
         // stored as D3D rows, ViewProj = View * Proj; stored transposed (for the shaders' dp4), ViewProj = Proj * View
@@ -1004,7 +2179,15 @@ void __stdcall vs_array(IDirect3DDevice9* dev, const uint32_t* entry, const uint
         g_vp_transposed = e1 < e0 ? 1 : 0;
     }
     g_last_vp = vp;
-    if (g_main_vp && !same_view(vp, g_main_vp)) { ++g_vp_rejected; return; }   // another view (the sky's, ...)
+    if (g_main_vp && !same_view(vp, g_main_vp)) {   // another view-projection block
+        ++g_vp_rejected;
+        D3DMATRIX p;
+        if (settings.other_cameras == 2 && own_projection(vp, p)) {
+            dev->SetTransform(D3DTS_VIEW, &g_main_v);
+            dev->SetTransform(D3DTS_PROJECTION, &p);
+        }
+        return;
+    }
     D3DMATRIX v, p;
     load_matrix(v, view, g_vp_transposed == 1);
     load_matrix(p, proj, g_vp_transposed == 1);
@@ -1035,6 +2218,30 @@ naked void detour_vsarr() {
 uintptr_t jmp_ret_tex = 0;
 uintptr_t kTexBoundAddr = kTexBound;
 volatile uint8_t g_remap = 0;   // the bridge's albedo move is on and the main scene is drawing: the detour's fast check
+
+uintptr_t jmp_ret_draw = 0;
+uintptr_t kDrawDoneAddr = 0x8F5EAB;   // dispatchCommands' loop after a command
+naked void detour_draw() {
+    _asm {
+        cmp byte ptr [g_subdiv_next], 0
+        je original
+        pushad
+        mov eax, [esp + 0x20 + 0x50]    // the command (esp + 0x50 before pushad)
+        push eax
+        push esi                        // the device
+        call water_draw                 // __stdcall
+        test eax, eax
+        jnz drawn
+        popad
+    original:
+        mov eax, [esp + 0x50]
+        mov ecx, [eax + 0x18]
+        jmp dword ptr [jmp_ret_draw]
+    drawn:
+        popad
+        jmp dword ptr [kDrawDoneAddr]
+    }
+}
 
 naked void detour_tex() {
     _asm {
@@ -1069,8 +2276,85 @@ void* shader_detour() { return reinterpret_cast<void*>(&detour_shader); }
 std::unique_ptr<FunctionHook>& shader_hook() { static std::unique_ptr<FunctionHook> h; return h; }
 
 void* tex_detour() { return reinterpret_cast<void*>(&detour_tex); }
+void* draw_detour() { return reinterpret_cast<void*>(&detour_draw); }
+std::unique_ptr<FunctionHook>& draw_hook() { static std::unique_ptr<FunctionHook> h; return h; }
+
+// Stage colour grading (uColorCorrectFilter, a pass-9 filter, priority 26000 by default; Fortuna has one, the BP stages
+// don't): with tone curves set, it draws them into a 256 x 1 ramp in its own sub-scene ("ToneMapGenerate", sub_93E4D0), one
+// draw per curve with the colour writes masked to R, G or B, then maps the frame through the ramp. Remix ignores every draw
+// whose RGB writes aren't all on until its image is in (d3d9_rtx.cpp makeDrawCallType, "colour write disabled"), and the
+// sub-scene always runs before the main scene, so under Remix the ramp stays black and the grading turned the whole frame
+// black whenever the filters run after the hand-over (remix_probe.txt, 2026-11-24: the scene 0.62 before the grading draw,
+// 0 after). While the bridge runs under Remix the curve check (sub_91B200, a compare with the default curve; only the
+// grading calls it) answers "default": no ramp, the grading's colour matrix still applies.
+constexpr uintptr_t kCurveIsCustom = 0x91B200;
+std::unique_ptr<Patch> g_curve_patch;
+
+void update_curve_patch() {
+    const bool want = settings.on && loaded();
+    if (want && !g_curve_patch) g_curve_patch = Patch::create(kCurveIsCustom, { 0x31, 0xC0, 0xC3 }, true);   // xor eax, eax; ret
+    else if (!want && g_curve_patch) g_curve_patch.reset();   // the destructor puts the bytes back
+}
+
+
+// ---- no culling in the traced view ----
+// Every model's draw (uModel::draw and the uDevil4Model / stage variants) asks uModel::frustumCullAndLOD (0x9EDBB0,
+// __usercall: edx = the model, the view's cTrans on the stack, ret 4) whether its bounding sphere / box is in the view's
+// six planes: -1 = culled, 63 = inside all of them, else a mask of the planes it's inside, for which
+// uModel::cullPrimitivesAgainstFrustum then culls the model's parts one by one (63 = draw them all). DMC4 has no occlusion
+// culling of models (pass 4's queries are the light halos'). With settings.draw_all, the traced view's main scene gets 63
+// for every model: the key being built (cTrans +0x2A90 -> +0x234) says which view / scene the draw is for. Other views
+// (shadow maps, reflections) keep their culling. Remix's anti-culling only keeps what it has seen, so this is the fix
+// for lighting that changed with the view direction.
+uintptr_t jmp_ret_cull = 0;
+volatile uint8_t g_uncull = 0;
+std::atomic<uint32_t> g_unculled{ 0 };   // models drawn this frame that the game would have culled
+uint32_t g_unculled_last = 0;
+
+int __stdcall cull_decide(uintptr_t ctx, int result) {
+    if (result == 63 || !ctx) return result;
+    const uintptr_t scene_ctx = *reinterpret_cast<const uintptr_t*>(ctx + 0x2A90);
+    if (!scene_ctx) return result;
+    const uint32_t key = *reinterpret_cast<const uint32_t*>(scene_ctx + 0x234);
+    if (((key >> 24) & 0x1F) != kMainScene || (key >> 29) != g_main_view) return result;
+    if (result < 0) ++g_unculled;
+    return 63;
+}
+
+// the game's function as it is (its first 6 bytes, then the rest of it)
+naked void cull_original() {
+    _asm {
+        push ebp
+        mov ebp, esp
+        and esp, 0FFFFFFF0h
+        jmp dword ptr [jmp_ret_cull]
+    }
+}
+
+naked void detour_cull() {
+    _asm {
+        cmp byte ptr [g_uncull], 0
+        je original
+        push dword ptr [esp + 4]     // the cTrans (edx = the model, untouched)
+        call cull_original           // eax = the game's answer; it pops its argument
+        push eax
+        push dword ptr [esp + 8]     // the cTrans again: [esp] eax, [esp + 4] our return address, [esp + 8] cTrans
+        call cull_decide             // __stdcall (cTrans, answer)
+        ret 4
+    original:
+        push ebp
+        mov ebp, esp
+        and esp, 0FFFFFFF0h
+        jmp dword ptr [jmp_ret_cull]
+    }
+}
+
+void* cull_detour() { return reinterpret_cast<void*>(&detour_cull); }
+std::unique_ptr<FunctionHook>& cull_hook() { static std::unique_ptr<FunctionHook> h; return h; }
 
 void set_sun(const float* dir) {
+    update_curve_patch();
+    g_uncull = (settings.on && settings.draw_all && loaded()) ? 1 : 0;
     for (int i = 0; i < 3; ++i) g_sun_dir[i] = dir[i];
     ++g_presents;
     if (g_disp_since_present > g_disp_per_present_max) g_disp_per_present_max = g_disp_since_present;
@@ -1101,20 +2385,36 @@ bool loaded() {
     return cached == 1;
 }
 
+uint32_t g_sim_scenes[8];   // the frame's interactive water simulation sub-scenes (view + scene bits of their keys)
+int g_nsim = 0;
+
 bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) {
+    // the final pass without a curve while Remix's (already tone-mapped) image is handed over at half scale
+    tone_map::passthrough = settings.on && settings.inject_pass > 0 && settings.linearize;
     if (!settings.on) { g_remap = 0; return false; }
     auto* dev = static_cast<IDirect3DDevice9*>(device);
     const uint32_t key = list[index * 2 + 1];
     const uint32_t scene = (key >> 24) & 0x1F, pass = (key >> 20) & 0xF;
-    const bool main = scene == kMainScene;
+    if (index == 0) pick_traced_view();
+    const bool main = scene == kMainScene && (key >> 29) == g_main_view;
     if (index == 0) {
+        g_nsim = 0;
+        subdiv::g_drawn_last = subdiv::g_drawn;
+        subdiv::g_drawn = 0;
+        if (g_frames % 600 == 0)
+            for (auto it = subdiv::g_cache.begin(); it != subdiv::g_cache.end();)
+                if (g_frames - it->second.last > 1800) { subdiv::release(it->second); it = subdiv::g_cache.erase(it); }
+                else ++it;
         g_skipped_last = g_skipped.exchange(0);
+        g_unculled_last = g_unculled.exchange(0);
+        g_other_draws_last = g_other_draws.exchange(0);
         g_seen_last = g_seen.exchange(0);
         g_moved_last = g_moved.exchange(0);
         g_water_last = g_water.exchange(0);
         for (int i = 0; i < kWaterCount; ++i)
             if (g_water_param[i] < 0) g_water_param[i] = param_of(kWaterIds[i]);
         if (g_shadow_param < 0) g_shadow_param = param_of(kShadowNearId);
+        if (g_world_param < 0) g_world_param = param_of(0xAE179D10);   // gXfWorld
         if (g_prim_depth_param < 0) g_prim_depth_param = param_of(kPrimDepthId);
         if (g_water_zbuf_param < 0) g_water_zbuf_param = param_of(kWaterZBufferId);
         if (g_prim_scene_param < 0) g_prim_scene_param = param_of(kPrimSceneId);
@@ -1125,6 +2425,10 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
             if (g_prim_param[i] < 0) g_prim_param[i] = param_of(kPrimBaseIds[i]);
         }
         ++g_frames;
+        if (strncmp(settings.hide_textures, g_hide_built_for, sizeof g_hide_built_for - 1) != 0 ||
+            strncmp(settings.hide_water_textures, g_hide_water_built_for, sizeof g_hide_water_built_for - 1) != 0 ||
+            ((g_hide_built_for[0] || g_hide_water_built_for[0]) && g_frames % 60 == 0))
+            build_hide_textures();
         g_in_main = false;
         g_last_vp = 0;
         pick_main_view();
@@ -1133,6 +2437,7 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
         ++g_disp_since_present;
         g_ui_done = false;
         g_solid_seen = false;
+        probe_frame_start(dev);
         if (g_frames % 3600 == 1 && g_norder > 0) {
             FILE* f = nullptr;
             if (fopen_s(&f, "remix_passes.txt", "a") == 0 && f) {
@@ -1154,7 +2459,66 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
     ++g_seen;
     if (main && !g_in_main) {           // the main scene starts: its camera again (another view may have set its own)
         g_in_main = true;
+        g_other_cam = 0;
+        g_block_kind = 0;
+        g_cur_vp = 0;
         g_last_vp = 0;
+        ++g_watch_frame;
+        if (g_first_valid && g_have_main && g_watch_lines < 400) {
+            auto diff = [](const D3DMATRIX& a, const D3DMATRIX& b, bool rot) {
+                float d = 0;
+                for (int r = 0; r < (rot ? 3 : 4); ++r)
+                    for (int c = 0; c < (rot ? 3 : 4); ++c) d = std::max(d, std::fabs(a.m[r][c] - b.m[r][c]));
+                return d;
+            };
+            float pf[3], pm[3], pp[3] = { 0, 0, 0 };
+            view_position(g_first_view, pf);
+            view_position(g_main_v, pm);
+            if (g_prev_main_valid) view_position(g_prev_main_view, pp);
+            const float first_off = std::sqrt((pf[0] - pm[0]) * (pf[0] - pm[0]) + (pf[1] - pm[1]) * (pf[1] - pm[1]) +
+                                              (pf[2] - pm[2]) * (pf[2] - pm[2]));
+            const float first_rot = diff(g_first_view, g_main_v, true), first_proj = diff(g_first_proj, g_main_p, false);
+            const float jump = g_prev_main_valid ? std::sqrt((pm[0] - pp[0]) * (pm[0] - pp[0]) + (pm[1] - pp[1]) * (pm[1] - pp[1]) +
+                                                             (pm[2] - pp[2]) * (pm[2] - pp[2])) : 0.0f;
+            const float jump_rot = g_prev_main_valid ? diff(g_main_v, g_prev_main_view, true) : 0.0f;
+            const bool wrong_first = first_off > 0.5f || first_rot > 0.002f || first_proj > 0.002f;
+            const bool jumped = jump > 20.0f || jump_rot > 0.02f;
+            if (wrong_first || jumped) {
+                FILE* f = nullptr;
+                if (fopen_s(&f, "remix_probe.txt", "a") == 0 && f) {
+                    fprintf(f, "camera watch, frame %u: Remix's camera (first traced draw, pass %u, block kind %u, main camera %s) "
+                               "off the frame's main camera by %.2f cm, rotation %.4f, projection %.4f; main camera moved %.2f cm, "
+                               "rotation %.4f since the last frame\n",
+                            g_watch_frame, g_first_pass, g_first_kind, g_first_after_main ? "uploaded before it" : "not uploaded yet",
+                            first_off, first_rot, first_proj, jump, jump_rot);
+                    fclose(f);
+                    ++g_watch_lines;
+                }
+            }
+        }
+        if (g_have_main) { g_prev_main_view = g_main_v; g_prev_main_valid = true; }
+        g_first_valid = false;
+        g_main_uploaded = false;
+        g_first_traced = false;
+        g_have_frame_vp = false;
+        g_cur_world = 0;
+        if (g_probe == 2 && g_main_vp && g_vp_transposed >= 0) {   // what the main blocks hold now, before any upload
+            std::string s = "  main scene starts:";
+            for (const intptr_t d : { intptr_t(0), intptr_t(0x40), intptr_t(-0x40) }) {
+                D3DMATRIX v;
+                load_matrix(v, reinterpret_cast<const float*>(g_main_vp + d - 0x100), g_vp_transposed == 1);
+                float pos[3];
+                view_position(v, pos);
+                char b[96];
+                sprintf_s(b, " block %04X camera at %.1f %.1f %.1f;", unsigned((g_main_vp + d) & 0xFFFF), pos[0], pos[1], pos[2]);
+                s += b;
+            }
+            float pos[3];
+            view_position(g_main_v, pos);
+            char b[96];
+            sprintf_s(b, " last frame's camera at %.1f %.1f %.1f\n", pos[0], pos[1], pos[2]);
+            g_probe_text += s + b;
+        }
         set_transforms(dev);
     } else if (!main) {
         g_in_main = false;
@@ -1162,10 +2526,21 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
     // after the injection the game's own shaders draw: no stage moves, stand-ins or hidden draws there
     const bool after_inject = settings.inject_pass > 0 && pass >= static_cast<uint32_t>(settings.inject_pass);
     g_remap = (main && settings.albedo_to_stage0 && !after_inject) ? 1 : 0;
+    if (!g_remap) g_subdiv_next = 0;   // water subdivision only where the bridge binds (the traced main scene)
     if (g_sky_vp && (pass != g_pass || !main)) sky_viewport(dev, false);   // the sky stays within SOLID
     g_pass = pass;
     bool skip = false;
-    if (!main && settings.skip_other_scenes) skip = true;
+    // the interactive water's simulation (uInteractiveWater::draw: sub-scenes opened by a debug marker, command 16 with
+    // the name at +0xC, then quads into its maps; Remix only rasterises draws into other targets) keeps running
+    if (!main && settings.water_ripples) {
+        const auto* cmd = reinterpret_cast<const uint32_t*>(list[index * 2]);
+        const char* name = (cmd && cmd[0] == 16 && cmd[3]) ? reinterpret_cast<const char*>(cmd[3]) : nullptr;
+        if (name && (strcmp(name, "IWaterInit") == 0 || strcmp(name, "IWaterUpdate") == 0) && g_nsim < 8)
+            g_sim_scenes[g_nsim++] = key >> 24;
+    }
+    bool sim = false;
+    for (int i = 0; i < g_nsim; ++i) sim |= g_sim_scenes[i] == (key >> 24);
+    if (!main && settings.skip_other_scenes && !sim) skip = true;
     if (main && pass == kZPass && settings.skip_zpass) skip = true;
     // the filters tone-map the HDR scene buffer into the target the HUD and the end of the frame draw on: needed once the
     // traced image goes into that buffer
@@ -1190,6 +2565,26 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
             if (g_norder < 256) { g_order_rt[g_norder] = rtp; g_order_desc[g_norder] = desc; g_order[g_norder++] = k | bb; }
         }
     }
+    if (g_probe == 2 && main && g_ui_done && pass >= 8 && g_probe_tags < 120) {   // the filters: what each tag left
+        ++g_probe_tags;
+        g_probe_pass = pass;
+        char label[128];
+        // a filter starts with a debug marker (command 16, its name at +0xC: "ColorCorrectFilter", ...)
+        const auto* cmd = reinterpret_cast<const uint32_t*>(list[index * 2]);
+        const char* marker = (cmd && cmd[0] == 16 && cmd[3]) ? reinterpret_cast<const char*>(cmd[3]) : "";
+        sprintf_s(label, "tag %u (pass %u, key %08X)%s %.40s", index, pass, key, skip ? " skipped" : "", marker);
+        probe(dev, label);
+        IDirect3DSurface9* rt = nullptr;
+        if (g_probe_scene && SUCCEEDED(dev->GetRenderTarget(0, &rt)) && rt) {
+            if (rt != g_probe_scene) probe(dev, "  the trigger's target", g_probe_scene);
+            rt->Release();
+        }
+    } else if (g_probe == 2 && main && pass != g_probe_pass) {
+        g_probe_pass = pass;
+        char label[64];
+        sprintf_s(label, "main pass %u starts%s", pass, skip ? " (skipped)" : "");
+        probe(dev, label);
+    }
     if (main && pass == 2) g_solid_seen = true;
     if (main && !skip && after_inject && !g_ui_done && g_solid_seen) {
         g_ui_done = true;
@@ -1198,8 +2593,14 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
         g_ui_fired_pass = pass;
         IDirect3DSurface9* rt = nullptr;
         if (SUCCEEDED(dev->GetRenderTarget(0, &rt)) && rt) { g_ui_fired_rt = reinterpret_cast<uintptr_t>(rt); rt->Release(); }
+        if (g_probe == 2) {
+            probe_state(dev);
+            if (!g_probe_scene) dev->GetRenderTarget(0, &g_probe_scene);
+        }
         trigger_ui(dev);
+        if (g_probe == 2) probe(dev, "after the trigger");
         linearize(dev);
+        if (g_probe == 2) probe(dev, "after the hand-over");
     }
     if (skip) ++g_skipped;
     return skip;
@@ -1216,6 +2617,69 @@ void draw_gui() {
     ImGui::PushID("PostFX_Remix");
     ImGui::TextDisabled(loaded() ? _("Remix's d3d9.dll is loaded") : _("The system's d3d9.dll is loaded (no Remix)"));
     ImGui::Checkbox(_("Skip other views (shadow maps, reflections)"), &settings.skip_other_scenes);
+    ImGui::SameLine();
+    Mod::help_marker(_("Also every camera but the one in use: Remix traces one camera, so extra cameras (Free Camera's "
+                       "split views, co-op's split screen) stay empty while the bridge is on."));
+    ImGui::Checkbox(_("Draw what's off screen too"), &settings.draw_all);
+    ImGui::SameLine();
+    Mod::help_marker(_("DMC4 leaves out every model outside the camera's view. Remix only knows what the game draws, so "
+                       "shadows, bounced light and reflections from things behind the camera came and went as it turned. "
+                       "With this on, the game draws everything in the room for Remix (more work for the CPU and for "
+                       "Remix). Only the view Remix traces; shadow maps and reflections keep culling."));
+    {
+        static const char* kOther[] = { "Placed with the main camera", "Hidden from Remix", "Placed with their own projection" };
+        ImGui::Combo(_("Draws with another projection"), &settings.other_cameras, kOther, 3);
+        ImGui::SameLine();
+        Mod::help_marker(_("Some stages draw part of the scene with a second projection (Fortuna does, for objects that "
+                           "change from frame to frame). Placed with the main camera, Remix put them at the wrong distance "
+                           "(floating slabs, shards); hidden, they popped in and out. Own projection hands Remix the one "
+                           "they were drawn with."));
+    }
+    ImGui::Checkbox(_("Interactive water ripples (restart)"), &settings.water_ripples);
+    ImGui::SameLine();
+    Mod::help_marker(_("The practice stage's and the Bloody Palace's water floors simulate their ripples on the graphics card "
+                       "and draw them only as shading on a flat surface, which Remix can't see. With this on, the simulation "
+                       "keeps running under the bridge and the surface is lifted by it, so Remix traces real ripples. Takes "
+                       "effect for stages loaded after a restart with the bridge on."));
+    if (settings.water_ripples) {
+        ImGui::SliderFloat(_("Ripple height"), &settings.ripple_height, 0.0f, 100.0f, "%.1f cm");
+        ImGui::SameLine();
+        Mod::help_marker(_("How far the surface rises at the simulation's full amplitude, per unit of the water's Y scale "
+                           "(the game sets the simulation's amplitude from it, so taller water makes taller ripples)."));
+        ImGui::TextDisabled(_("Water surfaces with ripples: %u"), g_iw_replaced);
+        if (g_iw_nunits > 0) {
+            const uintptr_t u = g_iw_units[0];
+            const float* sc = reinterpret_cast<const float*>(u + 0x40);
+            ImGui::TextDisabled(_("Interactive water: scale %.2f %.2f %.2f, spring %.3f, damping %.3f, rain %u a frame, "
+                                  "edge waves %.3f"), sc[0], sc[1], sc[2], *reinterpret_cast<const float*>(u + 0x90),
+                                *reinterpret_cast<const float*>(u + 0x94), *reinterpret_cast<const uint32_t*>(u + 0x138),
+                                *reinterpret_cast<const float*>(u + 0x13C));
+        }
+    }
+    ImGui::SliderInt(_("Water detail"), &settings.water_detail, 0, 3);
+    ImGui::SameLine();
+    Mod::help_marker(_("Waves are vertices to Remix, so they're only as fine as the water's mesh. Each level splits every "
+                       "triangle of the sea's and the interactive water's meshes in four (the game's shaders then wave the "
+                       "extra vertices). More detail costs Remix more work every frame. 0 = the game's meshes."));
+    ImGui::TextDisabled(_("Water draws subdivided last frame: %u, meshes cached: %u"), subdiv::g_drawn_last,
+                        static_cast<unsigned>(subdiv::g_cache.size()));
+    {
+    }
+    ImGui::Checkbox(_("Give Remix each object's position"), &settings.world_positions);
+    ImGui::SameLine();
+    Mod::help_marker(_("Remix tells objects apart from frame to frame by their mesh and position. Without this every copy of "
+                       "a prop (a street's trash cans) looked like it stood in the same spot, and the copies flickered between "
+                       "lit and dark and smeared as they took each other's history."));
+    ImGui::InputText(_("Hide water using textures containing"), settings.hide_water_textures, sizeof settings.hide_water_textures);
+    ImGui::SameLine();
+    Mod::help_marker(_("Puddles use the sea's shader, so the water stand-in gave them the sea's look. Water drawn with a "
+                       "texture whose path contains this text is left out of Remix (any case; several separated by ;). The "
+                       "probe lists each water draw's textures."));
+    ImGui::InputText(_("Hide textures containing"), settings.hide_textures, sizeof settings.hide_textures);
+    ImGui::SameLine();
+    Mod::help_marker(_("For telling which object is which: draws using a texture whose path contains this text are hidden "
+                       "from Remix (any case; several separated by ;, e.g. wood00;grass). The probe lists the paths. Not "
+                       "saved."));
     ImGui::Checkbox(_("Skip the depth prepass"), &settings.skip_zpass);
     ImGui::Checkbox(_("Hide occlusion tests (white diamonds at lights)"), &settings.hide_occlusion);
     ImGui::Checkbox(_("Hide shadow overlays"), &settings.hide_shadow_overlays);
@@ -1237,6 +2701,11 @@ void draw_gui() {
                            "filters and tone map apply, the HUD stays flat. At present (Remix's default) Remix traces "
                            "everything, the HUD included, and covers the game's image at the end."));
     }
+    if (ImGui::Button(_("Probe one frame"))) settings.probe = 1;
+    ImGui::SameLine();
+    Mod::help_marker(_("For finding faults: writes remix_probe.txt in the game folder with how bright the picture is at "
+                       "each stage of the next frame (before and after Remix's image goes in, each pass after it, the "
+                       "final screen). Press it, then send the file."));
     ImGui::Checkbox(_("Skip the HUD and menus"), &settings.skip_hud);
     ImGui::SameLine();
     Mod::help_marker(_("Remix traces the HUD as if it were in the world. Skipping it also hides the title screen and menus; "
@@ -1284,14 +2753,14 @@ void draw_gui() {
         Mod::help_marker(_("How many times the wave pattern repeats across the water: higher = smaller waves."));
     }
     if (settings.inject_pass > 0) {
-        ImGui::Checkbox(_("Linear image for the game"), &settings.linearize);
+        ImGui::Checkbox(_("Remix's image as it is"), &settings.linearize);
         ImGui::SameLine();
-        Mod::help_marker(_("Remix hands over a tone-mapped, display-encoded image; the game then tone-maps it again, which blows "
-                           "out bright areas. This turns it back into a linear HDR image first."));
-        if (settings.linearize) {
-            ImGui::SliderFloat(_("Expand highlights"), &settings.expand, 0.0f, 1.0f, "%.2f");
+        Mod::help_marker(_("Remix hands over an image it has already tone-mapped. The game's final pass doubles the scene "
+                           "and may tone-map it again (a stage's own curve, or ToneMap's): with this on, the image goes in at "
+                           "half and that pass runs without a curve, so the screen shows Remix's lighting plus the game's "
+                           "bloom. Off: the game's final pass as it is (too bright or too dark)."));
+        if (settings.linearize)
             ImGui::SliderFloat(_("Exposure"), &settings.exposure, 0.1f, 4.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
-        }
     }
     ImGui::Checkbox(_("Patch shaders for Remix (restart)"), &settings.relabel);
     ImGui::SameLine();
@@ -1313,12 +2782,14 @@ void draw_gui() {
     ImGui::SameLine();
     Mod::help_marker(_("Heat haze and refracting sword trails bend the screen image in a shader; Remix only sees their "
                        "distortion texture, which shows as a purple colour."));
-    ImGui::TextDisabled(_("Last frame: %u of %u draws skipped, %u textures moved, %u water passes"), g_skipped_last,
-                        g_seen_last, g_moved_last, g_water_last);
+    ImGui::TextDisabled(_("Last frame: %u of %u draws skipped, %u textures moved, %u water passes, %u models drawn "
+                          "outside the view, %u draws with another camera"), g_skipped_last, g_seen_last, g_moved_last,
+                        g_water_last, g_unculled_last, g_other_draws_last);
     ImGui::TextDisabled(_("Shaders patched (needs the bridge on at startup): %u relabelled, %u with a normal output; "
                           "%u draws hidden, %u sky"), g_relabelled, g_normals, g_hidden_last, g_sky_last);
-    ImGui::TextDisabled(_("Camera from the drawn frame: %u updates, %u other views passed over (%s layout)"), g_vp_sets_last,
-                        g_vp_rejected_last, g_vp_transposed < 0 ? "?" : g_vp_transposed ? "transposed" : "row");
+    ImGui::TextDisabled(_("Camera from the drawn frame (view %u): %u updates, %u other views passed over (%s layout)"),
+                        g_main_view, g_vp_sets_last, g_vp_rejected_last,
+                        g_vp_transposed < 0 ? "?" : g_vp_transposed ? "transposed" : "row");
     ImGui::PopID();
     ImGui::Unindent(Mod::lineIndent);
 }
@@ -1335,6 +2806,16 @@ void load(const utility::Config& cfg) {
     settings.hide_water_depth = cfg.get<bool>("remix_hide_water_depth").value_or(false);
     settings.hide_water_simple = cfg.get<bool>("remix_hide_water_simple").value_or(false);
     settings.hide_water_flat = cfg.get<bool>("remix_hide_water_flat").value_or(false);
+    settings.draw_all = cfg.get<bool>("remix_draw_all").value_or(false);
+    settings.other_cameras = cfg.get<int>("remix_other_cameras").value_or(1);
+    settings.world_positions = cfg.get<bool>("remix_world_positions").value_or(true);
+    settings.water_ripples = cfg.get<bool>("remix_water_ripples").value_or(true);
+    settings.ripple_height = cfg.get<float>("remix_ripple_height").value_or(10.0f);
+    settings.water_detail = cfg.get<int>("remix_water_detail").value_or(1);
+    {
+        const std::string w = cfg.get("remix_hide_water_textures").value_or("");
+        strncpy_s(settings.hide_water_textures, w.c_str(), _TRUNCATE);
+    }
     settings.water_tiling = cfg.get<float>("remix_water_tiling").value_or(4.0f);
     for (int i = 0; i < 2; ++i)
         settings.water_flow[i] = cfg.get<float>("remix_water_flow_" + std::to_string(i)).value_or(settings.water_flow[i]);
@@ -1373,6 +2854,13 @@ void save(utility::Config& cfg) {
     cfg.set<bool>("remix_hide_water_depth", settings.hide_water_depth);
     cfg.set<bool>("remix_hide_water_simple", settings.hide_water_simple);
     cfg.set<bool>("remix_hide_water_flat", settings.hide_water_flat);
+    cfg.set<bool>("remix_draw_all", settings.draw_all);
+    cfg.set<int>("remix_other_cameras", settings.other_cameras);
+    cfg.set<bool>("remix_world_positions", settings.world_positions);
+    cfg.set<bool>("remix_water_ripples", settings.water_ripples);
+    cfg.set<float>("remix_ripple_height", settings.ripple_height);
+    cfg.set<int>("remix_water_detail", settings.water_detail);
+    cfg.set("remix_hide_water_textures", std::string(settings.hide_water_textures));
     cfg.set<float>("remix_water_tiling", settings.water_tiling);
     for (int i = 0; i < 2; ++i) cfg.set<float>("remix_water_flow_" + std::to_string(i), settings.water_flow[i]);
     cfg.set<bool>("remix_skip_hud", settings.skip_hud);

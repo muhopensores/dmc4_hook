@@ -135,6 +135,15 @@ static void spawn(void* fptr) {
     sUnit_spawn(obj, 17);
 }
 
+// A placed light lights every model. The constructor (uLight 0xA6AB30) gives light group 3 (+0x1C, the characters'), and
+// a light reaches a model only when their groups share a bit (uModel +0x130; stages often use others), so a light put
+// in a dark room lit nothing around it. The RTX Remix bridge likewise passes on only lights of the stage's group.
+static void spawn_light(void* fptr) {
+    void* obj = call_constructor(fptr);
+    if (obj) *reinterpret_cast<uint32_t*>(static_cast<char*>(obj) + 0x1C) = 0xFFFFFFFFu;
+    sUnit_spawn(obj, 17);
+}
+
 static void SetGameSpeeds(float speed) {
     sWorkRate* wr = devil4_sdk::get_work_rate();
     if (!wr) { return; }
@@ -907,19 +916,19 @@ void PhotoMode::on_frame(fmilliseconds& dt) {
                     ImGui::BeginChild("PhotoTabBarChild");
                     ImGui::SeparatorText(_("Lights"));
                     if (ImGui::Button(_("Infinite Light")))
-                        spawn((void*)uInfiniteLightCons);
+                        spawn_light((void*)uInfiniteLightCons);
                     ImGui::SameLine();
                     if (ImGui::Button(_("Spot Light")))
-                        spawn((void*)uSpotLightCons);
+                        spawn_light((void*)uSpotLightCons);
                     ImGui::SameLine();
                     if (ImGui::Button(_("Point Light")))
-                        spawn((void*)uPointLightCons);
+                        spawn_light((void*)uPointLightCons);
                     ImGui::SameLine();
                     if (ImGui::Button(_("Hemi Light")))
-                        spawn((void*)uHemiSphereLightCons);
+                        spawn_light((void*)uHemiSphereLightCons);
                     ImGui::SameLine();
                     if (ImGui::Button(_("Back Light")))
-                        spawn((void*)uBackLightCons);
+                        spawn_light((void*)uBackLightCons);
 
                     ImGui::SeparatorText(_("Filters"));
                     if (ImGui::Button(_("DOF Filter")))

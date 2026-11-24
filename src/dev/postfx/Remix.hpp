@@ -56,6 +56,40 @@ struct Settings {
     bool hide_water_depth = false;   // XfWater (normal + cube + depth buffer): the sea, puddles faded by depth
     bool hide_water_simple = false;  // water binding only its normal map
     bool hide_water_flat = false;    // XfFlatWater (the BP floor)
+    // 1 = probe the next frame (the GUI's button, or a debugger): the main view's picture at each pass, around the injection
+    // and after the present, plus the trigger's device state, to remix_probe.txt; back to 0 when it starts. Not saved
+    int probe = 0;
+    // the traced view's main scene draws every model, also those outside the camera's view (uModel::frustumCullAndLOD
+    // answers "inside"): Remix only knows what's drawn, so shadow casters, bounce surfaces and walls behind the camera
+    // came and went as it turned
+    bool draw_all = false;
+    // main-scene draws made with another camera than the one Remix gets (Fortuna's stage: a second view block in SOLID;
+    // the shadow overlay's projector in OVERLAP): Remix rebuilds every vertex from its screen position with the main camera,
+    // so they landed in the wrong place (floating stairs, shards, a refracting sheet). 0 = traced as before, 1 = hidden
+    // from Remix, 2 = placed with their own projection (the main camera's view, P = V^-1 . VP: the block is the same
+    // camera with another projection, used for objects that change from frame to frame)
+    int other_cameras = 1;
+    // debugging: draws using a texture whose path contains this text (any case; several separated by ';') are hidden from
+    // Remix, to tell which object is which. Not saved
+    char hide_textures[64] = "";
+    // D3D WORLD = each draw's position (gXfWorld's translation). Remix matches a draw to last frame's object by its mesh
+    // and the centre of its bounding box (input vertices times WORLD); with WORLD identity every copy of a prop had the
+    // same centre (Fortuna's 9 trash cans), so each took another copy's history as the draw order shuffled: the copies
+    // flickered between lit and dark and smeared. Only the translation: Remix turns captured normals by WORLD, and the
+    // bridge's normal output is world space already
+    bool world_positions = true;
+    // water draws using a texture whose path contains this text (any case; several separated by ';') are hidden from
+    // Remix: puddles share the sea's shader, so the stand-in gave them the sea's look
+    char hide_water_textures[64] = "";
+    // interactive water (uInteractiveWater: the practice stage, the BP floor): its ripples are simulated on the GPU in the
+    // sub-scenes IWaterInit / IWaterUpdate (which "skip other views" skipped) and drawn only as a normal map on a flat grid.
+    // On: the simulation runs, and the surface's vertex shader is replaced (at creation: restart) by one that lifts the
+    // grid by the height map and outputs the normal map's normal, so Remix traces real ripples
+    bool water_ripples = true;
+    float ripple_height = 10.0f;   // cm the surface rises at the simulation's full amplitude, per unit of the water's Y scale
+    // water meshes whose vertex shaders move their vertices (XfWater's waves, the interactive surface) drawn subdivided:
+    // each level splits every triangle in four (a cached copy per mesh), so the waves get as many vertices. 0 = the game's
+    int water_detail = 1;
 };
 extern Settings settings;
 
@@ -78,6 +112,16 @@ extern uintptr_t jmp_ret_vsarr;
 void* vsarr_detour();
 std::unique_ptr<FunctionHook>& vsarr_hook();
 std::unique_ptr<FunctionHook>& shader_hook();
+// uModel::frustumCullAndLOD (0x9EDBB0, 6 bytes: push ebp / mov ebp, esp / and esp, -16): settings.draw_all
+// dispatchCommands' indexed draw (0x8F574E, 7 bytes: the command in eax, the device in esi): settings.water_detail
+constexpr uintptr_t kDrawIndexed = 0x8F574E;
+extern uintptr_t jmp_ret_draw;
+void* draw_detour();
+std::unique_ptr<FunctionHook>& draw_hook();
+constexpr uintptr_t kCullAndLod = 0x9EDBB0;
+extern uintptr_t jmp_ret_cull;
+void* cull_detour();
+std::unique_ptr<FunctionHook>& cull_hook();
 void set_sun(const float* dir);
 void on_reset();   // releases the default-pool texture before a device reset   // the way the sun's light travels, game axes (PostFX's g_sun), each frame
 void load(const utility::Config& cfg);
