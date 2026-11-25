@@ -90,6 +90,25 @@ struct Settings {
     // water meshes whose vertex shaders move their vertices (XfWater's waves, the interactive surface) drawn subdivided:
     // each level splits every triangle in four (a cached copy per mesh), so the waves get as many vertices. 0 = the game's
     int water_detail = 1;
+    // skinned draws (bones in gXfJointWorld, no gXfWorld: characters) get WORLD = the translation of their first bone,
+    // which moves with the character (within a metre or so of its position), instead of the origin for every body part.
+    // Testing whether Remix then matches a body part to its own last-frame object more reliably (a character drawn
+    // standing at the start spot for a second after a room change while the game had it running). Needs world_positions
+    bool skinned_positions = true;
+    // the stage's point and spot lights as sphere lights through the Remix API (needs exposeRemixApi = True in
+    // _trex\bridge.conf). Remix makes its D3D9 point lights only as bright as their range (the colour is divided by
+    // its largest component) and stops taking a still light's changes after 50 frames; through the API the radiance
+    // is ours: the game's colour x point_strength reached at point_distance. Without the API: D3D9 lights as before
+    bool api_lights = true;
+    float point_radius = 5.0f;       // cm, the sphere lights' size
+    float point_distance = 200.0f;   // cm: where an API light gives the game's colour (x point_strength)
+    // draws using a texture whose path contains this text (any case, ';'-separated) get a sphere light at their middle
+    // (Remix's own "Add Light to Texture" reads the draw's vertices on the CPU, and under vertex capture they are only
+    // on the GPU: it makes no light for DMC4). Main-scene draws before the hand-over only: not effects drawn after it
+    char light_textures[128] = "";
+    float tex_light_color[3] = { 1.0f, 0.72f, 0.42f };
+    float tex_light_strength = 1.0f;  // the light's colour at point_distance
+    float tex_light_radius = 5.0f;    // cm
 };
 extern Settings settings;
 
@@ -111,6 +130,12 @@ constexpr uintptr_t kVsArrays = 0x8F5380;
 extern uintptr_t jmp_ret_vsarr;
 void* vsarr_detour();
 std::unique_ptr<FunctionHook>& vsarr_hook();
+// dispatchCommands' third vertex-constant loop (0x8F53E5, the same 10 bytes as 0x8F5380): uploads through a descriptor
+// {count | 0x80000000, data}, which is how skinned draws get their bones (gXfJointWorld, sScene's envelopes)
+constexpr uintptr_t kVsDescs = 0x8F53E5;
+extern uintptr_t jmp_ret_vsdesc;
+void* vsdesc_detour();
+std::unique_ptr<FunctionHook>& vsdesc_hook();
 std::unique_ptr<FunctionHook>& shader_hook();
 // uModel::frustumCullAndLOD (0x9EDBB0, 6 bytes: push ebp / mov ebp, esp / and esp, -16): settings.draw_all
 // dispatchCommands' indexed draw (0x8F574E, 7 bytes: the command in eax, the device in esi): settings.water_detail

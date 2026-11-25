@@ -703,6 +703,8 @@ std::optional<std::string> PostFX::on_initialize() {
         spdlog::error("PostFX: failed to hook sRender::dispatchCommands' shader creation (0x8F49BC)");
     if (!install_hook_absolute(remix::kVsArrays, remix::vsarr_hook(), remix::vsarr_detour(), &remix::jmp_ret_vsarr, 10))
         spdlog::error("PostFX: failed to hook sRender::dispatchCommands' vertex shader arrays (0x8F5380)");
+    if (!install_hook_absolute(remix::kVsDescs, remix::vsdesc_hook(), remix::vsdesc_detour(), &remix::jmp_ret_vsdesc, 10))
+        spdlog::error("PostFX: failed to hook sRender::dispatchCommands' vertex shader descriptors (0x8F53E5)");
     if (!install_hook_absolute(remix::kDrawIndexed, remix::draw_hook(), remix::draw_detour(), &remix::jmp_ret_draw, 7))
         spdlog::error("PostFX: failed to hook sRender::dispatchCommands' indexed draw (0x8F574E)");
     if (!install_hook_absolute(remix::kCullAndLod, remix::cull_hook(), remix::cull_detour(), &remix::jmp_ret_cull, 6))

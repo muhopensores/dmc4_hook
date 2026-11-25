@@ -19,6 +19,9 @@
 #include <cstdio>
 #include <cmath>
 #include <algorithm>
+#define REMIX_ALLOW_X86                 // the API's types only: the bridge's 32-bit client takes the calls
+#include "remix/remix_c.h"
+#undef REMIX_ALLOW_X86
 
 namespace remix {
 
@@ -32,6 +35,9 @@ bool g_first_traced = false;    // the main scene's first draw Remix traces has 
 int g_world_param = -1;         // gXfWorld's parameter (world positions)
 uintptr_t g_cur_world = 0;      // its value now (a pointer to the matrix)
 bool g_world_this_draw = false; // this draw's vertex parameters included gXfWorld (else it has none: skinned, sky ...)
+int g_joints_param = -1;        // gXfJointWorld's parameter (skinned draws' bones, row-major 3x4 each)
+uintptr_t g_cur_joints = 0;     // its value now (a pointer to the bone matrices)
+bool g_joints_this_draw = false; // this draw's vertex parameters included gXfJointWorld
 D3DMATRIX g_world_set{};        // the WORLD transform last given to D3D
 // camera watch: the view / projection the frame's first traced draw carried (Remix's camera for the frame), the pass it
 // came in and whether the main camera had been uploaded, and the last frame's main camera
@@ -143,7 +149,7 @@ uint32_t g_hidden_last = 0;
 // light). A light without a parent is where its mPos says: mWPos is the game's copy, made when the light moves, so a
 // light placed in photo mode (game paused) stayed at the origin. Remix makes its lights of the enabled D3D9 lights; D3D9 allows 8 at once:
 // directional ones first, then the point lights that matter most to the view (nearest to the camera relative to their range).
-struct GameLight { int kind; float col[3]; float v[3]; float range; uint32_t group; };   // kind 1 directional (v = travel), 2 point (v = pos)
+struct GameLight { int kind; float col[3]; float v[3]; float range; uint32_t group; uintptr_t unit; };   // kind 1 directional (v = travel), 2 point (v = pos)
 constexpr int kMaxLights = 8;              // D3D9 lights on at once
 constexpr int kMaxAll = 72;               // lights handed over per frame, in batches of 8 (Remix keeps every light it
                                           // is given during a frame: LightManager::addLight, keyed by the light's hash)
@@ -232,7 +238,7 @@ int gather_lights_raw(GameLight* out, int max) {
                         const float end = *reinterpret_cast<const float*>(u + (spot ? 0x84 : 0x54));
                         const float dx = p[0] - cam[0], dy = p[1] - cam[1], dz = p[2] - cam[2];
                         score[np] = std::sqrt(dx * dx + dy * dy + dz * dz) / (end > 1.0f ? end : 1.0f);
-                        points[np++] = { 2, { col[0], col[1], col[2] }, { p[0], p[1], p[2] }, end, group };
+                        points[np++] = { 2, { col[0], col[1], col[2] }, { p[0], p[1], p[2] }, end, group, u };
                     }
                 }
                 u = next;
@@ -511,16 +517,23 @@ bool path_matches(const char* path, const char* filter) {   // any ';'-separated
 std::unordered_set<uintptr_t> g_hide_water_tex;   // settings.hide_water_textures' textures
 char g_hide_water_built_for[64] = "";
 
+std::unordered_set<uintptr_t> g_light_tex;        // settings.light_textures' textures
+char g_light_built_for[128] = "";
+
 void build_hide_textures() {
     g_hide_tex.clear();
     g_hide_water_tex.clear();
+    g_light_tex.clear();
+    memcpy(g_light_built_for, settings.light_textures, sizeof g_light_built_for);
+    g_light_built_for[sizeof g_light_built_for - 1] = 0;
     memcpy(g_hide_built_for, settings.hide_textures, sizeof g_hide_built_for);
     g_hide_built_for[sizeof g_hide_built_for - 1] = 0;
     memcpy(g_hide_water_built_for, settings.hide_water_textures, sizeof g_hide_water_built_for);
     g_hide_water_built_for[sizeof g_hide_water_built_for - 1] = 0;
-    if (!g_hide_built_for[0] && !g_hide_water_built_for[0]) return;
+    if (!g_hide_built_for[0] && !g_hide_water_built_for[0] && !g_light_built_for[0]) return;
     for_each_texture([](uintptr_t t, const char* p) {
         if (g_hide_built_for[0] && path_matches(p, g_hide_built_for)) g_hide_tex.insert(t);
+        if (g_light_built_for[0] && path_matches(p, g_light_built_for)) g_light_tex.insert(t);
         if (g_hide_water_built_for[0] && path_matches(p, g_hide_water_built_for)) g_hide_water_tex.insert(t);
     });
 }
@@ -1238,11 +1251,272 @@ bool build(IDirect3DDevice9* dev, const Key& k, IDirect3DVertexBuffer9* vb, IDir
 }
 } // namespace subdiv
 
+// ---- lights through the Remix API (settings.api_lights, settings.light_textures) ----
+// The bridge's 32-bit client takes the API's light calls (CreateLight / DrawLightInstance / DestroyLight) when
+// exposeRemixApi = True in _trex\bridge.conf; it accepts API version 0.6.x (remixapi_InitializeLibrary). A light is
+// drawn per frame; the API can't change a light, so one whose position or radiance changed is made again.
+namespace api {
+remixapi_Interface g{};
+int g_state = 0;                  // 0 not tried, 1 ready, -1 not available
+int g_error = 0;                  // remixapi_ErrorCode of the failed init
+uint32_t g_drawn_last = 0, g_made = 0;
+struct Live { remixapi_LightHandle h = nullptr; float pos[3]{}, rad[3]{}, radius = 0; uint32_t seen = 0; };
+std::unordered_map<uint64_t, Live> g_live;
+uint32_t g_drawn = 0;
+
+void note(const char* what, int code) {   // a line in remix_probe.txt (the API's state is otherwise only in the GUI)
+    FILE* f = nullptr;
+    if (fopen_s(&f, "remix_probe.txt", "a") == 0 && f) {
+        fprintf(f, "remix api: %s (%d), frame %u\n", what, code, g_frames.load());
+        fclose(f);
+    }
+}
+
+uint32_t g_retry_at = 0;          // NOT_INITIALIZED (the bridge server not up yet, as on the first frames): try again then
+
+bool ready() {
+    if (g_state > 0) return true;
+    if (g_state < 0 && !(g_error == REMIXAPI_ERROR_CODE_NOT_INITIALIZED && g_frames.load() >= g_retry_at)) return false;
+    const bool first = g_state == 0;
+    g_state = -1;
+    const HMODULE d3d9 = GetModuleHandleA("d3d9.dll");
+    const auto init = d3d9 ? reinterpret_cast<PFN_remixapi_InitializeLibrary>(GetProcAddress(d3d9, "remixapi_InitializeLibrary"))
+                           : nullptr;
+    if (!init) { g_error = -1; note("no remixapi_InitializeLibrary in d3d9.dll", -1); return false; }
+    remixapi_InitializeLibraryInfo info{};
+    info.sType = REMIXAPI_STRUCT_TYPE_INITIALIZE_LIBRARY_INFO;
+    info.version = REMIXAPI_VERSION_MAKE(REMIXAPI_VERSION_MAJOR, REMIXAPI_VERSION_MINOR, REMIXAPI_VERSION_PATCH);
+    remixapi_Interface out{};
+    const remixapi_ErrorCode e = init(&info, &out);
+    if (e != REMIXAPI_ERROR_CODE_SUCCESS || !out.CreateLight || !out.DestroyLight || !out.DrawLightInstance) {
+        g_error = static_cast<int>(e);
+        if (first) note("remixapi_InitializeLibrary failed", g_error);
+        if (e == REMIXAPI_ERROR_CODE_NOT_INITIALIZED) g_retry_at = g_frames.load() + 120;
+        return false;
+    }
+    g = out;
+    g_state = 1;
+    note("ready", 0);
+    return true;
+}
+
+bool differs(const float* a, const float* b, float eps) {
+    return std::fabs(a[0] - b[0]) > eps || std::fabs(a[1] - b[1]) > eps || std::fabs(a[2] - b[2]) > eps;
+}
+
+// this frame's light for key: made (again) when new or changed, then drawn
+void draw(uint64_t key, const float pos[3], float radius, const float rad[3]) {
+    Live& l = g_live[key];
+    if (l.h && (differs(pos, l.pos, 0.05f) || differs(rad, l.rad, 1e-4f * (1.0f + rad[0] + rad[1] + rad[2])) ||
+                std::fabs(radius - l.radius) > 1e-3f)) {
+        g.DestroyLight(l.h);
+        l.h = nullptr;
+    }
+    if (!l.h) {
+        remixapi_LightInfoSphereEXT s{};
+        s.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_SPHERE_EXT;
+        s.position = { pos[0], pos[1], pos[2] };
+        s.radius = radius;
+        s.shaping_hasvalue = 0;
+        s.volumetricRadianceScale = 1.0f;
+        remixapi_LightInfo li{};
+        li.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
+        li.pNext = &s;
+        li.hash = key;
+        li.radiance = { rad[0], rad[1], rad[2] };
+        const remixapi_ErrorCode e = g.CreateLight(&li, &l.h);
+        if (e != REMIXAPI_ERROR_CODE_SUCCESS) {
+            l.h = nullptr;
+            static int fails = 0;
+            if (fails++ < 3) note("CreateLight failed", static_cast<int>(e));
+        } else if (g_made == 0) {
+            note("first light made", 0);
+        }
+        if (l.h) ++g_made;
+        for (int i = 0; i < 3; ++i) { l.pos[i] = pos[i]; l.rad[i] = rad[i]; }
+        l.radius = radius;
+    }
+    if (l.h && g.DrawLightInstance(l.h) == REMIXAPI_ERROR_CODE_SUCCESS) ++g_drawn;
+    l.seen = g_frames.load();
+}
+
+// the lights not drawn this frame go
+void sweep() {
+    const uint32_t now = g_frames.load();
+    for (auto it = g_live.begin(); it != g_live.end();) {
+        if (it->second.seen != now) {
+            if (it->second.h) g.DestroyLight(it->second.h);
+            it = g_live.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    g_drawn_last = g_drawn;
+    g_drawn = 0;
+}
+
+void destroy_all() {
+    for (auto& [k, l] : g_live) if (l.h) g.DestroyLight(l.h);
+    g_live.clear();
+}
+
+// radiance of a sphere light of radius r that lights a surface facing it at distance d as much as colour c (irradiance
+// = radiance x pi r^2 / d^2 for d >> r)
+void radiance(const float c[3], float strength, float r, float d, float out[3]) {
+    const float k = strength * (d * d) / (3.14159265f * r * r);
+    for (int i = 0; i < 3; ++i) out[i] = std::max(0.0f, c[i]) * k;
+}
+} // namespace api
+
+// lights at the middle of draws using settings.light_textures: found while the frame draws (the indexed-draw hook),
+// handed to Remix at the next frame's start, so every pass's draws can take part
+namespace texlight {
+struct VsRegs { int scale = -1, offset = -1, world = -1, joints = -1; };
+std::unordered_map<uintptr_t, VsRegs> g_vs;   // vertex shader -> its registers (from its CTAB)
+struct Found { uint64_t key; float pos[3]; };
+std::vector<Found> g_found;
+std::unordered_set<uint64_t> g_keys;            // this frame's, to take each draw once
+uint32_t g_found_last = 0;
+constexpr size_t kMax = 64;
+
+// the float4 registers of the names that matter in a vertex shader's constant table (the CTAB comment block)
+VsRegs regs_of(IDirect3DVertexShader9* vs) {
+    const auto it = g_vs.find(reinterpret_cast<uintptr_t>(vs));
+    if (it != g_vs.end()) return it->second;
+    VsRegs r;
+    UINT size = 0;
+    if (vs && SUCCEEDED(vs->GetFunction(nullptr, &size)) && size >= 8 && size < (1u << 20)) {
+        std::vector<uint32_t> code((size + 3) / 4);
+        if (SUCCEEDED(vs->GetFunction(code.data(), &size))) {
+            for (size_t i = 1; i < code.size();) {
+                const uint32_t tok = code[i];
+                if ((tok & 0xFFFF) != 0xFFFE) break;                       // the comments come before the code
+                const uint32_t n = tok >> 16;
+                if (n >= 8 && i + 1 + n <= code.size() && code[i + 1] == 0x42415443u) {   // 'CTAB'
+                    const uint8_t* ct = reinterpret_cast<const uint8_t*>(&code[i + 2]);
+                    const size_t len = (n - 1) * 4;
+                    uint32_t count = 0, info = 0;
+                    std::memcpy(&count, ct + 12, 4);
+                    std::memcpy(&info, ct + 16, 4);
+                    for (uint32_t c = 0; c < count && info + 20 * (c + 1) <= len; ++c) {
+                        const uint8_t* ci = ct + info + 20 * c;
+                        uint32_t name = 0;
+                        uint16_t set = 0, reg = 0;
+                        std::memcpy(&name, ci, 4);
+                        std::memcpy(&set, ci + 4, 2);
+                        std::memcpy(&reg, ci + 6, 2);
+                        if (set != 2 || name >= len || !std::memchr(ct + name, 0, len - name)) continue;   // FLOAT4 only
+                        const char* s = reinterpret_cast<const char*>(ct + name);
+                        if (!std::strcmp(s, "gXfQuantPosScale")) r.scale = reg;
+                        else if (!std::strcmp(s, "gXfQuantPosOffset")) r.offset = reg;
+                        else if (!std::strcmp(s, "gXfWorld")) r.world = reg;
+                        else if (!std::strcmp(s, "gXfJointWorld")) r.joints = reg;
+                    }
+                    break;
+                }
+                i += 1 + n;
+            }
+        }
+    }
+    g_vs[reinterpret_cast<uintptr_t>(vs)] = r;
+    return r;
+}
+
+// one component of a declared position element as the input assembler gives it to the shader
+bool decode(BYTE type, const uint8_t* p, float out[3]) {
+    out[0] = out[1] = out[2] = 0.0f;
+    switch (type) {
+    case D3DDECLTYPE_FLOAT3: case D3DDECLTYPE_FLOAT4: std::memcpy(out, p, 12); return true;
+    case D3DDECLTYPE_FLOAT16_4: for (int i = 0; i < 3; ++i) { uint16_t h; std::memcpy(&h, p + 2 * i, 2); out[i] = subdiv::half_to_float(h); } return true;
+    case D3DDECLTYPE_SHORT4N: for (int i = 0; i < 3; ++i) { int16_t s; std::memcpy(&s, p + 2 * i, 2); out[i] = std::max(-1.0f, s / 32767.0f); } return true;
+    case D3DDECLTYPE_SHORT4: for (int i = 0; i < 3; ++i) { int16_t s; std::memcpy(&s, p + 2 * i, 2); out[i] = s; } return true;
+    case D3DDECLTYPE_USHORT4N: for (int i = 0; i < 3; ++i) { uint16_t s; std::memcpy(&s, p + 2 * i, 2); out[i] = s / 65535.0f; } return true;
+    case D3DDECLTYPE_UBYTE4N: for (int i = 0; i < 3; ++i) out[i] = p[i] / 255.0f; return true;
+    case D3DDECLTYPE_UBYTE4: for (int i = 0; i < 3; ++i) out[i] = p[i]; return true;
+    default: return false;
+    }
+}
+
+uint64_t fnv64(const void* data, size_t n, uint64_t h = 1469598103934665603ull) {
+    const uint8_t* b = static_cast<const uint8_t*>(data);
+    for (size_t i = 0; i < n; ++i) { h ^= b[i]; h *= 1099511628211ull; }
+    return h;
+}
+
+// the indexed draw about to run uses a light texture: the middle of its vertices, through the shader's own constants
+void capture(IDirect3DDevice9* dev, const uint8_t* cmd) {
+    if (g_found.size() >= kMax || !dev || !cmd) return;
+    const uint32_t base = *reinterpret_cast<const uint32_t*>(cmd + 0x1C);
+    const uint32_t nverts = *reinterpret_cast<const uint16_t*>(cmd + 0x24);
+    const uint32_t minidx = *reinterpret_cast<const uint16_t*>(cmd + 0x26);
+    if (!nverts) return;
+    IDirect3DVertexBuffer9* vb = nullptr;
+    IDirect3DVertexDeclaration9* decl = nullptr;
+    IDirect3DVertexShader9* vs = nullptr;
+    UINT off = 0, stride = 0;
+    float c[3] = { 0, 0, 0 };
+    bool ok = false;
+    if (SUCCEEDED(dev->GetStreamSource(0, &vb, &off, &stride)) && vb && stride && SUCCEEDED(dev->GetVertexDeclaration(&decl)) &&
+        decl) {
+        D3DVERTEXELEMENT9 el[MAXD3DDECLLENGTH + 1];
+        UINT nel = 0;
+        int pe = -1;
+        if (SUCCEEDED(decl->GetDeclaration(nullptr, &nel)) && nel <= MAXD3DDECLLENGTH + 1 && SUCCEEDED(decl->GetDeclaration(el, &nel)))
+            for (UINT i = 0; i < nel && el[i].Stream != 0xFF; ++i)
+                if (el[i].Stream == 0 && el[i].Usage == D3DDECLUSAGE_POSITION && el[i].UsageIndex == 0) { pe = static_cast<int>(i); break; }
+        void* p = nullptr;
+        if (pe >= 0 && SUCCEEDED(vb->Lock(off + (base + minidx) * stride, nverts * stride, &p, D3DLOCK_READONLY)) && p) {
+            float lo[3] = { 1e30f, 1e30f, 1e30f }, hi[3] = { -1e30f, -1e30f, -1e30f };
+            const uint8_t* v = static_cast<const uint8_t*>(p);
+            for (uint32_t i = 0; i < nverts; ++i) {
+                float q[3];
+                if (!decode(el[pe].Type, v + i * stride + el[pe].Offset, q)) break;
+                for (int k = 0; k < 3; ++k) { lo[k] = std::min(lo[k], q[k]); hi[k] = std::max(hi[k], q[k]); }
+                ok = true;
+            }
+            vb->Unlock();
+            for (int k = 0; k < 3; ++k) c[k] = 0.5f * (lo[k] + hi[k]);
+        }
+    }
+    if (ok && SUCCEEDED(dev->GetVertexShader(&vs)) && vs) {
+        const VsRegs r = regs_of(vs);
+        float f[12];
+        if (r.scale >= 0 && r.offset >= 0 && SUCCEEDED(dev->GetVertexShaderConstantF(r.scale, f, 1)) &&
+            SUCCEEDED(dev->GetVertexShaderConstantF(r.offset, f + 4, 1)))
+            for (int k = 0; k < 3; ++k) c[k] = c[k] * f[k] + f[4 + k];
+        const int rows = r.world >= 0 ? r.world : r.joints;   // a rigid model's world, or a skinned one's first bone
+        if (rows >= 0 && SUCCEEDED(dev->GetVertexShaderConstantF(rows, f, 3))) {
+            float w[3];
+            for (int k = 0; k < 3; ++k) w[k] = f[4 * k] * c[0] + f[4 * k + 1] * c[1] + f[4 * k + 2] * c[2] + f[4 * k + 3];
+            for (int k = 0; k < 3; ++k) c[k] = w[k];
+        }
+    }
+    if (vs) vs->Release();
+    if (decl) decl->Release();
+    if (ok && std::isfinite(c[0]) && std::isfinite(c[1]) && std::isfinite(c[2])) {
+        const int32_t cell[3] = { static_cast<int32_t>(std::floor(c[0])), static_cast<int32_t>(std::floor(c[1])),
+                                  static_cast<int32_t>(std::floor(c[2])) };
+        uint64_t key = fnv64(&vb, sizeof vb);
+        key = fnv64(&base, 4, key);
+        key = fnv64(&minidx, 4, key);
+        key = fnv64(cell, sizeof cell, key);
+        key |= 1ull << 63;
+        if (g_keys.insert(key).second) g_found.push_back({ key, { c[0], c[1], c[2] } });
+    }
+    if (vb) vb->Release();
+}
+} // namespace texlight
+
+volatile uint8_t g_light_next = 0;             // the next indexed draw uses a light texture (texlight::capture)
 volatile uint8_t g_subdiv_next = 0;            // the draws after this bind are water to subdivide
 IDirect3DPixelShader9* g_subdiv_ps = nullptr;  // ... made with this pixel shader (another one: not water any more)
 
 // the indexed draw hook: 1 = drawn here (subdivided), 0 = the game draws it
 int __stdcall water_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
+    if (g_light_next) {   // a light texture's draw: its middle for the next frame's light
+        g_light_next = 0;
+        texlight::capture(dev, cmd);
+    }
     if (!g_subdiv_next || settings.water_detail <= 0 || !dev || !cmd) return 0;   // cleared outside the main scene (on_tag)
     IDirect3DPixelShader9* ps = nullptr;
     dev->GetPixelShader(&ps);
@@ -1339,9 +1613,11 @@ void set_transforms(IDirect3DDevice9* dev) {
     // lights: Remix makes its lights of every enabled D3D9 light (d3d9_rtx.cpp, DirtyLights), shader draws too; the frame's
     // list goes over in batches of 8 (submit_lights: here, then at each new material until all are given)
     g_frame_n = g_frame_next = 0;
+    const bool api_points = settings.api_lights && api::ready();   // the point lights go through the API (api_frame)
     if (settings.game_lights && g_nlights > 0) {
         for (int i = 0; i < g_nlights; ++i) {
             const GameLight& g = g_lights[i];
+            if (g.kind != 1 && api_points) continue;
             const float k = g.kind == 1 ? settings.dir_strength : settings.point_strength;
             D3DLIGHT9 l{};
             l.Diffuse = { g.col[0] * k, g.col[1] * k, g.col[2] * k, 1.0f };
@@ -1377,6 +1653,31 @@ void set_transforms(IDirect3DDevice9* dev) {
         g_frame[g_frame_n++] = l;
     }
     submit_lights(dev);
+}
+
+// once a frame, after gather_lights: the stage's point lights and last frame's texture lights through the Remix API
+void api_frame() {
+    if (!settings.on || !settings.api_lights) {
+        if (api::g_state > 0 && !api::g_live.empty()) api::destroy_all();
+        texlight::g_found.clear();
+        texlight::g_keys.clear();
+        return;
+    }
+    if (!api::ready()) return;
+    float rad[3];
+    if (settings.game_lights)
+        for (int i = 0; i < g_nlights; ++i) {
+            const GameLight& g = g_lights[i];
+            if (g.kind == 1 || !g.unit) continue;
+            api::radiance(g.col, settings.point_strength, settings.point_radius, settings.point_distance, rad);
+            api::draw((uint64_t(1) << 62) | g.unit, g.v, settings.point_radius, rad);
+        }
+    api::radiance(settings.tex_light_color, settings.tex_light_strength, settings.tex_light_radius, settings.point_distance, rad);
+    for (const auto& f : texlight::g_found) api::draw(f.key, f.pos, settings.tex_light_radius, rad);
+    texlight::g_found_last = static_cast<uint32_t>(texlight::g_found.size());
+    texlight::g_found.clear();
+    texlight::g_keys.clear();
+    api::sweep();
 }
 
 // The pixel-shader texture loop of dispatchCommands, per sampler entry of the pass (`record` +0x0C low nibble = the
@@ -1450,10 +1751,13 @@ int __stdcall bind_texture(IDirect3DDevice9* dev, const uint32_t* entry, const u
         if (ps) ps->Release();
         dump_shader_pair(vs, ps);
         float wp[3] = { 0, 0, 0 };
-        if (g_cur_world && g_vp_transposed >= 0) {
+        if (g_world_this_draw && g_cur_world && g_vp_transposed >= 0) {
             const float* w = reinterpret_cast<const float*>(g_cur_world);
             if (g_vp_transposed == 1) { wp[0] = w[3]; wp[1] = w[7]; wp[2] = w[11]; }
             else { wp[0] = w[12]; wp[1] = w[13]; wp[2] = w[14]; }
+        } else if (g_joints_this_draw && g_cur_joints) {   // a skinned draw: its first bone's translation
+            const float* j = reinterpret_cast<const float*>(g_cur_joints);
+            wp[0] = j[3]; wp[1] = j[7]; wp[2] = j[11];
         }
         char line[400];
         sprintf_s(line, "  states pass %u, %s #%d (fmt %08X, %u maps): atest %lu func %lu ref %lu | blend %lu src %lu dst %lu op %lu "
@@ -1510,6 +1814,15 @@ int __stdcall bind_texture(IDirect3DDevice9* dev, const uint32_t* entry, const u
     const bool other = g_other_cam != 0 && settings.other_cameras != 0;
     if (other && (settings.other_cameras == 1 || g_other_ortho)) hide = true;
     if (other && entry == entries) ++g_other_draws;
+    if (entry == entries) {   // a light texture's draw: the indexed-draw hook takes its middle (texlight::capture)
+        bool light = false;
+        if (!hide && !g_light_tex.empty() && settings.api_lights) {
+            const uint32_t* first = slot - (entry - entries);
+            for (uint32_t i = 0; i < n; ++i)
+                if (g_light_tex.count(first[i])) light = true;
+        }
+        g_light_next = light ? 1 : 0;
+    }
     // the main view = the block most draws use (counted per draw: uploads were too few to tell the main camera from the
     // shadow overlay's projector, and with other cameras' draws hidden a wrong pick hid the whole scene for a frame)
     if (entry == entries && g_cur_vp) count_view(g_cur_vp);
@@ -1597,8 +1910,14 @@ int __stdcall bind_texture(IDirect3DDevice9* dev, const uint32_t* entry, const u
             if (g_vp_transposed == 1) { w._41 = m[3]; w._42 = m[7]; w._43 = m[11]; }
             else { w._41 = m[12]; w._42 = m[13]; w._43 = m[14]; }
             if (!std::isfinite(w._41) || !std::isfinite(w._42) || !std::isfinite(w._43)) w._41 = w._42 = w._43 = 0.0f;
+        } else if (settings.world_positions && settings.skinned_positions && g_joints_this_draw && g_cur_joints) {
+            // a skinned draw (no gXfWorld): its first bone's translation (row-major 3x4: the rows' w)
+            const float* j = reinterpret_cast<const float*>(g_cur_joints);
+            w._41 = j[3]; w._42 = j[7]; w._43 = j[11];
+            if (!std::isfinite(w._41) || !std::isfinite(w._42) || !std::isfinite(w._43)) w._41 = w._42 = w._43 = 0.0f;
         }
         g_world_this_draw = false;
+        g_joints_this_draw = false;
         if (std::memcmp(&w, &g_world_set, sizeof w) != 0) {
             dev->SetTransform(D3DTS_WORLD, &w);
             g_world_set = w;
@@ -2224,7 +2543,10 @@ uintptr_t kDrawDoneAddr = 0x8F5EAB;   // dispatchCommands' loop after a command
 naked void detour_draw() {
     _asm {
         cmp byte ptr [g_subdiv_next], 0
+        jne hooked
+        cmp byte ptr [g_light_next], 0
         je original
+    hooked:
         pushad
         mov eax, [esp + 0x20 + 0x50]    // the command (esp + 0x50 before pushad)
         push eax
@@ -2271,6 +2593,34 @@ naked void detour_tex() {
 
 void* vsarr_detour() { return reinterpret_cast<void*>(&detour_vsarr); }
 std::unique_ptr<FunctionHook>& vsarr_hook() { static std::unique_ptr<FunctionHook> h; return h; }
+
+// the descriptor uploads (kVsDescs): value = a pointer to {count | flag, data}; gXfJointWorld's data are the draw's bones
+void __stdcall vs_desc(IDirect3DDevice9* dev, const uint32_t* entry, const uintptr_t* value) {
+    if (!settings.on || !g_in_main || !dev) return;
+    if (g_joints_param < 0 || (*entry & 0xFFFF) != static_cast<uint32_t>(g_joints_param)) return;
+    const uintptr_t d = *value;
+    if (!d || !(*reinterpret_cast<const uint32_t*>(d) & 0x7FFFFFFF)) return;
+    g_cur_joints = *reinterpret_cast<const uintptr_t*>(d + 4);
+    g_joints_this_draw = g_cur_joints != 0;
+}
+
+uintptr_t jmp_ret_vsdesc = 0;
+naked void detour_vsdesc() {
+    _asm {
+        pushad
+        push edi                     // the binding's value (a pointer to the descriptor)
+        push ebx                     // the binding
+        push esi                     // the device
+        call vs_desc                 // __stdcall
+        popad
+        mov edx, [ebx]
+        mov eax, [edi]
+        and edx, 0xFFFF
+        jmp dword ptr [jmp_ret_vsdesc]
+    }
+}
+void* vsdesc_detour() { return reinterpret_cast<void*>(&detour_vsdesc); }
+std::unique_ptr<FunctionHook>& vsdesc_hook() { static std::unique_ptr<FunctionHook> h; return h; }
 
 void* shader_detour() { return reinterpret_cast<void*>(&detour_shader); }
 std::unique_ptr<FunctionHook>& shader_hook() { static std::unique_ptr<FunctionHook> h; return h; }
@@ -2415,6 +2765,7 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
             if (g_water_param[i] < 0) g_water_param[i] = param_of(kWaterIds[i]);
         if (g_shadow_param < 0) g_shadow_param = param_of(kShadowNearId);
         if (g_world_param < 0) g_world_param = param_of(0xAE179D10);   // gXfWorld
+        if (g_joints_param < 0) g_joints_param = param_of(0x0EB7060F);   // gXfJointWorld
         if (g_prim_depth_param < 0) g_prim_depth_param = param_of(kPrimDepthId);
         if (g_water_zbuf_param < 0) g_water_zbuf_param = param_of(kWaterZBufferId);
         if (g_prim_scene_param < 0) g_prim_scene_param = param_of(kPrimSceneId);
@@ -2427,7 +2778,8 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
         ++g_frames;
         if (strncmp(settings.hide_textures, g_hide_built_for, sizeof g_hide_built_for - 1) != 0 ||
             strncmp(settings.hide_water_textures, g_hide_water_built_for, sizeof g_hide_water_built_for - 1) != 0 ||
-            ((g_hide_built_for[0] || g_hide_water_built_for[0]) && g_frames % 60 == 0))
+            strncmp(settings.light_textures, g_light_built_for, sizeof g_light_built_for - 1) != 0 ||
+            ((g_hide_built_for[0] || g_hide_water_built_for[0] || g_light_built_for[0]) && g_frames % 60 == 0))
             build_hide_textures();
         g_in_main = false;
         g_last_vp = 0;
@@ -2455,6 +2807,7 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
         g_norder = 0;
         if (settings.game_lights) gather_lights();
         set_transforms(dev);
+        api_frame();
     }
     ++g_seen;
     if (main && !g_in_main) {           // the main scene starts: its camera again (another view may have set its own)
@@ -2502,6 +2855,7 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
         g_first_traced = false;
         g_have_frame_vp = false;
         g_cur_world = 0;
+        g_cur_joints = 0;
         if (g_probe == 2 && g_main_vp && g_vp_transposed >= 0) {   // what the main blocks hold now, before any upload
             std::string s = "  main scene starts:";
             for (const intptr_t d : { intptr_t(0), intptr_t(0x40), intptr_t(-0x40) }) {
@@ -2526,6 +2880,7 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
     // after the injection the game's own shaders draw: no stage moves, stand-ins or hidden draws there
     const bool after_inject = settings.inject_pass > 0 && pass >= static_cast<uint32_t>(settings.inject_pass);
     g_remap = (main && settings.albedo_to_stage0 && !after_inject) ? 1 : 0;
+    if (!g_remap) g_light_next = 0;   // the texture hook doesn't run there: no light flag left for a later draw
     if (!g_remap) g_subdiv_next = 0;   // water subdivision only where the bridge binds (the traced main scene)
     if (g_sky_vp && (pass != g_pass || !main)) sky_viewport(dev, false);   // the sky stays within SOLID
     g_pass = pass;
@@ -2670,6 +3025,11 @@ void draw_gui() {
     Mod::help_marker(_("Remix tells objects apart from frame to frame by their mesh and position. Without this every copy of "
                        "a prop (a street's trash cans) looked like it stood in the same spot, and the copies flickered between "
                        "lit and dark and smeared as they took each other's history."));
+    ImGui::Checkbox(_("Characters too"), &settings.skinned_positions);
+    ImGui::SameLine();
+    Mod::help_marker(_("Characters and other skinned models: every body part gets the position of its first bone instead "
+                       "of the world's origin, so Remix can tell them apart by where they are. Being tested against a body "
+                       "that stays behind for a second after a room change."));
     ImGui::InputText(_("Hide water using textures containing"), settings.hide_water_textures, sizeof settings.hide_water_textures);
     ImGui::SameLine();
     Mod::help_marker(_("Puddles use the sea's shader, so the water stand-in gave them the sea's look. Water drawn with a "
@@ -2722,6 +3082,18 @@ void draw_gui() {
         ImGui::SliderFloat(_("Directional strength"), &settings.dir_strength, 0.0f, 20.0f, "%.2f");
         ImGui::SliderFloat(_("Point light strength"), &settings.point_strength, 0.0f, 50.0f, "%.2f");
         ImGui::TextDisabled(_("%d directional, %d point lights (stage light group %08X)"), g_ndir, g_npoint, g_stage_group);
+        ImGui::Checkbox(_("Point lights through the Remix API"), &settings.api_lights);
+        ImGui::SameLine();
+        Mod::help_marker(_("Remix makes the game's point lights only as bright as their range and stops taking their "
+                           "changes after a moment, so lamps barely lit anything. Through the Remix API they light with "
+                           "the game's colour (times Point light strength) at the distance below. Needs exposeRemixApi = "
+                           "True in _trex\\bridge.conf."));
+        if (settings.api_lights) {
+            if (api::g_state > 0) ImGui::TextDisabled(_("Remix API ready: %u lights drawn last frame"), api::g_drawn_last);
+            else if (api::g_state < 0) ImGui::TextDisabled(_("Remix API not available (error %d): lights go the old way"), api::g_error);
+            ImGui::SliderFloat(_("Light size"), &settings.point_radius, 1.0f, 50.0f, "%.0f cm");
+            ImGui::SliderFloat(_("Full colour at"), &settings.point_distance, 25.0f, 2000.0f, "%.0f cm", ImGuiSliderFlags_Logarithmic);
+        }
         ImGui::Checkbox(_("Ambient fill"), &settings.fill);
         ImGui::SameLine();
         Mod::help_marker(_("Remix has no ambient light and can't use DMC4's baked lighting, so interiors go dark. This turns the "
@@ -2739,6 +3111,18 @@ void draw_gui() {
     if (settings.sun) {
         ImGui::SliderFloat(_("Sun strength"), &settings.sun_strength, 0.0f, 20.0f, "%.2f");
         ImGui::ColorEdit3(_("Sun colour"), settings.sun_color);
+    }
+    ImGui::InputText(_("Lights on textures containing"), settings.light_textures, sizeof settings.light_textures);
+    ImGui::SameLine();
+    Mod::help_marker(_("Puts a light at the middle of every object drawn with a texture whose path contains this text "
+                       "(several separated by ';'). Remix's own Add Light to Texture can't place its lights in DMC4. Uses "
+                       "the Remix API (Point lights through the Remix API on). Effects drawn after the hand-over aren't "
+                       "covered."));
+    if (settings.light_textures[0]) {
+        ImGui::ColorEdit3(_("Texture light colour"), settings.tex_light_color);
+        ImGui::SliderFloat(_("Texture light strength"), &settings.tex_light_strength, 0.0f, 50.0f, "%.2f");
+        ImGui::SliderFloat(_("Texture light size"), &settings.tex_light_radius, 1.0f, 50.0f, "%.0f cm");
+        ImGui::TextDisabled(_("%zu textures match, %u lights last frame"), g_light_tex.size(), texlight::g_found_last);
     }
     ImGui::Checkbox(_("Water stand-in"), &settings.water_standin);
     ImGui::SameLine();
@@ -2809,6 +3193,18 @@ void load(const utility::Config& cfg) {
     settings.draw_all = cfg.get<bool>("remix_draw_all").value_or(false);
     settings.other_cameras = cfg.get<int>("remix_other_cameras").value_or(1);
     settings.world_positions = cfg.get<bool>("remix_world_positions").value_or(true);
+    settings.skinned_positions = cfg.get<bool>("remix_skinned_positions").value_or(true);
+    settings.api_lights = cfg.get<bool>("remix_api_lights").value_or(true);
+    settings.point_radius = cfg.get<float>("remix_point_radius").value_or(5.0f);
+    settings.point_distance = cfg.get<float>("remix_point_distance").value_or(200.0f);
+    {
+        const std::string t = cfg.get("remix_light_textures").value_or("");
+        strncpy_s(settings.light_textures, t.c_str(), _TRUNCATE);
+    }
+    for (int i = 0; i < 3; ++i)
+        settings.tex_light_color[i] = cfg.get<float>("remix_tex_light_color_" + std::to_string(i)).value_or(settings.tex_light_color[i]);
+    settings.tex_light_strength = cfg.get<float>("remix_tex_light_strength").value_or(1.0f);
+    settings.tex_light_radius = cfg.get<float>("remix_tex_light_radius").value_or(5.0f);
     settings.water_ripples = cfg.get<bool>("remix_water_ripples").value_or(true);
     settings.ripple_height = cfg.get<float>("remix_ripple_height").value_or(10.0f);
     settings.water_detail = cfg.get<int>("remix_water_detail").value_or(1);
@@ -2857,6 +3253,14 @@ void save(utility::Config& cfg) {
     cfg.set<bool>("remix_draw_all", settings.draw_all);
     cfg.set<int>("remix_other_cameras", settings.other_cameras);
     cfg.set<bool>("remix_world_positions", settings.world_positions);
+    cfg.set<bool>("remix_skinned_positions", settings.skinned_positions);
+    cfg.set<bool>("remix_api_lights", settings.api_lights);
+    cfg.set<float>("remix_point_radius", settings.point_radius);
+    cfg.set<float>("remix_point_distance", settings.point_distance);
+    cfg.set("remix_light_textures", std::string(settings.light_textures));
+    for (int i = 0; i < 3; ++i) cfg.set<float>("remix_tex_light_color_" + std::to_string(i), settings.tex_light_color[i]);
+    cfg.set<float>("remix_tex_light_strength", settings.tex_light_strength);
+    cfg.set<float>("remix_tex_light_radius", settings.tex_light_radius);
     cfg.set<bool>("remix_water_ripples", settings.water_ripples);
     cfg.set<float>("remix_ripple_height", settings.ripple_height);
     cfg.set<int>("remix_water_detail", settings.water_detail);
