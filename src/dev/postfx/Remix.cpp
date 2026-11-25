@@ -765,9 +765,10 @@ int      g_prim_param[3] = { -1, -1, -1 };
 float    g_sun_dir[3] = { 0.0f, -1.0f, 0.0f };
 // the water stand-ins, one per kind of water shader, each its own texture and so its own Remix material (DMC4Water mod):
 // 0 XfWater (its pixel shader without gXfViewProjI), 1 XfWater (with it), 2 XfInteractiveWater, 3 XfFlowingWater,
-// 4 XfFlatWater. Kind k is the water colour with k added to its blue byte (kind 0 = the colour itself, the mod's first
-// material). Managed: they survive resets
-constexpr int kWaterKinds = 5;
+// 4 XfFlatWater, 5 puddles (XfWater draws narrower than settings.puddle_size, chosen per draw: puddle::on_draw). Kind k
+// is the water colour with k added to its blue byte (kind 0 = the colour itself, the mod's first material). Managed:
+// they survive resets
+constexpr int kWaterKinds = 6;
 IDirect3DTexture9* g_standin[kWaterKinds] = {};
 uint32_t g_standin_rgb[kWaterKinds] = {};          // the colour each was filled with
 std::atomic<uint32_t> g_water{ 0 };
@@ -1253,7 +1254,7 @@ bool build(IDirect3DDevice9* dev, const Key& k, IDirect3DVertexBuffer9* vb, IDir
 
 // ---- lights through the Remix API (settings.api_lights, settings.light_textures) ----
 // The bridge's 32-bit client takes the API's light calls (CreateLight / DrawLightInstance / DestroyLight) when
-// exposeRemixApi = True in _trex\bridge.conf; it accepts API version 0.6.x (remixapi_InitializeLibrary). A light is
+// exposeRemixApi = True in .trex\bridge.conf; it accepts API version 0.6.x (remixapi_InitializeLibrary). A light is
 // drawn per frame; the API can't change a light, so one whose position or radiance changed is made again.
 namespace api {
 remixapi_Interface g{};
@@ -1338,6 +1339,36 @@ void draw(uint64_t key, const float pos[3], float radius, const float rad[3]) {
     }
     if (l.h && g.DrawLightInstance(l.h) == REMIXAPI_ERROR_CODE_SUCCESS) ++g_drawn;
     l.seen = g_frames.load();
+}
+
+// settings.rtx_options, when it changed since the last frame: each "key = value" through SetConfigVariable (the
+// results go to remix_probe.txt)
+void apply_options() {
+    static char applied[sizeof(settings.rtx_options)] = "";
+    char now[sizeof(settings.rtx_options)];
+    std::memcpy(now, settings.rtx_options, sizeof(now));
+    now[sizeof(now) - 1] = 0;
+    if (std::strcmp(applied, now) == 0 || !ready() || !g.SetConfigVariable) return;
+    std::memcpy(applied, now, sizeof(applied));
+    const std::string text(now);
+    const auto trim = [](std::string s) {
+        const size_t a = s.find_first_not_of(" \t\r");
+        const size_t b = s.find_last_not_of(" \t\r");
+        return a == std::string::npos ? std::string() : s.substr(a, b - a + 1);
+    };
+    size_t i = 0;
+    while (i < text.size()) {
+        size_t j = text.find_first_of(";\n", i);
+        if (j == std::string::npos) j = text.size();
+        const std::string item = text.substr(i, j - i);
+        i = j + 1;
+        const size_t eq = item.find('=');
+        if (eq == std::string::npos) continue;
+        const std::string key = trim(item.substr(0, eq)), value = trim(item.substr(eq + 1));
+        if (key.empty()) continue;
+        const remixapi_ErrorCode e = g.SetConfigVariable(key.c_str(), value.c_str());
+        note(("SetConfigVariable " + key + " = " + value).c_str(), static_cast<int>(e));
+    }
 }
 
 // the lights not drawn this frame go
@@ -1507,6 +1538,119 @@ void capture(IDirect3DDevice9* dev, const uint8_t* cmd) {
 }
 } // namespace texlight
 
+volatile uint8_t g_puddle_next = 0;            // the draws after this bind are XfWater with the stand-in (puddle::on_draw)
+
+// ---- puddles (settings.puddles): Fortuna's puddles draw with the sea's shader (XfWater, same samplers, the same cube
+// map as st004's sea), so the stand-in made them the sea's material. What tells them apart is size: each draw's vertex
+// range measured in the world (the shader's own quantisation and world constants), the puddles' stand-in when it's
+// narrower than settings.puddle_size across the ground (game x / z)
+namespace puddle {
+struct Box { float lo[3], hi[3]; bool ok; };
+std::unordered_map<uint64_t, Box> g_local;     // a vertex range's box in its own space, by buffer and range
+int g_sea_kind = 0;                            // the bind's stand-in kind for its draws that aren't puddles
+IDirect3DPixelShader9* g_ps = nullptr;         // ... drawn with this pixel shader (another one: not that water any more)
+std::atomic<uint32_t> g_puddles{ 0 }, g_seas{ 0 };
+uint32_t g_puddles_last = 0, g_seas_last = 0;
+
+Box local_box(IDirect3DDevice9* dev, const uint8_t* cmd) {
+    Box b{ { 0, 0, 0 }, { 0, 0, 0 }, false };
+    const uint32_t base = *reinterpret_cast<const uint32_t*>(cmd + 0x1C);
+    const uint32_t nverts = *reinterpret_cast<const uint16_t*>(cmd + 0x24);
+    const uint32_t minidx = *reinterpret_cast<const uint16_t*>(cmd + 0x26);
+    if (!nverts) return b;
+    IDirect3DVertexBuffer9* vb = nullptr;
+    UINT off = 0, stride = 0;
+    if (FAILED(dev->GetStreamSource(0, &vb, &off, &stride)) || !vb) return b;
+    uint64_t key = texlight::fnv64(&vb, sizeof vb);
+    key = texlight::fnv64(&off, 4, key);
+    key = texlight::fnv64(&stride, 4, key);
+    key = texlight::fnv64(&base, 4, key);
+    key = texlight::fnv64(&minidx, 4, key);
+    key = texlight::fnv64(&nverts, 4, key);
+    const auto it = g_local.find(key);
+    if (it != g_local.end()) { vb->Release(); return it->second; }
+    IDirect3DVertexDeclaration9* decl = nullptr;
+    if (stride && SUCCEEDED(dev->GetVertexDeclaration(&decl)) && decl) {
+        D3DVERTEXELEMENT9 el[MAXD3DDECLLENGTH + 1];
+        UINT nel = 0;
+        int pe = -1;
+        if (SUCCEEDED(decl->GetDeclaration(nullptr, &nel)) && nel <= MAXD3DDECLLENGTH + 1 && SUCCEEDED(decl->GetDeclaration(el, &nel)))
+            for (UINT i = 0; i < nel && el[i].Stream != 0xFF; ++i)
+                if (el[i].Stream == 0 && el[i].Usage == D3DDECLUSAGE_POSITION && el[i].UsageIndex == 0) { pe = static_cast<int>(i); break; }
+        void* p = nullptr;
+        if (pe >= 0 && SUCCEEDED(vb->Lock(off + (base + minidx) * stride, nverts * stride, &p, D3DLOCK_READONLY)) && p) {
+            for (int k = 0; k < 3; ++k) { b.lo[k] = 1e30f; b.hi[k] = -1e30f; }
+            const uint8_t* v = static_cast<const uint8_t*>(p);
+            for (uint32_t i = 0; i < nverts; ++i) {
+                float q[3];
+                if (!texlight::decode(el[pe].Type, v + i * stride + el[pe].Offset, q)) break;
+                for (int k = 0; k < 3; ++k) { b.lo[k] = std::min(b.lo[k], q[k]); b.hi[k] = std::max(b.hi[k], q[k]); }
+                b.ok = true;
+            }
+            vb->Unlock();
+        }
+        decl->Release();
+    }
+    vb->Release();
+    if (g_local.size() > 4096) g_local.clear();
+    g_local[key] = b;
+    return b;
+}
+
+// the draw's widest extent across the ground in the world (cm), its middle in c; < 0 when it can't be read
+float world_size(IDirect3DDevice9* dev, const uint8_t* cmd, float c[3]) {
+    Box b = local_box(dev, cmd);
+    if (!b.ok) return -1.0f;
+    IDirect3DVertexShader9* vs = nullptr;
+    if (FAILED(dev->GetVertexShader(&vs)) || !vs) return -1.0f;
+    const texlight::VsRegs r = texlight::regs_of(vs);
+    vs->Release();
+    float f[12];
+    if (r.scale >= 0 && r.offset >= 0 && SUCCEEDED(dev->GetVertexShaderConstantF(r.scale, f, 1)) &&
+        SUCCEEDED(dev->GetVertexShaderConstantF(r.offset, f + 4, 1)))
+        for (int k = 0; k < 3; ++k) {
+            const float a = b.lo[k] * f[k] + f[4 + k], z = b.hi[k] * f[k] + f[4 + k];
+            b.lo[k] = std::min(a, z);
+            b.hi[k] = std::max(a, z);
+        }
+    const int rows = r.world >= 0 ? r.world : r.joints;
+    if (rows >= 0 && SUCCEEDED(dev->GetVertexShaderConstantF(rows, f, 3))) {   // the box's corners through the world rows
+        float lo[3] = { 1e30f, 1e30f, 1e30f }, hi[3] = { -1e30f, -1e30f, -1e30f };
+        for (int i = 0; i < 8; ++i) {
+            const float q[3] = { (i & 1) ? b.hi[0] : b.lo[0], (i & 2) ? b.hi[1] : b.lo[1], (i & 4) ? b.hi[2] : b.lo[2] };
+            for (int k = 0; k < 3; ++k) {
+                const float w = f[4 * k] * q[0] + f[4 * k + 1] * q[1] + f[4 * k + 2] * q[2] + f[4 * k + 3];
+                lo[k] = std::min(lo[k], w);
+                hi[k] = std::max(hi[k], w);
+            }
+        }
+        for (int k = 0; k < 3; ++k) { b.lo[k] = lo[k]; b.hi[k] = hi[k]; }
+    }
+    for (int k = 0; k < 3; ++k) c[k] = 0.5f * (b.lo[k] + b.hi[k]);
+    const float size = std::max(b.hi[0] - b.lo[0], b.hi[2] - b.lo[2]);
+    return std::isfinite(size) ? size : -1.0f;
+}
+
+// an XfWater draw of a bind with the stand-in: the puddles' stand-in or the bind's own, by its size
+void on_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
+    IDirect3DPixelShader9* ps = nullptr;
+    dev->GetPixelShader(&ps);
+    if (ps) ps->Release();
+    if (ps != g_ps) { g_puddle_next = 0; return; }
+    float c[3] = { 0, 0, 0 };
+    const float size = world_size(dev, cmd, c);
+    const bool is_puddle = size >= 0.0f && size < settings.puddle_size;
+    dev->SetTexture(0, standin(dev, is_puddle ? 5 : g_sea_kind));
+    ++(is_puddle ? g_puddles : g_seas);
+    if (g_probe == 2 && g_probe_states.size() < 900) {
+        char line[200];
+        sprintf_s(line, "  sea-shader water draw: %.0f cm across at %.0f %.0f %.0f -> %s\n", size, c[0], c[1], c[2],
+                  is_puddle ? "puddle" : "sea");
+        if (g_probe_states.insert(line).second) g_probe_text += line;
+    }
+}
+} // namespace puddle
+
 volatile uint8_t g_light_next = 0;             // the next indexed draw uses a light texture (texlight::capture)
 volatile uint8_t g_subdiv_next = 0;            // the draws after this bind are water to subdivide
 IDirect3DPixelShader9* g_subdiv_ps = nullptr;  // ... made with this pixel shader (another one: not water any more)
@@ -1517,6 +1661,7 @@ int __stdcall water_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
         g_light_next = 0;
         texlight::capture(dev, cmd);
     }
+    if (g_puddle_next && dev && cmd) puddle::on_draw(dev, cmd);   // before a subdivided draw: it takes the texture
     if (!g_subdiv_next || settings.water_detail <= 0 || !dev || !cmd) return 0;   // cleared outside the main scene (on_tag)
     IDirect3DPixelShader9* ps = nullptr;
     dev->GetPixelShader(&ps);
@@ -1657,6 +1802,7 @@ void set_transforms(IDirect3DDevice9* dev) {
 
 // once a frame, after gather_lights: the stage's point lights and last frame's texture lights through the Remix API
 void api_frame() {
+    if (settings.on && settings.rtx_options[0]) api::apply_options();
     if (!settings.on || !settings.api_lights) {
         if (api::g_state > 0 && !api::g_live.empty()) api::destroy_all();
         texlight::g_found.clear();
@@ -1896,6 +2042,18 @@ int __stdcall bind_texture(IDirect3DDevice9* dev, const uint32_t* entry, const u
             dev->GetPixelShader(&ps);
             if (ps) ps->Release();
             g_subdiv_ps = ps;
+        }
+    }
+    if (entry == entries) {   // XfWater with the stand-in: puddle or sea, per draw (puddle::on_draw)
+        const int kind = (!hide && water && albedo_stage == 0xFF && settings.water_standin && settings.puddles)
+                             ? water_kind(dev, entries, n) : -1;
+        g_puddle_next = (kind == 0 || kind == 1) ? 1 : 0;
+        if (g_puddle_next) {
+            IDirect3DPixelShader9* ps = nullptr;
+            dev->GetPixelShader(&ps);
+            if (ps) ps->Release();
+            puddle::g_ps = ps;
+            puddle::g_sea_kind = kind;
         }
     }
     if (entry == entries) {   // the interactive water surface's maps (kIwVsSrc), or unbound again
@@ -2544,6 +2702,8 @@ naked void detour_draw() {
     _asm {
         cmp byte ptr [g_subdiv_next], 0
         jne hooked
+        cmp byte ptr [g_puddle_next], 0
+        jne hooked
         cmp byte ptr [g_light_next], 0
         je original
     hooked:
@@ -2761,6 +2921,8 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
         g_seen_last = g_seen.exchange(0);
         g_moved_last = g_moved.exchange(0);
         g_water_last = g_water.exchange(0);
+        puddle::g_puddles_last = puddle::g_puddles.exchange(0);
+        puddle::g_seas_last = puddle::g_seas.exchange(0);
         for (int i = 0; i < kWaterCount; ++i)
             if (g_water_param[i] < 0) g_water_param[i] = param_of(kWaterIds[i]);
         if (g_shadow_param < 0) g_shadow_param = param_of(kShadowNearId);
@@ -2882,6 +3044,7 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
     g_remap = (main && settings.albedo_to_stage0 && !after_inject) ? 1 : 0;
     if (!g_remap) g_light_next = 0;   // the texture hook doesn't run there: no light flag left for a later draw
     if (!g_remap) g_subdiv_next = 0;   // water subdivision only where the bridge binds (the traced main scene)
+    if (!g_remap) g_puddle_next = 0;
     if (g_sky_vp && (pass != g_pass || !main)) sky_viewport(dev, false);   // the sky stays within SOLID
     g_pass = pass;
     bool skip = false;
@@ -3032,8 +3195,7 @@ void draw_gui() {
                        "that stays behind for a second after a room change."));
     ImGui::InputText(_("Hide water using textures containing"), settings.hide_water_textures, sizeof settings.hide_water_textures);
     ImGui::SameLine();
-    Mod::help_marker(_("Puddles use the sea's shader, so the water stand-in gave them the sea's look. Water drawn with a "
-                       "texture whose path contains this text is left out of Remix (any case; several separated by ;). The "
+    Mod::help_marker(_("Water drawn with a texture whose path contains this text is left out of Remix (any case; several separated by ;). The "
                        "probe lists each water draw's textures."));
     ImGui::InputText(_("Hide textures containing"), settings.hide_textures, sizeof settings.hide_textures);
     ImGui::SameLine();
@@ -3087,7 +3249,7 @@ void draw_gui() {
         Mod::help_marker(_("Remix makes the game's point lights only as bright as their range and stops taking their "
                            "changes after a moment, so lamps barely lit anything. Through the Remix API they light with "
                            "the game's colour (times Point light strength) at the distance below. Needs exposeRemixApi = "
-                           "True in _trex\\bridge.conf."));
+                           "True in .trex\\bridge.conf (dmc4_hook's remix folder has it)."));
         if (settings.api_lights) {
             if (api::g_state > 0) ImGui::TextDisabled(_("Remix API ready: %u lights drawn last frame"), api::g_drawn_last);
             else if (api::g_state < 0) ImGui::TextDisabled(_("Remix API not available (error %d): lights go the old way"), api::g_error);
@@ -3135,6 +3297,16 @@ void draw_gui() {
         ImGui::SliderFloat(_("Water tiling"), &settings.water_tiling, 0.25f, 64.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
         ImGui::SameLine();
         Mod::help_marker(_("How many times the wave pattern repeats across the water: higher = smaller waves."));
+        ImGui::Checkbox(_("Puddles as puddles"), &settings.puddles);
+        ImGui::SameLine();
+        Mod::help_marker(_("Fortuna's puddles are drawn with the sea's shader, so they got the sea's dark, wavy look. "
+                           "Sea-shader water narrower than the size below gets its own stand-in, which the DMC4Water Remix "
+                           "mod draws as a thin film of clear water over the ground."));
+        if (settings.puddles) {
+            ImGui::SliderFloat(_("Puddles up to"), &settings.puddle_size, 100.0f, 20000.0f, "%.0f cm across",
+                               ImGuiSliderFlags_Logarithmic);
+            ImGui::TextDisabled(_("Last frame: %u puddle draws, %u sea draws"), puddle::g_puddles_last, puddle::g_seas_last);
+        }
     }
     if (settings.inject_pass > 0) {
         ImGui::Checkbox(_("Remix's image as it is"), &settings.linearize);
@@ -3212,7 +3384,9 @@ void load(const utility::Config& cfg) {
         const std::string w = cfg.get("remix_hide_water_textures").value_or("");
         strncpy_s(settings.hide_water_textures, w.c_str(), _TRUNCATE);
     }
-    settings.water_tiling = cfg.get<float>("remix_water_tiling").value_or(4.0f);
+    settings.water_tiling = cfg.get<float>("remix_water_tiling").value_or(8.0f);
+    settings.puddles = cfg.get<bool>("remix_puddles").value_or(true);
+    settings.puddle_size = cfg.get<float>("remix_puddle_size").value_or(10000.0f);
     for (int i = 0; i < 2; ++i)
         settings.water_flow[i] = cfg.get<float>("remix_water_flow_" + std::to_string(i)).value_or(settings.water_flow[i]);
     settings.skip_hud = cfg.get<bool>("remix_skip_hud").value_or(false);
@@ -3266,6 +3440,8 @@ void save(utility::Config& cfg) {
     cfg.set<int>("remix_water_detail", settings.water_detail);
     cfg.set("remix_hide_water_textures", std::string(settings.hide_water_textures));
     cfg.set<float>("remix_water_tiling", settings.water_tiling);
+    cfg.set<bool>("remix_puddles", settings.puddles);
+    cfg.set<float>("remix_puddle_size", settings.puddle_size);
     for (int i = 0; i < 2; ++i) cfg.set<float>("remix_water_flow_" + std::to_string(i), settings.water_flow[i]);
     cfg.set<bool>("remix_skip_hud", settings.skip_hud);
     cfg.set<int>("remix_inject_pass", settings.inject_pass);

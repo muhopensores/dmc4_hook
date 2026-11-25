@@ -50,7 +50,7 @@ struct Settings {
     bool water_standin = true;       // water passes (no albedo map, water samplers): a solid colour on stage 0
     float water_color[3] = { 0.03f, 0.05f, 0.06f };
     float water_flow[2] = { 0.02f, 0.012f };   // water texture offset per second (u, v): Remix's water normals move with it
-    float water_tiling = 4.0f;       // wave normal map repeats per unit of the water's UVs (the texture transform's scale)
+    float water_tiling = 8.0f;       // wave normal map repeats per unit of the water's UVs (the texture transform's scale)
     bool hide_refraction = true;     // screen-refraction effects (heat haze, sword-trail distortion): not traceable
     // water layouts hidden from Remix instead of the stand-in (appended last: remix_live.py reads the fields above by offset)
     bool hide_water_depth = false;   // XfWater (normal + cube + depth buffer): the sea, puddles faded by depth
@@ -96,7 +96,7 @@ struct Settings {
     // standing at the start spot for a second after a room change while the game had it running). Needs world_positions
     bool skinned_positions = true;
     // the stage's point and spot lights as sphere lights through the Remix API (needs exposeRemixApi = True in
-    // _trex\bridge.conf). Remix makes its D3D9 point lights only as bright as their range (the colour is divided by
+    // .trex\bridge.conf). Remix makes its D3D9 point lights only as bright as their range (the colour is divided by
     // its largest component) and stops taking a still light's changes after 50 frames; through the API the radiance
     // is ours: the game's colour x point_strength reached at point_distance. Without the API: D3D9 lights as before
     bool api_lights = true;
@@ -109,6 +109,15 @@ struct Settings {
     float tex_light_color[3] = { 1.0f, 0.72f, 0.42f };
     float tex_light_strength = 1.0f;  // the light's colour at point_distance
     float tex_light_radius = 5.0f;    // cm
+    // Remix options set live through the Remix API's SetConfigVariable (Remix's user layer, as its own menu does):
+    // "key = value" items separated by ';' or new lines, applied when the text changes. For tests (performance A / B
+    // without restarts, Vibed\Remix\remix_live.py); options Remix reads only at start still need rtx.conf
+    char rtx_options[256] = "";
+    // XfWater draws (the sea's shader) narrower than puddle_size get their own stand-in (kind 5), so their own Remix
+    // material (DMC4Water: a thin clear film of water): Fortuna's puddles use the sea's shader and got the sea's look
+    bool puddles = true;
+    float puddle_size = 10000.0f;    // cm, the draw's widest extent across the ground in the world: st012's puddles
+                                     // are one 59 m draw, st400's sea a 2 km plane, st001's water 105 m (not seen)
 };
 extern Settings settings;
 

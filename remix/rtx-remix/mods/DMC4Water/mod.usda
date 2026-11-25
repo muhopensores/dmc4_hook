@@ -1,0 +1,342 @@
+#usda 1.0
+(
+    doc = "DMC4 water for RTX Remix. dmc4_hook's Remix bridge draws each kind of water shader with its own stand-in texture (4x4 of the default water colour, bytes 0x0F0D08FF, with the kind added to the blue byte: 0 XfWater, 1 XfWater's gXfViewProjI pixel shader, 2 XfInteractiveWater, 3 XfFlowingWater, 4 XfFlatWater, 5 puddles: XfWater draws narrower than the bridge's puddle size); its hash names the material, here under each way Remix may hash it (the filled or the still-empty texture, XXH3 or the old XXH64). Kinds 0, 1, 3 (sea, rivers): dark water, roughness 0.03, the wave normal map at half its tilt (textures/dmc4_water_normal_soft.dds); kinds 2, 4: as before, glossy dark water with the generated wave normal map (textures/dmc4_water_normal.dds, unsigned octahedral), scrolled; rtx.conf tags the same hashes as animated water for Remix's layered water normals. Kind 5: a thin, smooth film of clear water (translucent, thin-walled), not animated."
+    upAxis = "Y"
+)
+
+def Xform "RootNode"
+{
+    def Scope "Looks"
+    {
+        # filled xxh3
+        def Material "mat_815203BE4DC25162"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_815203BE4DC25162/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_815203BE4DC25162/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_815203BE4DC25162/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Opacity.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Opacity"
+                color3f inputs:diffuse_color_constant = (0.012, 0.03, 0.04)
+                float inputs:reflection_roughness_constant = 0.03
+                float inputs:metallic_constant = 0
+                asset inputs:normalmap_texture = @./textures/dmc4_water_normal_soft.dds@ (
+                    colorSpace = "raw"
+                )
+                float inputs:texture_scroll_rate = 0.02
+                float inputs:texture_scroll_angle = 25
+                float2 inputs:texture_scale = (1, 1)
+                token outputs:out
+            }
+        }
+
+        # filled xxh64
+        def Material "mat_60303FF3AECB4642"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_60303FF3AECB4642/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_60303FF3AECB4642/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_60303FF3AECB4642/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Opacity.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Opacity"
+                color3f inputs:diffuse_color_constant = (0.012, 0.03, 0.04)
+                float inputs:reflection_roughness_constant = 0.03
+                float inputs:metallic_constant = 0
+                asset inputs:normalmap_texture = @./textures/dmc4_water_normal_soft.dds@ (
+                    colorSpace = "raw"
+                )
+                float inputs:texture_scroll_rate = 0.02
+                float inputs:texture_scroll_angle = 25
+                float2 inputs:texture_scale = (1, 1)
+                token outputs:out
+            }
+        }
+
+        # zeros xxh3
+        def Material "mat_2FFB6918C12C256E"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_2FFB6918C12C256E/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_2FFB6918C12C256E/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_2FFB6918C12C256E/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Opacity.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Opacity"
+                color3f inputs:diffuse_color_constant = (0.012, 0.03, 0.04)
+                float inputs:reflection_roughness_constant = 0.03
+                float inputs:metallic_constant = 0
+                asset inputs:normalmap_texture = @./textures/dmc4_water_normal_soft.dds@ (
+                    colorSpace = "raw"
+                )
+                float inputs:texture_scroll_rate = 0.02
+                float inputs:texture_scroll_angle = 25
+                float2 inputs:texture_scale = (1, 1)
+                token outputs:out
+            }
+        }
+
+        # zeros xxh64
+        def Material "mat_257B09A147B82A19"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_257B09A147B82A19/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_257B09A147B82A19/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_257B09A147B82A19/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Opacity.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Opacity"
+                color3f inputs:diffuse_color_constant = (0.012, 0.03, 0.04)
+                float inputs:reflection_roughness_constant = 0.03
+                float inputs:metallic_constant = 0
+                asset inputs:normalmap_texture = @./textures/dmc4_water_normal_soft.dds@ (
+                    colorSpace = "raw"
+                )
+                float inputs:texture_scroll_rate = 0.02
+                float inputs:texture_scroll_angle = 25
+                float2 inputs:texture_scale = (1, 1)
+                token outputs:out
+            }
+        }
+    
+
+        # kind 1, XfWater, its pixel shader with gXfViewProjI: filled xxh3
+        def Material "mat_0ACE46F436596399"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_0ACE46F436596399/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_0ACE46F436596399/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_0ACE46F436596399/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Opacity.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Opacity"
+                color3f inputs:diffuse_color_constant = (0.012, 0.03, 0.04)
+                float inputs:reflection_roughness_constant = 0.03
+                float inputs:metallic_constant = 0
+                asset inputs:normalmap_texture = @./textures/dmc4_water_normal_soft.dds@ (
+                    colorSpace = "raw"
+                )
+                float inputs:texture_scroll_rate = 0.02
+                float inputs:texture_scroll_angle = 25
+                float2 inputs:texture_scale = (1, 1)
+                token outputs:out
+            }
+        }
+
+        # kind 1, XfWater, its pixel shader with gXfViewProjI: filled xxh64
+        def Material "mat_345E0936BFE4844B"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_345E0936BFE4844B/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_345E0936BFE4844B/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_345E0936BFE4844B/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Opacity.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Opacity"
+                color3f inputs:diffuse_color_constant = (0.012, 0.03, 0.04)
+                float inputs:reflection_roughness_constant = 0.03
+                float inputs:metallic_constant = 0
+                asset inputs:normalmap_texture = @./textures/dmc4_water_normal_soft.dds@ (
+                    colorSpace = "raw"
+                )
+                float inputs:texture_scroll_rate = 0.02
+                float inputs:texture_scroll_angle = 25
+                float2 inputs:texture_scale = (1, 1)
+                token outputs:out
+            }
+        }
+
+        # kind 2, XfInteractiveWater (the practice stage, the BP floor: ripples are geometry): filled xxh3
+        def Material "mat_274F2A395F294722"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_274F2A395F294722/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_274F2A395F294722/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_274F2A395F294722/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Opacity.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Opacity"
+                color3f inputs:diffuse_color_constant = (0.01, 0.014, 0.018)
+                float inputs:reflection_roughness_constant = 0.03
+                float inputs:metallic_constant = 0
+                token outputs:out
+            }
+        }
+
+        # kind 2, XfInteractiveWater (the practice stage, the BP floor: ripples are geometry): filled xxh64
+        def Material "mat_5A76F6B15E501200"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_5A76F6B15E501200/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_5A76F6B15E501200/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_5A76F6B15E501200/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Opacity.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Opacity"
+                color3f inputs:diffuse_color_constant = (0.01, 0.014, 0.018)
+                float inputs:reflection_roughness_constant = 0.03
+                float inputs:metallic_constant = 0
+                token outputs:out
+            }
+        }
+
+        # kind 3, XfFlowingWater: filled xxh3
+        def Material "mat_8C52ACE6575EA844"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_8C52ACE6575EA844/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_8C52ACE6575EA844/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_8C52ACE6575EA844/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Opacity.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Opacity"
+                color3f inputs:diffuse_color_constant = (0.012, 0.03, 0.04)
+                float inputs:reflection_roughness_constant = 0.03
+                float inputs:metallic_constant = 0
+                asset inputs:normalmap_texture = @./textures/dmc4_water_normal_soft.dds@ (
+                    colorSpace = "raw"
+                )
+                float inputs:texture_scroll_rate = 0.02
+                float inputs:texture_scroll_angle = 25
+                float2 inputs:texture_scale = (1, 1)
+                token outputs:out
+            }
+        }
+
+        # kind 3, XfFlowingWater: filled xxh64
+        def Material "mat_6E84E40F4EBD7253"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_6E84E40F4EBD7253/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_6E84E40F4EBD7253/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_6E84E40F4EBD7253/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Opacity.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Opacity"
+                color3f inputs:diffuse_color_constant = (0.012, 0.03, 0.04)
+                float inputs:reflection_roughness_constant = 0.03
+                float inputs:metallic_constant = 0
+                asset inputs:normalmap_texture = @./textures/dmc4_water_normal_soft.dds@ (
+                    colorSpace = "raw"
+                )
+                float inputs:texture_scroll_rate = 0.02
+                float inputs:texture_scroll_angle = 25
+                float2 inputs:texture_scale = (1, 1)
+                token outputs:out
+            }
+        }
+
+        # kind 4, XfFlatWater: filled xxh3
+        def Material "mat_3B44B3DB4EF8E6EB"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_3B44B3DB4EF8E6EB/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_3B44B3DB4EF8E6EB/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_3B44B3DB4EF8E6EB/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Opacity.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Opacity"
+                color3f inputs:diffuse_color_constant = (0.012, 0.03, 0.04)
+                float inputs:reflection_roughness_constant = 0.1
+                float inputs:metallic_constant = 0
+                asset inputs:normalmap_texture = @./textures/dmc4_water_normal.dds@ (
+                    colorSpace = "raw"
+                )
+                float inputs:texture_scroll_rate = 0.02
+                float inputs:texture_scroll_angle = 25
+                float2 inputs:texture_scale = (1, 1)
+                token outputs:out
+            }
+        }
+
+        # kind 4, XfFlatWater: filled xxh64
+        def Material "mat_768730A60B5AC159"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_768730A60B5AC159/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_768730A60B5AC159/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_768730A60B5AC159/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Opacity.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Opacity"
+                color3f inputs:diffuse_color_constant = (0.012, 0.03, 0.04)
+                float inputs:reflection_roughness_constant = 0.1
+                float inputs:metallic_constant = 0
+                asset inputs:normalmap_texture = @./textures/dmc4_water_normal.dds@ (
+                    colorSpace = "raw"
+                )
+                float inputs:texture_scroll_rate = 0.02
+                float inputs:texture_scroll_angle = 25
+                float2 inputs:texture_scale = (1, 1)
+                token outputs:out
+            }
+        }
+
+        # kind 5, puddles (XfWater draws narrower than the bridge's puddle size): a thin film of clear water, smooth, the ground seen through it: filled xxh3
+        def Material "mat_60F1763582CBBA90"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_60F1763582CBBA90/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_60F1763582CBBA90/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_60F1763582CBBA90/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Translucent.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Translucent"
+                float inputs:ior_constant = 1.33
+                color3f inputs:transmittance_color = (0.9, 0.92, 0.93)
+                float inputs:transmittance_measurement_distance = 1
+                bool inputs:thin_walled = 1
+                float inputs:thin_wall_thickness = 1
+                token outputs:out
+            }
+        }
+
+        # kind 5, puddles: filled xxh64
+        def Material "mat_6A9A9944219724FE"
+        {
+            token outputs:mdl:displacement.connect = </RootNode/Looks/mat_6A9A9944219724FE/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </RootNode/Looks/mat_6A9A9944219724FE/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </RootNode/Looks/mat_6A9A9944219724FE/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @AperturePBR_Translucent.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "AperturePBR_Translucent"
+                float inputs:ior_constant = 1.33
+                color3f inputs:transmittance_color = (0.9, 0.92, 0.93)
+                float inputs:transmittance_measurement_distance = 1
+                bool inputs:thin_walled = 1
+                float inputs:thin_wall_thickness = 1
+                token outputs:out
+            }
+        }
+    }
+}

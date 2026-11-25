@@ -1,0 +1,77 @@
+RTX Remix for Devil May Cry 4 (DX9) - prototype
+================================================
+
+Path-traced DMC4 through NVIDIA RTX Remix 1.6.1. Remix can't handle DMC4's shader pipeline by itself.
+dmc4_hook's RTX Remix bridge does the game-side work:
+- the camera, textures and lights;
+- shader patches;
+- handing Remix's image back to the game, so effects, filters and the HUD draw over it.
+
+This folder holds only dmc4_hook's part. The Remix runtime itself comes from NVIDIA.
+
+Needs
+-----
+- An RTX graphics card.
+- dmc4_hook with its Graphics tab > RTX Remix bridge.
+- NVIDIA's RTX Remix 1.6.1 release for x86 games:
+  https://github.com/NVIDIAGameWorks/rtx-remix/releases/tag/remix-1.6.1
+  file rtx-remix-for-x86-games-release-remix-1.6.1.zip (about 820 MB).
+
+Installing
+----------
+1. From NVIDIA's zip, copy d3d9.dll and the .trex folder into the game folder, next to DevilMayCry4_DX9.exe.
+   - The .trex_arm64 folder isn't needed (DMC4 is an x86 game). The other files in the zip are optional.
+   - Keep the folder name ".trex" exactly as it is, dot included.
+   - Don't install it through a mod manager that skips names starting with a dot. Without .trex the game
+     freezes at startup, waiting for a renderer that isn't there.
+2. Copy everything in this folder into the game folder, on top of NVIDIA's files: .trex\bridge.conf, rtx.conf
+   and rtx-remix. This adds files; it doesn't replace any of NVIDIA's.
+3. Turn the bridge on, then restart the game:
+   - in dmc4_hook: Graphics tab > RTX Remix bridge, tick it, save the config;
+   - or in dmc4_hook.cfg: remix_bridge=true.
+   The shader patches happen as the game starts, so switching the bridge always needs a restart.
+4. Turn off dmc4_hook's own post effects (AO, outlines, contact shadows, FXAA).
+5. Alt+X opens the Remix menu in the game.
+
+Playing without Remix: remove or rename d3d9.dll. The rest can stay. While Remix's d3d9.dll is in the game
+folder, the game always runs through Remix, whether the bridge is on or not.
+
+Uninstalling: delete
+- NVIDIA's files you copied: d3d9.dll, .trex (and any of the optional ones);
+- this folder's files: rtx.conf, rtx-remix;
+- what Remix and the bridge write while they run: user.conf, DevilMayCry4_DX9.dxvk-cache, metrics.txt,
+  remix_passes.txt, remix_probe.txt, and the rtxImage* files in Screenshots.
+
+Lights
+------
+- Point lights through the Remix API (Game lights, on by default). The stage's lamps light with the game's
+  colour (times Point light strength) at the "Full colour at" distance. Without the API (exposeRemixApi in
+  .trex\bridge.conf), Remix makes them only as bright as their range and freezes them after 50 frames.
+- Lights on textures containing. Puts a light at the middle of every object drawn with a texture whose path
+  contains the text (several separated by ;), with its own colour, strength and size. Remix's own "Add Light to
+  Texture" can't place its lights in DMC4. Effects (drawn after the hand-over) aren't covered.
+
+Files in this folder
+--------------------
+.trex\bridge.conf
+  - Long bridge timeouts (commandTimeout 5000, commandRetries 1000). Without them a stall in the renderer became
+    the game's fatal CreateTexture error.
+  - exposeRemixApi = True: the bridge's lights go through the Remix API.
+  NVIDIA's zip has only bridge.defaults.conf, so this adds to it.
+rtx.conf
+  - vertex capture and captured normals;
+  - water and puddles;
+  - opacity micromaps off (faster, and alpha-tested decals no longer draw as black patches);
+  - Remix's auto exposure and bloom off (the game's own tone mapping runs on the image).
+rtx-remix\mods\DMC4Water\
+  - water materials for the bridge's water stand-ins (a moving wave normal map);
+  - a thin clear film for puddles.
+
+Known issues
+------------
+- Dark scenes. DMC4's own look comes from baked lightmaps and an ambient light that Remix doesn't have, and
+  the game's real lights are weak. Setting rtx.useVertexCapturedNormals = False in rtx.conf makes Remix use
+  flat triangle normals instead.
+- Cube-mapped (shiny) surfaces don't mirror yet: Remix gives every game material the same roughness.
+- The game sometimes hangs. The renderer hits a GPU fault, sometimes at startup and sometimes in play. Restart.
+- Characters trail slightly while moving, and sky panels show seams.
