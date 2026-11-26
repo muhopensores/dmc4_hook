@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <map>
 #include <vector>
+#include <array>
 #include <deque>
 #include <cstdio>
 #include <cmath>
@@ -654,6 +655,9 @@ char g_light_built_for[128] = "";
 
 std::unordered_set<uintptr_t> g_sky_tex;          // settings.sky_textures' textures
 char g_sky_built_for[64] = "";
+std::unordered_set<uintptr_t> g_terrain_tex;      // settings.terrain_textures' textures
+char g_terrain_built_for[128] = "";
+std::unordered_set<uintptr_t> g_mask_tex;         // with terrain_textures: the blend masks (paths ending _AM)
 std::atomic<uint32_t> g_sky_tex_frame{ 0 };       // g_frames when one was last drawn (0 = not since the start)
 std::string g_sky_tex_path;                       // the first one's path (the GUI's)
 
@@ -665,19 +669,30 @@ void build_hide_textures() {
     g_sky_tex_path.clear();
     memcpy(g_sky_built_for, settings.sky_textures, sizeof g_sky_built_for);
     g_sky_built_for[sizeof g_sky_built_for - 1] = 0;
+    g_terrain_tex.clear();
+    g_mask_tex.clear();
+    memcpy(g_terrain_built_for, settings.terrain_textures, sizeof g_terrain_built_for);
+    g_terrain_built_for[sizeof g_terrain_built_for - 1] = 0;
     memcpy(g_light_built_for, settings.light_textures, sizeof g_light_built_for);
     g_light_built_for[sizeof g_light_built_for - 1] = 0;
     memcpy(g_hide_built_for, settings.hide_textures, sizeof g_hide_built_for);
     g_hide_built_for[sizeof g_hide_built_for - 1] = 0;
     memcpy(g_hide_water_built_for, settings.hide_water_textures, sizeof g_hide_water_built_for);
     g_hide_water_built_for[sizeof g_hide_water_built_for - 1] = 0;
-    if (!g_hide_built_for[0] && !g_hide_water_built_for[0] && !g_light_built_for[0] && !g_sky_built_for[0]) return;
+    if (!g_hide_built_for[0] && !g_hide_water_built_for[0] && !g_light_built_for[0] && !g_sky_built_for[0] &&
+        !g_terrain_built_for[0])
+        return;
     for_each_texture([](uintptr_t t, const char* p) {
         if (g_sky_built_for[0] && path_matches(p, g_sky_built_for)) {
             g_sky_tex.insert(t);
             if (g_sky_tex_path.empty()) g_sky_tex_path = p;
         }
         if (g_hide_built_for[0] && path_matches(p, g_hide_built_for)) g_hide_tex.insert(t);
+        if (g_terrain_built_for[0] && path_matches(p, g_terrain_built_for)) g_terrain_tex.insert(t);
+        if (g_terrain_built_for[0]) {   // DMC4's blend masks: "..._AM" (st307-t-alpha00_AM)
+            const size_t len = strnlen(p, 64);
+            if (len > 3 && p[len - 3] == '_' && (p[len - 2] | 0x20) == 'a' && (p[len - 1] | 0x20) == 'm') g_mask_tex.insert(t);
+        }
         if (g_light_built_for[0] && path_matches(p, g_light_built_for)) g_light_tex.insert(t);
         if (g_hide_water_built_for[0] && path_matches(p, g_hide_water_built_for)) g_hide_water_tex.insert(t);
     });
@@ -2415,6 +2430,10 @@ void on_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
 
 volatile uint8_t g_light_next = 0;             // the next indexed draw uses a light texture (texlight::capture)
 volatile uint8_t g_sky_next = 0;               // the next indexed draw uses a sky texture (settings.sky_textures)
+volatile uint8_t g_terrain_next = 0;           // the next draw is a terrain layer (terrain_draw): 1 base, 2 blended
+uint8_t g_terrain_mask_stage = 0xFF;           // ... and its blend mask's stage (0xFF: none found)
+std::atomic<uint32_t> g_terrain_draws{ 0 };
+uint32_t g_terrain_draws_last = 0;
 volatile uint8_t g_subdiv_next = 0;            // the draws after this bind are water to subdivide
 IDirect3DPixelShader9* g_subdiv_ps = nullptr;  // ... made with this pixel shader (another one: not water any more)
 
@@ -2471,7 +2490,167 @@ int sky_draw(IDirect3DDevice9* dev, const uint8_t* cmd, bool indexed) {
     return 0;
 }
 
+// a terrain layer's draw (settings.terrain_textures; g_terrain_next from on_tag: 1 a base layer, 2 a blended layer of the
+// overlap pass) with a plain ps_1_4 for Remix's terrain baker, which re-runs the draw's pixel shader from above: the game's
+// shader writes lit, x 0.5-encoded colour (the bake came out grey), and Remix bakes replacement normal / roughness / height
+// maps only through ps_1_x shaders (it samples them on stage 7, kTerrainBakerSecondaryTextureStage, kept empty here). The
+// blended layers' alpha is their mask's red (st307's XfStage overlap shaders: alpha = mask.r, the mask on stage 1 read with
+// TEXCOORD2, or on stage 4 with TEXCOORD3 when the layer has a normal map: found by path (*_AM, on_tag) and from the game
+// shader's own texld; the masks are grey, so .b), moved to stage 2 so Remix doesn't take it as a second colour texture.
+// The masks carry a per-vertex blend: alpha00_AM is a gradient across v (white, black at 0.5, white), so the layers fade
+// out toward their outer edges (vanilla's soft grass / dirt borders). 1 = drawn here
+namespace terrain {
+const DWORD kBasePs[] = {   // ps_1_4: def c0, 0, 0, 0, 1; texld r0, t0; mov r0.a, c0.a
+    0xFFFF0104, 0x00000051, 0xA00F0000, 0x00000000, 0x00000000, 0x00000000, 0x3F800000,
+    0x00000042, 0x800F0000, 0xB0E40000, 0x00000001, 0x80080000, 0xA0FF0000, 0x0000FFFF };
+// ps_1_4: texld r0, t0; texld r2, t<k>; mov r0.a, r2.b (token 6 = the mask's texture coordinate register, k 0-5)
+const DWORD kBlendPs[] = {
+    0xFFFF0104, 0x00000042, 0x800F0000, 0xB0E40000, 0x00000042, 0x800F0002, 0xB0E40002,
+    0x00000001, 0x80080000, 0x80AA0002, 0x0000FFFF };
+IDirect3DPixelShader9* g_ps[2] = {};
+IDirect3DPixelShader9* g_mask_ps[6] = {};
+std::unordered_map<IDirect3DPixelShader9*, std::array<int8_t, 16>> g_coords;   // game PS -> TEXCOORD index per sampler
+
+// which TEXCOORD each sampler of a ps_2_0 / ps_3_0 is read with (texld v#, s#, the v#'s dcl_texcoord<n>); -1 = not by a
+// plain texcoord. From the shader's own tokens (GetFunction), once per shader
+const std::array<int8_t, 16>& coords_of(IDirect3DPixelShader9* ps) {
+    auto it = g_coords.find(ps);
+    if (it != g_coords.end()) return it->second;
+    std::array<int8_t, 16> out;
+    out.fill(-1);
+    UINT size = 0;
+    std::vector<DWORD> t;
+    if (ps && SUCCEEDED(ps->GetFunction(nullptr, &size)) && size >= 8) {
+        t.resize(size / 4);
+        if (FAILED(ps->GetFunction(t.data(), &size))) t.clear();
+    }
+    if (t.size() > 1 && (t[0] & 0xFFFF0000) == 0xFFFF0000 && ((t[0] >> 8) & 0xFF) >= 2) {
+        int8_t input_coord[32];
+        std::fill(std::begin(input_coord), std::end(input_coord), int8_t(-1));
+        const auto reg = [](DWORD tok, int& type) {
+            type = static_cast<int>(((tok >> 28) & 7) | ((tok >> 8) & 0x18));
+            return static_cast<int>(tok & 0x7FF);
+        };
+        for (size_t i = 1; i < t.size();) {
+            const DWORD tok = t[i];
+            if (tok == 0x0000FFFF) break;
+            const DWORD op = tok & 0xFFFF;
+            if (op == 0xFFFE) { i += 1 + ((tok >> 16) & 0x7FFF); continue; }   // a comment block
+            const size_t len = (tok >> 24) & 0x0F;
+            if (op == 0x1F && i + 2 < t.size()) {   // dcl: usage token, then the register
+                int type = 0;
+                const int r = reg(t[i + 2], type);
+                if (type == 1 && r < 32 && (t[i + 1] & 0x1F) == 5) input_coord[r] = static_cast<int8_t>((t[i + 1] >> 16) & 0xF);
+            } else if (op == 0x42 && i + 3 < t.size()) {   // texld dst, src (v#), sampler (s#)
+                int st = 0, ss = 0;
+                const int v = reg(t[i + 2], st), s = reg(t[i + 3], ss);
+                if (st == 1 && ss == 10 && v < 32 && s < 16 && out[s] < 0) out[s] = input_coord[v];
+            }
+            i += 1 + len;
+        }
+    }
+    return g_coords.emplace(ps, out).first->second;
+}
+
+IDirect3DPixelShader9* mask_ps(IDirect3DDevice9* dev, int k) {
+    if (k < 0 || k > 5) return nullptr;
+    if (!g_mask_ps[k]) {
+        DWORD tokens[sizeof kBlendPs / sizeof kBlendPs[0]];
+        memcpy(tokens, kBlendPs, sizeof tokens);
+        tokens[6] = 0xB0E40000 | static_cast<DWORD>(k);
+        if (FAILED(dev->CreatePixelShader(tokens, &g_mask_ps[k]))) g_mask_ps[k] = nullptr;
+    }
+    return g_mask_ps[k];
+}
+bool g_failed = false;
+const D3DSAMPLERSTATETYPE kStates[] = { D3DSAMP_ADDRESSU, D3DSAMP_ADDRESSV, D3DSAMP_MAGFILTER, D3DSAMP_MINFILTER,
+                                        D3DSAMP_MIPFILTER, D3DSAMP_SRGBTEXTURE };
+
+int draw(IDirect3DDevice9* dev, const uint8_t* cmd, bool indexed, int kind, int mask_stage) {
+    if (!dev || !cmd || g_failed) return 0;
+    if (!g_ps[0]) {
+        if (FAILED(dev->CreatePixelShader(kBasePs, &g_ps[0])) || FAILED(dev->CreatePixelShader(kBlendPs, &g_ps[1]))) {
+            for (auto& p : g_ps)
+                if (p) { p->Release(); p = nullptr; }
+            g_failed = true;
+            return 0;
+        }
+    }
+    const uint32_t w = *reinterpret_cast<const uint32_t*>(cmd + 0x18);
+    const UINT type = w & 0xFF, prims = w >> 8;
+    if (!prims || (type != D3DPT_TRIANGLELIST && type != D3DPT_TRIANGLESTRIP && type != D3DPT_TRIANGLEFAN)) return 0;
+    IDirect3DPixelShader9* prev = nullptr;
+    IDirect3DBaseTexture9 *t1 = nullptr, *t2 = nullptr, *t7 = nullptr, *mask = nullptr;
+    dev->GetPixelShader(&prev);
+    dev->GetTexture(1, &t1);
+    dev->GetTexture(2, &t2);
+    dev->GetTexture(7, &t7);
+    DWORD s0_srgb = 0, s2[6] = {};
+    dev->GetSamplerState(0, D3DSAMP_SRGBTEXTURE, &s0_srgb);
+    for (int i = 0; i < 6; ++i) dev->GetSamplerState(2, kStates[i], &s2[i]);
+    int coord = -1;
+    IDirect3DPixelShader9* blend_ps = nullptr;
+    if (kind == 2 && mask_stage >= 1 && mask_stage < 16) {
+        dev->GetTexture(mask_stage, &mask);
+        coord = coords_of(prev)[mask_stage];
+        blend_ps = mask ? mask_ps(dev, coord) : nullptr;
+    }
+    const bool blend = blend_ps != nullptr;
+    if (g_probe == 2 && g_probe_states.size() < 900) {   // which stages hold what at the bake draw
+        IDirect3DBaseTexture9* t0 = nullptr;
+        dev->GetTexture(0, &t0);
+        DWORD blend_on = 0, src = 0, dst = 0, atest = 0, aref = 0;
+        dev->GetRenderState(D3DRS_ALPHABLENDENABLE, &blend_on);
+        dev->GetRenderState(D3DRS_SRCBLEND, &src);
+        dev->GetRenderState(D3DRS_DESTBLEND, &dst);
+        dev->GetRenderState(D3DRS_ALPHATESTENABLE, &atest);
+        dev->GetRenderState(D3DRS_ALPHAREF, &aref);
+        char line[260];
+        sprintf_s(line, "  terrain draw: kind %d, mask on stage %d read with TEXCOORD%d (ps %p), stage 0 %p -> %s | blend %lu "
+                  "%lu %lu, atest %lu ref %lu\n", kind, mask_stage == 0xFF ? -1 : mask_stage, coord, static_cast<void*>(prev),
+                  static_cast<void*>(t0), blend ? "mask shader" : "base shader", blend_on, src, dst, atest, aref);
+        if (t0) t0->Release();
+        if (g_probe_states.insert(line).second) g_probe_text += line;
+    }
+    if (blend) {
+        for (int i = 0; i < 5; ++i) {
+            DWORD v = 0;
+            dev->GetSamplerState(mask_stage, kStates[i], &v);
+            dev->SetSamplerState(2, kStates[i], v);
+        }
+        dev->SetSamplerState(2, D3DSAMP_SRGBTEXTURE, FALSE);
+        dev->SetTexture(2, mask);
+    }
+    dev->SetTexture(1, nullptr);
+    dev->SetTexture(7, nullptr);
+    if (settings.terrain_srgb) dev->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, TRUE);
+    dev->SetPixelShader(blend ? blend_ps : g_ps[0]);
+    if (indexed)
+        dev->DrawIndexedPrimitive(static_cast<D3DPRIMITIVETYPE>(type), *reinterpret_cast<const INT*>(cmd + 0x1C),
+                                  *reinterpret_cast<const uint16_t*>(cmd + 0x26), *reinterpret_cast<const uint16_t*>(cmd + 0x24),
+                                  *reinterpret_cast<const UINT*>(cmd + 0x20), prims);
+    else
+        dev->DrawPrimitive(static_cast<D3DPRIMITIVETYPE>(type), *reinterpret_cast<const UINT*>(cmd + 0x1C), prims);
+    dev->SetPixelShader(prev);
+    dev->SetTexture(1, t1);
+    dev->SetTexture(2, t2);
+    dev->SetTexture(7, t7);
+    dev->SetSamplerState(0, D3DSAMP_SRGBTEXTURE, s0_srgb);
+    for (int i = 0; i < 6; ++i) dev->SetSamplerState(2, kStates[i], s2[i]);
+    for (IUnknown* u : { static_cast<IUnknown*>(prev), static_cast<IUnknown*>(t1), static_cast<IUnknown*>(t2),
+                         static_cast<IUnknown*>(t7), static_cast<IUnknown*>(mask) })
+        if (u) u->Release();
+    ++g_terrain_draws;
+    return 1;
+}
+} // namespace terrain
+
 int __stdcall prim_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
+    if (g_terrain_next) {
+        const int kind = g_terrain_next;
+        g_terrain_next = 0;
+        if (terrain::draw(dev, cmd, false, kind, g_terrain_mask_stage)) return 1;
+    }
     if (!g_sky_next) return 0;
     g_sky_next = 0;
     return sky_draw(dev, cmd, false);
@@ -2482,6 +2661,11 @@ int __stdcall water_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
     if (g_sky_next) {   // a sky draw (sky_draw)
         g_sky_next = 0;
         if (sky_draw(dev, cmd, true)) return 1;
+    }
+    if (g_terrain_next) {   // a terrain layer (terrain::draw)
+        const int kind = g_terrain_next;
+        g_terrain_next = 0;
+        if (terrain::draw(dev, cmd, true, kind, g_terrain_mask_stage)) return 1;
     }
     if (g_light_next) {   // a light texture's draw: its middle for the next frame's light
         g_light_next = 0;
@@ -2796,6 +2980,24 @@ int __stdcall bind_texture(IDirect3DDevice9* dev, const uint32_t* entry, const u
                 if (g_light_tex.count(first[i])) light = true;
         }
         g_light_next = light ? 1 : 0;
+        g_terrain_next = 0;
+        g_terrain_mask_stage = 0xFF;
+        if (!hide && !water && !g_terrain_tex.empty()) {   // a terrain layer (settings.terrain_textures): terrain_draw
+            const uint32_t* first = slot - (entry - entries);
+            for (uint32_t i = 0; i < n; ++i)
+                if (g_terrain_tex.count(first[i])) {
+                    g_terrain_next = g_pass == kOverlap ? 2 : 1;
+                    break;
+                }
+            // the mask's stage: XfStage's overlap shaders keep it on stage 1 (no normal map) or 4 (normal-mapped layers,
+            // which have the normal map on stage 1: reading that as the mask gave them alpha 1, hard polygon edges)
+            if (g_terrain_next == 2)
+                for (uint32_t i = 0; i < n; ++i)
+                    if (g_mask_tex.count(first[i])) {
+                        g_terrain_mask_stage = static_cast<uint8_t>((entries[i] >> 16) & 0xFF);
+                        break;
+                    }
+        }
         if (!g_sky_tex.empty()) {   // the stage's sky (settings.sky_textures): the dome steps aside
             const uint32_t* first = slot - (entry - entries);
             for (uint32_t i = 0; i < n; ++i)
@@ -3540,6 +3742,8 @@ naked void detour_draw() {
     _asm {
         cmp byte ptr [g_sky_next], 0
         jne hooked
+        cmp byte ptr [g_terrain_next], 0
+        jne hooked
         cmp byte ptr [g_subdiv_next], 0
         jne hooked
         cmp byte ptr [g_puddle_next], 0
@@ -3629,12 +3833,15 @@ void* tex_detour() { return reinterpret_cast<void*>(&detour_tex); }
 void* draw_detour() { return reinterpret_cast<void*>(&detour_draw); }
 
 // dispatchCommands' DrawPrimitive (0x8F5726, same 7 bytes as the indexed draw's: the command at esp + 0x50, the device in
-// esi): only sky draws are taken (prim_draw)
+// esi): only sky and terrain draws are taken (prim_draw)
 uintptr_t jmp_ret_drawprim = 0;
 naked void detour_drawprim() {
     _asm {
         cmp byte ptr [g_sky_next], 0
+        jne hooked
+        cmp byte ptr [g_terrain_next], 0
         je original
+    hooked:
         pushad
         mov eax, [esp + 0x20 + 0x50]
         push eax
@@ -3833,13 +4040,16 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
             strncmp(settings.hide_water_textures, g_hide_water_built_for, sizeof g_hide_water_built_for - 1) != 0 ||
             strncmp(settings.light_textures, g_light_built_for, sizeof g_light_built_for - 1) != 0 ||
             strncmp(settings.sky_textures, g_sky_built_for, sizeof g_sky_built_for - 1) != 0 ||
-            ((g_hide_built_for[0] || g_hide_water_built_for[0] || g_light_built_for[0] || g_sky_built_for[0]) &&
+            strncmp(settings.terrain_textures, g_terrain_built_for, sizeof g_terrain_built_for - 1) != 0 ||
+            ((g_hide_built_for[0] || g_hide_water_built_for[0] || g_light_built_for[0] || g_sky_built_for[0] ||
+              g_terrain_built_for[0]) &&
              g_frames % 60 == 0))
             build_hide_textures();
         g_in_main = false;
         g_last_vp = 0;
         pick_main_view();
         g_vp_sets_last = g_vp_sets.exchange(0);
+        g_terrain_draws_last = g_terrain_draws.exchange(0);
         g_vp_rejected_last = g_vp_rejected.exchange(0);
         ++g_disp_since_present;
         g_ui_done = false;
@@ -4224,6 +4434,16 @@ void draw_gui() {
             else if (settings.sky_textures[0])
                 ImGui::TextDisabled(_("%zu sky textures loaded, none drawn lately"), g_sky_tex.size());
         }
+        ImGui::InputText(_("Terrain textures containing"), settings.terrain_textures, sizeof settings.terrain_textures);
+        ImGui::SameLine();
+        Mod::help_marker(_("Blended ground (texture layers laid over each other and mixed by masks, like the forest's): "
+                           "textures whose path contains this text (several separated by ';'). Tag them as Terrain Textures "
+                           "in Remix (rtx.conf's rtx.terrainTextures) and Remix bakes them from above into one ground "
+                           "texture with the game's mixing and their replacement materials' bump maps. Without it the "
+                           "layers lie on each other and flicker."));
+        if (settings.terrain_textures[0])
+            ImGui::TextDisabled(_("%zu terrain textures loaded, %u draws last frame"), g_terrain_tex.size(),
+                                g_terrain_draws_last);
     }
     ImGui::Checkbox(_("Sun (without game lights)"), &settings.sun);
     ImGui::SameLine();
@@ -4369,6 +4589,11 @@ void load(const utility::Config& cfg) {
         const std::string t = cfg.get("remix_sky_textures").value_or("-t-sora;-t-sky");
         strncpy_s(settings.sky_textures, t.c_str(), _TRUNCATE);
     }
+    {
+        const std::string t = cfg.get("remix_terrain_textures").value_or("st307-t-ground;st307-t-g3_;st307-t-g05_");
+        strncpy_s(settings.terrain_textures, t.c_str(), _TRUNCATE);
+    }
+    settings.terrain_srgb = cfg.get<bool>("remix_terrain_srgb").value_or(false);
     settings.fill_strength = cfg.get<float>("remix_fill_strength").value_or(1.0f);
     settings.fill_range = cfg.get<float>("remix_fill_range").value_or(4000.0f);
     settings.sun_strength = cfg.get<float>("remix_sun_strength").value_or(2.0f);
@@ -4428,6 +4653,8 @@ void save(utility::Config& cfg) {
     cfg.set<float>("remix_dome_strength", settings.dome_strength);
     cfg.set<bool>("remix_dome_cube", settings.dome_cube);
     cfg.set("remix_sky_textures", std::string(settings.sky_textures));
+    cfg.set("remix_terrain_textures", std::string(settings.terrain_textures));
+    cfg.set<bool>("remix_terrain_srgb", settings.terrain_srgb);
     cfg.set<float>("remix_fill_strength", settings.fill_strength);
     cfg.set<float>("remix_fill_range", settings.fill_range);
     cfg.set<float>("remix_sun_strength", settings.sun_strength);

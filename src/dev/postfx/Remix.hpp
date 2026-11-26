@@ -150,13 +150,25 @@ struct Settings {
     // up as round bumps at ripple_height 25)
     float ripple_curve = 2.0f;
     // the sky's fog under Remix, as a share of the game's (the stage shader fogs the sky toward gXfFogColor up to c36.w;
-    // Remix takes that as linear light, so the full amount is a heavy grey veil, while some of it hides where the water
-    // ends against the sky): 0 = none, 1 = the game's
-    float sky_fog = 0.35f;
+    // Remix takes that as linear light, so the full amount is a heavy grey veil): 0 = none (the user's pick, 2026-11-26,
+    // with water_to_horizon hiding where the water used to end and rtx.skyBrightness 2), 1 = the game's
+    float sky_fog = 0.0f;
     // large interactive water (a square of 100 m or more: BP stage 1 / the practice stage's 200 m floor) drawn on out to
     // the horizon as flat water past its square (the bridge's own grid, graded::), so no edge shows where it ends against
     // the sky; the simulation and collision stay the game's. Small pools keep their edges (walls may enclose them)
     bool water_to_horizon = true;
+    // blended ground for Remix's terrain baker (rtx.terrainBaker): draws of textures whose path contains this text (several
+    // separated by ';') are drawn with a plain ps_1_4: the albedo (stage 0), and on the overlap pass's blended layers the
+    // alpha of their mask (*_AM, on stage 1 or 4 with the UV set the game's shader reads it with, moved to stage 2). With
+    // the same textures tagged as
+    // rtx.terrainTextures, Remix bakes them top-down into one ground texture with the game's mixing and draws every terrain
+    // surface with it: the layers lie on each other (st307's ground z-fought, dark flickering patches) and Remix can't
+    // read a second texture's mask. Replacement materials of those textures (normal / roughness / height maps) are baked
+    // along, which Remix does only for ps_1_x shaders
+    char terrain_textures[128] = "st307-t-ground;st307-t-g3_;st307-t-g05_";
+    // stage 0 read as sRGB in those draws: off, since the baker keeps the shader's output in the texture's own encoding
+    // (on, st307's ground came out much darker: decoded twice)
+    bool terrain_srgb = false;
 };
 extern Settings settings;
 
