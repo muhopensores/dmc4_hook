@@ -49,6 +49,11 @@ bool g_have_frame_vp = false;   // the frame's camera (below): counts the draws 
 namespace {
 
 constexpr uintptr_t kCameraInstance = 0x00E552D4;  // sCamera::mpInstance
+// sLight (the light manager): every uLight adds itself to its list when made (uLight::uLight 0xA6AB30 -> sub_A67080): the
+// scheduler's units, effect particle lights (uSynchroPointLight / uSynchroSpotLight, not on any move line), enemies'
+// (uEm019_00::setLight) and uScreenBreak's. The game lights models from this list (sub_A66180 / sub_A652B0): +0x20 the
+// entries (1024), +0x2020 their count. Vibed/RE/light_units.md
+constexpr uintptr_t kLightManager = 0x00E55788;
 constexpr uint32_t  kMainScene = 0x1F;              // tag key bits 24-28
 // tag key bits 29-31 = the drawing viewport's scene number (sCamera_ViewPort::mSceneNo: viewport 0 has 7, 1 has 6, ...)
 uint32_t g_main_view = 7;                           // the view Remix traces (pick_traced_view)
@@ -167,7 +172,9 @@ uintptr_t g_dti_hemi = 0;
 // added them all up (blown out). The stage's dominant group = the most common mLightGroup among the models, leaving out
 // the characters' 3; only lights sharing a bit with it go over (all of them if none does).
 uintptr_t g_dti_model = 0;
-uint32_t  g_stage_group = 0;
+int       g_dup_skipped = 0;    // lights left out as copies of another (same place / direction, another light group)
+int       g_unlit_skipped = 0;  // lights left out because no model has their light group
+bool      g_dir_kept[kMaxLights] = {};   // light watch: which of g_dirs_all went to Remix
 uintptr_t g_dti_inf = 0, g_dti_point = 0, g_dti_spot = 0;
 bool      g_dti_looked = false;
 // light watch: every directional light the walk found (before the group filter) and the models' light groups the stage's
@@ -176,6 +183,11 @@ GameLight g_dirs_all[kMaxLights];
 int       g_ndirs_all = 0;
 int       g_attr_skipped = 0;   // light units left out by their mAttr this frame (game_uses)
 int       g_off_skipped = 0;    // light units left out as switched off this frame (light_live)
+// the dome's hemisphere lights (gather_lights_raw): uHemiSphereLight mColor +0x20 (towards mDir), mRevColor +0x30
+// (away from it), mDir +0x40
+struct HemiLight { uint32_t group; float sky[3], ground[3], dir[3]; };
+HemiLight g_dome_hemis[16];
+int       g_ndome_hemis = 0;
 struct GroupCount { uint32_t mask, n; };
 GroupCount g_group_counts[16];
 int       g_ngroup_counts = 0;
@@ -225,7 +237,7 @@ int gather_lights_raw(GameLight* out, int max) {
         GameLight dirs[kMaxLights], points[kMaxPoints];
         float score[kMaxPoints];
         int nd = 0, np = 0;
-        struct Hemi { uint32_t group; float col[3]; } hemis[16];
+        HemiLight hemis[16];
         int nh = 0;
         struct Mask { uint32_t mask, n; } masks[16];
         int nm = 0;
@@ -235,71 +247,134 @@ int gather_lights_raw(GameLight* out, int max) {
             std::memcpy(&cv, &reinterpret_cast<const sCamera*>(camera)->viewports[0].mViewMat, sizeof cv);
             for (int i = 0; i < 3; ++i) cam[i] = -(cv.m[3][0] * cv.m[i][0] + cv.m[3][1] * cv.m[i][1] + cv.m[3][2] * cv.m[i][2]);
         }
+        // models (move lines): their light groups, for the stage's group below
         for (int line = 0; line < 32; ++line) {
             const auto* ml = reinterpret_cast<const MoveLine*>(su + 0x20 + line * sizeof(MoveLine));
             int guard = 0;
             for (uintptr_t u = reinterpret_cast<uintptr_t>(ml->mTop); u && guard < 20000; ++guard) {
                 const auto* cu = reinterpret_cast<const cUnit*>(u);
                 const uintptr_t next = reinterpret_cast<uintptr_t>(cu->mp_next_unit);
-                if (cu->flags.bits.mBeFlag) {
+                if (cu->flags.bits.mBeFlag && g_dti_model) {
                     const uintptr_t dti = debug_server::mem::dti_of(u);
-                    const float* col = reinterpret_cast<const float*>(u + 0x20);
-                    const uint32_t group = *reinterpret_cast<const uint32_t*>(u + 0x1C);
-                    const uint8_t attr = *reinterpret_cast<const uint8_t*>(u + 0x18);
-                    // a light unit the game uses: on (light_live), then its mAttr (game_uses); counts what it leaves out
-                    auto lit = [&](int kind) {
-                        if (!light_live(cu, su)) { ++off; return false; }
-                        if (!game_uses(attr, kind)) { ++skipped; return false; }
-                        return true;
-                    };
-                    if (dti && g_dti_model && dti_under(dti, g_dti_model)) {
+                    if (dti && dti_under(dti, g_dti_model)) {
                         const uint32_t m = *reinterpret_cast<const uint32_t*>(u + 0x130);
-                        if (m && m != 3) {
+                        if (m) {
                             int i = 0;
                             while (i < nm && masks[i].mask != m) ++i;
                             if (i < nm) ++masks[i].n;
                             else if (nm < 16) masks[nm++] = { m, 1 };
                         }
-                    } else if (dti && g_dti_hemi && dti_under(dti, g_dti_hemi)) {
-                        if (lit(0) && nh < 16) hemis[nh++] = { group, { col[0], col[1], col[2] } };
-                    } else if (dti && dti_under(dti, g_dti_inf) && !lit(1)) {
-                    } else if (dti && dti_under(dti, g_dti_inf) && nd < kMaxLights) {
-                        const float* d = reinterpret_cast<const float*>(u + 0x30);
-                        dirs[nd++] = { 1, { col[0], col[1], col[2] }, { -d[0], -d[1], -d[2] }, 0.0f, group };
-                    } else if (dti && (dti_under(dti, g_dti_point) || dti_under(dti, g_dti_spot)) &&
-                               !lit(dti_under(dti, g_dti_spot) ? 3 : 2)) {
-                    } else if (dti && (dti_under(dti, g_dti_point) || dti_under(dti, g_dti_spot)) && np < kMaxPoints) {
-                        const bool spot = dti_under(dti, g_dti_spot);
-                        const uintptr_t parent = *reinterpret_cast<const uintptr_t*>(u + (spot ? 0x94 : 0x58));
-                        const float* p = reinterpret_cast<const float*>(u + (parent ? (spot ? 0x60 : 0x40) : 0x30));
-                        const float end = *reinterpret_cast<const float*>(u + (spot ? 0x84 : 0x54));
-                        const float dx = p[0] - cam[0], dy = p[1] - cam[1], dz = p[2] - cam[2];
-                        score[np] = std::sqrt(dx * dx + dy * dy + dz * dz) / (end > 1.0f ? end : 1.0f);
-                        points[np++] = { 2, { col[0], col[1], col[2] }, { p[0], p[1], p[2] }, end, group, u };
                     }
                 }
                 u = next;
             }
         }
-        // the stage's dominant light group; the lights (and the ambient colour) for it
-        uint32_t stage = 0, best_n = 0;
-        for (int i = 0; i < nm; ++i) if (masks[i].n > best_n) { best_n = masks[i].n; stage = masks[i].mask; }
-        bool any = false;
-        for (int i = 0; i < nd; ++i) any |= (dirs[i].group & stage) != 0;
-        for (int i = 0; i < np; ++i) any |= (points[i].group & stage) != 0;
-        if (!any) stage = 0;                                  // nothing for it: everything (as before)
-        g_stage_group = stage;
-        auto keep = [stage](uint32_t g) { return stage == 0 || (g & stage) != 0; };
+        // the lights: the game's own list (kLightManager), in its order; kind from the type byte (+0x19: 1 directional,
+        // 2 point, 3 spot, set by the class; effect lights are point / spot subclasses), 0 = hemisphere (no type)
+        if (const uintptr_t mgr = *reinterpret_cast<const uintptr_t*>(kLightManager)) {
+            const uint32_t count = std::min<uint32_t>(*reinterpret_cast<const uint32_t*>(mgr + 0x2020), 1024);
+            const auto* list = reinterpret_cast<const uintptr_t*>(mgr + 0x20);
+            for (uint32_t li = 0; li < count; ++li) {
+                const uintptr_t u = list[li];
+                if (!u) continue;
+                const auto* cu = reinterpret_cast<const cUnit*>(u);
+                const uint8_t type = *reinterpret_cast<const uint8_t*>(u + 0x19);
+                int kind = (type >= 1 && type <= 3) ? type : -1;
+                if (kind < 0 && g_dti_hemi && dti_under(debug_server::mem::dti_of(u), g_dti_hemi)) kind = 0;
+                if (kind < 0) continue;
+                if (!light_live(cu, su)) { ++off; continue; }
+                const uint8_t attr = *reinterpret_cast<const uint8_t*>(u + 0x18);
+                if (!game_uses(attr, kind)) { ++skipped; continue; }
+                const float* col = reinterpret_cast<const float*>(u + 0x20);
+                const uint32_t group = *reinterpret_cast<const uint32_t*>(u + 0x1C);
+                if (kind == 0) {
+                    if (nh < 16) {
+                        const float* rev = reinterpret_cast<const float*>(u + 0x30);
+                        const float* d = reinterpret_cast<const float*>(u + 0x40);
+                        hemis[nh++] = { group, { col[0], col[1], col[2] }, { rev[0], rev[1], rev[2] }, { d[0], d[1], d[2] } };
+                    }
+                } else if (kind == 1) {
+                    if (nd < kMaxLights) {
+                        const float* d = reinterpret_cast<const float*>(u + 0x30);
+                        dirs[nd++] = { 1, { col[0], col[1], col[2] }, { -d[0], -d[1], -d[2] }, 0.0f, group };
+                    }
+                } else if (np < kMaxPoints) {
+                    const bool spot = kind == 3;
+                    const uintptr_t parent = *reinterpret_cast<const uintptr_t*>(u + (spot ? 0x94 : 0x58));
+                    const float* p = reinterpret_cast<const float*>(u + (parent ? (spot ? 0x60 : 0x40) : 0x30));
+                    const float end = *reinterpret_cast<const float*>(u + (spot ? 0x84 : 0x54));
+                    const float dx = p[0] - cam[0], dy = p[1] - cam[1], dz = p[2] - cam[2];
+                    score[np] = std::sqrt(dx * dx + dy * dy + dz * dz) / (end > 1.0f ? end : 1.0f);
+                    points[np++] = { 2, { col[0], col[1], col[2] }, { p[0], p[1], p[2] }, end, group, u };
+                }
+            }
+        }
+        // Copies: stages repeat a light once per light group, each copy lighting its own models in the game (room 1: three
+        // suns in one direction, groups 0x806 / 0x20 / 0x818; room 100: three lamps at one spot, 0x1 / 0x20 / 0x80;
+        // room 307: suns for characters, stage and breakables). Remix has no groups and added them up (blown out). Of
+        // lights in about one direction (suns: cos > 0.95; rooms 12 / 13 tune each group's copy 9-11 degrees apart) or one
+        // place (points / spots: within 50 cm), the one lighting the most stage models (their mLightGroup shares a bit
+        // with its group; characters' default 3 left out: every player, weapon and prop counts once while the stage is a
+        // few big models, so counting them picked room 1's character sun) stays, then the one lighting the most models,
+        // then the brightest; a light no model takes (characters included) lights nothing, as in the game. Until 2026-11-26 the bridge kept only the lights of the stage's commonest model group, which also
+        // dropped lights that had no copy (room 100's sun: group 0x1E against 0x2020).
+        auto coverage = [&](uint32_t g, bool stage_only) {
+            int c = 0;
+            for (int i = 0; i < nm; ++i)
+                if ((masks[i].mask & g) && !(stage_only && masks[i].mask == 3)) c += masks[i].n;
+            return c;
+        };
+        // which of two copies stays: more stage models, then more models, then brighter
+        auto wins = [&](const GameLight& a, const GameLight& b) {
+            const int sa = coverage(a.group, true), sb = coverage(b.group, true);
+            if (sa != sb) return sa > sb;
+            const int ta = coverage(a.group, false), tb = coverage(b.group, false);
+            if (ta != tb) return ta > tb;
+            return a.col[0] + a.col[1] + a.col[2] > b.col[0] + b.col[1] + b.col[2];
+        };
+        int dup = 0, unlit = 0;
+        bool drop_d[kMaxLights] = {};
+        int cov_d[kMaxLights];
+        for (int i = 0; i < nd; ++i) {
+            cov_d[i] = coverage(dirs[i].group, false);
+            if (nm > 0 && cov_d[i] == 0) { drop_d[i] = true; ++unlit; }
+        }
+        for (int i = 0; i < nd; ++i)
+            for (int j = i + 1; j < nd && !drop_d[i]; ++j) {
+                if (drop_d[j]) continue;
+                const float dot = dirs[i].v[0] * dirs[j].v[0] + dirs[i].v[1] * dirs[j].v[1] + dirs[i].v[2] * dirs[j].v[2];
+                if (dot < 0.95f) continue;
+                drop_d[wins(dirs[j], dirs[i]) ? i : j] = true;
+                ++dup;
+            }
+        bool drop_p[kMaxPoints] = {};
+        int cov_p[kMaxPoints];
+        for (int i = 0; i < np; ++i) {
+            cov_p[i] = coverage(points[i].group, false);
+            if (nm > 0 && cov_p[i] == 0) { drop_p[i] = true; ++unlit; }
+        }
+        for (int i = 0; i < np; ++i)
+            for (int j = i + 1; j < np && !drop_p[i]; ++j) {
+                if (drop_p[j]) continue;
+                const float dx = points[i].v[0] - points[j].v[0], dy = points[i].v[1] - points[j].v[1],
+                            dz = points[i].v[2] - points[j].v[2];
+                if (dx * dx + dy * dy + dz * dz > 2500.0f) continue;
+                drop_p[wins(points[j], points[i]) ? i : j] = true;
+                ++dup;
+            }
         {   // compact the points kept
             int k = 0;
-            for (int i = 0; i < np; ++i) if (keep(points[i].group)) { points[k] = points[i]; score[k] = score[i]; ++k; }
+            for (int i = 0; i < np; ++i) if (!drop_p[i]) { points[k] = points[i]; score[k] = score[i]; ++k; }
             np = k;
         }
-        for (int i = 0; i < nh; ++i)                          // the brightest ambient colour for the stage's group
-            if (keep(hemis[i].group) && hemis[i].col[0] + hemis[i].col[1] + hemis[i].col[2] > g_hemi_acc[0] + g_hemi_acc[1] + g_hemi_acc[2])
-                for (int c = 0; c < 3; ++c) g_hemi_acc[c] = hemis[i].col[c];
+        for (int i = 0; i < nh; ++i)                          // the fill's colour: the brightest hemisphere light used
+            if ((nm == 0 || coverage(hemis[i].group, false) > 0) &&
+                hemis[i].sky[0] + hemis[i].sky[1] + hemis[i].sky[2] > g_hemi_acc[0] + g_hemi_acc[1] + g_hemi_acc[2])
+                for (int c = 0; c < 3; ++c) g_hemi_acc[c] = hemis[i].sky[c];
+        g_dup_skipped = dup;
+        g_unlit_skipped = unlit;
         int n = 0;
-        for (int i = 0; i < nd && n < max; ++i) if (keep(dirs[i].group)) out[n++] = dirs[i];
+        for (int i = 0; i < nd && n < max; ++i) if (!drop_d[i]) out[n++] = dirs[i];
         while (n < max && np > 0) {   // the most relevant point light left: nearest relative to its range
             int best = 0;
             for (int i = 1; i < np; ++i) if (score[i] < score[best]) best = i;
@@ -308,12 +383,18 @@ int gather_lights_raw(GameLight* out, int max) {
             score[best] = score[np - 1];
             --np;
         }
-        for (int i = 0; i < nd; ++i) g_dirs_all[i] = dirs[i];
+        for (int i = 0; i < nd; ++i) { g_dirs_all[i] = dirs[i]; g_dir_kept[i] = !drop_d[i]; }
         g_ndirs_all = nd;
         for (int i = 0; i < nm; ++i) g_group_counts[i] = { masks[i].mask, masks[i].n };
         g_ngroup_counts = nm;
         g_attr_skipped = skipped;
         g_off_skipped = off;
+        // the dome: the hemisphere lights that light characters (the default model light group 3: what the game's
+        // hemisphere lights reach, sub_A652B0), else every one that's on
+        int nk = 0;
+        for (int i = 0; i < nh; ++i) if (hemis[i].group & 3) g_dome_hemis[nk++] = hemis[i];
+        if (nk == 0) for (int i = 0; i < nh; ++i) g_dome_hemis[nk++] = hemis[i];
+        g_ndome_hemis = nk;
         return n;
     } __except (EXCEPTION_EXECUTE_HANDLER) {
         return -1;
@@ -327,11 +408,12 @@ int gather_lights_raw(GameLight* out, int max) {
 void light_watch() {
     std::string sig;
     char buf[192];
-    sprintf_s(buf, "stage group %08X; %d lights off, %d left out by mAttr;", g_stage_group, g_off_skipped, g_attr_skipped);
+    sprintf_s(buf, "%d lights off, %d left out by mAttr, %d copies, %d lighting no model; %d hemisphere lights for the dome;",
+              g_off_skipped, g_attr_skipped, g_dup_skipped, g_unlit_skipped, g_ndome_hemis);
     sig += buf;
     for (int i = 0; i < g_ndirs_all; ++i) {
         const GameLight& d = g_dirs_all[i];
-        const bool kept = g_stage_group == 0 || (d.group & g_stage_group) != 0;
+        const bool kept = g_dir_kept[i];
         sprintf_s(buf, " sun %d%s: travels %.2f %.2f %.2f, colour %.2f %.2f %.2f, group %08X;", i, kept ? "" : " (left out)",
                   d.v[0], d.v[1], d.v[2], d.col[0], d.col[1], d.col[2], d.group);
         sig += buf;
@@ -346,7 +428,7 @@ void light_watch() {
     }
     FILE* f = nullptr;
     if (fopen_s(&f, "remix_probe.txt", "a") == 0 && f) {
-        fprintf(f, "light watch, frame %u: %s %d point lights; models' light groups (3 left out):%s\n", g_watch_frame + 1,
+        fprintf(f, "light watch, frame %u: %s %d point lights; models' light groups:%s\n", g_watch_frame + 1,
                 sig.c_str(), g_npoint, groups.empty() ? " none" : groups.c_str());
         fclose(f);
         ++g_light_lines;
@@ -1393,6 +1475,156 @@ void draw(uint64_t key, const float pos[3], float radius, const float rad[3]) {
     l.seen = g_frames.load();
 }
 
+// The ambient dome (settings.dome): the room's hemisphere lights (g_dome_hemis) as one Remix dome light. A hemisphere
+// light gives a surface facing mDir its sky colour (mColor) and one facing away its ground colour (mRevColor),
+// lerp(ground, sky, 0.5 + 0.5 n.dir) between: what a dome of the sky colour above and the ground colour below (a hard
+// horizon across mDir) gives an unoccluded Lambert surface. Remix's dome light is a lat-long DDS read as radiance
+// (light_helper.slangh sampleDomeLightTexture: v = acos(dir.z) / pi, u = 0.5 + atan2(dir.x, dir.y) / 2pi, in the dome's
+// space, the world here; DDS only: AssetDataManager::findAsset), seen by rays that leave the scene. DMC4 adds its
+// ambient in gamma space (a white surface shows the colour), so the colours go over as c^2.2. The texture is written to
+// <game>\remix_bridge\ambient_<hash>.dds when the lights change (at most every 15 frames: keyed fades) and the light is
+// made again with it.
+namespace dome {
+constexpr int kW = 64, kH = 32;
+uint64_t g_key = 0;                 // the texture's hash (0 = none yet)
+std::wstring g_path;
+uint32_t g_written_at = 0;
+bool g_drawn = false;               // drawn this frame
+bool g_drawn_last = false;          // ... last frame (the ambient fill steps aside)
+float g_sky[3] = {}, g_ground[3] = {};   // the GUI's: the summed colours straight up / down
+
+std::wstring folder() {
+    static std::wstring dir;
+    if (!dir.empty()) return dir;
+    wchar_t exe[MAX_PATH] = {};
+    GetModuleFileNameW(nullptr, exe, MAX_PATH);
+    std::wstring d(exe);
+    d = d.substr(0, d.find_last_of(L"\\/") + 1) + L"remix_bridge";
+    CreateDirectoryW(d.c_str(), nullptr);
+    WIN32_FIND_DATAW fd;   // last session's textures
+    const HANDLE f = FindFirstFileW((d + L"\\ambient_*.dds").c_str(), &fd);
+    if (f != INVALID_HANDLE_VALUE) {
+        do DeleteFileW((d + L"\\" + fd.cFileName).c_str()); while (FindNextFileW(f, &fd));
+        FindClose(f);
+    }
+    dir = d;
+    return dir;
+}
+
+// the radiance from direction d (world): the summed colours of the side of each light d is on, then to linear
+void radiance_from(const float d[3], float strength, float out[3]) {
+    float c[3] = { 0, 0, 0 };
+    for (int i = 0; i < g_ndome_hemis; ++i) {
+        const HemiLight& h = g_dome_hemis[i];
+        const float* src = (d[0] * h.dir[0] + d[1] * h.dir[1] + d[2] * h.dir[2]) >= 0.0f ? h.sky : h.ground;
+        for (int k = 0; k < 3; ++k) c[k] += src[k];
+    }
+    for (int k = 0; k < 3; ++k) out[k] = std::pow(std::max(c[k], 0.0f), 2.2f) * strength;
+}
+
+bool write(const std::wstring& path, float strength) {
+    std::vector<float> px(kW * kH * 4);
+    for (int y = 0; y < kH; ++y) {
+        const float theta = (y + 0.5f) / kH * 3.14159265f;
+        for (int x = 0; x < kW; ++x) {
+            const float phi = ((x + 0.5f) / kW - 0.5f) * 6.28318531f;
+            const float d[3] = { std::sin(theta) * std::sin(phi), std::sin(theta) * std::cos(phi), std::cos(theta) };
+            float* p = &px[(y * kW + x) * 4];
+            radiance_from(d, strength, p);
+            p[3] = 1.0f;
+        }
+    }
+    uint32_t head[32 + 5] = {};
+    head[0] = 0x20534444;            // "DDS "
+    head[1] = 124;                   // DDS_HEADER: size, flags (caps | height | width | pixel format), height, width,
+    head[2] = 0x1007;                // pitch; ddspf at [19]: size 32, DDPF_FOURCC, "DX10"; caps TEXTURE
+    head[3] = kH;
+    head[4] = kW;
+    head[5] = kW * 16;
+    head[19] = 32;
+    head[20] = 0x4;
+    head[21] = 0x30315844;           // "DX10"
+    head[27] = 0x1000;
+    head[32] = 2;                    // DDS_HEADER_DXT10: DXGI_FORMAT_R32G32B32A32_FLOAT, TEXTURE2D, misc, array 1
+    head[33] = 3;
+    head[35] = 1;
+    FILE* f = nullptr;
+    if (_wfopen_s(&f, path.c_str(), L"wb") != 0 || !f) return false;
+    const bool ok = fwrite(head, sizeof head, 1, f) == 1 && fwrite(px.data(), px.size() * sizeof(float), 1, f) == 1;
+    fclose(f);
+    return ok;
+}
+
+uint64_t signature(float strength) {   // the lights' colours and directions, quantised (keyed fades: small steps)
+    uint64_t h = 1469598103934665603ull;
+    auto mix = [&h](int32_t v) { for (int i = 0; i < 4; ++i) { h ^= (v >> (i * 8)) & 0xFF; h *= 1099511628211ull; } };
+    for (int i = 0; i < g_ndome_hemis; ++i) {
+        const HemiLight& l = g_dome_hemis[i];
+        for (int k = 0; k < 3; ++k) {
+            mix(static_cast<int32_t>(std::lround(l.sky[k] * 256.0f)));
+            mix(static_cast<int32_t>(std::lround(l.ground[k] * 256.0f)));
+            mix(static_cast<int32_t>(std::lround(l.dir[k] * 64.0f)));
+        }
+    }
+    mix(static_cast<int32_t>(std::lround(strength * 1000.0f)));
+    return h ? h : 1;
+}
+} // namespace dome
+
+// once a frame (api_frame): the dome light, made again when the texture changes
+void dome_frame() {
+    dome::g_drawn = false;
+    if (!settings.game_lights || !settings.dome || g_ndome_hemis == 0) return;
+    const uint32_t now = g_frames.load();
+    const uint64_t sig = dome::signature(settings.dome_strength);
+    if (sig != dome::g_key && (dome::g_key == 0 || now - dome::g_written_at >= 15)) {
+        wchar_t name[64];
+        swprintf_s(name, L"\\ambient_%016llX.dds", static_cast<unsigned long long>(sig));
+        const std::wstring path = dome::folder() + name;
+        if (dome::write(path, settings.dome_strength)) {
+            if (!dome::g_path.empty()) DeleteFileW(dome::g_path.c_str());   // Remix read it when its light was made
+            dome::g_path = path;
+            dome::g_key = sig;
+            dome::g_written_at = now;
+            for (int k = 0; k < 3; ++k) {
+                const float up[3] = { 0, 1, 0 }, down[3] = { 0, -1, 0 };
+                float a[3], b[3];
+                dome::radiance_from(up, 1.0f, a);
+                dome::radiance_from(down, 1.0f, b);
+                dome::g_sky[k] = a[k];
+                dome::g_ground[k] = b[k];
+            }
+        } else {
+            static int fails = 0;
+            if (fails++ < 3) note("dome texture not written", 0);
+        }
+    }
+    if (!dome::g_key) return;
+    const uint64_t key = (uint64_t(3) << 62) | (dome::g_key & 0x3FFFFFFFFFFFFFFFull);
+    Live& l = g_live[key];
+    if (!l.h) {
+        remixapi_LightInfoDomeEXT d{};
+        d.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO_DOME_EXT;
+        d.transform.matrix[0][0] = d.transform.matrix[1][1] = d.transform.matrix[2][2] = 1.0f;
+        d.colorTexture = dome::g_path.c_str();
+        remixapi_LightInfo li{};
+        li.sType = REMIXAPI_STRUCT_TYPE_LIGHT_INFO;
+        li.pNext = &d;
+        li.hash = key;
+        li.radiance = { 1.0f, 1.0f, 1.0f };
+        const remixapi_ErrorCode e = g.CreateLight(&li, &l.h);
+        if (e != REMIXAPI_ERROR_CODE_SUCCESS) {
+            l.h = nullptr;
+            static int fails = 0;
+            if (fails++ < 3) note("CreateLight (dome) failed", static_cast<int>(e));
+        } else {
+            note("dome light made", 0);
+        }
+    }
+    if (l.h && g.DrawLightInstance(l.h) == REMIXAPI_ERROR_CODE_SUCCESS) dome::g_drawn = true;
+    l.seen = now;
+}
+
 // settings.rtx_options, when it changed since the last frame: each "key = value" through SetConfigVariable (the
 // results go to remix_probe.txt)
 void apply_options() {
@@ -1436,11 +1668,13 @@ void sweep() {
     }
     g_drawn_last = g_drawn;
     g_drawn = 0;
+    dome::g_drawn_last = dome::g_drawn;
 }
 
 void destroy_all() {
     for (auto& [k, l] : g_live) if (l.h) g.DestroyLight(l.h);
     g_live.clear();
+    dome::g_drawn = dome::g_drawn_last = false;
 }
 
 // radiance of a sphere light of radius r that lights a surface facing it at distance d as much as colour c (irradiance
@@ -1838,7 +2072,7 @@ void set_transforms(IDirect3DDevice9* dev) {
         g_frame[g_frame_n++] = l;
     }
     // the ambient fill: the stage's hemisphere colour as a wide point light at the camera
-    if (settings.game_lights && settings.fill && (g_hemi[0] + g_hemi[1] + g_hemi[2]) > 0.0f) {
+    if (settings.game_lights && settings.fill && !api::dome::g_drawn_last && (g_hemi[0] + g_hemi[1] + g_hemi[2]) > 0.0f) {
         float pos[3];   // the camera: -t * R^T of the row-vector view
         for (int i = 0; i < 3; ++i) pos[i] = -(view.m[3][0] * view.m[i][0] + view.m[3][1] * view.m[i][1] + view.m[3][2] * view.m[i][2]);
         D3DLIGHT9 l{};
@@ -1872,6 +2106,7 @@ void api_frame() {
         }
     api::radiance(settings.tex_light_color, settings.tex_light_strength, settings.tex_light_radius, settings.point_distance, rad);
     for (const auto& f : texlight::g_found) api::draw(f.key, f.pos, settings.tex_light_radius, rad);
+    api::dome_frame();
     texlight::g_found_last = static_cast<uint32_t>(texlight::g_found.size());
     texlight::g_found.clear();
     texlight::g_keys.clear();
@@ -3345,7 +3580,8 @@ void draw_gui() {
     if (settings.game_lights) {
         ImGui::SliderFloat(_("Directional strength"), &settings.dir_strength, 0.0f, 20.0f, "%.2f");
         ImGui::SliderFloat(_("Point light strength"), &settings.point_strength, 0.0f, 50.0f, "%.2f");
-        ImGui::TextDisabled(_("%d directional, %d point lights (stage light group %08X)"), g_ndir, g_npoint, g_stage_group);
+        ImGui::TextDisabled(_("%d directional, %d point lights (%d copies of other lights left out, %d lighting no model)"),
+                            g_ndir, g_npoint, g_dup_skipped, g_unlit_skipped);
         if (g_off_skipped || g_attr_skipped)
             ImGui::TextDisabled(_("Left out as in the game: %d switched off (other light sets), %d by their mAttr"),
                                 g_off_skipped, g_attr_skipped);
@@ -3369,6 +3605,19 @@ void draw_gui() {
             ImGui::SliderFloat(_("Fill strength"), &settings.fill_strength, 0.0f, 20.0f, "%.2f");
             ImGui::SliderFloat(_("Fill range"), &settings.fill_range, 200.0f, 20000.0f, "%.0f cm", ImGuiSliderFlags_Logarithmic);
             ImGui::TextDisabled(_("Ambient colour %.2f %.2f %.2f"), g_hemi[0], g_hemi[1], g_hemi[2]);
+            if (api::dome::g_drawn_last) ImGui::TextDisabled(_("Off while the ambient dome is drawn"));
+        }
+        ImGui::Checkbox(_("Ambient dome"), &settings.dome);
+        ImGui::SameLine();
+        Mod::help_marker(_("The room's hemisphere lights (DMC4's ambient light: a sky colour from above, a ground colour from "
+                           "below) as Remix's dome light, the light rays get when they leave the room. Needs Game lights through "
+                           "the Remix API. The ambient fill steps aside while it's drawn."));
+        if (settings.dome) {
+            ImGui::SliderFloat(_("Dome strength"), &settings.dome_strength, 0.0f, 8.0f, "%.2f");
+            ImGui::TextDisabled(_("%d hemisphere lights; radiance from above %.2f %.2f %.2f, from below %.2f %.2f %.2f%s"),
+                                g_ndome_hemis, api::dome::g_sky[0], api::dome::g_sky[1], api::dome::g_sky[2],
+                                api::dome::g_ground[0], api::dome::g_ground[1], api::dome::g_ground[2],
+                                api::dome::g_drawn_last ? "" : _(" (not drawn)"));
         }
     }
     ImGui::Checkbox(_("Sun (without game lights)"), &settings.sun);
@@ -3507,6 +3756,8 @@ void load(const utility::Config& cfg) {
     settings.dir_strength = cfg.get<float>("remix_dir_strength").value_or(1.0f);
     settings.point_strength = cfg.get<float>("remix_point_strength").value_or(1.0f);
     settings.fill = cfg.get<bool>("remix_fill").value_or(true);
+    settings.dome = cfg.get<bool>("remix_dome").value_or(true);
+    settings.dome_strength = cfg.get<float>("remix_dome_strength").value_or(1.0f);
     settings.fill_strength = cfg.get<float>("remix_fill_strength").value_or(1.0f);
     settings.fill_range = cfg.get<float>("remix_fill_range").value_or(4000.0f);
     settings.sun_strength = cfg.get<float>("remix_sun_strength").value_or(2.0f);
@@ -3561,6 +3812,8 @@ void save(utility::Config& cfg) {
     cfg.set<float>("remix_dir_strength", settings.dir_strength);
     cfg.set<float>("remix_point_strength", settings.point_strength);
     cfg.set<bool>("remix_fill", settings.fill);
+    cfg.set<bool>("remix_dome", settings.dome);
+    cfg.set<float>("remix_dome_strength", settings.dome_strength);
     cfg.set<float>("remix_fill_strength", settings.fill_strength);
     cfg.set<float>("remix_fill_range", settings.fill_range);
     cfg.set<float>("remix_sun_strength", settings.sun_strength);

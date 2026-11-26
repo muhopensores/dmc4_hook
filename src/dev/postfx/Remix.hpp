@@ -121,6 +121,10 @@ struct Settings {
     // the game's depth texture cleared once a frame while the depth prepass is skipped (see clear_depth_texture). Not in
     // the GUI or the config: an A / B switch for tests (remix_live.py clear_depth)
     bool clear_depth = true;
+    // the room's hemisphere lights (the ambient DMC4 gives characters) as Remix's dome light, through the Remix API
+    // (api::dome_frame); replaces the ambient fill while it's drawn
+    bool dome = true;
+    float dome_strength = 1.0f;
 };
 extern Settings settings;
 
