@@ -125,6 +125,9 @@ struct Settings {
     // (api::dome_frame); replaces the ambient fill while it's drawn
     bool dome = true;
     float dome_strength = 1.0f;
+    // the dome's sky from the live uOceanWater's cube map (mpCubemapTex: what the game's sea reflects), at the hemisphere
+    // lights' brightness; without an ocean, or off, the hemisphere lights' two colours
+    bool dome_cube = true;
 };
 extern Settings settings;
 

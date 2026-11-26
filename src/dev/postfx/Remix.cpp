@@ -172,6 +172,8 @@ uintptr_t g_dti_hemi = 0;
 // added them all up (blown out). The stage's dominant group = the most common mLightGroup among the models, leaving out
 // the characters' 3; only lights sharing a bit with it go over (all of them if none does).
 uintptr_t g_dti_model = 0;
+uintptr_t g_dti_ocean = 0;
+uintptr_t g_ocean_cube = 0;   // the live uOceanWater's mpCubemapTex (+0x1A4, an rTexture), gather_lights_raw
 int       g_dup_skipped = 0;    // lights left out as copies of another (same place / direction, another light group)
 int       g_unlit_skipped = 0;  // lights left out because no model has their light group
 bool      g_dir_kept[kMaxLights] = {};   // light watch: which of g_dirs_all went to Remix
@@ -233,6 +235,7 @@ int gather_lights_raw(GameLight* out, int max) {
         if (!su) return 0;
         g_hemi_acc[0] = g_hemi_acc[1] = g_hemi_acc[2] = 0;
         int skipped = 0, off = 0;
+        uintptr_t ocean = 0;
         constexpr int kMaxPoints = 64;
         GameLight dirs[kMaxLights], points[kMaxPoints];
         float score[kMaxPoints];
@@ -254,6 +257,9 @@ int gather_lights_raw(GameLight* out, int max) {
             for (uintptr_t u = reinterpret_cast<uintptr_t>(ml->mTop); u && guard < 20000; ++guard) {
                 const auto* cu = reinterpret_cast<const cUnit*>(u);
                 const uintptr_t next = reinterpret_cast<uintptr_t>(cu->mp_next_unit);
+                if (cu->flags.bits.mBeFlag && g_dti_ocean && !ocean && (cu->flags.bits.mUnitAttr & UATTR_DRAW) &&
+                    dti_under(debug_server::mem::dti_of(u), g_dti_ocean))
+                    ocean = *reinterpret_cast<const uintptr_t*>(u + 0x1A4);
                 if (cu->flags.bits.mBeFlag && g_dti_model) {
                     const uintptr_t dti = debug_server::mem::dti_of(u);
                     if (dti && dti_under(dti, g_dti_model)) {
@@ -395,6 +401,7 @@ int gather_lights_raw(GameLight* out, int max) {
         for (int i = 0; i < nh; ++i) if (hemis[i].group & 3) g_dome_hemis[nk++] = hemis[i];
         if (nk == 0) for (int i = 0; i < nh; ++i) g_dome_hemis[nk++] = hemis[i];
         g_ndome_hemis = nk;
+        g_ocean_cube = ocean;
         return n;
     } __except (EXCEPTION_EXECUTE_HANDLER) {
         return -1;
@@ -441,6 +448,7 @@ void gather_lights() {
         g_dti_point = debug_server::mem::find_dti("uPointLight");
         g_dti_spot = debug_server::mem::find_dti("uSpotLight");
         g_dti_hemi = debug_server::mem::find_dti("uHemiSphereLight");
+        g_dti_ocean = debug_server::mem::find_dti("uOceanWater");
         g_dti_model = debug_server::mem::find_dti("uModel");
         g_dti_looked = g_dti_inf != 0;
     }
@@ -1485,7 +1493,7 @@ void draw(uint64_t key, const float pos[3], float radius, const float rad[3]) {
 // <game>\remix_bridge\ambient_<hash>.dds when the lights change (at most every 15 frames: keyed fades) and the light is
 // made again with it.
 namespace dome {
-constexpr int kW = 64, kH = 32;
+constexpr int kW = 128, kH = 64;
 uint64_t g_key = 0;                 // the texture's hash (0 = none yet)
 std::wstring g_path;
 uint32_t g_written_at = 0;
@@ -1511,6 +1519,147 @@ std::wstring folder() {
     return dir;
 }
 
+// The ocean's cube map (settings.dome_cube): read from the D3D9 texture once per texture (managed, so the bridge client
+// answers the lock itself), mip level at most 128 wide, decoded to floats. DMC4's environment cubes keep HDR in alpha:
+// XfWater's pixel shader reads rgb / a (Vibed/Remix/README.md, "Ocean tint"). Faces in D3D order (+X -X +Y -Y +Z -Z) in
+// the game's world axes, which the shader samples with its world reflection vector.
+struct Cube {
+    uintptr_t rsrc = 0;            // the rTexture it was read from
+    int n = 0;                     // face size
+    std::vector<float> rgb[6];     // rgb / a, gamma space
+    bool ok = false;
+    char path[64] = "";
+    float mean[6][3] = {};
+};
+Cube g_cube;
+
+void decode_block(const uint8_t* blk, D3DFORMAT f, uint8_t px[16][4]) {
+    uint8_t alpha[16];
+    for (auto& a : alpha) a = 255;
+    const uint8_t* cb = blk;
+    if (f == D3DFMT_DXT5) {
+        uint8_t pal[8] = { blk[0], blk[1] };
+        if (pal[0] > pal[1]) for (int k = 1; k < 7; ++k) pal[k + 1] = static_cast<uint8_t>(((7 - k) * pal[0] + k * pal[1]) / 7);
+        else { for (int k = 1; k < 5; ++k) pal[k + 1] = static_cast<uint8_t>(((5 - k) * pal[0] + k * pal[1]) / 5); pal[6] = 0; pal[7] = 255; }
+        uint64_t bits = 0;
+        for (int i = 0; i < 6; ++i) bits |= static_cast<uint64_t>(blk[2 + i]) << (8 * i);
+        for (int i = 0; i < 16; ++i) alpha[i] = pal[(bits >> (3 * i)) & 7];
+        cb = blk + 8;
+    } else if (f == D3DFMT_DXT3) {
+        for (int i = 0; i < 16; ++i) alpha[i] = static_cast<uint8_t>(((blk[i / 2] >> (4 * (i & 1))) & 15) * 17);
+        cb = blk + 8;
+    }
+    const uint16_t c0 = static_cast<uint16_t>(cb[0] | cb[1] << 8), c1 = static_cast<uint16_t>(cb[2] | cb[3] << 8);
+    int col[4][3];
+    auto expand = [](uint16_t c, int* o) { o[0] = (c >> 11) * 255 / 31; o[1] = ((c >> 5) & 63) * 255 / 63; o[2] = (c & 31) * 255 / 31; };
+    expand(c0, col[0]);
+    expand(c1, col[1]);
+    const bool four = c0 > c1 || f != D3DFMT_DXT1;
+    for (int k = 0; k < 3; ++k) {
+        col[2][k] = four ? (2 * col[0][k] + col[1][k]) / 3 : (col[0][k] + col[1][k]) / 2;
+        col[3][k] = four ? (col[0][k] + 2 * col[1][k]) / 3 : 0;
+    }
+    const uint32_t idx = cb[4] | cb[5] << 8 | cb[6] << 16 | static_cast<uint32_t>(cb[7]) << 24;
+    for (int i = 0; i < 16; ++i) {
+        const int k = (idx >> (2 * i)) & 3;
+        for (int c = 0; c < 3; ++c) px[i][c] = static_cast<uint8_t>(col[k][c]);
+        px[i][3] = (!four && k == 3) ? 0 : alpha[i];
+    }
+}
+
+bool read_face(IDirect3DCubeTexture9* cube, int face, UINT level, const D3DSURFACE_DESC& desc, std::vector<float>& out) {
+    const int w = static_cast<int>(desc.Width), hgt = static_cast<int>(desc.Height);
+    D3DLOCKED_RECT r;
+    if (FAILED(cube->LockRect(static_cast<D3DCUBEMAP_FACES>(face), level, &r, nullptr, D3DLOCK_READONLY))) return false;
+    out.assign(static_cast<size_t>(w) * hgt * 3, 0.0f);
+    auto put = [&](int x, int y, const uint8_t* p, bool bgra) {
+        if (x >= w || y >= hgt) return;
+        const float a = std::max(p[3] / 255.0f, 1.0f / 255.0f);
+        float* o = &out[(static_cast<size_t>(y) * w + x) * 3];
+        o[0] = (bgra ? p[2] : p[0]) / 255.0f / a;
+        o[1] = p[1] / 255.0f / a;
+        o[2] = (bgra ? p[0] : p[2]) / 255.0f / a;
+    };
+    const auto* base = static_cast<const uint8_t*>(r.pBits);
+    bool ok = true;
+    if (desc.Format == D3DFMT_DXT1 || desc.Format == D3DFMT_DXT3 || desc.Format == D3DFMT_DXT5) {
+        const int bs = desc.Format == D3DFMT_DXT1 ? 8 : 16;
+        uint8_t px[16][4];
+        for (int by = 0; by < (hgt + 3) / 4; ++by)
+            for (int bx = 0; bx < (w + 3) / 4; ++bx) {
+                decode_block(base + by * r.Pitch + bx * bs, desc.Format, px);
+                for (int i = 0; i < 16; ++i) put(bx * 4 + (i & 3), by * 4 + (i >> 2), px[i], false);
+            }
+    } else if (desc.Format == D3DFMT_A8R8G8B8 || desc.Format == D3DFMT_X8R8G8B8) {
+        for (int y = 0; y < hgt; ++y)
+            for (int x = 0; x < w; ++x) {
+                uint8_t p[4];
+                std::memcpy(p, base + y * r.Pitch + x * 4, 4);
+                if (desc.Format == D3DFMT_X8R8G8B8) p[3] = 255;
+                put(x, y, p, true);
+            }
+    } else {
+        ok = false;
+    }
+    cube->UnlockRect(static_cast<D3DCUBEMAP_FACES>(face), level);
+    return ok;
+}
+
+// the D3D9 cube behind an rTexture (+0xCC cTrans::Texture, its texture at +0x10) and its path (+0x04); SEH-guarded
+IDirect3DCubeTexture9* cube_of(uintptr_t rsrc, char* path, size_t n) {
+    __try {
+        std::memcpy(path, reinterpret_cast<const char*>(rsrc + 4), n - 1);
+        path[n - 1] = 0;
+        const uintptr_t tt = *reinterpret_cast<const uintptr_t*>(rsrc + 0xCC);
+        auto* base = tt ? *reinterpret_cast<IDirect3DBaseTexture9* const*>(tt + 0x10) : nullptr;
+        if (!base || base->GetType() != D3DRTYPE_CUBETEXTURE) return nullptr;
+        return static_cast<IDirect3DCubeTexture9*>(base);
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return nullptr;
+    }
+}
+
+// (re)reads g_cube from rsrc (an rTexture)
+void load_cube(uintptr_t rsrc) {
+    g_cube = Cube{};
+    g_cube.rsrc = rsrc;
+    if (!rsrc) return;
+    IDirect3DCubeTexture9* cube = cube_of(rsrc, g_cube.path, sizeof g_cube.path);
+    if (!cube) return;
+    {
+        UINT level = 0;
+        D3DSURFACE_DESC desc;
+        if (FAILED(cube->GetLevelDesc(0, &desc))) return;
+        while (desc.Width > 128 && level + 1 < cube->GetLevelCount() && SUCCEEDED(cube->GetLevelDesc(level + 1, &desc))) ++level;
+        for (int f = 0; f < 6; ++f)
+            if (!read_face(cube, f, level, desc, g_cube.rgb[f])) return;
+        g_cube.n = static_cast<int>(desc.Width);
+        g_cube.ok = desc.Width == desc.Height;
+        for (int f = 0; f < 6; ++f) {
+            double m[3] = { 0, 0, 0 };
+            for (size_t i = 0; i < g_cube.rgb[f].size(); i += 3) for (int c = 0; c < 3; ++c) m[c] += g_cube.rgb[f][i + c];
+            for (int c = 0; c < 3; ++c) g_cube.mean[f][c] = static_cast<float>(m[c] / (g_cube.rgb[f].size() / 3));
+        }
+    }
+}
+
+// the cube's texel in world direction d (D3D cube face selection), gamma space
+void sample_cube(const float d[3], float out[3]) {
+    const float ax = std::fabs(d[0]), ay = std::fabs(d[1]), az = std::fabs(d[2]);
+    int face;
+    float sc, tc, ma;
+    if (ax >= ay && ax >= az) { face = d[0] >= 0 ? 0 : 1; ma = ax; sc = d[0] >= 0 ? -d[2] : d[2]; tc = -d[1]; }
+    else if (ay >= az)        { face = d[1] >= 0 ? 2 : 3; ma = ay; sc = d[0]; tc = d[1] >= 0 ? d[2] : -d[2]; }
+    else                      { face = d[2] >= 0 ? 4 : 5; ma = az; sc = d[2] >= 0 ? d[0] : -d[0]; tc = -d[1]; }
+    const int n = g_cube.n;
+    const int x = std::min(n - 1, std::max(0, static_cast<int>((sc / ma + 1.0f) * 0.5f * n)));
+    const int y = std::min(n - 1, std::max(0, static_cast<int>((tc / ma + 1.0f) * 0.5f * n)));
+    const float* p = &g_cube.rgb[face][(static_cast<size_t>(y) * n + x) * 3];
+    for (int c = 0; c < 3; ++c) out[c] = p[c];
+}
+
+bool use_cube() { return settings.dome_cube && g_cube.ok && g_cube.n > 0; }
+
 // the radiance from direction d (world): the summed colours of the side of each light d is on, then to linear
 void radiance_from(const float d[3], float strength, float out[3]) {
     float c[3] = { 0, 0, 0 };
@@ -1522,17 +1671,39 @@ void radiance_from(const float d[3], float strength, float out[3]) {
     for (int k = 0; k < 3; ++k) out[k] = std::pow(std::max(c[k], 0.0f), 2.2f) * strength;
 }
 
+// With the cube: its colours (to linear), scaled so their mean over the sphere matches the hemisphere lights' (the room's
+// ambient level stays the game's, its colours come from the sky the sea reflects); without hemisphere lights, as is.
+float g_cube_scale = 1.0f;
+
 bool write(const std::wstring& path, float strength) {
     std::vector<float> px(kW * kH * 4);
+    const bool cube = use_cube();
+    double hemi_sum = 0, cube_sum = 0, weight = 0;
     for (int y = 0; y < kH; ++y) {
         const float theta = (y + 0.5f) / kH * 3.14159265f;
+        const double wgt = std::sin(theta);
         for (int x = 0; x < kW; ++x) {
             const float phi = ((x + 0.5f) / kW - 0.5f) * 6.28318531f;
             const float d[3] = { std::sin(theta) * std::sin(phi), std::sin(theta) * std::cos(phi), std::cos(theta) };
             float* p = &px[(y * kW + x) * 4];
-            radiance_from(d, strength, p);
+            float hemi[3];
+            radiance_from(d, strength, hemi);
+            hemi_sum += wgt * (0.2126 * hemi[0] + 0.7152 * hemi[1] + 0.0722 * hemi[2]);
+            if (cube) {
+                sample_cube(d, p);
+                for (int c = 0; c < 3; ++c) p[c] = std::pow(std::max(p[c], 0.0f), 2.2f);
+                cube_sum += wgt * (0.2126 * p[0] + 0.7152 * p[1] + 0.0722 * p[2]);
+            } else {
+                for (int c = 0; c < 3; ++c) p[c] = hemi[c];
+            }
             p[3] = 1.0f;
+            weight += wgt;
         }
+    }
+    if (cube) {
+        g_cube_scale = (g_ndome_hemis > 0 && cube_sum > 1e-9) ? static_cast<float>(hemi_sum / cube_sum)
+                                                               : strength;
+        for (int i = 0; i < kW * kH; ++i) for (int c = 0; c < 3; ++c) px[i * 4 + c] *= g_cube_scale;
     }
     uint32_t head[32 + 5] = {};
     head[0] = 0x20534444;            // "DDS "
@@ -1567,6 +1738,7 @@ uint64_t signature(float strength) {   // the lights' colours and directions, qu
         }
     }
     mix(static_cast<int32_t>(std::lround(strength * 1000.0f)));
+    mix(use_cube() ? static_cast<int32_t>(g_cube.rsrc) : 0);
     return h ? h : 1;
 }
 } // namespace dome
@@ -1574,7 +1746,21 @@ uint64_t signature(float strength) {   // the lights' colours and directions, qu
 // once a frame (api_frame): the dome light, made again when the texture changes
 void dome_frame() {
     dome::g_drawn = false;
-    if (!settings.game_lights || !settings.dome || g_ndome_hemis == 0) return;
+    if (!settings.game_lights || !settings.dome) return;
+    if (settings.dome_cube && g_ocean_cube != dome::g_cube.rsrc) {
+        dome::load_cube(g_ocean_cube);
+        if (g_ocean_cube) {
+            char line[400];
+            const auto& m = dome::g_cube.mean;
+            sprintf_s(line, "dome sky from the ocean's cube map %s: %s, %d x %d per face; face means (rgb / a) +X %.2f %.2f %.2f, "
+                      "-X %.2f %.2f %.2f, +Y %.2f %.2f %.2f, -Y %.2f %.2f %.2f, +Z %.2f %.2f %.2f, -Z %.2f %.2f %.2f",
+                      dome::g_cube.path, dome::g_cube.ok ? "read" : "NOT read", dome::g_cube.n, dome::g_cube.n,
+                      m[0][0], m[0][1], m[0][2], m[1][0], m[1][1], m[1][2], m[2][0], m[2][1], m[2][2],
+                      m[3][0], m[3][1], m[3][2], m[4][0], m[4][1], m[4][2], m[5][0], m[5][1], m[5][2]);
+            note(line, 0);
+        }
+    }
+    if (g_ndome_hemis == 0 && !dome::use_cube()) return;
     const uint32_t now = g_frames.load();
     const uint64_t sig = dome::signature(settings.dome_strength);
     if (sig != dome::g_key && (dome::g_key == 0 || now - dome::g_written_at >= 15)) {
@@ -3614,6 +3800,14 @@ void draw_gui() {
                            "the Remix API. The ambient fill steps aside while it's drawn."));
         if (settings.dome) {
             ImGui::SliderFloat(_("Dome strength"), &settings.dome_strength, 0.0f, 8.0f, "%.2f");
+            ImGui::Checkbox(_("Sky from the sea's cube map"), &settings.dome_cube);
+            ImGui::SameLine();
+            Mod::help_marker(_("Where the room has an ocean, the dome shows the cube map the game's sea reflects (its sky and "
+                               "horizon), at the hemisphere lights' brightness: the sea takes the game's tint and the room "
+                               "its sky's colours. Without an ocean the dome keeps the hemisphere lights' two colours."));
+            if (api::dome::use_cube())
+                ImGui::TextDisabled(_("Sky: %s (%d px faces, x %.3f)"), api::dome::g_cube.path, api::dome::g_cube.n,
+                                    api::dome::g_cube_scale);
             ImGui::TextDisabled(_("%d hemisphere lights; radiance from above %.2f %.2f %.2f, from below %.2f %.2f %.2f%s"),
                                 g_ndome_hemis, api::dome::g_sky[0], api::dome::g_sky[1], api::dome::g_sky[2],
                                 api::dome::g_ground[0], api::dome::g_ground[1], api::dome::g_ground[2],
@@ -3758,6 +3952,7 @@ void load(const utility::Config& cfg) {
     settings.fill = cfg.get<bool>("remix_fill").value_or(true);
     settings.dome = cfg.get<bool>("remix_dome").value_or(true);
     settings.dome_strength = cfg.get<float>("remix_dome_strength").value_or(1.0f);
+    settings.dome_cube = cfg.get<bool>("remix_dome_cube").value_or(true);
     settings.fill_strength = cfg.get<float>("remix_fill_strength").value_or(1.0f);
     settings.fill_range = cfg.get<float>("remix_fill_range").value_or(4000.0f);
     settings.sun_strength = cfg.get<float>("remix_sun_strength").value_or(2.0f);
@@ -3814,6 +4009,7 @@ void save(utility::Config& cfg) {
     cfg.set<bool>("remix_fill", settings.fill);
     cfg.set<bool>("remix_dome", settings.dome);
     cfg.set<float>("remix_dome_strength", settings.dome_strength);
+    cfg.set<bool>("remix_dome_cube", settings.dome_cube);
     cfg.set<float>("remix_fill_strength", settings.fill_strength);
     cfg.set<float>("remix_fill_range", settings.fill_range);
     cfg.set<float>("remix_sun_strength", settings.sun_strength);
