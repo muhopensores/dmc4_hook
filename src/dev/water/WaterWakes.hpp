@@ -15,7 +15,10 @@
 //
 // Map space: the surface grid spans local x and z from -1000 to 1000 (move's bounding box: corners +-1000 x mScale,
 // mWmat (+0x50) carrying the scale too: st705's rows are 10 / 1 / 10, its translation the surface's height); map
-// x = local x / 1000, map y = local z / 1000. A character is in the water when its position (uActor +0x30, the feet)
+// x = local x / 1000, map y = -local z / 1000: the simulation draws its forces in clip space (+y = the map's top row).
+// Measured 2026-11-26 (the bridge's height map dump, BP stage 1, the player 7-11 m off the centre line): with +z the
+// wakes, cuts and splashes landed mirrored across the centre line, as far from the player as the player was from it,
+// so the user saw none near the characters. A character is in the water when its position (uActor +0x30, the feet)
 // is inside that square and between 150 cm below the surface and 15 cm above it.
 // move runs twice a frame (120 calls a second at 60 fps; characters move on every other call) and each call hands the
 // simulation its own list, so the wake is pushed on every call from a smoothed per-call speed: pushing only on the calls
