@@ -11,6 +11,8 @@ include_directories(${CMAKE_SOURCE_DIR}/dependencies/glm)
 include_directories(${CMAKE_SOURCE_DIR}/dependencies/debug-draw)
 include_directories(${CMAKE_SOURCE_DIR}/dependencies/ImGuizmo)
 include_directories(${CMAKE_SOURCE_DIR}/dependencies/pugixml/src)
+include_directories(${CMAKE_SOURCE_DIR}/dependencies/GekkoNet/GekkoLib/include)
+include_directories(${CMAKE_SOURCE_DIR}/dependencies/GekkoNet/GekkoLib/thirdparty/zpp)
 
 include_directories($ENV{DXSDK_DIR}/Include)
 link_directories("$ENV{DXSDK_DIR}/Lib/x86")

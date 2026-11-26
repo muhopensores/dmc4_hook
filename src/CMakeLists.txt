@@ -396,6 +396,19 @@ set(MODS_SRC
 
 # Dev: hook extensions and stuff, one folder each
 set(DEV_SRC
+  dev/netplay/AllocatorThings.hpp
+  dev/netplay/AllocatorThings.cpp
+  dev/netplay/DeterministicSimulation.hpp
+  dev/netplay/DeterministicSimulation.cpp
+  dev/netplay/CoopOnline.hpp
+  dev/netplay/CoopOnline.cpp
+  dev/netplay/NetplayTestHarness.hpp
+  dev/netplay/NetplayTestHarness.cpp
+  dev/netplay/BattleSnapshot.hpp
+  dev/netplay/BattleSnapshot.cpp
+  dev/netplay/MemoryPageTracker.hpp
+  dev/netplay/MemoryPageTracker.cpp
+  dev/netplay/FramePacer.hpp
   dev/movedef/XmlMove.hpp
   dev/movedef/XmlMove.cpp
   dev/movedef/MoveDef.hpp
@@ -571,6 +584,8 @@ set(SDK_SRC
     sdk/MtObject.hpp
     sdk/MtString.hpp
     sdk/MtThread.hpp
+    sdk/MtRandom.hpp
+    sdk/MtRandom.cpp
     sdk/rEffectList.hpp
     sdk/sArea.hpp
     sdk/sDevil4Main.hpp
@@ -585,6 +600,7 @@ set(SDK_SRC
     sdk/uEm003.hpp
     sdk/uEnemy.hpp
     sdk/uFilter.hpp
+    sdk/uPlayer.hpp
     sdk/uPlayerDante.hpp
     sdk/uPlayerData.hpp
     sdk/uShadow.hpp
@@ -593,6 +609,7 @@ set(SDK_SRC
     sdk/StringData.cpp
     sdk/uMissionMenu.hpp
     sdk/uMissionStart.hpp
+    sdk/sCollision.hpp
     sdk/Custom.hpp
     sdk/DebugDraw.hpp
     sdk/CtnScript.hpp
@@ -734,7 +751,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME dinput8)
 target_precompile_headers(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/ModPCH.hpp")
-target_link_libraries(${PROJECT_NAME} imgui minhook glm_static shlwapi D3dx9 d3d9 csys::csys Winmm spdlog ImGuizmo pugixml ws2_32)
+target_link_libraries(${PROJECT_NAME} imgui minhook glm_static shlwapi D3dx9 d3d9 csys::csys Winmm spdlog ImGuizmo pugixml ws2_32 GekkoNet)
 # header-only: cpp-httplib (the debug server's HTTP), nlohmann/json
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../dependencies/httplib ${CMAKE_CURRENT_SOURCE_DIR}/../dependencies/nlohmann_json)
 target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_20)
@@ -742,7 +759,25 @@ target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_20)
 include_directories(${CMAKE_PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME dinput8)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC DINPUT_HOOK _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING)
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    # Deterministic float semantics for the mods: a rollback snapshot is compared byte for byte
+    # against a re-simulated frame, so our arithmetic must not be reassociated. /fp:precise is the
+    # default, but pin it here so a /fp:fast in a preset or a toolset default change cannot quietly
+    # break the netplay state.
+    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE /fp:precise)
+endif()
 if(DEVELOPER_MODE)
     target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC DEVELOPER)
     target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC /EHa)
 endif()
+
+# Memory page observer smoke fixture: drives dev/netplay/MemoryPageTracker.cpp against
+# the real Win32 allocation/protection/read APIs without the game, so scripts/test_netplay_ttd.py
+# can prove every observation class natively. EXCLUDE_FROM_ALL keeps it out of the normal
+# build; build it with --target netplay_memory_pages_smoke.
+add_executable(netplay_memory_pages_smoke EXCLUDE_FROM_ALL
+    ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/netplay_memory_pages_smoke.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/dev/netplay/MemoryPageTracker.cpp)
+
+add_executable(netplay_allocator_import_probe EXCLUDE_FROM_ALL
+    ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/netplay_allocator_import_probe.cpp)

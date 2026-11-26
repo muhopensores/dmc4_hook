@@ -1,0 +1,154 @@
+#pragma once
+
+#include "gekkonet.h"
+#include "gekko_types.h"
+
+#include <memory>
+#include <vector>
+#include <variant>
+#include <chrono>
+
+namespace Gekko {
+    struct NetAddress {
+        NetAddress();
+        NetAddress(void* data, u32 size);
+
+        u8* GetAddress();
+        u32 GetSize();
+
+        void Copy(NetAddress* other);
+        bool Equals(NetAddress& other);
+
+    private:
+        std::unique_ptr<u8[]> _data;
+        u32 _size;
+    };
+
+    enum PacketType : u8 {
+        Inputs = 1,
+        SpectatorInputs,
+        InputAck,
+        SyncRequest,
+        SyncResponse,
+        SessionHealth,
+        NetworkHealth,
+        Disconnect,
+        DisconnectClaim,
+        SpectatorState,
+        SpectatorStateAck
+    };
+
+    struct MsgHeader {
+        PacketType type;
+        u16 magic;
+    };
+
+    struct InputMsg {
+        Frame start_frame;
+        u16 input_count;
+        u16 total_size;
+        bool compressed;
+
+        std::vector<u8> inputs;
+    };
+
+    struct InputAckMsg {
+        Frame ack_frame;
+        i8 frame_advantage;
+    };
+
+    struct SyncMsg {
+        u16 rng_data;
+    };
+
+    struct SessionHealthMsg {
+        Frame frame;
+        u32 checksum;
+    };
+
+    struct NetworkHealthMsg {
+        u64 send_time;
+        bool received;
+    };
+
+    struct SpectatorStateMsg {
+        Frame frame;
+        u32 total_size;
+        u32 offset;
+
+        std::vector<u8> state;
+    };
+
+    struct SpectatorStateAckMsg {
+        Frame frame;
+    };
+
+    struct DisconnectMsg {
+    };
+
+    // claims which inputs the sender holds for a disconnected player and carries
+    // them along, so every peer can end that player on the same newest known frame.
+    struct DisconnectClaimMsg {
+        Handle player;
+        Frame start_frame;
+        Frame last_frame;
+
+        std::vector<u8> inputs;
+    };
+
+    using MsgBody = std::variant<
+        InputMsg,
+        InputAckMsg,
+        SyncMsg,
+        SessionHealthMsg,
+        NetworkHealthMsg,
+        DisconnectMsg,
+        DisconnectClaimMsg,
+        SpectatorStateMsg,
+        SpectatorStateAckMsg
+    >;
+
+    struct NetPacket {
+        MsgHeader header;
+        MsgBody body;
+    };
+
+    struct NetData {
+        NetAddress addr;
+        NetPacket pkt;
+    };
+
+    struct NetStats {
+        static const u64 DISCONNECT_TIMEOUT = 5000;
+        static const u64 DISCONNECT_MSG_DELAY = 200;
+        static const u64 DISCONNECT_CLAIM_HOLD = 2000;
+        static const u64 SYNC_MSG_DELAY = 200;
+        static const u64 NET_CHECK_DELAY = 500;
+        static const u64 INPUT_RETRY_INTERVAL = 200;
+        static const u32 RTT_HISTORY_SIZE = 10;
+
+        Frame last_acked_frame = -1;
+        u64 last_sent_sync_message = 0;
+        u64 last_received_message = 0;
+        u64 last_received_frame = 0;
+
+        float kb_sent_per_sec = 0;
+        float kb_received_per_sec = 0;
+        u32 bytes_sent_accum = 0;
+        u32 bytes_received_accum = 0;
+        u64 last_bandwidth_update = 0;
+
+        std::vector<u16> rtt;
+
+        void AddRTT(u16 rtt_ms);
+        void UpdateBandwidth();
+        float CalculateJitter();
+        float CalculateAvgRTT();
+        u32 LastRTT();
+    };
+
+    struct NetInputData {
+        std::vector<Handle> handles;
+        InputMsg input;
+    };
+}

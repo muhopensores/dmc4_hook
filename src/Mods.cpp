@@ -217,6 +217,7 @@ Mods::Mods() {
     ADD_MOD(ModelExtension); // runtime chains (and attachments) on models, from nativePC\model_ext\*.xml
     ADD_MOD(FileTracker);    // debug: what the game has loaded (files, arcs) and what it loads and drops
     ADD_MOD(UnitPacks);      // stage units' files from their rooms' arcs into the cache, for spawning them anywhere
+
     ADD_MOD(ObjectPicker);   // Ctrl + click selects a unit (sdk/Selection, shared with UnitPacks, PostFX, the debug server)
     ADD_MOD(PbrMaterials);   // GGX shading for Albam's PBR materials (the unused SPECULAR_RIM pixel shaders swapped)
     ADD_MOD(Shadows);        // stage shadow map size and live overrides of its settings (uShadow)
@@ -226,6 +227,9 @@ Mods::Mods() {
     ADD_MOD(DebugServer);    // the MCP / debug server (off by default): tools talk to the running game
     ADD_MOD(Rooms);          // derived room classes (sdk/RoomClasses): made at startup, test room 900
     ADD_MOD(Plugins);        // plugin DLLs from the game folder's plugins\ (the plugin API, plugin_sdk\include\dmc4_plugin.h)
+    // TEMP()
+    ADD_MOD(DeterministicSimulation);
+    ADD_MOD(CoopOnline);
 #endif
 #endif
 }

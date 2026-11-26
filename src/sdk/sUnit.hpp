@@ -27,9 +27,13 @@ public:
     virtual void moveExForAll();
     virtual void nullsub_();
     virtual void moveEx(int move_line);
-    virtual void moveAfter(int move_line);
     virtual void moveAfter();
+    virtual void moveAfter(int move_line);
     virtual const char* getLineName(int move_line);
     virtual void sync(int move_line);
+    virtual void sync0(int move_line);
+
+    static constexpr size_t ML_PLAYERS = 13U;
+    static constexpr size_t ML_ENEMIES = 15U;
 };
 static_assert(sizeof(sUnit) == 0x320);

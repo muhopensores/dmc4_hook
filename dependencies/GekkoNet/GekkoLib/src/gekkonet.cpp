@@ -1,0 +1,332 @@
+#include "gekkonet.h"
+
+#include "session/game_session.h"
+#include "session/replay_session.h"
+#include "session/spectator_session.h"
+#include "session/stress_session.h"
+
+GEKKONET_API bool gekko_create(GekkoSession** session, GekkoSessionType session_type)
+{
+    if (*session) {
+        return false;
+    }
+
+    switch (session_type) {
+    case GekkoSessionType::GekkoGameSession:
+        *session = new Gekko::GameSession();
+        break;
+
+    case GekkoSessionType::GekkoStressSession:
+        *session = new Gekko::StressSession();
+        break;
+
+    case GekkoSessionType::GekkoSpectateSession:
+        *session = new Gekko::SpectatorSession();
+        break;
+
+    case GekkoSessionType::GekkoReplaySession:
+        *session = new Gekko::ReplaySession();
+        break;
+
+    default:
+        return false;
+    }
+
+    return true;
+}
+
+bool gekko_destroy(GekkoSession** session)
+{
+    if (session && *session) {
+        delete *session;
+        *session = nullptr;
+        return true;
+    }
+
+    return false;
+}
+
+void gekko_start(GekkoSession* session, GekkoConfig* config)
+{
+    session->Init(config);
+}
+
+void gekko_net_adapter_set(GekkoSession* session, GekkoNetAdapter* adapter)
+{
+    session->SetNetAdapter(adapter);
+}
+
+int gekko_add_actor(GekkoSession* session, GekkoPlayerType player_type, GekkoNetAddress* addr)
+{
+    return session->AddActor(player_type, !addr ? nullptr : addr);
+}
+
+bool gekko_disconnect_actor(GekkoSession* session, int actor)
+{
+    return session->DisconnectActor(actor);
+}
+
+void gekko_set_disconnect_timeout(GekkoSession* session, unsigned int timeout)
+{
+    session->SetDisconnectTimeout(timeout);
+}
+
+void gekko_set_local_delay(GekkoSession* session, int player, unsigned char delay)
+{
+    session->SetLocalDelay(player, delay);
+}
+
+void gekko_set_runahead(GekkoSession* session, unsigned char runahead)
+{
+    session->SetRunahead(runahead);
+}
+
+void gekko_set_input_prediction_window(GekkoSession* session, unsigned char window)
+{
+    session->SetInputPredictionWindow(window);
+}
+
+void gekko_add_local_input(GekkoSession* session, int player, void* input)
+{
+    session->AddLocalInput(player, input);
+}
+
+GekkoGameEvent** gekko_update_session(GekkoSession* session, int* count)
+{
+    return session->UpdateSession(count);
+}
+
+GekkoSessionEvent** gekko_session_events(GekkoSession* session, int* count)
+{
+    return session->Events(count);
+}
+
+float gekko_frames_ahead(GekkoSession* session)
+{
+    return session->FramesAhead();
+}
+
+int gekko_spectator_buffered_frames(GekkoSession* session)
+{
+    return session->SpectatorBufferedFrames();
+}
+
+void gekko_network_stats(GekkoSession* session, int player, GekkoNetworkStats* stats)
+{
+    session->NetworkStats(player, stats);
+}
+
+void gekko_rollback_stats(GekkoSession* session, GekkoRollbackStats* stats)
+{
+    session->RollbackStats(stats);
+}
+
+void gekko_network_poll(GekkoSession* session)
+{
+    session->NetworkPoll();
+}
+
+bool gekko_start_recording(GekkoSession* session, bool save_initial_state, bool disable_compression)
+{
+    return session->StartRecording(save_initial_state, disable_compression);
+}
+
+const unsigned char* gekko_stop_recording(GekkoSession* session, unsigned int* length)
+{
+    unsigned int len = 0;
+
+    const unsigned char* data = session->StopRecording(len);
+
+    if (length) {
+        *length = len;
+    }
+
+    return data;
+}
+
+const unsigned char* gekko_peek_recording(GekkoSession* session, unsigned int* length)
+{
+    unsigned int len = 0;
+
+    const unsigned char* data = session->PeekRecording(len);
+
+    if (length) {
+        *length = len;
+    }
+
+    return data;
+}
+
+bool gekko_record_checksums(GekkoSession* session, unsigned int interval)
+{
+    return session->RecordChecksums(interval);
+}
+
+bool gekko_set_replay_user_data(GekkoSession* session, const void* data, unsigned int length)
+{
+    return session->SetReplayUserData((const u8*)data, length);
+}
+
+bool gekko_load_replay(GekkoSession* session, const unsigned char* replay_data, unsigned int length)
+{
+    return session->LoadReplay(replay_data, length);
+}
+
+const unsigned char* gekko_replay_user_data(GekkoSession* session, unsigned int* length)
+{
+    unsigned int len = 0;
+
+    const unsigned char* data = session->ReplayUserData(len);
+
+    if (length) {
+        *length = len;
+    }
+
+    return data;
+}
+
+#ifndef GEKKONET_NO_ASIO
+
+#ifdef _WIN32
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0A00
+#endif
+#endif // _WIN32
+
+#define ASIO_STANDALONE
+
+#include "asio/asio.hpp"
+#include <cstring>
+#include <iostream>
+
+static char _buffer[65536];
+static asio::error_code _ec;
+static asio::io_context _io_ctx;
+static asio::ip::udp::endpoint _remote;
+static std::vector<GekkoNetResult*> _results;
+static asio::ip::udp::socket* _socket = nullptr;
+
+static asio::ip::udp::endpoint STOE(const std::string& str) {
+    std::string::size_type colon_pos = str.find(':');
+    if (colon_pos == std::string::npos) {
+        throw std::invalid_argument("Invalid endpoint string");
+    }
+
+    std::string address = str.substr(0, colon_pos);
+    u16 port = (u16)(std::stoi(str.substr(colon_pos + 1)));
+
+    return asio::ip::udp::endpoint(asio::ip::make_address(address), port);
+}
+
+
+static void asio_send(GekkoNetAddress* addr, const char* data, int length) {
+    if (!_socket) {
+        return;
+    }
+
+    std::string address((char*)addr->data, addr->size);
+
+    asio::ip::udp::endpoint endpoint;
+    try {
+        endpoint = STOE(address);
+    }
+    catch (const std::exception&) {
+        return;
+    }
+
+    _socket->send_to(asio::buffer(data, length), endpoint, 0, _ec);
+
+    if (_ec) {
+        std::cerr << "send failed: " << _ec.message() << std::endl;
+    }
+}
+
+static GekkoNetResult** asio_receive(int* length) {
+    _results.clear();
+
+    while (_socket) {
+        const u32 len = (u32)_socket->receive_from(asio::buffer(_buffer), _remote, 0, _ec);
+        if (_ec == asio::error::connection_reset || _ec == asio::error::connection_refused) {
+            // an earlier send bounced, the next datagram can still be read.
+            continue;
+        }
+        else if (!_ec) {
+            std::string endpoint = _remote.address().to_string() + ":" + std::to_string(_remote.port());
+
+            GekkoNetResult* res = reinterpret_cast<GekkoNetResult*>(std::malloc(sizeof(*res)));
+            _results.push_back(res);
+
+            res->addr.data = std::malloc(endpoint.size());
+            res->addr.size = (u32)endpoint.size();
+            std::memcpy(res->addr.data, endpoint.c_str(), res->addr.size);
+
+            res->data_len = len;
+            res->data = std::malloc(len);
+
+            std::memcpy(res->data, _buffer, len);
+        }
+        else {
+            break;
+        }
+    }
+
+    *length = (int)_results.size();
+
+    return _results.data();
+}
+
+static void asio_free(void* data_ptr) {
+    std::free(data_ptr);
+}
+
+static GekkoNetAdapter default_sock{
+    asio_send,
+    asio_receive,
+    asio_free
+};
+
+GekkoNetAdapter* gekko_default_adapter(unsigned short port) {
+    // in case this has been called before.
+    if (_socket) {
+        try {
+            _socket->shutdown(asio::socket_base::shutdown_type::shutdown_both);
+            _socket->close();
+        }
+        catch (const std::exception& e) {
+            std::cerr << e.what() << '\n';
+        }
+
+        delete _socket;
+        _socket = nullptr;
+    }
+
+    // setup socket
+    asio::error_code ec;
+    _socket = new asio::ip::udp::socket(_io_ctx);
+    _socket->open(asio::ip::udp::v4(), ec);
+    if (!ec) {
+        _socket->bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), port), ec);
+    }
+    if (!ec) {
+        _socket->non_blocking(true, ec);
+    }
+    if (ec) {
+        delete _socket;
+        _socket = nullptr;
+        return nullptr;
+    }
+
+    return &default_sock;
+}
+
+bool gekko_default_adapter_destroy()
+{
+    if (_socket) {
+        delete _socket;
+        _socket = nullptr;
+        return true;
+    }
+    return false;
+}
+
+#endif // GEKKONET_NO_ASIO
