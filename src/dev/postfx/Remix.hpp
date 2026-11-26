@@ -16,6 +16,19 @@ class FunctionHook;
 // Render thread, from PostFX's tag hook (0x8F4460).
 namespace remix {
 
+// the forest stages' blended ground (st300-st311; Vibed\Remix\terrain_scan.py: the masked overlap layers' textures and
+// the base textures under them, mostly flat, not water or fog): settings.terrain_textures' default
+constexpr const char* kTerrainTextures =
+    "st300-t-g001_BM;st300-t-g00_BM;st300-t-g01_BM;st301-t-alpha01_BM;st301-t-g00_BM;st301-t-g01_BM"
+    ";st301-t-g02_BM;st301-t-g03_BM;st301-t-g07_BM;st303-t-yuka010_BM;st303-t-yuka012_BM;st304-t-g00_BM"
+    ";st304-t-ishi00_BM;st304-t-tuti01_BM;st304-t-tuti_BM;st305-t-yuka001_BM;st305-t-yuka029_BM"
+    ";st305-t-yuka04_BM;st305-t-yuka05_BM;st305-t-yuka09_BM;st306-t-yuka001_BM;st306-t-yuka029_BM"
+    ";st306-t-yuka14_BM;st306-t-yuka15_BM;st306-t-yuka16_BM;st307-t-alpha01_BM;st307-t-g05_BM"
+    ";st307-t-g3_BM;st307-t-ground00_BM;st307-t-ground01_BM;st307-t-groundk_BM;st307-t-wallk_BM"
+    ";st308-t-g00_BM;st308-t-ground01_BM;st308-t-tuti00_BM;st309-t-alpha01_BM;st309-t-g00_BM"
+    ";st309-t-g01_BM;st309-t-ground03_BM;st310-t-yuka006_BM;st310-t-yuka012_BM;st311-t-g00_BM"
+    ";st311-t-g01_BM;st311-t-jimen00_BM;st311-t-tyujimen01_BM;st311-t-tyujimen02_BM";
+
 struct Settings {
     bool on = false;
     bool skip_other_scenes = true;   // tags whose view / sub-scene isn't the main scene's
@@ -141,10 +154,11 @@ struct Settings {
     // its next N draws, the lift's range in cm appended to remix_iw.txt (how high a splash goes)
     int iw_measure = 0;
     int iw_dump = 0;   // with iw_measure: every 5th read also written whole (R32F rows) to remix_iw_<frame>.raw, this many times
-    // the interactive surface's ripple normals tilted this many times further from straight up (kIwVsSrc): vanilla bends
-    // its reflection lookups by the normal map x mReflectScale (20 on BP stage 1), far more than a traced mirror with the
-    // same normals shows
-    float ripple_normal = 1.0f;
+    // the interactive surface's waviness (kIwVsSrc, GUI "Ripple waviness"): its shading follows the simulation's slope x
+    // this (the geometry stays low through ripple_curve). Vanilla bends its reflection lookups by the normal map x
+    // mReflectScale (20 on BP stage 1); 1 read calm next to it, 4-8 like vanilla's busy mirror but patchy up close
+    // (2026-11-26); 2 = default
+    float ripple_normal = 2.0f;
     // the lift follows the simulation's height to this power (sign kept): small ripples stay nearly flat, as vanilla draws
     // them (normals only), while a splash still rises to ripple_height. 1 = the height as it is (the rain's rings stood
     // up as round bumps at ripple_height 25)
@@ -165,10 +179,13 @@ struct Settings {
     // surface with it: the layers lie on each other (st307's ground z-fought, dark flickering patches) and Remix can't
     // read a second texture's mask. Replacement materials of those textures (normal / roughness / height maps) are baked
     // along, which Remix does only for ps_1_x shaders
-    char terrain_textures[128] = "st307-t-ground;st307-t-g3_;st307-t-g05_";
+    char terrain_textures[2048] = {};   // kTerrainTextures until the config says otherwise
     // stage 0 read as sRGB in those draws: off, since the baker keeps the shader's output in the texture's own encoding
     // (on, st307's ground came out much darker: decoded twice)
     bool terrain_srgb = false;
+    // textures that scroll (the vertex shader's gXfUVScroll) scroll under Remix too, through the stage-0 texture
+    // transform (uv_scroll_draw); last, so remix_live's offsets above stay
+    bool uv_scroll = true;
 };
 extern Settings settings;
 

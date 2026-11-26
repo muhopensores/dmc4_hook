@@ -656,7 +656,7 @@ char g_light_built_for[128] = "";
 std::unordered_set<uintptr_t> g_sky_tex;          // settings.sky_textures' textures
 char g_sky_built_for[64] = "";
 std::unordered_set<uintptr_t> g_terrain_tex;      // settings.terrain_textures' textures
-char g_terrain_built_for[128] = "";
+char g_terrain_built_for[2048] = "";
 std::unordered_set<uintptr_t> g_mask_tex;         // with terrain_textures: the blend masks (paths ending _AM)
 std::atomic<uint32_t> g_sky_tex_frame{ 0 };       // g_frames when one was last drawn (0 = not since the start)
 std::string g_sky_tex_path;                       // the first one's path (the GUI's)
@@ -1067,6 +1067,11 @@ struct VsOut {
     float4 pos : POSITION; float4 col : COLOR0; float2 uv : TEXCOORD0; float3 wpos : TEXCOORD1; float3 up : TEXCOORD2;
     float3 ax : TEXCOORD3; float3 az : TEXCOORD4; float4 cpos : TEXCOORD5; float3 nrm : NORMAL0;
 };
+// the simulation's height at a height-map point, -1..1 x settings.ripple_height (kRipple.x), without the ripple curve:
+// the shading's slope (the curve keeps the geometry low, but flattened the rain's ripples out of the shading too)
+float height_at(float2 t) {
+    return (tex2Dlod(sHeight, float4(t, 0.0, 0.0)).x * 2.0 - 1.0) * kRipple.x;
+}
 VsOut main(VsIn i) {
     VsOut o;
     float3 lp = i.pos.xyz;
@@ -1094,20 +1099,30 @@ VsOut main(VsIn i) {
     float3 azn = normalize(az);
     float3 n = upn;
     if (kRipple.y > 0.5) {
+        // the heights through a 3 x 3 tent at least a texel wide (1 / 512 of the square: 39 cm on BP stage 1), and the
+        // normals from the lifted surface's own slope: with a quarter-texel tent near the camera and the simulation's
+        // normal map, WaterWakes' bumps (2-3 texels) came out as faceted triangles under Remix (user, 2026-11-26: "the
+        // deformation is too abrupt and leaves triangular patches", Remix only; vanilla reads the maps per pixel). The
+        // slope normals also drop the normal map's strong rain distortion: the water reads crystal clear, which the user
+        // picked over the normal map sampled the same way ("now it looks more like what I meant with crystal clear")
+        tap = max(tap, 1.0 / 512.0);
         float h = 0.0;
-        float3 m = float3(0.0, 0.0, 0.0);
         for (int y = -1; y <= 1; ++y)
             for (int x = -1; x <= 1; ++x) {
                 const float w = (2.0 - abs(x)) * (2.0 - abs(y));
-                const float4 tuv = float4(uv + float2(x, y) * tap, 0.0, 0.0);
-                h += w * tex2Dlod(sHeight, tuv).x;
-                m += w * tex2Dlod(sNormal, tuv).xyz;
+                h += w * tex2Dlod(sHeight, float4(uv + float2(x, y) * tap, 0.0, 0.0)).x;
             }
         h = h * (2.0 / 16.0) - 1.0;
-        m = m * (2.0 / 16.0) - 1.0;
         wp += up * (sign(h) * pow(abs(h), kRipple.w) * kRipple.x * col.x);   // kRipple.w: settings.ripple_curve
-        float3 rn = normalize(m.x * axn + m.y * azn + m.z * upn);
-        n = normalize(upn + col.x * kGraded.w * (rn - upn));
+        // slope (cm per cm) of the simulation's height, uncurved, along local x / z: central differences a tap apart
+        // each way; uv runs over 2000 local units, |ax| / |az| world units each (the square's scale). The geometry keeps
+        // the curve (low, no bulk); the shading gets the rain's ripples at the simulation's own scale, as vanilla's
+        // normal map distorts its reflection (user, 2026-11-26: "need the same level of wavy-ness" as vanilla).
+        // kGraded.w = settings.ripple_normal scales it (live)
+        const float s = tap;
+        const float gx = (height_at(uv + float2(s, 0.0)) - height_at(uv - float2(s, 0.0))) / (2.0 * s * 2000.0 * length(ax));
+        const float gz = (height_at(uv + float2(0.0, s)) - height_at(uv - float2(0.0, s))) / (2.0 * s * 2000.0 * length(az));
+        n = normalize(upn - col.x * kGraded.w * (gx * axn + gz * azn));
     }
     float4 w4 = float4(wp, 1.0);
     float4 c = float4(dot(w4, gXfViewProj[0]), dot(w4, gXfViewProj[1]), dot(w4, gXfViewProj[2]), dot(w4, gXfViewProj[3]));
@@ -2179,7 +2194,7 @@ void radiance(const float c[3], float strength, float r, float d, float out[3]) 
 // lights at the middle of draws using settings.light_textures: found while the frame draws (the indexed-draw hook),
 // handed to Remix at the next frame's start, so every pass's draws can take part
 namespace texlight {
-struct VsRegs { int scale = -1, offset = -1, world = -1, joints = -1; };
+struct VsRegs { int scale = -1, offset = -1, world = -1, joints = -1, uvscroll = -1; };
 std::unordered_map<uintptr_t, VsRegs> g_vs;   // vertex shader -> its registers (from its CTAB)
 struct Found { uint64_t key; float pos[3]; };
 std::vector<Found> g_found;
@@ -2219,6 +2234,7 @@ VsRegs regs_of(IDirect3DVertexShader9* vs) {
                         else if (!std::strcmp(s, "gXfQuantPosOffset")) r.offset = reg;
                         else if (!std::strcmp(s, "gXfWorld")) r.world = reg;
                         else if (!std::strcmp(s, "gXfJointWorld")) r.joints = reg;
+                        else if (!std::strcmp(s, "gXfUVScroll")) r.uvscroll = reg;
                     }
                     break;
                 }
@@ -2430,6 +2446,8 @@ void on_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
 
 volatile uint8_t g_light_next = 0;             // the next indexed draw uses a light texture (texlight::capture)
 volatile uint8_t g_sky_next = 0;               // the next indexed draw uses a sky texture (settings.sky_textures)
+volatile uint8_t g_uvscroll_next = 0;          // this material's vertex shader scrolls its UVs (uv_scroll_draw)
+bool g_uv_tt_on = false;                       // the stage-0 texture transform holds a UV scroll
 volatile uint8_t g_terrain_next = 0;           // the next draw is a terrain layer (terrain_draw): 1 base, 2 blended
 uint8_t g_terrain_mask_stage = 0xFF;           // ... and its blend mask's stage (0xFF: none found)
 std::atomic<uint32_t> g_terrain_draws{ 0 };
@@ -2645,7 +2663,39 @@ int draw(IDirect3DDevice9* dev, const uint8_t* cmd, bool indexed, int kind, int 
 }
 } // namespace terrain
 
+// UV scroll (2026-11-26): DMC4 scrolls textures in the vertex shader (TEXCOORD0 = UV0 + gXfUVScroll; per material, e.g.
+// keyed by a .sdl's "Materials" UV0_U / UV0_V tracks, st305's Lapis River), and under Remix they stood still (the
+// river, Dante's Pandora; user). For draws whose vertex shader has gXfUVScroll, its current value becomes the stage-0
+// texture transform's translation (Remix 1.6.1 applies D3DTS_TEXTURE0 + TEXTURETRANSFORMFLAGS to a draw's texture
+// coordinates; D3D9 ignores them for shader draws, so the game's image is unchanged). Read at the draw: the constant is
+// the draw's own. Wrapped to 0..1 (the keys run to -14 and further)
+void uv_scroll_off(IDirect3DDevice9* dev) {
+    if (!g_uv_tt_on) return;
+    dev->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
+    g_uv_tt_on = false;
+}
+void uv_scroll_draw(IDirect3DDevice9* dev) {
+    IDirect3DVertexShader9* vs = nullptr;
+    dev->GetVertexShader(&vs);
+    if (vs) vs->Release();
+    const int reg = vs ? texlight::regs_of(vs).uvscroll : -1;
+    float c[4] = { 0, 0, 0, 0 };
+    if (reg < 0 || FAILED(dev->GetVertexShaderConstantF(reg, c, 1)) || (c[0] == 0.0f && c[1] == 0.0f) ||
+        !std::isfinite(c[0]) || !std::isfinite(c[1])) {
+        uv_scroll_off(dev);
+        return;
+    }
+    D3DMATRIX m{};
+    m._11 = m._22 = m._33 = m._44 = 1.0f;
+    m._31 = c[0] - std::floor(c[0]);   // 2-element texture coordinates: the third row is the translation
+    m._32 = c[1] - std::floor(c[1]);
+    dev->SetTransform(D3DTS_TEXTURE0, &m);
+    dev->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_COUNT2);
+    g_uv_tt_on = true;
+}
+
 int __stdcall prim_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
+    if (g_uvscroll_next && dev) uv_scroll_draw(dev);
     if (g_terrain_next) {
         const int kind = g_terrain_next;
         g_terrain_next = 0;
@@ -2658,6 +2708,7 @@ int __stdcall prim_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
 
 // the indexed draw hook: 1 = drawn here (subdivided), 0 = the game draws it
 int __stdcall water_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
+    if (g_uvscroll_next && dev) uv_scroll_draw(dev);
     if (g_sky_next) {   // a sky draw (sky_draw)
         g_sky_next = 0;
         if (sky_draw(dev, cmd, true)) return 1;
@@ -2811,6 +2862,97 @@ void set_transforms(IDirect3DDevice9* dev) {
     submit_lights(dev);
 }
 
+// Lights that ride a moving model (2026-11-26). Remix gets only an object's translation (world_positions), so a light
+// in a Remix mod (DMC4Lights) can't follow a model that turns. Room 200's two chandeliers (scr\st200\stage\st200-m90,
+// units of st200-md90-denki.sdl) swing +-8 deg about a pivot ~21 m above their lamp (mAngle keys, 8 s), and their
+// candle flames (es200_00v0, parented 20 m below the pivot) are effects, which Remix never sees: the user missed their
+// light. Each frame the model's units are found on the move lines (a uModel: rModel* at +0xA30, its path at +0x04;
+// mWmat at +0xA0, row vectors, translation in row 3), and every listed point, in the model's own frame, becomes an API
+// sphere light at point x mWmat. Brightness as the stage's point lights and the Remix mods' lights: api::radiance at
+// settings.point_distance (room_lights_mod.py: strength = irradiance at 2 m for colour x strength).
+namespace unitlight {
+struct Spec { const char* model; float pt[3]; float strength, radius; const float* col; };
+constexpr float kWarm[3] = { 1.0f, 0.78f, 0.55f };   // room 200's lamps (room_lights_mod.py WARM)
+// the 12 candles of effect\efs\scr\st200_00 (part 0: a 115 cm ring, 79 / 89 cm above the effect's origin) + the effect's
+// mOfs (0, -2000, 0) on the model, 7 cm up to the flame; the ring (saku03 / 04) is at -2100 .. -1913
+constexpr Spec kSpecs[] = {
+    { "scr\\st200\\stage\\st200-m90", {  29.8f, -1904.0f,  111.1f }, 0.8f, 2.0f, kWarm },
+    { "scr\\st200\\stage\\st200-m90", {  81.3f, -1914.0f,   81.4f }, 0.8f, 2.0f, kWarm },
+    { "scr\\st200\\stage\\st200-m90", { 111.1f, -1904.0f,   29.7f }, 0.8f, 2.0f, kWarm },
+    { "scr\\st200\\stage\\st200-m90", { 111.1f, -1914.0f,  -29.8f }, 0.8f, 2.0f, kWarm },
+    { "scr\\st200\\stage\\st200-m90", {  81.4f, -1904.0f,  -81.3f }, 0.8f, 2.0f, kWarm },
+    { "scr\\st200\\stage\\st200-m90", {  29.7f, -1914.0f, -111.1f }, 0.8f, 2.0f, kWarm },
+    { "scr\\st200\\stage\\st200-m90", { -29.8f, -1904.0f, -111.1f }, 0.8f, 2.0f, kWarm },
+    { "scr\\st200\\stage\\st200-m90", { -81.3f, -1914.0f,  -81.4f }, 0.8f, 2.0f, kWarm },
+    { "scr\\st200\\stage\\st200-m90", {-111.1f, -1904.0f,  -29.7f }, 0.8f, 2.0f, kWarm },
+    { "scr\\st200\\stage\\st200-m90", {-111.1f, -1914.0f,   29.8f }, 0.8f, 2.0f, kWarm },
+    { "scr\\st200\\stage\\st200-m90", { -81.4f, -1904.0f,   81.3f }, 0.8f, 2.0f, kWarm },
+    { "scr\\st200\\stage\\st200-m90", { -29.7f, -1914.0f,  111.1f }, 0.8f, 2.0f, kWarm },
+};
+constexpr int kSpecCount = static_cast<int>(sizeof kSpecs / sizeof kSpecs[0]);
+constexpr uintptr_t kModelRes = 0xA30, kWmat = 0xA0;
+struct Light { uint64_t key; float pos[3]; int spec; };
+constexpr int kMax = 128;
+Light g_last[kMax];
+int g_nlast = 0;
+uint32_t g_count = 0;   // lights drawn last frame (the panel)
+
+// render thread, while the game thread runs the units: SEH-guarded, -1 on a fault
+int find_raw(Light* out, int max, uintptr_t dti_model) {
+    __try {
+        const uintptr_t su = reinterpret_cast<uintptr_t>(devil4_sdk::get_sUnit());
+        if (!su) return 0;
+        int n = 0;
+        for (int line = 0; line < 32; ++line) {
+            const auto* ml = reinterpret_cast<const MoveLine*>(su + 0x20 + line * sizeof(MoveLine));
+            int guard = 0;
+            for (uintptr_t u = reinterpret_cast<uintptr_t>(ml->mTop); u && guard < 20000; ++guard) {
+                const auto* cu = reinterpret_cast<const cUnit*>(u);
+                const uintptr_t next = reinterpret_cast<uintptr_t>(cu->mp_next_unit);
+                if (cu->flags.bits.mBeFlag && (cu->flags.bits.mUnitAttr & UATTR_DRAW) &&
+                    dti_under(debug_server::mem::dti_of(u), dti_model)) {
+                    const uintptr_t res = *reinterpret_cast<const uintptr_t*>(u + kModelRes);
+                    const char* path = res ? reinterpret_cast<const char*>(res + 4) : nullptr;
+                    const float* m = reinterpret_cast<const float*>(u + kWmat);
+                    for (int s = 0; path && s < kSpecCount && n < max; ++s) {
+                        if (_stricmp(path, kSpecs[s].model) != 0) continue;
+                        const float* p = kSpecs[s].pt;
+                        Light& l = out[n++];
+                        l.key = (uint64_t(3) << 60) | (uint64_t(u) << 8) | uint64_t(s);
+                        l.spec = s;
+                        for (int i = 0; i < 3; ++i) l.pos[i] = p[0] * m[i] + p[1] * m[4 + i] + p[2] * m[8 + i] + m[12 + i];
+                    }
+                }
+                u = next;
+            }
+        }
+        return n;
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return -1;
+    }
+}
+
+void frame() {
+    static uintptr_t dti_model = 0;
+    if (!dti_model) dti_model = debug_server::mem::find_dti("uModel");
+    if (!dti_model) return;
+    Light found[kMax];
+    const int n = find_raw(found, kMax, dti_model);
+    if (n >= 0) {   // a fault mid-walk keeps last frame's
+        std::memcpy(g_last, found, sizeof(Light) * n);
+        g_nlast = n;
+    }
+    float rad[3];
+    for (int i = 0; i < g_nlast; ++i) {
+        const Spec& s = kSpecs[g_last[i].spec];
+        if (!std::isfinite(g_last[i].pos[0]) || !std::isfinite(g_last[i].pos[1]) || !std::isfinite(g_last[i].pos[2])) continue;
+        api::radiance(s.col, s.strength, s.radius, settings.point_distance, rad);
+        api::draw(g_last[i].key, g_last[i].pos, s.radius, rad);
+    }
+    g_count = static_cast<uint32_t>(g_nlast);
+}
+} // namespace unitlight
+
 // once a frame, after gather_lights: the stage's point lights and last frame's texture lights through the Remix API
 void api_frame() {
     if (settings.on && settings.rtx_options[0]) api::apply_options();
@@ -2829,6 +2971,7 @@ void api_frame() {
             api::radiance(g.col, settings.point_strength, settings.point_radius, settings.point_distance, rad);
             api::draw((uint64_t(1) << 62) | g.unit, g.v, settings.point_radius, rad);
         }
+    unitlight::frame();   // lights riding moving models (room 200's chandeliers)
     api::radiance(settings.tex_light_color, settings.tex_light_strength, settings.tex_light_radius, settings.point_distance, rad);
     for (const auto& f : texlight::g_found) api::draw(f.key, f.pos, settings.tex_light_radius, rad);
     api::dome_frame();
@@ -3013,7 +3156,16 @@ int __stdcall bind_texture(IDirect3DDevice9* dev, const uint32_t* entry, const u
     if (entry == entries && g_cur_vp) count_view(g_cur_vp);
     if (entry == entries) {
         if (g_frame_next < g_frame_n) submit_lights(dev);   // the next batch of the frame's lights
-        water_transform(dev, !hide && albedo_stage == 0xFF && water && settings.water_standin);
+        const bool water_tt = !hide && albedo_stage == 0xFF && water && settings.water_standin;
+        water_transform(dev, water_tt);
+        {   // UV scroll: this material's vertex shader has gXfUVScroll (uv_scroll_draw sets it per draw); water has its own
+            IDirect3DVertexShader9* vs = nullptr;
+            dev->GetVertexShader(&vs);
+            if (vs) vs->Release();
+            const bool scroll = settings.uv_scroll && !hide && !water_tt && vs && texlight::regs_of(vs).uvscroll >= 0;
+            g_uvscroll_next = scroll ? 1 : 0;
+            if (!scroll) uv_scroll_off(dev);
+        }
         const bool sky = (settings.sky && g_pass == 2 && n == 1 && g_base_param >= 0 &&
                           (entries[0] & 0xFFFF) == static_cast<uint32_t>(g_base_param));
         sky_viewport(dev, sky);
@@ -3748,6 +3900,8 @@ naked void detour_draw() {
         jne hooked
         cmp byte ptr [g_puddle_next], 0
         jne hooked
+        cmp byte ptr [g_uvscroll_next], 0
+        jne hooked
         cmp byte ptr [g_light_next], 0
         je original
     hooked:
@@ -3838,6 +3992,8 @@ uintptr_t jmp_ret_drawprim = 0;
 naked void detour_drawprim() {
     _asm {
         cmp byte ptr [g_sky_next], 0
+        jne hooked
+        cmp byte ptr [g_uvscroll_next], 0
         jne hooked
         cmp byte ptr [g_terrain_next], 0
         je original
@@ -4236,6 +4392,8 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
     if (main && !skip && after_inject && !g_ui_done && g_solid_seen) {
         g_ui_done = true;
         water_transform(dev, false);
+        uv_scroll_off(dev);
+        g_uvscroll_next = 0;
         sky_viewport(dev, false);
         g_ui_fired_pass = pass;
         IDirect3DSurface9* rt = nullptr;
@@ -4282,6 +4440,11 @@ void draw_gui() {
                            "(floating slabs, shards); hidden, they popped in and out. Own projection hands Remix the one "
                            "they were drawn with."));
     }
+    ImGui::Checkbox(_("Scrolling textures"), &settings.uv_scroll);
+    ImGui::SameLine();
+    Mod::help_marker(_("Textures the game scrolls (rivers, flowing water, light running over Dante's Pandora) scroll under "
+                       "Remix too. Remix doesn't follow the game's own scrolling, so the bridge hands it each draw's "
+                       "offset."));
     ImGui::Checkbox(_("Interactive water ripples (restart)"), &settings.water_ripples);
     ImGui::SameLine();
     Mod::help_marker(_("The practice stage's and the Bloody Palace's water floors simulate their ripples on the graphics card "
@@ -4293,6 +4456,11 @@ void draw_gui() {
         ImGui::SameLine();
         Mod::help_marker(_("How far the surface rises at the simulation's full amplitude, per unit of the water's Y scale "
                            "(the game sets the simulation's amplitude from it, so taller water makes taller ripples)."));
+        ImGui::SliderFloat(_("Ripple waviness"), &settings.ripple_normal, 0.0f, 8.0f, "%.1f");
+        ImGui::SameLine();
+        Mod::help_marker(_("How much the ripples bend what the water reflects and shows through it, without making the "
+                           "surface itself any taller. 0 = a flat mirror, 1 = calm, 4 and up = as busy as the game's own "
+                           "water, with hard-edged patches close to the camera. Changes right away."));
         ImGui::Checkbox(_("Water to the horizon"), &settings.water_to_horizon);
         ImGui::SameLine();
         Mod::help_marker(_("Large water floors (100 m across or more, like the Bloody Palace's and the practice stage's) go "
@@ -4558,6 +4726,7 @@ void load(const utility::Config& cfg) {
     settings.tex_light_radius = cfg.get<float>("remix_tex_light_radius").value_or(5.0f);
     settings.water_ripples = cfg.get<bool>("remix_water_ripples").value_or(true);
     settings.ripple_height = cfg.get<float>("remix_ripple_height").value_or(25.0f);
+    settings.ripple_normal = cfg.get<float>("remix_ripple_normal").value_or(2.0f);
     settings.water_to_horizon = cfg.get<bool>("remix_water_to_horizon").value_or(true);
     settings.water_detail = cfg.get<int>("remix_water_detail").value_or(1);
     {
@@ -4590,10 +4759,11 @@ void load(const utility::Config& cfg) {
         strncpy_s(settings.sky_textures, t.c_str(), _TRUNCATE);
     }
     {
-        const std::string t = cfg.get("remix_terrain_textures").value_or("st307-t-ground;st307-t-g3_;st307-t-g05_");
+        const std::string t = cfg.get("remix_terrain_textures").value_or(kTerrainTextures);
         strncpy_s(settings.terrain_textures, t.c_str(), _TRUNCATE);
     }
     settings.terrain_srgb = cfg.get<bool>("remix_terrain_srgb").value_or(false);
+    settings.uv_scroll = cfg.get<bool>("remix_uv_scroll").value_or(true);
     settings.fill_strength = cfg.get<float>("remix_fill_strength").value_or(1.0f);
     settings.fill_range = cfg.get<float>("remix_fill_range").value_or(4000.0f);
     settings.sun_strength = cfg.get<float>("remix_sun_strength").value_or(2.0f);
@@ -4629,6 +4799,7 @@ void save(utility::Config& cfg) {
     cfg.set<float>("remix_tex_light_radius", settings.tex_light_radius);
     cfg.set<bool>("remix_water_ripples", settings.water_ripples);
     cfg.set<float>("remix_ripple_height", settings.ripple_height);
+    cfg.set<float>("remix_ripple_normal", settings.ripple_normal);
     cfg.set<bool>("remix_water_to_horizon", settings.water_to_horizon);
     cfg.set<int>("remix_water_detail", settings.water_detail);
     cfg.set("remix_hide_water_textures", std::string(settings.hide_water_textures));
@@ -4655,6 +4826,7 @@ void save(utility::Config& cfg) {
     cfg.set("remix_sky_textures", std::string(settings.sky_textures));
     cfg.set("remix_terrain_textures", std::string(settings.terrain_textures));
     cfg.set<bool>("remix_terrain_srgb", settings.terrain_srgb);
+    cfg.set<bool>("remix_uv_scroll", settings.uv_scroll);
     cfg.set<float>("remix_fill_strength", settings.fill_strength);
     cfg.set<float>("remix_fill_range", settings.fill_range);
     cfg.set<float>("remix_sun_strength", settings.sun_strength);
