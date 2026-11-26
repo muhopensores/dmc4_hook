@@ -205,4 +205,7 @@
 #include "dev/plugins/Plugins.hpp"
 #include "dev/rooms/Rooms.hpp"
 #include "dev/debug_server/DebugServer.hpp"
+
+#include "dev/netplay/DeterministicSimulation.hpp"
+#include "dev/netplay/CoopOnline.hpp"
 #endif

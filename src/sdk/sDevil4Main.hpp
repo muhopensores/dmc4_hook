@@ -50,7 +50,7 @@ public:
 	char pad_0034[4]; //0x0034
 	float mFps; //0x0038
 	float mFPSlock; //0x003C
-	uint32_t mVsynMaybeIdk; //0x0040
+	uint32_t mWannaSkipFrame; //0x0040
 	float mFPSActual; //0x0044
 	int64_t mRealCounter; //0x0048
 	int64_t mIdealCounter; //0x0050
@@ -93,12 +93,26 @@ public:
 	uint32_t mCPUCoreNum; //0x10234
 	uint32_t mCPULogicalProcessorNum; //0x10238
 	bool mCPUHyperThreading; //0x1023C
-	char N00005C90[256]; //0x1023D
-	char pad_1033D[11]; //0x1033D
+	char mCPUName[256]; //0x1023D
+	char pad_1033D[3]; //0x1033D
+	class sCollisionGame *mpCollisionGame; //0x10340
+	char pad_10344[4]; //0x10344
 	class sRender *mpRender; //0x10348
-	char pad_1034C[124]; //0x1034C
+	char pad_1034C[4]; //0x1034C
+	class sUnit *mpUnit; //0x10350
+	char pad_10354[16]; //0x10354
+	class sDevil4Collision *mpD4Collision; //0x10364
+	char pad_10368[48]; //0x10368
+	class sMediator *mpMediator; //0x10398
+	char pad_1039C[44]; //0x1039C
 }; //Size: 0x103C8
 static_assert(sizeof(sDevil4Main) == 0x103C8);
+static_assert(offsetof(sDevil4Main, mpCollisionGame) == 0x10340);
+static_assert(offsetof(sDevil4Main, mpRender) == 0x10348);
+static_assert(offsetof(sDevil4Main, mpUnit) == 0x10350);
+static_assert(offsetof(sDevil4Main, mpD4Collision) == 0x10364);
+static_assert(offsetof(sDevil4Main, mpMediator) == 0x10398);
+
 
 class sDevil4Main_JobData
 {

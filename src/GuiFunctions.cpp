@@ -944,7 +944,7 @@ namespace gui {
                 pmods->on_draw_ui<Cock>(DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui<RayTest>(DISPLAY_SYSTEM_A);
-
+                pmods->on_draw_ui<CoopOnline>();
                 pmods->on_draw_ui<Coop>(DISPLAY_SYSTEM_A);
 
                 pmods->on_draw_ui<AfterImage>(DISPLAY_SYSTEM_A);

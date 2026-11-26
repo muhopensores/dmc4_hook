@@ -23,7 +23,9 @@ static_assert(sizeof(MtAllocator) == 0x0020);
 
 class MtHeapAllocator : public MtAllocator {
 public:
-    char pad_0020[60]; // 0x0020
+    char pad_0020[20]; //0x0020
+    void* m_heap_ptr;  //0x0034
+    char pad_0038[36]; //0x0038
 }; // Size: 0x005C
 static_assert(sizeof(MtHeapAllocator) == 0x005C);
 

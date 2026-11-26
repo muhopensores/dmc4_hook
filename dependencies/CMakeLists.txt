@@ -45,3 +45,5 @@ add_library(ImGuizmo STATIC
 target_link_libraries(ImGuizmo PUBLIC imgui)
 
 add_subdirectory(pugixml)
+
+add_subdirectory(GekkoNet)

@@ -9,3 +9,4 @@ i18n/mo
 lsp.bat
 src/Config.hpp
 compile_commands.json
+scripts/__pycache__

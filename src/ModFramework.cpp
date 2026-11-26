@@ -30,6 +30,7 @@
 #include "Console.hpp"
 #include "sdk/World2Screen.hpp"
 #include "sdk/sMouse.hpp"
+#include "dev/netplay/AllocatorThings.hpp" // TODO(): remove
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 //extern IMGUI_IMPL_API void ImGui_ImplWin32_EnableDpiAwareness();
@@ -215,7 +216,7 @@ void ModFramework::on_frame() {
     }
 
     draw_ui();
-
+    imgui_draw_allocator_statistics();
     ImGui::EndFrame();
     ImGui::Render();
 
