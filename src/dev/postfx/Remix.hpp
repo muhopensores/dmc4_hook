@@ -118,6 +118,9 @@ struct Settings {
     bool puddles = true;
     float puddle_size = 10000.0f;    // cm, the draw's widest extent across the ground in the world: st012's puddles
                                      // are one 59 m draw, st400's sea a 2 km plane, st001's water 105 m (not seen)
+    // the game's depth texture cleared once a frame while the depth prepass is skipped (see clear_depth_texture). Not in
+    // the GUI or the config: an A / B switch for tests (remix_live.py clear_depth)
+    bool clear_depth = true;
 };
 extern Settings settings;
 

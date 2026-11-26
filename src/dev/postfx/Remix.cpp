@@ -174,11 +174,37 @@ bool      g_dti_looked = false;
 // group was picked from, kept by gather_lights_raw for light_watch
 GameLight g_dirs_all[kMaxLights];
 int       g_ndirs_all = 0;
+int       g_attr_skipped = 0;   // light units left out by their mAttr this frame (game_uses)
+int       g_off_skipped = 0;    // light units left out as switched off this frame (light_live)
 struct GroupCount { uint32_t mask, n; };
 GroupCount g_group_counts[16];
 int       g_ngroup_counts = 0;
 uint32_t  g_light_lines = 0;
 std::string g_light_sig;
+
+// Whether the game's shaders get a light unit at all (Vibed/RE/light_units.md): mAttr (+0x18) 0x8 = per-pixel, any kind;
+// 0x10 = simple, point lights only; 0x2 = folded into the SH ambient. Skinned models (characters) take every light with
+// one of them (sub_A652B0, gate 0x1A), other models only 0x8 / 0x10 ones (sub_A66180, gate 0x18). Remix lights both alike,
+// so the broader rule: a point light needs 0x2, 0x8 or 0x10, a sun, spot or hemisphere light 0x2 or 0x8 (st001's spots
+// have 0x50 and light nothing; st300's lamps have 0x42, ambient for characters). 0x4 negates the colour (a darkening
+// light), which Remix can't do, so those are left out too.
+bool game_uses(uint8_t attr, int kind) {
+    if (attr & 0x4) return false;
+    return (attr & (kind == 2 ? 0x1A : 0x0A)) != 0;   // kind 2 = point
+}
+
+// Whether the game counts a light unit as on (the unit test of sub_A66180 / sub_A652B0): moving (mBeFlag 2), drawn and
+// visible (mUnitAttr UATTR_DRAW | UATTR_VISIBLE), its move line drawn (MoveLine +8 bit 2, mTrans; line 63 = none) and in
+// some view (mTransView; the game ANDs it with the view's bit). Rooms load alternative light sets and show one: st300 has
+// ml00H / ml00S / ml01F / ml01H / ml01S, only ml01F's units are drawn and visible (2026-11-26), and the walk took them all.
+bool light_live(const cUnit* cu, uintptr_t su) {
+    const auto& b = cu->flags.bits;
+    constexpr uint32_t shown = UATTR_DRAW | UATTR_VISIBLE;
+    if (b.mBeFlag != BEFLAG_MOVE || (b.mUnitAttr & shown) != shown || b.mTransView == 0) return false;
+    if (b.mMoveLine == 63) return true;
+    if (b.mMoveLine >= 32) return false;
+    return reinterpret_cast<const MoveLine*>(su + 0x20 + b.mMoveLine * sizeof(MoveLine))->mTrans != 0;
+}
 
 bool dti_under(uintptr_t dti, uintptr_t target) {
     for (int i = 0; dti && target && i < 16; ++i) {
@@ -194,6 +220,7 @@ int gather_lights_raw(GameLight* out, int max) {
         const uintptr_t su = reinterpret_cast<uintptr_t>(devil4_sdk::get_sUnit());
         if (!su) return 0;
         g_hemi_acc[0] = g_hemi_acc[1] = g_hemi_acc[2] = 0;
+        int skipped = 0, off = 0;
         constexpr int kMaxPoints = 64;
         GameLight dirs[kMaxLights], points[kMaxPoints];
         float score[kMaxPoints];
@@ -218,6 +245,13 @@ int gather_lights_raw(GameLight* out, int max) {
                     const uintptr_t dti = debug_server::mem::dti_of(u);
                     const float* col = reinterpret_cast<const float*>(u + 0x20);
                     const uint32_t group = *reinterpret_cast<const uint32_t*>(u + 0x1C);
+                    const uint8_t attr = *reinterpret_cast<const uint8_t*>(u + 0x18);
+                    // a light unit the game uses: on (light_live), then its mAttr (game_uses); counts what it leaves out
+                    auto lit = [&](int kind) {
+                        if (!light_live(cu, su)) { ++off; return false; }
+                        if (!game_uses(attr, kind)) { ++skipped; return false; }
+                        return true;
+                    };
                     if (dti && g_dti_model && dti_under(dti, g_dti_model)) {
                         const uint32_t m = *reinterpret_cast<const uint32_t*>(u + 0x130);
                         if (m && m != 3) {
@@ -227,10 +261,13 @@ int gather_lights_raw(GameLight* out, int max) {
                             else if (nm < 16) masks[nm++] = { m, 1 };
                         }
                     } else if (dti && g_dti_hemi && dti_under(dti, g_dti_hemi)) {
-                        if (nh < 16) hemis[nh++] = { group, { col[0], col[1], col[2] } };
+                        if (lit(0) && nh < 16) hemis[nh++] = { group, { col[0], col[1], col[2] } };
+                    } else if (dti && dti_under(dti, g_dti_inf) && !lit(1)) {
                     } else if (dti && dti_under(dti, g_dti_inf) && nd < kMaxLights) {
                         const float* d = reinterpret_cast<const float*>(u + 0x30);
                         dirs[nd++] = { 1, { col[0], col[1], col[2] }, { -d[0], -d[1], -d[2] }, 0.0f, group };
+                    } else if (dti && (dti_under(dti, g_dti_point) || dti_under(dti, g_dti_spot)) &&
+                               !lit(dti_under(dti, g_dti_spot) ? 3 : 2)) {
                     } else if (dti && (dti_under(dti, g_dti_point) || dti_under(dti, g_dti_spot)) && np < kMaxPoints) {
                         const bool spot = dti_under(dti, g_dti_spot);
                         const uintptr_t parent = *reinterpret_cast<const uintptr_t*>(u + (spot ? 0x94 : 0x58));
@@ -275,6 +312,8 @@ int gather_lights_raw(GameLight* out, int max) {
         g_ndirs_all = nd;
         for (int i = 0; i < nm; ++i) g_group_counts[i] = { masks[i].mask, masks[i].n };
         g_ngroup_counts = nm;
+        g_attr_skipped = skipped;
+        g_off_skipped = off;
         return n;
     } __except (EXCEPTION_EXECUTE_HANDLER) {
         return -1;
@@ -288,7 +327,7 @@ int gather_lights_raw(GameLight* out, int max) {
 void light_watch() {
     std::string sig;
     char buf[192];
-    sprintf_s(buf, "stage group %08X;", g_stage_group);
+    sprintf_s(buf, "stage group %08X; %d lights off, %d left out by mAttr;", g_stage_group, g_off_skipped, g_attr_skipped);
     sig += buf;
     for (int i = 0; i < g_ndirs_all; ++i) {
         const GameLight& d = g_dirs_all[i];
@@ -596,7 +635,7 @@ bool read_pixel(D3DFORMAT f, const uint8_t* row, UINT x, float* c) {
 }
 
 // column 0 of the copy is the target's own first column (the one the user saw the traced image in), the rest a point sample
-void probe(IDirect3DDevice9* dev, const char* label, IDirect3DSurface9* surface = nullptr) {
+void probe(IDirect3DDevice9* dev, const char* label, IDirect3DSurface9* surface = nullptr, const char* dump = nullptr) {
     char buf[320];
     IDirect3DSurface9* rt = surface;
     if (rt) rt->AddRef();
@@ -636,11 +675,16 @@ void probe(IDirect3DDevice9* dev, const char* label, IDirect3DSurface9* surface 
         float top = 0;
         int lit = 0, n = 0;
         bool known = true;
+        std::vector<uint8_t> ppm;
+        if (dump) ppm.resize(kW * kH * 3);
         for (UINT y = 0; y < kH && known; ++y) {
             const auto* row = static_cast<const uint8_t*>(lr.pBits) + y * lr.Pitch;
             for (UINT x = 0; x < kW; ++x) {
                 float c[3];
                 if (!read_pixel(d.Format, row, x, c)) { known = false; break; }
+                if (dump)
+                    for (int i = 0; i < 3; ++i)
+                        ppm[(y * kW + x) * 3 + i] = static_cast<uint8_t>(std::pow(std::clamp(c[i], 0.0f, 1.0f), 1.0f / 2.2f) * 255.0f + 0.5f);
                 const float l = (std::max)(c[0], (std::max)(c[1], c[2]));
                 if (x == 0) { col += l; continue; }
                 for (int i = 0; i < 3; ++i) sum[i] += c[i];
@@ -650,6 +694,14 @@ void probe(IDirect3DDevice9* dev, const char* label, IDirect3DSurface9* surface 
             }
         }
         sys->UnlockRect();
+        if (dump && known) {
+            FILE* f = nullptr;
+            if (fopen_s(&f, dump, "wb") == 0 && f) {
+                fprintf(f, "P6\n%u %u\n255\n", kW, kH);
+                fwrite(ppm.data(), 1, ppm.size(), f);
+                fclose(f);
+            }
+        }
         if (known && n)
             sprintf_s(buf, " | mean %.3f %.3f %.3f, max %.3f, lit %d of %d, first column %.3f\n", sum[0] / n, sum[1] / n,
                       sum[2] / n, top, lit, n, col / kH);
@@ -2898,6 +2950,30 @@ bool loaded() {
 uint32_t g_sim_scenes[8];   // the frame's interactive water simulation sub-scenes (view + scene bits of their keys)
 int g_nsim = 0;
 
+// The game's depth texture (sRender +0x1700C, a cTrans texture, its IDirect3DTexture9 at +0x10: the A8R8G8B8 target the
+// depth prepass packs depth into). With the prepass skipped (skip_zpass) nothing writes it, so it stays black and the
+// depth-based filters of pass 8 do nothing. A frame drawn without the bridge (switched off and on, rarely otherwise)
+// left its depth there, and those filters kept using that old frame's depth: a ghost fixed on the screen until a
+// fullscreen switch made the targets again (2026-11-25; found with the probe's input thumbnails: the same pass-8 draws
+// read it black when clean, an old depth when ghosted; its pointer matched). So it is cleared to black once a frame,
+// where the prepass would have written it.
+constexpr uintptr_t kRenderInstance = 0x00E552D8;   // sRender::mpInstance
+uint32_t g_depth_cleared = ~0u;
+
+void clear_depth_texture(IDirect3DDevice9* dev) {
+    const uintptr_t render = *reinterpret_cast<const uintptr_t*>(kRenderInstance);
+    if (!render) return;
+    const uintptr_t obj = *reinterpret_cast<const uintptr_t*>(render + 0x1700C);
+    if (!obj) return;
+    auto* tex = *reinterpret_cast<IDirect3DTexture9* const*>(obj + 0x10);
+    if (!tex) return;
+    IDirect3DSurface9* s = nullptr;
+    if (SUCCEEDED(tex->GetSurfaceLevel(0, &s)) && s) {
+        dev->ColorFill(s, nullptr, 0);
+        s->Release();
+    }
+}
+
 bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) {
     // the final pass without a curve while Remix's (already tone-mapped) image is handed over at half scale
     tone_map::passthrough = settings.on && settings.inject_pass > 0 && settings.linearize;
@@ -3060,6 +3136,10 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
     for (int i = 0; i < g_nsim; ++i) sim |= g_sim_scenes[i] == (key >> 24);
     if (!main && settings.skip_other_scenes && !sim) skip = true;
     if (main && pass == kZPass && settings.skip_zpass) skip = true;
+    if (skip && main && pass == kZPass && settings.clear_depth && g_depth_cleared != g_frames.load()) {
+        clear_depth_texture(dev);   // stale depth would feed the pass-8 filters (see clear_depth_texture)
+        g_depth_cleared = g_frames.load();
+    }
     // the filters tone-map the HDR scene buffer into the target the HUD and the end of the frame draw on: needed once the
     // traced image goes into that buffer
     if (main && pass == kFilter && settings.skip_filters && !after_inject) skip = true;
@@ -3092,6 +3172,28 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
         const char* marker = (cmd && cmd[0] == 16 && cmd[3]) ? reinterpret_cast<const char*>(cmd[3]) : "";
         sprintf_s(label, "tag %u (pass %u, key %08X)%s %.40s", index, pass, key, skip ? " skipped" : "", marker);
         probe(dev, label);
+        // the render-target textures the draw before this tag read (still bound): each probed and its 64 x 36 grid saved
+        // as remix_probe_inputs\t<tag>_s<stage>.ppm, to find a post effect reading a stale frame (the "ghost", 2026-11-25)
+        CreateDirectoryA("remix_probe_inputs", nullptr);
+        for (DWORD s = 0; s < 8; ++s) {
+            IDirect3DBaseTexture9* bt = nullptr;
+            if (FAILED(dev->GetTexture(s, &bt)) || !bt) continue;
+            if (bt->GetType() == D3DRTYPE_TEXTURE) {
+                IDirect3DSurface9* lvl = nullptr;
+                D3DSURFACE_DESC td{};
+                if (SUCCEEDED(static_cast<IDirect3DTexture9*>(bt)->GetSurfaceLevel(0, &lvl)) && lvl) {
+                    lvl->GetDesc(&td);
+                    if (td.Usage & D3DUSAGE_RENDERTARGET) {
+                        char in_label[96], path[96];
+                        sprintf_s(in_label, "    before it, s%lu read tex %04X", s, unsigned(reinterpret_cast<uintptr_t>(bt) & 0xFFFF));
+                        sprintf_s(path, "remix_probe_inputs\\t%u_s%lu.ppm", index, s);
+                        probe(dev, in_label, lvl, path);
+                    }
+                    lvl->Release();
+                }
+            }
+            bt->Release();
+        }
         IDirect3DSurface9* rt = nullptr;
         if (g_probe_scene && SUCCEEDED(dev->GetRenderTarget(0, &rt)) && rt) {
             if (rt != g_probe_scene) probe(dev, "  the trigger's target", g_probe_scene);
@@ -3244,6 +3346,9 @@ void draw_gui() {
         ImGui::SliderFloat(_("Directional strength"), &settings.dir_strength, 0.0f, 20.0f, "%.2f");
         ImGui::SliderFloat(_("Point light strength"), &settings.point_strength, 0.0f, 50.0f, "%.2f");
         ImGui::TextDisabled(_("%d directional, %d point lights (stage light group %08X)"), g_ndir, g_npoint, g_stage_group);
+        if (g_off_skipped || g_attr_skipped)
+            ImGui::TextDisabled(_("Left out as in the game: %d switched off (other light sets), %d by their mAttr"),
+                                g_off_skipped, g_attr_skipped);
         ImGui::Checkbox(_("Point lights through the Remix API"), &settings.api_lights);
         ImGui::SameLine();
         Mod::help_marker(_("Remix makes the game's point lights only as bright as their range and stops taking their "
