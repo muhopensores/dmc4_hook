@@ -86,9 +86,13 @@ struct Settings {
     // On: the simulation runs, and the surface's vertex shader is replaced (at creation: restart) by one that lifts the
     // grid by the height map and outputs the normal map's normal, so Remix traces real ripples
     bool water_ripples = true;
-    float ripple_height = 10.0f;   // cm the surface rises at the simulation's full amplitude, per unit of the water's Y scale
+    // cm the surface rises at the simulation's full amplitude, per unit of the water's Y scale. 25 (2026-11-26, the user's
+    // pick): rain ripples +-2-3 cm, a landing's splash (WaterWakes) reaches the full height; 10 before
+    float ripple_height = 25.0f;
     // water meshes whose vertex shaders move their vertices (XfWater's waves, the interactive surface) drawn subdivided:
-    // each level splits every triangle in four (a cached copy per mesh), so the waves get as many vertices. 0 = the game's
+    // each level splits every triangle in four (a cached copy per mesh), so the waves get as many vertices. The interactive
+    // surface instead gets the bridge's own camera-centred grid at any level above 0 (graded::, half a ripple texel near the
+    // camera). 0 = the game's
     int water_detail = 1;
     // skinned draws (bones in gXfJointWorld, no gXfWorld: characters) get WORLD = the translation of their first bone,
     // which moves with the character (within a metre or so of its position), instead of the origin for every body part.
@@ -128,6 +132,31 @@ struct Settings {
     // the dome's sky from the live uOceanWater's cube map (mpCubemapTex: what the game's sea reflects), at the hemisphere
     // lights' brightness; without an ocean, or off, the hemisphere lights' two colours
     bool dome_cube = true;
+    // the stage's sky: draws using a texture whose path contains this text (any case, ';'-separated; DMC4's skies are
+    // st<NNN>-t-sora* / -t-sky*). Tagged in rtx.conf's rtx.skyBoxTextures, Remix draws them into its sky probe, which rays
+    // leaving the room read (reflections, the light from the sky), but an active dome light takes the place of that probe:
+    // the dome stays off while one of these was drawn in the last 5 seconds
+    char sky_textures[64] = "-t-sora;-t-sky";
+    // debugging (not in the GUI or the config; remix_live iw_measure=N): the interactive surface's height map read back on
+    // its next N draws, the lift's range in cm appended to remix_iw.txt (how high a splash goes)
+    int iw_measure = 0;
+    int iw_dump = 0;   // with iw_measure: every 5th read also written whole (R32F rows) to remix_iw_<frame>.raw, this many times
+    // the interactive surface's ripple normals tilted this many times further from straight up (kIwVsSrc): vanilla bends
+    // its reflection lookups by the normal map x mReflectScale (20 on BP stage 1), far more than a traced mirror with the
+    // same normals shows
+    float ripple_normal = 1.0f;
+    // the lift follows the simulation's height to this power (sign kept): small ripples stay nearly flat, as vanilla draws
+    // them (normals only), while a splash still rises to ripple_height. 1 = the height as it is (the rain's rings stood
+    // up as round bumps at ripple_height 25)
+    float ripple_curve = 2.0f;
+    // the sky's fog under Remix, as a share of the game's (the stage shader fogs the sky toward gXfFogColor up to c36.w;
+    // Remix takes that as linear light, so the full amount is a heavy grey veil, while some of it hides where the water
+    // ends against the sky): 0 = none, 1 = the game's
+    float sky_fog = 0.35f;
+    // large interactive water (a square of 100 m or more: BP stage 1 / the practice stage's 200 m floor) drawn on out to
+    // the horizon as flat water past its square (the bridge's own grid, graded::), so no edge shows where it ends against
+    // the sky; the simulation and collision stay the game's. Small pools keep their edges (walls may enclose them)
+    bool water_to_horizon = true;
 };
 extern Settings settings;
 
@@ -161,6 +190,11 @@ std::unique_ptr<FunctionHook>& shader_hook();
 constexpr uintptr_t kDrawIndexed = 0x8F574E;
 extern uintptr_t jmp_ret_draw;
 void* draw_detour();
+// dispatchCommands' DrawPrimitive (0x8F5726, 7 bytes, the same layout): sky draws (the stage shader's fog off for Remix)
+constexpr uintptr_t kDrawPrim = 0x8F5726;
+extern uintptr_t jmp_ret_drawprim;
+void* drawprim_detour();
+std::unique_ptr<FunctionHook>& drawprim_hook();
 std::unique_ptr<FunctionHook>& draw_hook();
 constexpr uintptr_t kCullAndLod = 0x9EDBB0;
 extern uintptr_t jmp_ret_cull;

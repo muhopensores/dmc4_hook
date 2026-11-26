@@ -434,6 +434,8 @@ set(DEV_SRC
   dev/postfx/Remix.cpp
   dev/lights/LightSwitches.hpp
   dev/lights/LightSwitches.cpp
+  dev/water/WaterWakes.hpp
+  dev/water/WaterWakes.cpp
   dev/plugins/PluginHost.hpp
   dev/plugins/PluginHost.cpp
   dev/plugins/PluginGame.hpp

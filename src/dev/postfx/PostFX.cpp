@@ -707,6 +707,8 @@ std::optional<std::string> PostFX::on_initialize() {
         spdlog::error("PostFX: failed to hook sRender::dispatchCommands' vertex shader descriptors (0x8F53E5)");
     if (!install_hook_absolute(remix::kDrawIndexed, remix::draw_hook(), remix::draw_detour(), &remix::jmp_ret_draw, 7))
         spdlog::error("PostFX: failed to hook sRender::dispatchCommands' indexed draw (0x8F574E)");
+    if (!install_hook_absolute(remix::kDrawPrim, remix::drawprim_hook(), remix::drawprim_detour(), &remix::jmp_ret_drawprim, 7))
+        spdlog::error("PostFX: failed to hook sRender::dispatchCommands' DrawPrimitive (0x8F5726)");
     if (!install_hook_absolute(remix::kCullAndLod, remix::cull_hook(), remix::cull_detour(), &remix::jmp_ret_cull, 6))
         spdlog::error("PostFX: failed to hook uModel::frustumCullAndLOD (0x9EDBB0)");
     cel::init();

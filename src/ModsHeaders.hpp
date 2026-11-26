@@ -201,6 +201,7 @@
 #include "dev/tonemap/ToneMap.hpp"
 #include "dev/postfx/PostFX.hpp"
 #include "dev/lights/LightSwitches.hpp"
+#include "dev/water/WaterWakes.hpp"
 #include "dev/plugins/Plugins.hpp"
 #include "dev/rooms/Rooms.hpp"
 #include "dev/debug_server/DebugServer.hpp"

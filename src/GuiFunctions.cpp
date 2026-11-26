@@ -851,6 +851,9 @@ namespace gui {
                 ImGui::SeparatorText(_("Lights"));
                 pmods->on_draw_ui<LightSwitches>(DISPLAY_SYSTEM_A); // switches always on: no shader compile hitch on effect lights
 
+                ImGui::SeparatorText(_("Water"));
+                pmods->on_draw_ui<WaterWakes>(DISPLAY_SYSTEM_A);    // characters ripple interactive water
+
                 ImGui::SeparatorText(_("Tone mapping"));
                 pmods->on_draw_ui<PbrMaterials>(DISPLAY_SYSTEM_B); // the scene buffer's format (the game's HDR option)
                 pmods->on_draw_ui<ToneMap>(DISPLAY_SYSTEM_A);

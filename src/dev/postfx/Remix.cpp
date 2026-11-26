@@ -119,7 +119,8 @@ void sky_viewport(IDirect3DDevice9* dev, bool on) {
 }
 LARGE_INTEGER g_qpf{}, g_qpc0{};
 
-void water_transform(IDirect3DDevice9* dev, bool on) {
+// tiling: the wave normal map's repeats per unit of the water's UVs (settings.water_tiling, or the interactive water's own)
+void water_transform(IDirect3DDevice9* dev, bool on, float tiling = -1.0f) {
     if (on) {
         if (!g_qpf.QuadPart) { QueryPerformanceFrequency(&g_qpf); QueryPerformanceCounter(&g_qpc0); }
         LARGE_INTEGER now;
@@ -127,7 +128,7 @@ void water_transform(IDirect3DDevice9* dev, bool on) {
         const double t = double(now.QuadPart - g_qpc0.QuadPart) / double(g_qpf.QuadPart);
         auto wrap = [](double x) { return float(x - std::floor(x)); };
         D3DMATRIX m{};
-        m._11 = m._22 = settings.water_tiling;
+        m._11 = m._22 = tiling > 0.0f ? tiling : settings.water_tiling;
         m._33 = m._44 = 1.0f;
         m._31 = wrap(t * settings.water_flow[0]);   // 2-element texture coordinates: the third row is the translation
         m._32 = wrap(t * settings.water_flow[1]);
@@ -175,7 +176,7 @@ uintptr_t g_dti_model = 0;
 uintptr_t g_dti_ocean = 0;
 uintptr_t g_ocean_cube = 0;   // the live uOceanWater's mpCubemapTex (+0x1A4, an rTexture), gather_lights_raw
 int       g_dup_skipped = 0;    // lights left out as copies of another (same place / direction, another light group)
-int       g_unlit_skipped = 0;  // lights left out because no model has their light group
+int       g_unlit_skipped = 0;  // lights no model takes in the game (kept: the lightmaps hold their light)
 bool      g_dir_kept[kMaxLights] = {};   // light watch: which of g_dirs_all went to Remix
 uintptr_t g_dti_inf = 0, g_dti_point = 0, g_dti_spot = 0;
 bool      g_dti_looked = false;
@@ -322,7 +323,9 @@ int gather_lights_raw(GameLight* out, int max) {
         // place (points / spots: within 50 cm), the one lighting the most stage models (their mLightGroup shares a bit
         // with its group; characters' default 3 left out: every player, weapon and prop counts once while the stage is a
         // few big models, so counting them picked room 1's character sun) stays, then the one lighting the most models,
-        // then the brightest; a light no model takes (characters included) lights nothing, as in the game. Until 2026-11-26 the bridge kept only the lights of the stage's commonest model group, which also
+        // then the brightest. A light no model takes still goes over (counted only): fully lightmapped stages give their
+        // models light group 0, so the game's own lights for them only live in the lightmaps, which Remix doesn't have
+        // (BP stage 1, st705: its key lights are group 0x600, the brightest 7.4; dropping them left the stage unlit). Until 2026-11-26 the bridge kept only the lights of the stage's commonest model group, which also
         // dropped lights that had no copy (room 100's sun: group 0x1E against 0x2020).
         auto coverage = [&](uint32_t g, bool stage_only) {
             int c = 0;
@@ -343,7 +346,7 @@ int gather_lights_raw(GameLight* out, int max) {
         int cov_d[kMaxLights];
         for (int i = 0; i < nd; ++i) {
             cov_d[i] = coverage(dirs[i].group, false);
-            if (nm > 0 && cov_d[i] == 0) { drop_d[i] = true; ++unlit; }
+            if (nm > 0 && cov_d[i] == 0) ++unlit;
         }
         for (int i = 0; i < nd; ++i)
             for (int j = i + 1; j < nd && !drop_d[i]; ++j) {
@@ -357,7 +360,7 @@ int gather_lights_raw(GameLight* out, int max) {
         int cov_p[kMaxPoints];
         for (int i = 0; i < np; ++i) {
             cov_p[i] = coverage(points[i].group, false);
-            if (nm > 0 && cov_p[i] == 0) { drop_p[i] = true; ++unlit; }
+            if (nm > 0 && cov_p[i] == 0) ++unlit;
         }
         for (int i = 0; i < np; ++i)
             for (int j = i + 1; j < np && !drop_p[i]; ++j) {
@@ -415,7 +418,7 @@ int gather_lights_raw(GameLight* out, int max) {
 void light_watch() {
     std::string sig;
     char buf[192];
-    sprintf_s(buf, "%d lights off, %d left out by mAttr, %d copies, %d lighting no model; %d hemisphere lights for the dome;",
+    sprintf_s(buf, "%d lights off, %d left out by mAttr, %d copies, %d for no model (kept); %d hemisphere lights for the dome;",
               g_off_skipped, g_attr_skipped, g_dup_skipped, g_unlit_skipped, g_ndome_hemis);
     sig += buf;
     for (int i = 0; i < g_ndirs_all; ++i) {
@@ -649,18 +652,31 @@ char g_hide_water_built_for[64] = "";
 std::unordered_set<uintptr_t> g_light_tex;        // settings.light_textures' textures
 char g_light_built_for[128] = "";
 
+std::unordered_set<uintptr_t> g_sky_tex;          // settings.sky_textures' textures
+char g_sky_built_for[64] = "";
+std::atomic<uint32_t> g_sky_tex_frame{ 0 };       // g_frames when one was last drawn (0 = not since the start)
+std::string g_sky_tex_path;                       // the first one's path (the GUI's)
+
 void build_hide_textures() {
     g_hide_tex.clear();
     g_hide_water_tex.clear();
     g_light_tex.clear();
+    g_sky_tex.clear();
+    g_sky_tex_path.clear();
+    memcpy(g_sky_built_for, settings.sky_textures, sizeof g_sky_built_for);
+    g_sky_built_for[sizeof g_sky_built_for - 1] = 0;
     memcpy(g_light_built_for, settings.light_textures, sizeof g_light_built_for);
     g_light_built_for[sizeof g_light_built_for - 1] = 0;
     memcpy(g_hide_built_for, settings.hide_textures, sizeof g_hide_built_for);
     g_hide_built_for[sizeof g_hide_built_for - 1] = 0;
     memcpy(g_hide_water_built_for, settings.hide_water_textures, sizeof g_hide_water_built_for);
     g_hide_water_built_for[sizeof g_hide_water_built_for - 1] = 0;
-    if (!g_hide_built_for[0] && !g_hide_water_built_for[0] && !g_light_built_for[0]) return;
+    if (!g_hide_built_for[0] && !g_hide_water_built_for[0] && !g_light_built_for[0] && !g_sky_built_for[0]) return;
     for_each_texture([](uintptr_t t, const char* p) {
+        if (g_sky_built_for[0] && path_matches(p, g_sky_built_for)) {
+            g_sky_tex.insert(t);
+            if (g_sky_tex_path.empty()) g_sky_tex_path = p;
+        }
         if (g_hide_built_for[0] && path_matches(p, g_hide_built_for)) g_hide_tex.insert(t);
         if (g_light_built_for[0] && path_matches(p, g_light_built_for)) g_light_tex.insert(t);
         if (g_hide_water_built_for[0] && path_matches(p, g_hide_water_built_for)) g_hide_water_tex.insert(t);
@@ -1015,11 +1031,20 @@ int water_kind(IDirect3DDevice9* dev, const uint32_t* entries, uint32_t n) {
 // carries mScale.y) x ripple_height cm x (2 x stored - 1). The normal map is n * 0.5 + 0.5 with x along the world matrix's X row, y along Z,
 // z along up, mixed with up by the vertex colour's x, as the pixel shader does. The grid has 128 cells over the 512-texel
 // maps, so both are averaged over each vertex's 4 x 4 texels (a 3 x 3 tent, taps 2 texels apart): drops smaller than a
-// cell came out as square spikes
+// cell came out as square spikes. The normal is built on the world matrix's rows normalised (the game's pixel shader works
+// on unit axes): BP stage 1's water (Infinite Azure, st705) is scaled 10 x 1 x 10, and the raw rows tilted every ripple
+// normal ten times too far, so the reflections fell below the horizon in hard black cells (2026-11-26)
+// With the bridge's own grid (graded::, c251.z = 1) the vertices are camera-relative lines in the surface's local units,
+// each with its line spacing (x, z) in TEXCOORD0: every vertex moves with the camera (c251.xy, local x / z) snapped to
+// its own spacing, so the ripples are sampled at the same points as the camera moves, and the UV and the edge fade
+// (the game's grid colour, sub_AC4C20: 1 inside half the square, 0 past 0.875 of it) come from the position. The taps
+// widen with the distance from the camera, not with the line's own spacing: a jump at a zone edge drew a straight seam
+// across the water (the normals' blur changing at once)
 const char* kIwVsSrc = R"(
 float4 gXfViewProj[4] : register(c0);
 float4 gXfWorld[3] : register(c4);
 float4 kRipple : register(c250);
+float4 kGraded : register(c251);   // w: the ripple normals' strength (settings.ripple_normal)
 sampler2D sHeight : register(s0);
 sampler2D sNormal : register(s1);
 struct VsIn { float4 pos : POSITION; float4 col : COLOR0; float2 uv : TEXCOORD0; };
@@ -1029,12 +1054,29 @@ struct VsOut {
 };
 VsOut main(VsIn i) {
     VsOut o;
-    float4 p = float4(i.pos.xyz, 1.0);
+    float3 lp = i.pos.xyz;
+    float4 col = i.col;
+    float2 uv = i.uv;
+    float tap = kRipple.z;
+    if (kGraded.z > 0.5) {
+        float2 st = i.uv;
+        float lim = kGraded.z > 1.5 ? 1.0e7 : 1000.0;   // 2 = on to the horizon (settings.water_to_horizon)
+        float2 q = clamp(i.pos.xz + floor(kGraded.xy / st + 0.5) * st, -lim, lim);
+        lp = float3(q.x, 0.0, q.y);
+        uv = saturate(q / 2000.0 + 0.5);
+        float2 f = saturate(1.0 - (abs(q / 1000.0) - 0.5) * 2.6666667);
+        col = (f.x * f.y).xxxx;
+        float2 dc = abs(q - kGraded.xy);
+        tap = max(1.953125, max(dc.x, dc.y) / 25.0) / 4000.0;   // about half the spacing there, smooth across zones
+    }
+    float4 p = float4(lp, 1.0);
     float3 wp = float3(dot(gXfWorld[0], p), dot(gXfWorld[1], p), dot(gXfWorld[2], p));
     float3 up = float3(gXfWorld[0].y, gXfWorld[1].y, gXfWorld[2].y);
     float3 ax = float3(gXfWorld[0].x, gXfWorld[1].x, gXfWorld[2].x);
     float3 az = float3(gXfWorld[0].z, gXfWorld[1].z, gXfWorld[2].z);
     float3 upn = normalize(up);
+    float3 axn = normalize(ax);
+    float3 azn = normalize(az);
     float3 n = upn;
     if (kRipple.y > 0.5) {
         float h = 0.0;
@@ -1042,19 +1084,19 @@ VsOut main(VsIn i) {
         for (int y = -1; y <= 1; ++y)
             for (int x = -1; x <= 1; ++x) {
                 const float w = (2.0 - abs(x)) * (2.0 - abs(y));
-                const float4 uv = float4(i.uv + float2(x, y) * kRipple.z, 0.0, 0.0);
-                h += w * tex2Dlod(sHeight, uv).x;
-                m += w * tex2Dlod(sNormal, uv).xyz;
+                const float4 tuv = float4(uv + float2(x, y) * tap, 0.0, 0.0);
+                h += w * tex2Dlod(sHeight, tuv).x;
+                m += w * tex2Dlod(sNormal, tuv).xyz;
             }
         h = h * (2.0 / 16.0) - 1.0;
         m = m * (2.0 / 16.0) - 1.0;
-        wp += up * (h * kRipple.x * i.col.x);
-        float3 rn = normalize(m.x * ax + m.y * az + m.z * up);
-        n = normalize(up + i.col.x * (rn - up));
+        wp += up * (sign(h) * pow(abs(h), kRipple.w) * kRipple.x * col.x);   // kRipple.w: settings.ripple_curve
+        float3 rn = normalize(m.x * axn + m.y * azn + m.z * upn);
+        n = normalize(upn + col.x * kGraded.w * (rn - upn));
     }
     float4 w4 = float4(wp, 1.0);
     float4 c = float4(dot(w4, gXfViewProj[0]), dot(w4, gXfViewProj[1]), dot(w4, gXfViewProj[2]), dot(w4, gXfViewProj[3]));
-    o.pos = c; o.cpos = c; o.col = i.col; o.uv = i.uv; o.wpos = wp; o.up = up; o.ax = ax; o.az = az; o.nrm = n;
+    o.pos = c; o.cpos = c; o.col = col; o.uv = uv; o.wpos = wp; o.up = up; o.ax = ax; o.az = az; o.nrm = n;
     return o;
 }
 )";
@@ -1088,6 +1130,127 @@ uintptr_t g_iw_units[8];
 int g_iw_nunits = 0;
 uint32_t g_iw_units_frame = 0xFFFFFFFFu;
 bool g_vtf_bound = false;            // the surface's maps are on the vertex samplers (unbound at the next draw)
+volatile uint8_t g_iw_graded_next = 0;   // the next draws are the interactive surface: drawn with graded:: (water_draw)
+
+// the interactive surface's own grid (kIwVsSrc's graded mode). The game's is 129 x 129 vertices over its square (1.56 m
+// apart on BP stage 1, 0.78 m at water_detail 1), while its pixel shader reads the 512-texel ripple maps at every pixel:
+// under Remix the ripples were only as fine as the vertices. This grid's lines are full length (no cracks), camera-relative
+// in the surface's local units (the square is -1000..1000): every kStep (half a texel) within kFineLines x kStep of the
+// camera, the spacing doubling after every kZoneLines lines further out, to 2048 steps (the whole square from any camera
+// position; lines past its edge are clamped onto it by the shader), then four far lines out to 524288 steps (~100 km on BP
+// stage 1) for settings.water_to_horizon. Built once; the shader moves it with the camera.
+namespace graded {
+constexpr float kStep = 2000.0f / 1024.0f;
+constexpr int kFineLines = 40, kZoneLines = 20, kExtent = 2048;
+IDirect3DVertexBuffer9* g_vb = nullptr;
+IDirect3DIndexBuffer9* g_ib = nullptr;
+uint32_t g_nv = 0, g_nt = 0;
+bool g_failed = false;
+float g_cam[2] = { 0, 0 };   // the camera in the surface's local x / z (iw_bind)
+
+// the line positions of one axis and their spacings, in local units
+void lines(std::vector<float>& pos, std::vector<float>& step) {
+    std::vector<std::pair<int, int>> half;   // (position, spacing) in steps, 0 .. kExtent
+    int x = 0, s = 1, in_zone = 0;
+    while (true) {
+        half.emplace_back(x, s);
+        if (x >= kExtent) break;
+        ++in_zone;
+        if (in_zone >= (s == 1 ? kFineLines : kZoneLines) && x % (2 * s) == 0 && s < 64) { s *= 2; in_zone = 0; }
+        x += s;
+    }
+    // past the square's reach: a few far lines out to the horizon (used with settings.water_to_horizon; otherwise
+    // clamped onto the square's edge with the rest), each its own spacing so it never moves with the camera
+    for (const int out : { 8192, 32768, 131072, 524288 }) half.emplace_back(out, out);
+    pos.clear();
+    step.clear();
+    for (size_t i = half.size(); i-- > 1;) { pos.push_back(-half[i].first * kStep); step.push_back(half[i].second * kStep); }
+    for (const auto& [p, sp] : half) { pos.push_back(p * kStep); step.push_back(sp * kStep); }
+}
+
+bool build(IDirect3DDevice9* dev) {
+    std::vector<float> pos, step;
+    lines(pos, step);
+    const uint32_t n = static_cast<uint32_t>(pos.size());
+    g_nv = n * n;
+    g_nt = (n - 1) * (n - 1) * 2;
+    if (FAILED(dev->CreateVertexBuffer(g_nv * 24, D3DUSAGE_WRITEONLY, 0, D3DPOOL_MANAGED, &g_vb, nullptr)) ||
+        FAILED(dev->CreateIndexBuffer(g_nt * 3 * 4, D3DUSAGE_WRITEONLY, D3DFMT_INDEX32, D3DPOOL_MANAGED, &g_ib, nullptr)))
+        return false;
+    void* p = nullptr;
+    if (FAILED(g_vb->Lock(0, 0, &p, 0)) || !p) return false;
+    auto* v = static_cast<uint8_t*>(p);
+    for (uint32_t j = 0; j < n; ++j)   // the game's layout: POSITION float3, COLOR, TEXCOORD0 float2 (here the spacings)
+        for (uint32_t i = 0; i < n; ++i, v += 24) {
+            const float xyz[3] = { pos[i], 0.0f, pos[j] }, st[2] = { step[i], step[j] };
+            const uint32_t white = 0xFFFFFFFFu;
+            std::memcpy(v, xyz, 12);
+            std::memcpy(v + 12, &white, 4);
+            std::memcpy(v + 16, st, 8);
+        }
+    g_vb->Unlock();
+    if (FAILED(g_ib->Lock(0, 0, &p, 0)) || !p) return false;
+    auto* t = static_cast<uint32_t*>(p);
+    for (uint32_t j = 0; j + 1 < n; ++j)
+        for (uint32_t i = 0; i + 1 < n; ++i) {   // the game's strip winding: (j, i), (j + 1, i), (j, i + 1), ...
+            const uint32_t a = j * n + i, b = (j + 1) * n + i, c = a + 1, d = b + 1;
+            *t++ = a; *t++ = b; *t++ = c;
+            *t++ = c; *t++ = b; *t++ = d;
+        }
+    g_ib->Unlock();
+    return true;
+}
+
+// the game's declaration is the layout build writes
+bool decl_matches(IDirect3DVertexDeclaration9* decl, UINT stride) {
+    D3DVERTEXELEMENT9 el[MAXD3DDECLLENGTH + 1];
+    UINT nel = 0;
+    if (stride != 24 || FAILED(decl->GetDeclaration(nullptr, &nel)) || nel > MAXD3DDECLLENGTH + 1 ||
+        FAILED(decl->GetDeclaration(el, &nel)))
+        return false;
+    bool pos = false, col = false, uv = false;
+    for (UINT i = 0; i < nel && el[i].Stream != 0xFF; ++i) {
+        const D3DVERTEXELEMENT9& e = el[i];
+        if (e.Stream != 0) return false;
+        if (e.Usage == D3DDECLUSAGE_POSITION && e.UsageIndex == 0) pos = e.Offset == 0 && e.Type == D3DDECLTYPE_FLOAT3;
+        else if (e.Usage == D3DDECLUSAGE_COLOR && e.UsageIndex == 0) col = e.Offset == 12 && e.Type == D3DDECLTYPE_D3DCOLOR;
+        else if (e.Usage == D3DDECLUSAGE_TEXCOORD && e.UsageIndex == 0) uv = e.Offset == 16 && e.Type == D3DDECLTYPE_FLOAT2;
+    }
+    return pos && col && uv;
+}
+
+// draws it in place of the game's surface (water_draw); false = the game's draw goes ahead
+bool draw(IDirect3DDevice9* dev) {
+    if (g_failed) return false;
+    IDirect3DVertexBuffer9* vb = nullptr;
+    IDirect3DIndexBuffer9* ib = nullptr;
+    IDirect3DVertexDeclaration9* decl = nullptr;
+    UINT off = 0, stride = 0;
+    bool done = false;
+    if (SUCCEEDED(dev->GetStreamSource(0, &vb, &off, &stride)) && vb && SUCCEEDED(dev->GetIndices(&ib)) && ib &&
+        SUCCEEDED(dev->GetVertexDeclaration(&decl)) && decl && decl_matches(decl, stride)) {
+        if (!g_vb) {
+            g_failed = !build(dev);
+            if (g_failed) {
+                if (g_vb) { g_vb->Release(); g_vb = nullptr; }
+                if (g_ib) { g_ib->Release(); g_ib = nullptr; }
+            }
+        }
+        if (g_vb && g_ib) {
+            dev->SetStreamSource(0, g_vb, 0, 24);
+            dev->SetIndices(g_ib);
+            dev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, g_nv, 0, g_nt);
+            dev->SetStreamSource(0, vb, off, stride);
+            dev->SetIndices(ib);
+            done = true;
+        }
+    }
+    if (vb) vb->Release();
+    if (ib) ib->Release();
+    if (decl) decl->Release();
+    return done;
+}
+} // namespace graded
 
 int find_iw_units_raw(uintptr_t* out, int max) {   // render thread, units run on the game thread: SEH-guarded
     __try {
@@ -1116,11 +1279,98 @@ IDirect3DBaseTexture9* trans_texture(uintptr_t obj) {   // a cTrans::Texture's c
     return *reinterpret_cast<IDirect3DBaseTexture9* const*>(obj + 0x10 + 4 * which);
 }
 
+// the interactive surface's UVs run 0..1 over its whole square (2000 cm x mScale.x: 200 m on BP stage 1), so the stand-in's
+// wave normal map (the mod's material, Remix's layered water normals) is tiled to this many cm, from its scale: at the
+// sea's tiling it was one 25 m tile, and the calm water between the simulation's ripple rings drew as flat mirrors
+constexpr float kIwWaveTileCm = 250.0f;
+
+extern bool g_have_main;
+extern D3DMATRIX g_main_v;
+// the main camera (last frame's) in the surface's local units: mWmat (+0x50, rows with the scale) inverted
+void iw_camera_local(uintptr_t unit) {
+    float cam[3];
+    if (!g_have_main) return;
+    view_position(g_main_v, cam);
+    const float* m = reinterpret_cast<const float*>(unit + 0x50);
+    const float a = m[0], b = m[1], c = m[2], d = m[4], e = m[5], f = m[6], g = m[8], h = m[9], i = m[10];
+    const float det = a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
+    if (!std::isfinite(det) || std::fabs(det) < 1e-12f) return;
+    const float w[3] = { cam[0] - m[12], cam[1] - m[13], cam[2] - m[14] };
+    // local = w x M3^-1 (row vectors): the x and z columns of the inverse
+    const float lx = (w[0] * (e * i - f * h) + w[1] * (f * g - d * i) + w[2] * (d * h - e * g)) / det;
+    const float lz = (w[0] * (b * f - c * e) + w[1] * (c * d - a * f) + w[2] * (a * e - b * d)) / det;
+    if (std::isfinite(lx) && std::isfinite(lz)) { graded::g_cam[0] = lx; graded::g_cam[1] = lz; }
+}
+
+// settings.iw_measure: the height map (h, the surface's current one) read back whole, the lift it gives in cm (kIwVsSrc:
+// (2 x stored - 1) x ripple_height x the world matrix's up row) logged with where its highest point is (map -1..1)
+void iw_measure_read(IDirect3DDevice9* dev, IDirect3DBaseTexture9* h, float lift_cm) {
+    if (settings.iw_measure <= 0 || !h || h->GetType() != D3DRTYPE_TEXTURE) return;
+    --settings.iw_measure;
+    IDirect3DSurface9 *s = nullptr, *sys = nullptr;
+    if (FAILED(static_cast<IDirect3DTexture9*>(h)->GetSurfaceLevel(0, &s)) || !s) return;
+    D3DSURFACE_DESC d{};
+    s->GetDesc(&d);
+    char line[256] = "";
+    D3DLOCKED_RECT lr{};
+    if (SUCCEEDED(dev->CreateOffscreenPlainSurface(d.Width, d.Height, d.Format, D3DPOOL_SYSTEMMEM, &sys, nullptr)) &&
+        SUCCEEDED(dev->GetRenderTargetData(s, sys)) && SUCCEEDED(sys->LockRect(&lr, nullptr, D3DLOCK_READONLY))) {
+        float lo = 1e9f, hi = -1e9f;
+        UINT hx = 0, hy = 0, lx = 0, ly = 0;
+        double sum = 0;
+        bool known = true;
+        for (UINT y = 0; y < d.Height && known; ++y) {
+            const auto* row = static_cast<const uint8_t*>(lr.pBits) + y * lr.Pitch;
+            for (UINT x = 0; x < d.Width; ++x) {
+                float v;
+                switch (d.Format) {
+                case D3DFMT_R32F: case D3DFMT_G32R32F: v = reinterpret_cast<const float*>(row)[x * (d.Format == D3DFMT_R32F ? 1 : 2)]; break;
+                case D3DFMT_R16F: case D3DFMT_G16R16F: v = half_float(reinterpret_cast<const uint16_t*>(row)[x * (d.Format == D3DFMT_R16F ? 1 : 2)]); break;
+                default: { float c[3]; if (!read_pixel(d.Format, row, x, c)) { known = false; v = 0; } else v = c[0]; }
+                }
+                if (!known) break;
+                sum += v;
+                if (v > hi) { hi = v; hx = x; hy = y; }
+                if (v < lo) { lo = v; lx = x; ly = y; }
+            }
+        }
+        if (known && settings.iw_dump > 0 && settings.iw_measure % 5 == 0 && d.Format == D3DFMT_R32F) {
+            --settings.iw_dump;
+            char name[64];
+            sprintf_s(name, "remix_iw_%u.raw", g_frames.load());
+            FILE* rf = nullptr;
+            if (fopen_s(&rf, name, "wb") == 0 && rf) {
+                for (UINT y = 0; y < d.Height; ++y) fwrite(static_cast<const uint8_t*>(lr.pBits) + y * lr.Pitch, 4, d.Width, rf);
+                fclose(rf);
+            }
+        }
+        sys->UnlockRect();
+        auto map = [&](UINT t, UINT n) { return 2.0f * (t + 0.5f) / static_cast<float>(n) - 1.0f; };
+        if (known)
+            sprintf_s(line, "%u %ux%u f%u: lift %.2f .. %.2f cm, highest at map %.3f %.3f, lowest at %.3f %.3f, mean %.3f cm\n",
+                      g_frames.load(), d.Width, d.Height, unsigned(d.Format), (2 * lo - 1) * lift_cm, (2 * hi - 1) * lift_cm,
+                      map(hx, d.Width), map(hy, d.Height), map(lx, d.Width), map(ly, d.Height),
+                      (2 * sum / (double(d.Width) * d.Height) - 1) * lift_cm);
+        else
+            sprintf_s(line, "%u %ux%u f%u: format not read\n", g_frames.load(), d.Width, d.Height, unsigned(d.Format));
+    } else {
+        sprintf_s(line, "%u read back failed\n", g_frames.load());
+    }
+    if (sys) sys->Release();
+    s->Release();
+    FILE* f = nullptr;
+    if (fopen_s(&f, "remix_iw.txt", "a") == 0 && f) {
+        fputs(line, f);
+        fclose(f);
+    }
+}
+
 // the interactive water surface's draw: its height map and normal map on vertex samplers 0 / 1 and the lift in c250 (see
 // kIwVsSrc); any other draw: unbound again (the simulation renders into these maps next frame)
 void iw_bind(IDirect3DDevice9* dev, const uint32_t* first, const uint32_t* entries, uint32_t n) {
     float k[4] = { 0, 0, 0, 0 };
     IDirect3DBaseTexture9 *h = nullptr, *nm = nullptr;
+    bool horizon = false;
     if (first) {
         uintptr_t nobj = 0;
         for (uint32_t i = 0; i < n; ++i)
@@ -1135,10 +1385,18 @@ void iw_bind(IDirect3DDevice9* dev, const uint32_t* first, const uint32_t* entri
             if (*reinterpret_cast<const uintptr_t*>(g_iw_units[i] + 0xD8) == nobj) {
                 h = trans_texture(*reinterpret_cast<const uintptr_t*>(g_iw_units[i] + 0xC4));
                 nm = trans_texture(nobj);
+                const float sx = std::fabs(*reinterpret_cast<const float*>(g_iw_units[i] + 0x40));   // mScale.x
+                horizon = settings.water_to_horizon && std::isfinite(sx) && sx >= 5.0f;   // a square of 100 m or more
+                if (g_tt_on && std::isfinite(sx) && sx > 0.0f)
+                    water_transform(dev, true, std::min(512.0f, 2000.0f * sx / kIwWaveTileCm));
+                iw_camera_local(g_iw_units[i]);
+                const float* um = reinterpret_cast<const float*>(g_iw_units[i] + 0x50);
+                iw_measure_read(dev, h, settings.ripple_height * std::sqrt(um[4] * um[4] + um[5] * um[5] + um[6] * um[6]));
             }
         if (h && nm) {
             k[0] = settings.ripple_height;
             k[1] = 1.0f;
+            k[3] = std::clamp(settings.ripple_curve, 0.25f, 8.0f);
             // taps half a grid cell apart: 4 texels a cell, halved per subdivision level
             k[2] = (2.0f / 512.0f) / static_cast<float>(1 << std::min(std::max(settings.water_detail, 0), 3));
             if (k[2] < 1.0f / 512.0f) k[2] = 1.0f / 512.0f;
@@ -1157,6 +1415,10 @@ void iw_bind(IDirect3DDevice9* dev, const uint32_t* first, const uint32_t* entri
         }
     }
     dev->SetVertexShaderConstantF(250, k, 1);
+    const float kg[4] = { graded::g_cam[0], graded::g_cam[1],
+                          (h && g_iw_graded_next && !graded::g_failed) ? (horizon ? 2.0f : 1.0f) : 0.0f,
+                          settings.ripple_normal };
+    dev->SetVertexShaderConstantF(251, kg, 1);
     g_vtf_bound = h != nullptr;
 }
 
@@ -1301,24 +1563,46 @@ void clear() {
 }
 
 // reads the draw's vertices and triangles (a list or a strip, degenerate triangles dropped), rebased to its range
+// a copy out of a locked buffer that can't take the game down: the Remix bridge client's lock pointers aren't always
+// backed for the whole range (BP's interactive water floor, 2026-11-26: a 191 KB vertex copy ran off the end of mapped
+// memory, access violation in memcpy)
+bool copy_guarded(void* dst, const void* src, size_t n) {
+    __try {
+        std::memcpy(dst, src, n);
+        return true;
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return false;
+    }
+}
+
 bool read(const Key& k, IDirect3DVertexBuffer9* vb, IDirect3DIndexBuffer9* ib, std::vector<uint8_t>& verts,
           std::vector<uint32_t>& tris, uint32_t* check) {
     D3DINDEXBUFFER_DESC id{};
     if (FAILED(ib->GetDesc(&id))) return false;
     const uint32_t isz = id.Format == D3DFMT_INDEX32 ? 4 : 2;
     const uint32_t nidx = k.type == D3DPT_TRIANGLELIST ? k.prims * 3 : k.prims + 2;
+    if (nidx == 0 || (static_cast<uint64_t>(k.start) + nidx) * isz > id.Size) return false;   // the draw's range in the buffer
     void* p = nullptr;
     if (FAILED(ib->Lock(k.start * isz, nidx * isz, &p, D3DLOCK_READONLY)) || !p) return false;
+    std::vector<uint8_t> raw(static_cast<size_t>(nidx) * isz);
+    const bool got = copy_guarded(raw.data(), p, raw.size());
+    ib->Unlock();
+    if (!got) return false;
     std::vector<uint32_t> idx(nidx);
     for (uint32_t i = 0; i < nidx; ++i)
-        idx[i] = isz == 4 ? static_cast<const uint32_t*>(p)[i] : static_cast<const uint16_t*>(p)[i];
-    *check = fnv(static_cast<const uint8_t*>(p), std::min<size_t>(nidx * isz, 256));
-    ib->Unlock();
-    const uint32_t first = k.off + (k.base + k.minidx) * k.stride;
-    if (FAILED(vb->Lock(first, k.nverts * k.stride, &p, D3DLOCK_READONLY)) || !p) return false;
-    verts.assign(static_cast<const uint8_t*>(p), static_cast<const uint8_t*>(p) + k.nverts * k.stride);
-    *check = fnv(verts.data(), std::min<size_t>(verts.size(), 256), *check);
+        idx[i] = isz == 4 ? reinterpret_cast<const uint32_t*>(raw.data())[i] : reinterpret_cast<const uint16_t*>(raw.data())[i];
+    *check = fnv(raw.data(), std::min<size_t>(raw.size(), 256));
+    D3DVERTEXBUFFER_DESC vd{};
+    if (FAILED(vb->GetDesc(&vd))) return false;
+    const uint64_t first = k.off + (static_cast<uint64_t>(k.base) + k.minidx) * k.stride;
+    const uint64_t bytes = static_cast<uint64_t>(k.nverts) * k.stride;
+    if (bytes == 0 || first + bytes > vd.Size) return false;
+    if (FAILED(vb->Lock(static_cast<UINT>(first), static_cast<UINT>(bytes), &p, D3DLOCK_READONLY)) || !p) return false;
+    verts.resize(static_cast<size_t>(bytes));
+    const bool vgot = copy_guarded(verts.data(), p, verts.size());
     vb->Unlock();
+    if (!vgot) return false;
+    *check = fnv(verts.data(), std::min<size_t>(verts.size(), 256), *check);
     auto add = [&](uint32_t a, uint32_t b, uint32_t c) {
         if (a == b || b == c || a == c) return;
         a -= k.minidx; b -= k.minidx; c -= k.minidx;
@@ -1743,10 +2027,16 @@ uint64_t signature(float strength) {   // the lights' colours and directions, qu
 }
 } // namespace dome
 
+// a sky texture (settings.sky_textures) drawn in the last 5 seconds: Remix's sky probe has the stage's own sky
+bool sky_shown() {
+    const uint32_t at = g_sky_tex_frame.load();
+    return at != 0 && g_frames.load() - at < 300;
+}
+
 // once a frame (api_frame): the dome light, made again when the texture changes
 void dome_frame() {
     dome::g_drawn = false;
-    if (!settings.game_lights || !settings.dome) return;
+    if (!settings.game_lights || !settings.dome || sky_shown()) return;
     if (settings.dome_cube && g_ocean_cube != dome::g_cube.rsrc) {
         dome::load_cube(g_ocean_cube);
         if (g_ocean_cube) {
@@ -2124,11 +2414,75 @@ void on_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
 } // namespace puddle
 
 volatile uint8_t g_light_next = 0;             // the next indexed draw uses a light texture (texlight::capture)
+volatile uint8_t g_sky_next = 0;               // the next indexed draw uses a sky texture (settings.sky_textures)
 volatile uint8_t g_subdiv_next = 0;            // the draws after this bind are water to subdivide
 IDirect3DPixelShader9* g_subdiv_ps = nullptr;  // ... made with this pixel shader (another one: not water any more)
 
+// a sky draw (settings.sky_textures; g_sky_next from on_tag), from either draw path of dispatchCommands: the indexed one
+// (water_draw) or DrawPrimitive (0x8F5726, prim_draw: BP stage 1's sky draws this way). 1 = drawn here
+int sky_draw(IDirect3DDevice9* dev, const uint8_t* cmd, bool indexed) {
+    if (g_probe == 2 && dev) {   // its stage-shader constants (the LDR2 encoding, fog) into the probe
+        float c[9][4] = {};
+        dev->GetPixelShaderConstantF(32, &c[0][0], 9);
+        IDirect3DPixelShader9* sps = nullptr;
+        dev->GetPixelShader(&sps);
+        if (sps) sps->Release();
+        char tag[64];
+        sprintf_s(tag, "  sky draw (ps %p) ", static_cast<void*>(sps));
+        g_probe_text += tag;
+        char line[400];
+        sprintf_s(line, "constants: c32 LDR2Offset %.4f | c33 FogEnable %.2f | c34 FogFactor %.3f %.3f %.5f %.3f | "
+                  "c35 FogPlane %.3f %.3f %.3f %.3f | c36 FogColor %.3f %.3f %.3f max %.3f | c37 BaseMapScale %.3f %.3f %.3f %.3f | "
+                  "c38 Blend %.3f | c40 LightMapScale %.3f %.3f %.3f\n", c[0][0], c[1][0], c[2][0], c[2][1], c[2][2], c[2][3],
+                  c[3][0], c[3][1], c[3][2], c[3][3], c[4][0], c[4][1], c[4][2], c[4][3], c[5][0], c[5][1], c[5][2], c[5][3],
+                  c[6][0], c[8][0], c[8][1], c[8][2]);
+        g_probe_text += line;
+    }
+    // the sky draws with DMC4's lit stage shader, which fogs toward gXfFogColor (c36, white up to 12.4 % on BP stage 1)
+    // and writes x 0.5 + gXfLDR2Offset for the game's final pass to decode (ps 47CF0B20, 2026-11-26). Remix takes that
+    // output as the sky's light: the fog, small in vanilla's gamma space, became a veil of ~70 / 255 once encoded
+    // (the washed-out planet). So the bridge draws it here with the fog's cap (c36.w) at settings.sky_fog of the game's
+    // (gXfFogEnable c33 off at 0; the user: some fog hides where the water ends) and puts it back after; the
+    // x 0.5 is undone by rtx.skyBrightness = 2 (rtx.conf). The game's own raster of the sky is covered by Remix's image
+    if (dev && cmd) {
+        float fog[4] = {}, fog_col[4] = {};
+        dev->GetPixelShaderConstantF(33, fog, 1);
+        dev->GetPixelShaderConstantF(36, fog_col, 1);
+        const float share = std::clamp(settings.sky_fog, 0.0f, 1.0f);
+        const uint32_t w = *reinterpret_cast<const uint32_t*>(cmd + 0x18);
+        const UINT type = w & 0xFF, prims = w >> 8;
+        if (fog[0] != 0.0f && share < 1.0f && prims &&
+            (type == D3DPT_TRIANGLELIST || type == D3DPT_TRIANGLESTRIP || type == D3DPT_TRIANGLEFAN)) {
+            const float off[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+            const float less[4] = { fog_col[0], fog_col[1], fog_col[2], fog_col[3] * share };   // .w: the fog's cap
+            if (share <= 0.0f) dev->SetPixelShaderConstantF(33, off, 1);
+            else dev->SetPixelShaderConstantF(36, less, 1);
+            if (indexed)
+                dev->DrawIndexedPrimitive(static_cast<D3DPRIMITIVETYPE>(type), *reinterpret_cast<const INT*>(cmd + 0x1C),
+                                          *reinterpret_cast<const uint16_t*>(cmd + 0x26), *reinterpret_cast<const uint16_t*>(cmd + 0x24),
+                                          *reinterpret_cast<const UINT*>(cmd + 0x20), prims);
+            else
+                dev->DrawPrimitive(static_cast<D3DPRIMITIVETYPE>(type), *reinterpret_cast<const UINT*>(cmd + 0x1C), prims);
+            dev->SetPixelShaderConstantF(33, fog, 1);
+            dev->SetPixelShaderConstantF(36, fog_col, 1);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int __stdcall prim_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
+    if (!g_sky_next) return 0;
+    g_sky_next = 0;
+    return sky_draw(dev, cmd, false);
+}
+
 // the indexed draw hook: 1 = drawn here (subdivided), 0 = the game draws it
 int __stdcall water_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
+    if (g_sky_next) {   // a sky draw (sky_draw)
+        g_sky_next = 0;
+        if (sky_draw(dev, cmd, true)) return 1;
+    }
     if (g_light_next) {   // a light texture's draw: its middle for the next frame's light
         g_light_next = 0;
         texlight::capture(dev, cmd);
@@ -2138,7 +2492,8 @@ int __stdcall water_draw(IDirect3DDevice9* dev, const uint8_t* cmd) {
     IDirect3DPixelShader9* ps = nullptr;
     dev->GetPixelShader(&ps);
     if (ps) ps->Release();
-    if (ps != g_subdiv_ps) { g_subdiv_next = 0; return 0; }
+    if (ps != g_subdiv_ps) { g_subdiv_next = 0; g_iw_graded_next = 0; return 0; }
+    if (g_iw_graded_next && graded::draw(dev)) { ++subdiv::g_drawn; return 1; }
     subdiv::Key k{};
     const uint32_t w = *reinterpret_cast<const uint32_t*>(cmd + 0x18);
     k.type = w & 0xFF;
@@ -2441,6 +2796,15 @@ int __stdcall bind_texture(IDirect3DDevice9* dev, const uint32_t* entry, const u
                 if (g_light_tex.count(first[i])) light = true;
         }
         g_light_next = light ? 1 : 0;
+        if (!g_sky_tex.empty()) {   // the stage's sky (settings.sky_textures): the dome steps aside
+            const uint32_t* first = slot - (entry - entries);
+            for (uint32_t i = 0; i < n; ++i)
+                if (g_sky_tex.count(first[i])) {
+                    g_sky_tex_frame = g_frames.load();
+                    g_sky_next = 1;
+                    break;
+                }
+        }
     }
     // the main view = the block most draws use (counted per draw: uploads were too few to tell the main camera from the
     // shadow overlay's projector, and with other cameras' draws hidden a wrong pick hid the whole scene for a frame)
@@ -2510,6 +2874,7 @@ int __stdcall bind_texture(IDirect3DDevice9* dev, const uint32_t* entry, const u
     if (entry == entries) {   // water whose vertex shader moves its vertices: its draws subdivided (water_draw)
         const int kind = (!hide && water) ? water_kind(dev, entries, n) : -1;
         g_subdiv_next = (settings.water_detail > 0 && (kind == 0 || kind == 1 || (kind == 2 && g_iw_replaced))) ? 1 : 0;
+        g_iw_graded_next = (settings.water_detail > 0 && kind == 2 && g_iw_replaced && !graded::g_failed) ? 1 : 0;
         if (g_subdiv_next) {
             IDirect3DPixelShader9* ps = nullptr;
             dev->GetPixelShader(&ps);
@@ -3173,6 +3538,8 @@ uintptr_t jmp_ret_draw = 0;
 uintptr_t kDrawDoneAddr = 0x8F5EAB;   // dispatchCommands' loop after a command
 naked void detour_draw() {
     _asm {
+        cmp byte ptr [g_sky_next], 0
+        jne hooked
         cmp byte ptr [g_subdiv_next], 0
         jne hooked
         cmp byte ptr [g_puddle_next], 0
@@ -3260,6 +3627,33 @@ std::unique_ptr<FunctionHook>& shader_hook() { static std::unique_ptr<FunctionHo
 
 void* tex_detour() { return reinterpret_cast<void*>(&detour_tex); }
 void* draw_detour() { return reinterpret_cast<void*>(&detour_draw); }
+
+// dispatchCommands' DrawPrimitive (0x8F5726, same 7 bytes as the indexed draw's: the command at esp + 0x50, the device in
+// esi): only sky draws are taken (prim_draw)
+uintptr_t jmp_ret_drawprim = 0;
+naked void detour_drawprim() {
+    _asm {
+        cmp byte ptr [g_sky_next], 0
+        je original
+        pushad
+        mov eax, [esp + 0x20 + 0x50]
+        push eax
+        push esi
+        call prim_draw
+        test eax, eax
+        jnz drawn
+        popad
+    original:
+        mov eax, [esp + 0x50]
+        mov ecx, [eax + 0x18]
+        jmp dword ptr [jmp_ret_drawprim]
+    drawn:
+        popad
+        jmp dword ptr [kDrawDoneAddr]
+    }
+}
+void* drawprim_detour() { return reinterpret_cast<void*>(&detour_drawprim); }
+std::unique_ptr<FunctionHook>& drawprim_hook() { static std::unique_ptr<FunctionHook> h; return h; }
 std::unique_ptr<FunctionHook>& draw_hook() { static std::unique_ptr<FunctionHook> h; return h; }
 
 // Stage colour grading (uColorCorrectFilter, a pass-9 filter, priority 26000 by default; Fortuna has one, the BP stages
@@ -3438,7 +3832,9 @@ bool on_tag(void* device, const uint32_t* list, uint32_t index, uint32_t count) 
         if (strncmp(settings.hide_textures, g_hide_built_for, sizeof g_hide_built_for - 1) != 0 ||
             strncmp(settings.hide_water_textures, g_hide_water_built_for, sizeof g_hide_water_built_for - 1) != 0 ||
             strncmp(settings.light_textures, g_light_built_for, sizeof g_light_built_for - 1) != 0 ||
-            ((g_hide_built_for[0] || g_hide_water_built_for[0] || g_light_built_for[0]) && g_frames % 60 == 0))
+            strncmp(settings.sky_textures, g_sky_built_for, sizeof g_sky_built_for - 1) != 0 ||
+            ((g_hide_built_for[0] || g_hide_water_built_for[0] || g_light_built_for[0] || g_sky_built_for[0]) &&
+             g_frames % 60 == 0))
             build_hide_textures();
         g_in_main = false;
         g_last_vp = 0;
@@ -3687,6 +4083,11 @@ void draw_gui() {
         ImGui::SameLine();
         Mod::help_marker(_("How far the surface rises at the simulation's full amplitude, per unit of the water's Y scale "
                            "(the game sets the simulation's amplitude from it, so taller water makes taller ripples)."));
+        ImGui::Checkbox(_("Water to the horizon"), &settings.water_to_horizon);
+        ImGui::SameLine();
+        Mod::help_marker(_("Large water floors (100 m across or more, like the Bloody Palace's and the practice stage's) go "
+                           "on as flat water to the horizon, so there is no edge where the water ends against the sky. Only "
+                           "the picture: the water you can stand in is unchanged."));
         ImGui::TextDisabled(_("Water surfaces with ripples: %u"), g_iw_replaced);
         if (g_iw_nunits > 0) {
             const uintptr_t u = g_iw_units[0];
@@ -3766,7 +4167,7 @@ void draw_gui() {
     if (settings.game_lights) {
         ImGui::SliderFloat(_("Directional strength"), &settings.dir_strength, 0.0f, 20.0f, "%.2f");
         ImGui::SliderFloat(_("Point light strength"), &settings.point_strength, 0.0f, 50.0f, "%.2f");
-        ImGui::TextDisabled(_("%d directional, %d point lights (%d copies of other lights left out, %d lighting no model)"),
+        ImGui::TextDisabled(_("%d directional, %d point lights (%d copies of other lights left out; %d light no model in the game)"),
                             g_ndir, g_npoint, g_dup_skipped, g_unlit_skipped);
         if (g_off_skipped || g_attr_skipped)
             ImGui::TextDisabled(_("Left out as in the game: %d switched off (other light sets), %d by their mAttr"),
@@ -3812,6 +4213,16 @@ void draw_gui() {
                                 g_ndome_hemis, api::dome::g_sky[0], api::dome::g_sky[1], api::dome::g_sky[2],
                                 api::dome::g_ground[0], api::dome::g_ground[1], api::dome::g_ground[2],
                                 api::dome::g_drawn_last ? "" : _(" (not drawn)"));
+            ImGui::InputText(_("Sky textures containing"), settings.sky_textures, sizeof settings.sky_textures);
+            ImGui::SameLine();
+            Mod::help_marker(_("The stage's own sky: textures whose path contains this text (several separated by ';'). "
+                               "Tag them as Sky Box Textures in Remix (rtx.conf's rtx.skyBoxTextures) and Remix draws them "
+                               "into its sky, which reflections and the light from the sky then show. The dome would take "
+                               "that sky's place, so it stays off while one of them is drawn."));
+            if (api::sky_shown())
+                ImGui::TextDisabled(_("Off: the stage's sky is drawn (%s)"), g_sky_tex_path.c_str());
+            else if (settings.sky_textures[0])
+                ImGui::TextDisabled(_("%zu sky textures loaded, none drawn lately"), g_sky_tex.size());
         }
     }
     ImGui::Checkbox(_("Sun (without game lights)"), &settings.sun);
@@ -3926,7 +4337,8 @@ void load(const utility::Config& cfg) {
     settings.tex_light_strength = cfg.get<float>("remix_tex_light_strength").value_or(1.0f);
     settings.tex_light_radius = cfg.get<float>("remix_tex_light_radius").value_or(5.0f);
     settings.water_ripples = cfg.get<bool>("remix_water_ripples").value_or(true);
-    settings.ripple_height = cfg.get<float>("remix_ripple_height").value_or(10.0f);
+    settings.ripple_height = cfg.get<float>("remix_ripple_height").value_or(25.0f);
+    settings.water_to_horizon = cfg.get<bool>("remix_water_to_horizon").value_or(true);
     settings.water_detail = cfg.get<int>("remix_water_detail").value_or(1);
     {
         const std::string w = cfg.get("remix_hide_water_textures").value_or("");
@@ -3953,6 +4365,10 @@ void load(const utility::Config& cfg) {
     settings.dome = cfg.get<bool>("remix_dome").value_or(true);
     settings.dome_strength = cfg.get<float>("remix_dome_strength").value_or(1.0f);
     settings.dome_cube = cfg.get<bool>("remix_dome_cube").value_or(true);
+    {
+        const std::string t = cfg.get("remix_sky_textures").value_or("-t-sora;-t-sky");
+        strncpy_s(settings.sky_textures, t.c_str(), _TRUNCATE);
+    }
     settings.fill_strength = cfg.get<float>("remix_fill_strength").value_or(1.0f);
     settings.fill_range = cfg.get<float>("remix_fill_range").value_or(4000.0f);
     settings.sun_strength = cfg.get<float>("remix_sun_strength").value_or(2.0f);
@@ -3988,6 +4404,7 @@ void save(utility::Config& cfg) {
     cfg.set<float>("remix_tex_light_radius", settings.tex_light_radius);
     cfg.set<bool>("remix_water_ripples", settings.water_ripples);
     cfg.set<float>("remix_ripple_height", settings.ripple_height);
+    cfg.set<bool>("remix_water_to_horizon", settings.water_to_horizon);
     cfg.set<int>("remix_water_detail", settings.water_detail);
     cfg.set("remix_hide_water_textures", std::string(settings.hide_water_textures));
     cfg.set<float>("remix_water_tiling", settings.water_tiling);
@@ -4010,6 +4427,7 @@ void save(utility::Config& cfg) {
     cfg.set<bool>("remix_dome", settings.dome);
     cfg.set<float>("remix_dome_strength", settings.dome_strength);
     cfg.set<bool>("remix_dome_cube", settings.dome_cube);
+    cfg.set("remix_sky_textures", std::string(settings.sky_textures));
     cfg.set<float>("remix_fill_strength", settings.fill_strength);
     cfg.set<float>("remix_fill_range", settings.fill_range);
     cfg.set<float>("remix_sun_strength", settings.sun_strength);
