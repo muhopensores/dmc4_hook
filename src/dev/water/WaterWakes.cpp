@@ -274,9 +274,9 @@ int push_attacks(uintptr_t water, uintptr_t mgr, const float* m, const float* in
     return pushed;
 }
 
-// the forces of the characters in this water (game thread, inside uInteractiveWater::move); SEH-guarded walk
-void push_wakes_raw(uintptr_t water) {
-    __try {
+// the forces of the characters in this water (game thread, inside uInteractiveWater::move); push_wakes_raw guards it
+void push_wakes_body(uintptr_t water) {
+    {
         const float* m = reinterpret_cast<const float*>(water + 0x50);   // mWmat: rows x, y, z, translation
         float inv[9];
         if (!invert3(m, inv)) return;
@@ -357,6 +357,15 @@ void push_wakes_raw(uintptr_t water) {
                 u = next;
             }
         }
+    }
+}
+
+// the walk under SEH (units run on this thread, but a character can go mid-walk). The body is its own function: a
+// function with __try can't hold objects that need unwinding, and in Debug builds the standard library's iterators do
+// (C2712; Release's are trivial, so only Debug failed)
+void push_wakes_raw(uintptr_t water) {
+    __try {
+        push_wakes_body(water);
     } __except (EXCEPTION_EXECUTE_HANDLER) {
     }
 }
