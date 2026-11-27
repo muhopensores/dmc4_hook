@@ -54,6 +54,29 @@ void remove(int id)
     }
 }
 
+void entry_hashes(std::vector<std::pair<const char*, uint32_t>>& out, uintptr_t lo, uintptr_t hi)
+{
+    std::lock_guard<std::mutex> lock(g_lock);
+    out.clear();
+    std::vector<uint8_t> part;
+    for (const Participant& p : g_parts) {
+        part.clear();
+        if (p.save) {
+            p.save(part);
+        } else {
+            part.assign((const uint8_t*)p.data, (const uint8_t*)p.data + p.bytes);
+        }
+        uint32_t h = 2166136261u;
+        for (size_t k = 0; k + 4 <= part.size(); k += 4) {
+            uint32_t w;
+            std::memcpy(&w, &part[k], 4);
+            if (w >= lo && w < hi) w = 0;
+            h = (h ^ w) * 16777619u;
+        }
+        out.emplace_back(p.name, h);
+    }
+}
+
 // Each participant: u32 id, u32 bytes, the bytes. A load skips ids no longer registered and sizes that changed.
 void capture(std::vector<uint8_t>& out)
 {

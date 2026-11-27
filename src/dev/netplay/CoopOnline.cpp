@@ -166,13 +166,16 @@ static void sound_after_rewind();   // below, with the sound hooks
 static std::map<int, std::vector<uint8_t>> g_latest_saves;   // diagnostics: the latest packed save of each recent frame
 // diagnostics (DMC4_RNG_WATCH): the code that drew from the game's random stream in each tick (a write watch on its index)
 static bool g_rng_watch = false;
+static bool g_speed_watch = false;   // DMC4_WATCH_SPEED: the watch is on sDevil4Main::mGlobalSpeed
 static int g_tick_frame = -1;   // the frame run_simulation_tick is simulating (an advance event's), -1 = none
 static uint32_t g_tick_serial = 0;   // run_simulation_tick calls so far (diagnostics: which pass a log line is from)
+static uint32_t g_tick_input_hash = 0, g_tick_pad_hash[2] = {}, g_tick_raw_hash[2] = {};   // what the tick ran on
 static std::vector<uint32_t> g_rng_eips;
 static std::map<int, std::vector<uint32_t>> g_rng_by_frame;
 static std::vector<std::string> g_rng_stacks;                    // the stacks of draws from DMC4_RNG_STACK's caller
 static std::map<int, std::vector<std::string>> g_rng_stacks_by_frame;
 static void arm_rng_watch();
+static Coop* get_coop_mod();
 // diagnostics (DMC4_UNIT_HASH): every unit's bytes hashed in 256-byte chunks at each save, written out at the first desync
 // (netdump/units_<pid>_f<n>.bin: per unit its move line and place in it, vtable, bytes, then its chunk hashes, words that
 // point into a heap hashed as 0: the two processes' heaps lie at other addresses), to find the first unit that differs
@@ -323,6 +326,70 @@ struct Devil4State {
             restore_tick_rng();
         }
         arm_rng_watch();
+        static const bool shake_log = std::getenv("DMC4_SHAKE_LOG") != nullptr;
+        if (shake_log) {
+            // with sStylishCount's gauge +0x18C, rank +0x20 and its repetition guard's timers (+0x2C, 30 x 12 bytes)
+            char text[900];
+            const uintptr_t sc = *(const uintptr_t*)0x00E558CC;
+            int at = snprintf(text, sizeof text, "save f%d pass %u input %08X pads %08X %08X raw %08X %08X gauge %.3f rank %d guard",
+                (int)event->data.save.frame, g_tick_serial, g_tick_input_hash, g_tick_pad_hash[0], g_tick_pad_hash[1],
+                g_tick_raw_hash[0], g_tick_raw_hash[1], sc ? *(const float*)(sc + 0x18C) : 0.0f, sc ? *(const int*)(sc + 0x20) : -1);
+            for (int k = 0; sc && k < 30 && at < (int)sizeof text - 12; ++k) {
+                if (*(const uint32_t*)(sc + 0x24 + 12 * k)) {
+                    const uintptr_t key = *(const uintptr_t*)(sc + 0x28 + 12 * k);
+                    uintptr_t block = 0;
+                    uint32_t bytes = 0;
+                    const char* heap = heap_snapshot::locate(key, block, bytes);
+                    at += snprintf(text + at, sizeof text - at, " %d:%u/%.1f/%c+%X/%X", k, *(const uint32_t*)(sc + 0x24 + 12 * k),
+                        *(const float*)(sc + 0x2C + 12 * k), heap ? heap[0] : '-', (unsigned)(block ? key - block : key), bytes);
+                }
+            }
+            probe_log(text);
+            {
+                // each player's camera angle (uPlayer +0x16F8, from his camera's eye and target) and the camera's eye
+                char t[300];
+                int n = snprintf(t, sizeof t, "cams f%d", (int)event->data.save.frame);
+                Coop* coop = get_coop_mod();
+                for (int i = 0; i < 2; ++i) {
+                    const uintptr_t pl = player_info::player(i);
+                    const uintptr_t cam = i == 0 || !(coop && coop->mod_enabled)
+                        ? *(const uintptr_t*)(*(const uintptr_t*)0x00E558B8 + 0xD0) : (uintptr_t)coop::players[i].cam;
+                    n += snprintf(t + n, sizeof t - n, " p%d %.5f eye %.3f %.3f %.3f perm %02X %02X", i + 1,
+                        pl ? *(const float*)(pl + 0x16F8) : 0.0f, cam ? *(const float*)(cam + 0x30) : 0.0f,
+                        cam ? *(const float*)(cam + 0x34) : 0.0f, cam ? *(const float*)(cam + 0x38) : 0.0f,
+                        pl ? *(const uint8_t*)(pl + 0x1E14) : 0, pl ? *(const uint8_t*)(pl + 0x3148) : 0);
+                }
+                probe_log(t);
+            }
+            {
+                // every mod's rewound state (sdk/Rollback), hashed with heap pointers left out
+                static std::vector<std::pair<const char*, uint32_t>> hashes;
+                uintptr_t lo = 0, hi = 0;
+                heap_snapshot::heap_span(lo, hi);
+                rollback::entry_hashes(hashes, lo, hi);
+                std::string t = "mods f" + std::to_string((int)event->data.save.frame);
+                char h[16];
+                for (const auto& [name, hash] : hashes) {
+                    snprintf(h, sizeof h, "%08X", hash);
+                    t += std::string(" [") + name + "]" + h;
+                }
+                probe_log(t.c_str());
+            }
+            // the em030 shells (vtable 0xBD7458): state +0x1878, sub-state +0x14, position, time step +0x10, hit flags
+            sUnit* su = (sUnit*)*(uintptr_t*)0x00E552CC;
+            for (int line = 0; su && line < 32; ++line) {
+                int guard = 0;
+                for (uintptr_t u = (uintptr_t)su->mMoveLine[line].mTop; u && guard < 4096; u = *(uintptr_t*)(u + 8), ++guard) {
+                    if (*(const uint32_t*)u != 0x00BD7458u) continue;
+                    char t[200];
+                    snprintf(t, sizeof t, "shell f%d L%d#%d state %d/%d pos %.3f %.3f %.3f dt %.4f flags %d %d", (int)event->data.save.frame,
+                        line, guard, *(const int*)(u + 0x1878), *(const uint8_t*)(u + 0x14), *(const float*)(u + 0x30),
+                        *(const float*)(u + 0x34), *(const float*)(u + 0x38), *(const float*)(u + 0x10), *(const uint8_t*)(u + 6285),
+                        *(const uint8_t*)(u + 6286));
+                    probe_log(t);
+                }
+            }
+        }
         static const bool unit_hash = std::getenv("DMC4_UNIT_HASH") != nullptr;
         static const int unit_upto = std::getenv("DMC4_UNIT_UPTO") ? std::atoi(std::getenv("DMC4_UNIT_UPTO")) : 1 << 30;
         if (unit_hash && (int)event->data.save.frame <= unit_upto) {
@@ -2306,12 +2373,62 @@ static bool g_probe_coop = false;     // test switch DMC4_PROBE_COOP: a second p
 // every frame, which is what froze the in-game clock.
 // Advance-event inputs are applied by the CALLER (pump_gekko_events, per control online);
 // this function never touches the pad, so a re-simulated tick sees exactly what the pump wrote.
+// Files a tick asks for are read by the loader thread and handed over by sResource's step in the frame prelude, once per
+// presented frame: a unit polling for one saw it on another tick on each machine (player 2's motion files after his
+// spawn: one machine played the move's 101 frames, the other a 14-frame stand-in). Online, every tick ends with the
+// loader done (sResource +0xA050 queued, +0xA098 busy) and the step run, so a file asked for on tick N is there on tick
+// N + 1 on every machine.
+static void settle_loads(sDevil4Main* main)
+{
+    if (!g_netplay || !g_netplay->get_session()) {
+        return;
+    }
+    const uintptr_t res = *(const uintptr_t*)0x00E552D0;   // sDevil4Resource::mpInstance
+    if (!res || (uintptr_t)main_member(main, 0x10354) != res) {
+        return;
+    }
+    const auto pending = [res] {
+        return *(const volatile uint32_t*)(res + 0xA050) != 0 || *(const volatile uint8_t*)(res + 0xA098) != 0;
+    };
+    if (!pending()) {
+        return;
+    }
+    const DWORD start = GetTickCount();
+    while (pending() && GetTickCount() - start < 3000) {
+        Sleep(0);
+    }
+    call_system((void*)res, 0x18);
+}
+
 static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx& ctx)
 {
     g_rng_eips.clear();
     g_rng_stacks.clear();
     g_tick_frame = event ? (int)event->data.adv.frame : -1;
     ++g_tick_serial;
+    {
+        // diagnostics: the inputs this tick runs on and the pads they were written to (FNV)
+        static const bool shake_log = std::getenv("DMC4_SHAKE_LOG") != nullptr;
+        const auto fnv = [](const void* p, size_t n) {
+            uint32_t h = 2166136261u;
+            for (size_t k = 0; k < n; ++k) h = (h ^ ((const uint8_t*)p)[k]) * 16777619u;
+            return h;
+        };
+        if (shake_log && event) {
+            g_tick_input_hash = fnv(event->data.adv.inputs, 2 * sizeof(NetplayInputInfo));
+            for (int c = 0; c < 2; ++c) {
+                sDevil4Pad* pad = netplay_pad_for(c);
+                // player 1's pad: its header (to mBtn), buttons to presses, sensor and rumble apart
+                const cPadInfo* pi = pad ? &pad->mPadInfo[0] : nullptr;
+                const size_t head = pi ? (size_t)((const char*)&pi->mBtn - (const char*)pi) : 0;
+                const size_t sensor = pi ? (size_t)((const char*)&pi->mSensor - (const char*)pi) : 0;
+                const size_t vib = pi ? (size_t)((const char*)&pi->mVibInfo - (const char*)pi) : 0;
+                g_tick_pad_hash[c] = pi ? fnv(pi, sizeof *pi) : 0;
+                g_tick_raw_hash[c] = pi && c == 0 ? (fnv(pi, head) & 0xFF000000u) | (fnv((const char*)pi + head, sensor - head) & 0xFF0000u) |
+                    (fnv((const char*)pi + sensor, vib - sensor) & 0xFF00u) | (fnv((const char*)pi + vib, sizeof *pi - vib) & 0xFFu) : 0;
+            }
+        }
+    }
     restore_tick_rng();
     pin_simulation_environment();
     // The measured fps is frame-time smoothing, per machine, and it feeds both the clock
@@ -2365,6 +2482,7 @@ static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx
         local_world::tick();   // the local units (visual mods), never re-simulated: after the forward tick, before the draw
     }
     call_system(main->mpD4Collision, 0x20);   // original 0x8AF03F post-attack sync pass
+    settle_loads(main);
     // the tick consumed the pinned stream: the next save must capture the live state again
     g_tick_rng_fresh = false;
 }
@@ -2559,6 +2677,24 @@ static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
         c.Dr6 = 0;
         return EXCEPTION_CONTINUE_EXECUTION;
     }
+    if (code == EXCEPTION_SINGLE_STEP && (c.Dr6 & 1) && g_speed_watch) {
+        // DMC4_WATCH_SPEED: sDevil4Main's mGlobalSpeed (+0x74) changed: by what, on which tick
+        c.Dr6 = 0;
+        static uint32_t last = 0;
+        const uint32_t now = *(const uint32_t*)g_watch_address;
+        if (now != last && InterlockedIncrement(&g_watch_hits) <= 3000) {
+            last = now;
+            char stack[200];
+            stack_addresses(c, stack, sizeof stack);
+            float v;
+            std::memcpy(&v, &now, 4);
+            char line[320];
+            snprintf(line, sizeof line, "speed f%d%s pass %u = %.6f at %08X, stack%s", g_tick_frame,
+                g_sctx.g_resimulating ? " (again)" : "", g_tick_serial, v, (unsigned)c.Eip, stack);
+            probe_log(line);
+        }
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
     if (code == EXCEPTION_SINGLE_STEP && (c.Dr6 & 1) && g_rng_watch) {
         c.Dr6 = 0;
         if (g_rng_eips.size() < 8192) {
@@ -2629,6 +2765,14 @@ static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
 static void arm_rng_watch()
 {
     static bool armed = false;
+    if (!armed && std::getenv("DMC4_WATCH_SPEED")) {
+        armed = true;
+        install_fault_logger();
+        g_watch_address = *(const uintptr_t*)0x00E5574C + 0x74;   // sDevil4Main::mpInstance, mGlobalSpeed
+        g_speed_watch = true;
+        RaiseException(kArmWatch, 0, 0, nullptr);
+        return;
+    }
     if (armed || !std::getenv("DMC4_RNG_WATCH")) {
         return;
     }
@@ -3291,8 +3435,44 @@ std::optional<std::string> install_hooks(CoopOnline* mod) {
 
 // diagnostics (DMC4_SHAKE_LOG): every camera shake request (uDevilCamera::vibReq 0x531B60, its edi form 0x531A80,
 // vib2Req 0x531AF0), with the tick and who asked, in the probe / online log
-static std::unique_ptr<FunctionHook> g_shake_hooks[4];
-static uintptr_t g_shake_original[4];
+static std::unique_ptr<FunctionHook> g_shake_hooks[6];
+static uintptr_t g_shake_original[6];
+// a unit as both machines name it: its move line and place there (0xFFFFFFFF = not on a line)
+static uint32_t unit_tag(uintptr_t unit)
+{
+    sUnit* su = (sUnit*)*(uintptr_t*)0x00E552CC;
+    if (!su || !unit) {
+        return 0xFFFFFFFFu;
+    }
+    for (int line = 0; line < 32; ++line) {
+        int index = 0;
+        for (uintptr_t u = (uintptr_t)su->mMoveLine[line].mTop; u && index < 4096; u = *(uintptr_t*)(u + 8), ++index) {
+            if (u == unit) {
+                return (uint32_t)(line << 16 | index);
+            }
+        }
+    }
+    return 0xFFFFFFFFu;
+}
+// uDamage::calc 0x51BE10 (esi = the uDamage, args: the attacking and the hit collision groups, +0x98 manager, +0xD8 the
+// actor it reports for)
+static void __stdcall log_hit(uintptr_t damage, uintptr_t attack_group, uintptr_t hit_group)
+{
+    const auto actor = [](uintptr_t group) -> uintptr_t {
+        const uintptr_t mgr = group ? *(const uintptr_t*)(group + 0x98) : 0;
+        return mgr ? *(const uintptr_t*)(mgr + 0xD8) : 0;
+    };
+    const uintptr_t a = actor(attack_group), v = actor(hit_group);
+    const uint32_t ta = unit_tag(a), tv = unit_tag(v);
+    char text[240];
+    snprintf(text, sizeof text, "hit f%d%s pass %u att L%d#%d (%08X) at %.1f %.1f %.1f vic L%d#%d (%08X) at %.1f %.1f %.1f",
+        g_tick_frame, g_sctx.g_resimulating ? " (again)" : "", g_tick_serial, (int)(ta >> 16), (int)(ta & 0xFFFF),
+        a ? *(const uint32_t*)a : 0u, a ? *(const float*)(a + 0x30) : 0.0f, a ? *(const float*)(a + 0x34) : 0.0f,
+        a ? *(const float*)(a + 0x38) : 0.0f, (int)(tv >> 16), (int)(tv & 0xFFFF), v ? *(const uint32_t*)v : 0u,
+        v ? *(const float*)(v + 0x30) : 0.0f, v ? *(const float*)(v + 0x34) : 0.0f, v ? *(const float*)(v + 0x38) : 0.0f);
+    (void)damage;
+    probe_log(text);
+}
 static void __stdcall log_style(uint32_t from, uint32_t type, uint32_t a, uint32_t b, uint32_t c)
 {
     float fa, fb, fc;
@@ -3303,8 +3483,12 @@ static void __stdcall log_style(uint32_t from, uint32_t type, uint32_t a, uint32
     const USHORT n = RtlCaptureStackBackTrace(1, 16, frames, nullptr);
     static const uintptr_t dll = (uintptr_t)GetModuleHandleA("dinput8.dll");
     char text[400];
-    int at = snprintf(text, sizeof text, "style f%d%s pass %u from %08X type %u %g %g %g:", g_tick_frame,
-        g_sctx.g_resimulating ? " (again)" : "", g_tick_serial, from, type, fa, fb, fc);
+    uintptr_t block = 0;
+    uint32_t bytes = 0;
+    const char* heap = heap_snapshot::locate(type, block, bytes);
+    int at = snprintf(text, sizeof text, "style f%d%s pass %u from %08X type %u (%s +%X of %X, %08X) %g %g %g:", g_tick_frame,
+        g_sctx.g_resimulating ? " (again)" : "", g_tick_serial, from, type, heap ? heap : "-",
+        (unsigned)(block ? type - block : 0), bytes, block ? *(const uint32_t*)block : 0u, fa, fb, fc);
     for (USHORT k = 0; k < n && at < (int)sizeof text - 16; ++k) {
         const uintptr_t x = (uintptr_t)frames[k];
         at += snprintf(text + at, sizeof text - at, x >= dll && x < dll + 0x1500000 ? " d+%X" : " %08X",
@@ -3349,18 +3533,141 @@ naked void shake_detour1()
         jmp dword ptr [g_shake_original + 4]
     }
 }
-naked void style_detour()
+// sStylishCount::addComboGauge 0x4A5DC0 and addComboGauge2 0x4A5FE0 (the Snatch, the Buster, bonus points; eax = the
+// instance; stack: return, key, ...): the style repetition guard
+// (30 entries from +0x24: status, key, timer; setRepetitionGuard 0x4A6200) compares keys by value. A key is an .atk entry
+// (the Resource heap, the same on both machines), a small number, or attack data inside a unit (a shell's own): that one
+// is an address, and a shell made where a dead one was counts as the same attack. The machines' heaps are laid out
+// apart (each spent its own time in the room before the session), so that reuse happened on one machine only and the
+// style gains went apart. Online, a key inside the Unit heap becomes its unit's class and its place in it: the same on
+// both machines, and what the reuse made it most of the time.
+static std::unique_ptr<FunctionHook> g_combo_gauge_hook, g_combo_gauge2_hook;
+static uintptr_t g_combo_gauge_original = 0, g_combo_gauge2_original = 0;
+static bool fixed_timing_wanted();
+static void __stdcall combo_gauge_entry(uint32_t* stack, int which)
+{
+    static const bool log = std::getenv("DMC4_SHAKE_LOG") != nullptr;
+    if (log) {
+        log_style(stack[0], stack[1], which == 0 ? stack[3] : stack[2], which == 0 ? stack[4] : stack[3],
+            which == 0 ? stack[5] : stack[4]);
+        // the game's return addresses on the stack (its frames have no frame pointers for a walk)
+        char text[300];
+        int at = snprintf(text, sizeof text, "style stack f%d pass %u:", g_tick_frame, g_tick_serial);
+        int found = 0;
+        for (int k = 0; k < 400 && found < 14 && at < (int)sizeof text - 12; ++k) {
+            const uint32_t v = stack[k];
+            if (v >= 0x00401000u && v < 0x00B85000u) {
+                at += snprintf(text + at, sizeof text - at, " %08X", v);
+                ++found;
+            }
+        }
+        probe_log(text);
+    }
+    if (!fixed_timing_wanted() || !heap_snapshot::active()) {
+        return;
+    }
+    uintptr_t block = 0;
+    uint32_t bytes = 0;
+    const char* heap = heap_snapshot::locate(stack[1], block, bytes);
+    if (!heap || !block || std::strcmp(heap, "Unit") != 0) {
+        return;
+    }
+    const uint32_t vtable = *(const uint32_t*)block;
+    const uint32_t kind = vtable >= 0x00400000u && vtable < 0x01000000u ? vtable : bytes;   // a mod's unit: its size
+    stack[1] = ((kind * 2654435761u) ^ ((stack[1] - (uint32_t)block) << 1)) | 1u;   // odd: never an address
+}
+naked void combo_gauge_detour()
 {
     __asm {
         pushad
-        push dword ptr [esp + 32 + 0x14]
-        push dword ptr [esp + 36 + 0x10]
-        push dword ptr [esp + 40 + 0x0C]
-        push dword ptr [esp + 44 + 4]
-        push dword ptr [esp + 48]
-        call log_style
+        push 0
+        lea eax, [esp + 36]
+        push eax
+        call combo_gauge_entry
+        popad
+        jmp dword ptr [g_combo_gauge_original]
+    }
+}
+naked void combo_gauge2_detour()
+{
+    __asm {
+        pushad
+        push 1
+        lea eax, [esp + 36]
+        push eax
+        call combo_gauge_entry
+        popad
+        jmp dword ptr [g_combo_gauge2_original]
+    }
+}
+// sUnit::addBottom 0x8DC540 (eax = sUnit, esi = the unit, stack: the line): every unit put on a move line
+static void __stdcall log_spawn(uintptr_t unit, uint32_t line, const uint32_t* stack)
+{
+    if (line == (uint32_t)local_world::kLine || !unit) {
+        return;
+    }
+    static const uintptr_t dll = (uintptr_t)GetModuleHandleA("dinput8.dll");
+    char text[400];
+    int at = snprintf(text, sizeof text, "spawn f%d%s pass %u line %u vtable %08X:", g_tick_frame,
+        g_sctx.g_resimulating ? " (again)" : "", g_tick_serial, line, *(const uint32_t*)unit);
+    // return addresses on the stack, the game's and this DLL's (the game's frames can't be walked)
+    int found = 0;
+    for (int k = 0; k < 300 && found < 12 && at < (int)sizeof text - 16; ++k) {
+        const uint32_t x = stack[k];
+        const bool game = x >= 0x00401000u && x < 0x00B85000u;
+        const bool ours = x >= dll && x < dll + 0x1500000;
+        if (game || ours) {
+            at += snprintf(text + at, sizeof text - at, ours ? " d+%X" : " %08X", (unsigned)(ours ? x - dll : x));
+            ++found;
+        }
+    }
+    probe_log(text);
+}
+naked void spawn_detour()
+{
+    __asm {
+        pushad
+        lea eax, [esp + 32]         // the caller's stack
+        push eax
+        push dword ptr [esp + 40]   // the line
+        push esi
+        call log_spawn
         popad
         jmp dword ptr [g_shake_original + 12]
+    }
+}
+// uEnemy::grabMessage 0x734EE0 (ecx = the enemy; stack: the grabbing collision group, the hit one)
+static void __stdcall log_grab(uintptr_t enemy, uintptr_t group)
+{
+    const uint32_t tag = unit_tag(enemy);
+    char text[200];
+    snprintf(text, sizeof text, "grab f%d%s pass %u enemy L%d#%d (%08X) kind %d +EAC %d +14F0 %08X", g_tick_frame,
+        g_sctx.g_resimulating ? " (again)" : "", g_tick_serial, (int)(tag >> 16), (int)(tag & 0xFFFF),
+        enemy ? *(const uint32_t*)enemy : 0u, group ? *(const int*)(group + 180) : -1, enemy ? *(const int*)(enemy + 0xEAC) : -1,
+        enemy ? *(const uint32_t*)(enemy + 0x14F0) : 0u);
+    probe_log(text);
+}
+naked void grab_detour()
+{
+    __asm {
+        pushad
+        push dword ptr [esp + 36]   // the grabbing group
+        push ecx
+        call log_grab
+        popad
+        jmp dword ptr [g_shake_original + 20]
+    }
+}
+naked void hit_detour()
+{
+    __asm {
+        pushad
+        push dword ptr [esp + 40]   // the hit group
+        push dword ptr [esp + 40]   // the attacking group
+        push esi
+        call log_hit
+        popad
+        jmp dword ptr [g_shake_original + 16]
     }
 }
 naked void shake_detour2()
@@ -3378,10 +3685,15 @@ naked void shake_detour2()
 std::optional<std::string> CoopOnline::on_initialize() {
     capture_canonical_environment();
     if (std::getenv("DMC4_SHAKE_LOG")) {
-        const uintptr_t sites[4] = {0x00531B60, 0x00531A80, 0x00531AF0, 0x004A5DC0};   // + sStylishCount::addComboGauge
-        const uintptr_t detours[4] = {(uintptr_t)&shake_detour0, (uintptr_t)&shake_detour1, (uintptr_t)&shake_detour2,
-            (uintptr_t)&style_detour};
-        for (int i = 0; i < 4; ++i) {
+        // + uDamage::calc (sStylishCount::addComboGauge logs through combo_gauge_entry)
+        // + sUnit::addBottom, uEnemy::grabMessage
+        const uintptr_t sites[6] = {0x00531B60, 0x00531A80, 0x00531AF0, 0x008DC540, 0x0051BE10, 0x00734EE0};
+        const uintptr_t detours[6] = {(uintptr_t)&shake_detour0, (uintptr_t)&shake_detour1, (uintptr_t)&shake_detour2,
+            (uintptr_t)&spawn_detour, (uintptr_t)&hit_detour, (uintptr_t)&grab_detour};
+        for (int i = 0; i < 6; ++i) {
+            if (!sites[i]) {
+                continue;
+            }
             g_shake_hooks[i] = std::make_unique<FunctionHook>(sites[i], detours[i]);
             if (g_shake_hooks[i]->create()) {
                 g_shake_original[i] = g_shake_hooks[i]->get_original();
@@ -3391,6 +3703,16 @@ std::optional<std::string> CoopOnline::on_initialize() {
     // the game's counter for hit IDs (sMediator::getCollisionUniqueID 0x494990) lives in .data, which a rewind leaves:
     // a re-simulated attack took the next ID instead of the one it had, and the machines' IDs went apart
     rollback::add_range("uCollisionMgr::mCurrentUniqueID", (void*)0x00E558D4, 4);
+    g_combo_gauge_hook = std::make_unique<FunctionHook>(0x004A5DC0, (uintptr_t)&combo_gauge_detour);
+    if (!g_combo_gauge_hook->create()) {
+        return "Failed to hook sStylishCount::addComboGauge";
+    }
+    g_combo_gauge_original = g_combo_gauge_hook->get_original();
+    g_combo_gauge2_hook = std::make_unique<FunctionHook>(0x004A5FE0, (uintptr_t)&combo_gauge2_detour);
+    if (!g_combo_gauge2_hook->create()) {
+        return "Failed to hook sStylishCount::addComboGauge2";
+    }
+    g_combo_gauge2_original = g_combo_gauge2_hook->get_original();
     g_request_se_hook = std::make_unique<FunctionHook>(0x00A47AA0, (uintptr_t)&request_se_detour);
     if (!g_request_se_hook->create()) {
         return "Failed to hook sDevil4Sound::requestSe";

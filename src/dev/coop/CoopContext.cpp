@@ -1091,12 +1091,57 @@ void draw_diag() {
     }
 }
 
+// Players 2-4's copies of the rail / pan camera objects: per slot the resource, then each copy (object, vtable, bytes).
+void save_cam_copies(std::vector<uint8_t>& out) {
+    auto put = [&](const void* p, size_t n) {
+        out.insert(out.end(), static_cast<const uint8_t*>(p), static_cast<const uint8_t*>(p) + n);
+    };
+    for (int slot = 0; slot < kMaxPlayers; slot++) {
+        put(&cam_copies_res[slot], sizeof cam_copies_res[slot]);
+        const uint32_t n = (uint32_t)cam_copies[slot].size();
+        put(&n, sizeof n);
+        for (const CamCopy& c : cam_copies[slot]) {
+            const uint32_t size = (uint32_t)c.mine.size();
+            put(&c.obj, sizeof c.obj);
+            put(&c.vtable, sizeof c.vtable);
+            put(&size, sizeof size);
+            put(c.mine.data(), size);
+        }
+    }
+}
+
+void load_cam_copies(const uint8_t* in, size_t bytes) {
+    const uint8_t* end = in + bytes;
+    auto get = [&](void* p, size_t n) {
+        if ((size_t)(end - in) < n) return false;
+        std::memcpy(p, in, n);
+        in += n;
+        return true;
+    };
+    for (int slot = 0; slot < kMaxPlayers; slot++) {
+        uint32_t n = 0;
+        if (!get(&cam_copies_res[slot], sizeof cam_copies_res[slot]) || !get(&n, sizeof n)) return;
+        cam_copies[slot].clear();
+        cam_copies[slot].reserve(n);
+        for (uint32_t k = 0; k < n; k++) {
+            CamCopy c;
+            uint32_t size = 0;
+            if (!get(&c.obj, sizeof c.obj) || !get(&c.vtable, sizeof c.vtable) || !get(&size, sizeof size)) return;
+            c.mine.resize(size);
+            if (!get(c.mine.data(), size)) return;
+            cam_copies[slot].push_back(std::move(c));
+        }
+    }
+}
+
 void register_rollback() {
     rollback::add_range("Coop frame", &g_frame, sizeof g_frame);
     rollback::add_range("Coop lock-on cache", lock_cache, sizeof lock_cache);
     rollback::add_range("Coop holds", holds, sizeof holds);
     rollback::add_range("Coop aggro", aggro, sizeof aggro);
     rollback::add_range("Coop snatch camera", snatch_camera, sizeof snatch_camera);
+    rollback::add_range("Coop Grim Grips", grips, sizeof grips);
+    rollback::add("Coop rail cameras", &save_cam_copies, &load_cam_copies);
 }
 
 } // namespace coop_context

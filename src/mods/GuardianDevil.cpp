@@ -343,13 +343,19 @@ int resolve_motion(uintptr_t pl, int motion, int block) {
     return word;
 }
 
+// The guard's pick: a xorshift with a fixed seed, its state going back with the frames under rollback netplay (the same pick
+// on every machine).
+uint32_t g_guard_rng = 0x6D2B79F5u;
+
 // The guard's motion: a random block of guard_block .. guard_block + guard_blocks - 1 (one the stand LMT lacks falls back to the
 // first).
 int guard_motion(uintptr_t pl) {
-    static std::minstd_rand rng(GetTickCount());
     int block = kSet.guard_block;
     if (block >= 0 && kSet.guard_blocks > 1) {
-        const int pick = block + (int)(rng() % (uint32_t)kSet.guard_blocks);
+        g_guard_rng ^= g_guard_rng << 13;
+        g_guard_rng ^= g_guard_rng >> 17;
+        g_guard_rng ^= g_guard_rng << 5;
+        const int pick = block + (int)(g_guard_rng % (uint32_t)kSet.guard_blocks);
         if (g_taunt_set < 0 || !motion_registry::ready(g_taunt_set, pl) || motion_registry::word(g_taunt_set, pl, pick) >= 0) block = pick;
     }
     return resolve_motion(pl, kSet.guard, block);
@@ -900,6 +906,7 @@ void GuardianDevil::toggle(bool enable) {
 
 std::optional<std::string> GuardianDevil::on_initialize() {
     rollback::add_range("GuardianDevil states", guardian_devil::g_states, sizeof guardian_devil::g_states);   // rollback netplay
+    rollback::add_range("GuardianDevil guard pick", &guardian_devil::g_guard_rng, sizeof guardian_devil::g_guard_rng);
     using namespace input_commands;
     build_commands();
     for (int i = 0; i < CMD_COUNT; ++i) {

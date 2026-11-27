@@ -6,6 +6,7 @@
 #include "../sdk/Devil4.hpp"
 #include "sdk/uPlayer.hpp"
 #include "sdk/Players.hpp"
+#include "../sdk/Rollback.hpp"
 #if 1
 
 uintptr_t InputStates::jmp_return = NULL;
@@ -250,6 +251,10 @@ void __stdcall InputStates::rose_tick(uintptr_t pl) {
 }
 
 std::optional<std::string> InputStates::on_initialize() {
+    // rollback netplay: ActiveBlock's held time and the Rose buffers go back with the frames
+    rollback::add_range("InputStates input", &InputStates::inputpressed, sizeof InputStates::inputpressed);
+    rollback::add_range("InputStates ActiveBlock timer", &InputStates::input_timer, sizeof InputStates::input_timer);
+    rollback::add_range("InputStates roses", roses, sizeof roses);
     if (!install_hook_offset(0x3B0844, hook, &detour, &jmp_return, 6)) { // ActiveBlock
         spdlog::error("Failed to init InputStates mod\n");
         return "Failed to init InputStates mod";

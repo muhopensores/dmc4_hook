@@ -8,6 +8,7 @@
 // GUI) stays out. Off netplay nothing is copied.
 #include <cstddef>
 #include <cstdint>
+#include <utility>
 #include <vector>
 
 namespace rollback {
@@ -23,5 +24,7 @@ void remove(int id);
 void capture(std::vector<uint8_t>& out);
 void apply(const std::vector<uint8_t>& in);
 int count();
+// diagnostics: each participant's name and a hash of its state, words in [lo, hi) (pointers into the game's heaps) as 0
+void entry_hashes(std::vector<std::pair<const char*, uint32_t>>& out, uintptr_t lo, uintptr_t hi);
 
 } // namespace rollback
