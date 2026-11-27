@@ -1,4 +1,5 @@
 #include "FreeRideShell.hpp"
+#include "../sdk/Rollback.hpp"
 #include "../sdk/Devil4.hpp"
 #include <cstring>
 
@@ -123,5 +124,7 @@ void hit_readout() {
         ImGui::Text("entry '%s' as used: dmg %.0f lvI %d lvB %d typeB %d hitstop %d stylish %.0f dt %.0f", g_entry.mAsName, g_entry.mDamageValue,
                     g_entry.mAttackLvI, g_entry.mAttackLvB, g_entry.mDamageTypeB, g_entry.mHitStopTimer, g_entry.mStylishPoint, g_entry.mDTAdd);
 }
+
+void register_shell_rollback() { rollback::add_range("FreeRide shell", &g_shell, sizeof g_shell); }
 
 } // namespace free_ride

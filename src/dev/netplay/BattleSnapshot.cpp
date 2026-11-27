@@ -864,6 +864,9 @@ void scrub_scratch_gate(BattleGateState& g)
     g.lockon_max_hp = 0.0f;
     g.lockon_hp = 0.0f;
     g.lockon_pi_length = 0.0f;
+    // cLockOnTarget::mIsCatch is a bool the game never initialises: each machine holds whatever its heap had there
+    // (0x70 vs 0x67 at frame 0 over loopback), read as true either way, so only its truth value is compared
+    g.lockon_is_catch = g.lockon_is_catch != 0;
 }
 
 // The merged LAN netdump\ diff (netdump_tool.exe, f0/f100 pairs): besides the two live
@@ -1102,12 +1105,20 @@ static void apply_enemy(uEnemy_Old* enemy, const EnemyState& snap)
     *(float*)((char*)enemy + kEnemyTickTimer) = snap.tick_timer;
 }
 
+// uPlayer_old's fields from +0x14CD0 on are uPlayerDante's: a uPlayerNero ends at +0xD690, so for him they are another
+// heap block's bytes (left 0 in the snapshot, never written back).
+static bool has_dante_fields(const uPlayer_old* player)
+{
+    return *(const uint32_t*)((const char*)player + 0x1494) != 1;   // uPlayer::mPlayerID, 1 = Nero
+}
+
 static bool capture_player(uPlayer_old* player, PlayerState& snap)
 {
     std::memset(&snap, 0, sizeof snap);
     if (!player) {
         return false;
     }
+    const bool dante = has_dante_fields(player);
 
     snap.controller_id = player->controllerID;
     snap.pad_id = player->padID;
@@ -1160,19 +1171,21 @@ static bool capture_player(uPlayer_old* player, PlayerState& snap)
     snap.is_dead = player->damageStruct.isDead;
     snap.stun_reset_timer = player->damageStruct.stunResetTimer;
 
-    snap.current_style = player->currentStyle;
+    snap.current_style = dante ? player->currentStyle : 0;
     snap.dt = player->DT;
     snap.max_dt = player->maxDT;
-    snap.dt_active = player->dtActive;
-    snap.dt_outfit = player->dtOutfit;
+    snap.dt_active = dante ? player->dtActive : false;
+    snap.dt_outfit = dante ? player->dtOutfit : false;
     snap.exceed_level = player->exceedLevel;
     snap.exceed_timer = player->exceedTimer;
     snap.can_exceed = player->canExceed;
     snap.is_exceeding = player->isExceeding;
-    snap.guard_timer = player->guardTimer;
-    snap.revenge_gauge = player->revengeGauge;
-    snap.disaster_gauge = player->disasterGauge;
-    snap.dreadnaught = player->dreadnaught;
+    if (dante) {
+        snap.guard_timer = player->guardTimer;
+        snap.revenge_gauge = player->revengeGauge;
+        snap.disaster_gauge = player->disasterGauge;
+        snap.dreadnaught = player->dreadnaught;
+    }
     snap.next_sword = player->nextSword;
     snap.next_gun = player->nextGun;
     snap.current_sword = player->currentSword;
@@ -1263,19 +1276,26 @@ static void apply_player(uPlayer_old* player, const PlayerState& snap)
     player->damageStruct.isDead = snap.is_dead;
     player->damageStruct.stunResetTimer = snap.stun_reset_timer;
 
-    player->currentStyle = snap.current_style;
+    const bool dante = has_dante_fields(player);
+    if (dante) {
+        player->currentStyle = snap.current_style;
+    }
     player->DT = snap.dt;
     player->maxDT = snap.max_dt;
-    player->dtActive = snap.dt_active;
-    player->dtOutfit = snap.dt_outfit;
+    if (dante) {
+        player->dtActive = snap.dt_active;
+        player->dtOutfit = snap.dt_outfit;
+    }
     player->exceedLevel = snap.exceed_level;
     player->exceedTimer = snap.exceed_timer;
     player->canExceed = snap.can_exceed;
     player->isExceeding = snap.is_exceeding;
-    player->guardTimer = snap.guard_timer;
-    player->revengeGauge = snap.revenge_gauge;
-    player->disasterGauge = snap.disaster_gauge;
-    player->dreadnaught = snap.dreadnaught;
+    if (dante) {
+        player->guardTimer = snap.guard_timer;
+        player->revengeGauge = snap.revenge_gauge;
+        player->disasterGauge = snap.disaster_gauge;
+        player->dreadnaught = snap.dreadnaught;
+    }
     player->nextSword = snap.next_sword;
     player->nextGun = snap.next_gun;
     player->currentSword = snap.current_sword;
@@ -1521,6 +1541,16 @@ static void apply_pad(const PadState& snap)
 }
 
 // ---------------------------------------------------------------- the whole battle
+
+void capture_timing_state(sDevil4Main* main, uint64_t sim_time_us, TimingState& out)
+{
+    capture_timing(main, sim_time_us, out);
+}
+
+void apply_timing_state(sDevil4Main* main, const TimingState& snap, uint64_t& sim_time_us)
+{
+    apply_timing(main, snap, sim_time_us);
+}
 
 bool capture_battle(sDevil4Main* main, uint64_t sim_time_us, BattleSnapshot& out, const char*& reason)
 {

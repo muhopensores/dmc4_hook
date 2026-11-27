@@ -440,6 +440,11 @@ bool capture_battle(sDevil4Main* main, uint64_t sim_time_us, BattleSnapshot& out
 bool restore_battle(sDevil4Main* main, const BattleSnapshot& snap, uint64_t& sim_time_us,
     const char*& reason);
 
+// sDevil4Main's frame timing and the lockstep clock alone: sDevil4Main is not in the game's heaps, so a
+// heap-page restore (HeapSnapshot.hpp) carries these beside the pages.
+void capture_timing_state(sDevil4Main* main, uint64_t sim_time_us, TimingState& out);
+void apply_timing_state(sDevil4Main* main, const TimingState& snap, uint64_t& sim_time_us);
+
 bool pack_into(unsigned char* buffer, uint32_t capacity, uint32_t& written,
     BattleSnapshot& snap, const char*& reason);
 bool unpack_from(const unsigned char* buffer, uint32_t length, BattleSnapshot& snap,

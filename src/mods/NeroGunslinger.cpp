@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <iterator>
 #include <string>
+#include "../sdk/Rollback.hpp"
 
 using namespace wallrun;
 
@@ -976,6 +977,10 @@ static void post_command_tick(uintptr_t pl) {
 using namespace gunslinger;
 
 std::optional<std::string> NeroGunslinger::on_initialize() {
+    // rollback netplay: the move states and the shots go with the frames
+    rollback::add_range("Gunslinger states", gunslinger::g_states, sizeof gunslinger::g_states);
+    rollback::add_range("Gunslinger shots", gunslinger::g_bullets, sizeof gunslinger::g_bullets);
+    rollback::add_range("Gunslinger next shot", &gunslinger::g_bullet_next, sizeof gunslinger::g_bullet_next);
     using namespace input_commands;
     // the rows: COMMAND attr, cancel words as Gerb's / FreeRide's (C_COMMAND open, or C_ALL); the dodges ground only
     // (atckAs 1), the air shot air only (2)

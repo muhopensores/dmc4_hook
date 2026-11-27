@@ -11,12 +11,24 @@
 
 #include "zpp_bits.h"
 #include "dev/netplay/BattleSnapshot.hpp"
+#include "dev/netplay/HeapSnapshot.hpp"
+#include "sdk/FrameHooks.hpp"
+#include "sdk/LocalWorld.hpp"
+#include "sdk/Rollback.hpp"
+#include "sdk/Players.hpp"
+#include "sdk/sArea.hpp"
+#include "sdk/Devil4.hpp"
+#include "dev/netplay/AllocatorThings.hpp"
+#include "GuiFunctions.hpp"
 #include "gekkonet.h"
 #include "utility/CommandLineArgs.hpp"
 #include "dev/netplay/NetplayTestHarness.hpp"
 #include "dev/coop/Coop.hpp"
 #include "dev/coop/CoopPads.hpp"
 #include "Mods.hpp"
+#include <map>
+#include <string>
+#include <unordered_set>
 
 static constexpr auto MAX_PLAYERS = 4;
 
@@ -141,6 +153,156 @@ static void probe_tick_determinism(sDevil4Main* main, const netplay_snapshot::Ba
 static void verify_restore_roundtrip(sDevil4Main* main, const unsigned char* loaded, uint32_t loaded_len, uint64_t sim_time);
 static void reset_desync_diff();
 
+// Rollback restores the game's heap pages (HeapSnapshot.hpp) while that snapshot runs; otherwise
+// BattleSnapshot's field restore. The packed BattleSnapshot is the checksum the machines compare either way.
+static bool g_heap_restore = true;
+static bool g_heap_resource = false;   // also roll back the Resource / Sound heaps (other threads use them)
+static bool g_heap_sound = false;
+static bool heap_restoring()
+{
+    return g_heap_restore && heap_snapshot::active();
+}
+static void sound_after_rewind();   // below, with the sound hooks
+static std::map<int, std::vector<uint8_t>> g_latest_saves;   // diagnostics: the latest packed save of each recent frame
+// diagnostics (DMC4_RNG_WATCH): the code that drew from the game's random stream in each tick (a write watch on its index)
+static bool g_rng_watch = false;
+static int g_tick_frame = -1;   // the frame run_simulation_tick is simulating (an advance event's), -1 = none
+static uint32_t g_tick_serial = 0;   // run_simulation_tick calls so far (diagnostics: which pass a log line is from)
+static std::vector<uint32_t> g_rng_eips;
+static std::map<int, std::vector<uint32_t>> g_rng_by_frame;
+static std::vector<std::string> g_rng_stacks;                    // the stacks of draws from DMC4_RNG_STACK's caller
+static std::map<int, std::vector<std::string>> g_rng_stacks_by_frame;
+static void arm_rng_watch();
+// diagnostics (DMC4_UNIT_HASH): every unit's bytes hashed in 256-byte chunks at each save, written out at the first desync
+// (netdump/units_<pid>_f<n>.bin: per unit its move line and place in it, vtable, bytes, then its chunk hashes, words that
+// point into a heap hashed as 0: the two processes' heaps lie at other addresses), to find the first unit that differs
+static std::map<int, std::vector<uint32_t>> g_unit_hashes;
+static std::vector<uint8_t> g_committed(0x10000);
+static void hash_units(std::vector<uint32_t>& out)
+{
+    out.clear();
+    sUnit* su = (sUnit*)*(uintptr_t*)0x00E552CC;
+    if (!su) {
+        return;
+    }
+    // words that point at committed memory (outside the exe) are left out of the hashes: the processes' allocations lie
+    // elsewhere (committed: 64 KiB granules, also written out with the dumps)
+    std::vector<uint8_t>& committed = g_committed;
+    std::fill(committed.begin(), committed.end(), 0);
+    for (uintptr_t a = 0x10000; a < 0xFFFF0000u;) {
+        MEMORY_BASIC_INFORMATION mbi{};
+        if (!VirtualQuery((void*)a, &mbi, sizeof mbi)) {
+            break;
+        }
+        const uintptr_t end = (uintptr_t)mbi.BaseAddress + mbi.RegionSize;
+        if (mbi.State == MEM_COMMIT) {
+            for (uintptr_t g = (uintptr_t)mbi.BaseAddress >> 16; g <= ((end - 1) >> 16) && g < 0x10000; ++g) {
+                committed[g] = 1;
+            }
+        }
+        if (end <= a) {
+            break;
+        }
+        a = end;
+    }
+    const auto pointer = [&](uint32_t v) { return (v < 0x00400000u || v >= 0x01000000u) && committed[v >> 16]; };
+    for (int line = 0; line < 32; ++line) {
+        if (line == local_world::kLine) {
+            continue;
+        }
+        int guard = 0;
+        for (uintptr_t u = (uintptr_t)su->mMoveLine[line].mTop; u && guard < 4096; u = *(uintptr_t*)(u + 8), ++guard) {
+            uintptr_t block = 0;
+            uint32_t bytes = 0;
+            if (!heap_snapshot::locate(u, block, bytes) || block != u || bytes > 0x100000) {
+                continue;
+            }
+            bytes &= ~3u;
+            out.push_back((uint32_t)(line << 16 | guard));
+            out.push_back(*(const uint32_t*)u);
+            out.push_back(bytes);
+            static const char* raw_lines = std::getenv("DMC4_UNIT_RAW");   // "13,15": those lines' words themselves
+            char tag[8];
+            snprintf(tag, sizeof tag, ",%d,", line);
+            static std::string raw_list = raw_lines ? std::string(",") + raw_lines + "," : std::string();
+            const bool raw_all = raw_list == ",all," && *(const uint32_t*)u != 0x00BC86E0;   // effects (uDevil4Effect) left out
+            if (raw_all || (!raw_list.empty() && raw_list.find(tag) != std::string::npos)) {
+                out.back() |= 0x80000000u;
+                const uint32_t* w = (const uint32_t*)u;
+                for (uint32_t k = 0; k < bytes / 4; ++k) {
+                    out.push_back(w[k]);   // raw: players_cmp.py leaves out words that point at memory on both machines
+                }
+                continue;
+            }
+            for (uint32_t o = 0; o < bytes; o += 256) {
+                uint32_t h = 2166136261u;
+                const uint32_t* w = (const uint32_t*)(u + o);
+                const uint32_t n = (bytes - o < 256 ? bytes - o : 256) / 4;
+                for (uint32_t k = 0; k < n; ++k) {
+                    const uint32_t v = pointer(w[k]) ? 0u : w[k];
+                    h = (h ^ v) * 16777619u;
+                }
+                out.push_back(h);
+            }
+        }
+    }
+}
+
+// Diagnostics: this machine's latest saves of frames [frame - 40, frame] as netdump/last_<pid>_f<n>.bin, once per session.
+static void flush_latest_saves(int frame)
+{
+    static bool done = false;
+    if (done) {
+        return;
+    }
+    done = true;
+    CreateDirectoryA("netdump", NULL);
+    for (const auto& [f, units] : g_unit_hashes) {
+        if (f > frame) {
+            continue;
+        }
+        char name[MAX_PATH];
+        sprintf_s(name, "netdump/units_%lu_f%d.bin", GetCurrentProcessId(), f);
+        if (FILE* out = std::fopen(name, "wb")) {
+            std::fwrite(units.data(), 4, units.size(), out);
+            std::fclose(out);
+        }
+    }
+    for (const auto& [f, bytes] : g_latest_saves) {
+        if (f < frame - 40 || f > frame) {
+            continue;
+        }
+        char name[MAX_PATH];
+        sprintf_s(name, "netdump/last_%lu_f%d.bin", GetCurrentProcessId(), f);
+        if (FILE* out = std::fopen(name, "wb")) {
+            std::fwrite(bytes.data(), 1, bytes.size(), out);
+            std::fclose(out);
+        }
+        if (f == frame && !g_unit_hashes.empty()) {
+            sprintf_s(name, "netdump/committed_%lu.bin", GetCurrentProcessId());
+            if (FILE* out = std::fopen(name, "wb")) {
+                std::fwrite(g_committed.data(), 1, g_committed.size(), out);
+                std::fclose(out);
+            }
+        }
+        const auto draws = g_rng_by_frame.find(f);
+        if (draws != g_rng_by_frame.end()) {
+            sprintf_s(name, "netdump/rng_%lu_f%d.txt", GetCurrentProcessId(), f);
+            if (FILE* out = std::fopen(name, "w")) {
+                std::fprintf(out, "dll %08X%c", (unsigned)(uintptr_t)GetModuleHandleA("dinput8.dll"), 10);
+                for (const std::string& line : g_rng_stacks_by_frame[f]) {
+                    std::fprintf(out, "stack%s%c", line.c_str(), 10);
+                }
+                for (uint32_t eip : draws->second) {
+                    std::fprintf(out, "%08X\n", eip);
+                }
+                std::fclose(out);
+            }
+        }
+    }
+}
+static void probe_log(const char* text);   // the probe's log, or netplay_online_<pid>.log in a session
+
 // Simulation state carried across rollback frames: GekkoNet issues a save event every
 // checkpoint frame and a load event when it rolls back, and this owns the one snapshot
 // the session keeps alive.
@@ -159,6 +321,28 @@ struct Devil4State {
         // handshake, or each side would pin a different stream and diverge from frame 0.
         if (g_tick_rng_fresh) {
             restore_tick_rng();
+        }
+        arm_rng_watch();
+        static const bool unit_hash = std::getenv("DMC4_UNIT_HASH") != nullptr;
+        static const int unit_upto = std::getenv("DMC4_UNIT_UPTO") ? std::atoi(std::getenv("DMC4_UNIT_UPTO")) : 1 << 30;
+        if (unit_hash && (int)event->data.save.frame <= unit_upto) {
+            const int f = (int)event->data.save.frame;
+            hash_units(g_unit_hashes[f]);
+            static const int keep = std::getenv("DMC4_UNIT_KEEP") ? std::atoi(std::getenv("DMC4_UNIT_KEEP")) : 300;
+            while (!g_unit_hashes.empty() && g_unit_hashes.begin()->first < f - keep) {
+                g_unit_hashes.erase(g_unit_hashes.begin());
+            }
+        }
+        if (g_rng_watch) {
+            const int f = (int)event->data.save.frame;
+            g_rng_by_frame[f] = g_rng_eips;
+            g_rng_stacks_by_frame[f] = g_rng_stacks;
+            while (!g_rng_by_frame.empty() && g_rng_by_frame.begin()->first < f - 400) {
+                g_rng_by_frame.erase(g_rng_by_frame.begin());
+            }
+            while (!g_rng_stacks_by_frame.empty() && g_rng_stacks_by_frame.begin()->first < f - 400) {
+                g_rng_stacks_by_frame.erase(g_rng_stacks_by_frame.begin());
+            }
         }
         if (!netplay_snapshot::capture_battle(main, ctx.g_simTimeUs, snapshot, reason)) {
             spdlog::screen(fmt::format("netplay capture failed: {}", reason), 0xFF4C4CFF);
@@ -188,11 +372,29 @@ struct Devil4State {
             *event->data.save.checksum = netplay_snapshot::checksum_of(crc_bytes, crc_len);
             // the diagnostic diffs whatever produced the checksum, so it must hold the same bytes
             note_saved_state((int)event->data.save.frame, *event->data.save.checksum, crc_bytes, crc_len);
-            return true;
+            {
+                // diagnostics: this machine's latest save of each recent frame (the confirmed one once rollbacks passed
+                // it), written out at the first desync (flush_latest_saves) to diff against the peer's (netdump_tool diff)
+                const int f = (int)event->data.save.frame;
+                g_latest_saves[f].assign(crc_bytes, crc_bytes + crc_len);
+                while (!g_latest_saves.empty() && g_latest_saves.begin()->first < f - 400) {
+                    g_latest_saves.erase(g_latest_saves.begin());
+                }
+            }
+            return save_pages(event);
         }
         *event->data.save.checksum = netplay_snapshot::checksum_of(buffer, written);
         note_saved_state((int)event->data.save.frame, *event->data.save.checksum, buffer, written);
-        return true;
+        return save_pages(event);
+    }
+
+    static bool save_pages(GekkoGameEvent* event) {
+        if (!heap_restoring() || heap_snapshot::save((int)event->data.save.frame)) {
+            return true;
+        }
+        spdlog::screen(fmt::format("netplay heap save failed at f{}: {}", event->data.save.frame,
+            heap_snapshot::stats().last_error), 0xFF4C4CFF);
+        return false;
     }
 
     bool load_game(sDevil4Main* main, GekkoGameEvent* event, SimCtx& ctx) {
@@ -205,6 +407,28 @@ struct Devil4State {
         if (!netplay_snapshot::unpack_from(event->data.load.state, event->data.load.state_len, snapshot, reason)) {
             spdlog::screen(fmt::format("netplay unpack failed: {}", reason), 0xFF4C4CFF);
             return false;
+        }
+        if (heap_restoring()) {
+            if (!heap_snapshot::load((int)event->data.load.frame)) {
+                spdlog::screen(fmt::format("netplay heap load failed at f{}: {}", event->data.load.frame,
+                    heap_snapshot::stats().last_error), 0xFF4C4CFF);
+                return false;
+            }
+            netplay_snapshot::apply_timing_state(main, snapshot.timing, ctx.g_simTimeUs);
+            pin_tick_rng_from_live();
+            {
+                // diagnostics: each online load with the loader thread's queue (sResource +0xA050 count, +0xA098 busy)
+                static int logged = 0;
+                const uintptr_t res = *(const uintptr_t*)0x00E552D0;
+                if (logged++ < 20) {
+                    char text[160];
+                    snprintf(text, sizeof text, "load f%d, loader queue %u busy %u", (int)event->data.load.frame,
+                        res ? *(const uint32_t*)(res + 0xA050) : 0u, res ? (unsigned)*(const uint8_t*)(res + 0xA098) : 0u);
+                    probe_log(text);
+                }
+            }
+            sound_after_rewind();
+            return true;
         }
         probe_tick_determinism(main, snapshot, ctx);
         if (!netplay_snapshot::restore_battle(main, snapshot, ctx.g_simTimeUs, reason)) {
@@ -281,6 +505,29 @@ struct NetplayInputInfo {
 };
 static_assert(sizeof(NetplayInputInfo) == 36, "input record layout (34 bytes + 2 tail pad)");
 
+// Test switch DMC4_RANDOM_LIVE for online soak runs: this machine's control plays random face buttons, shoulders, d-pad
+// and left stick (never Select / L3 / R3 / Start: the pause menu), seeded by the control so the machines differ.
+static void random_online_input(NetplayInputInfo& input, int control)
+{
+    static uint32_t x = 0x9E3779B9u ^ (uint32_t)(control * 0x85EBCA6Bu + 1);
+    static uint32_t previous_on = 0;
+    auto next = [] {
+        x ^= x << 13;
+        x ^= x >> 17;
+        x ^= x << 5;
+        return x;
+    };
+    input.mBtnOn = next() & 0xFFF0u;
+    input.mBtnTrg = input.mBtnOn & ~previous_on;
+    input.mBtnRel = previous_on & ~input.mBtnOn;
+    input.mBtnRep = input.mBtnTrg;
+    previous_on = input.mBtnOn;
+    input.mAnlgX = (float)((int)(next() % 2001) - 1000) / 1000.0f;
+    input.mAnlgY = (float)((int)(next() % 2001) - 1000) / 1000.0f;
+    input.mTrgL = (uint8_t)next();
+    input.mTrgR = (uint8_t)next();
+}
+
 static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx& ctx);
 static void apply_recorded_input(const unsigned char* inputs);
 static void fill_live_input(NetplayInputInfo& input, sDevil4Pad* pad);
@@ -291,6 +538,133 @@ static void fill_live_input_control(NetplayInputInfo& input, int control);
 static void apply_recorded_input_control(const NetplayInputInfo& recorded, int control);
 static void dump_desync_states(int frame, uint32_t local, uint32_t remote);
 static Coop* get_coop_mod();
+
+// Sound is presentation: never rewound (its heap, objects and stream buffers stay as they are). Two things keep it from
+// following what a rewind removed:
+//  - re-simulated frames queue no sounds: sDevil4Sound::requestSe 0xA47AA0 (stdcall, 8 arguments) is the only writer of
+//    the command queue (+0x24, 60 bytes each, count at +0xF024), and a command keeps the unit it follows;
+//  - after a rewind, every voice (+0x10850, 0x500 bytes each, count at +0x3CC64) that follows a unit no longer there
+//    stops following it (source +0xA0 = 0: the update then keeps its last position). sub_A47E20 called the source's
+//    vtable through a freed unit otherwise.
+static std::unique_ptr<FunctionHook> g_request_se_hook;
+static bool g_sound_from_resim = false;   // debug: let re-simulated frames queue sounds
+using RequestSeFn = void(__stdcall*)(int, void*, int, int, void*, int, int, int);
+static void __stdcall request_se_detour(int a1, void* res, int a3, int a4, void* a5, int a6, int a7, int a8)
+{
+    if (g_sctx.g_resimulating && !g_sound_from_resim) {
+        return;
+    }
+    if (res && heap_snapshot::active() && !heap_snapshot::resource_live((uintptr_t)res)) {
+        // diagnostics: a sound asked for with a resource that is no longer loaded, and who asked
+        static int logged = 0;
+        if (logged++ < 10) {
+            void* frames[14];
+            const USHORT n = RtlCaptureStackBackTrace(0, 14, frames, nullptr);
+            static const uintptr_t dll = (uintptr_t)GetModuleHandleA("dinput8.dll");
+            char text[400];
+            int at = snprintf(text, sizeof text, "requestSe with a resource no longer loaded %08X (first word %08X), stack",
+                (unsigned)(uintptr_t)res, *(const uint32_t*)res);
+            for (USHORT k = 0; k < n && at < (int)sizeof text - 16; ++k) {
+                const uintptr_t a = (uintptr_t)frames[k];
+                at += snprintf(text + at, sizeof text - at, a >= dll && a < dll + 0x1500000 ? " d+%X" : " %08X",
+                    (unsigned)(a >= dll && a < dll + 0x1500000 ? a - dll : a));
+            }
+            probe_log(text);
+        }
+    }
+    // a request may draw from the game's random stream (variations), and re-simulated ticks make none: it leaves the stream
+    // as it was, or a frame simulated forward and the same frame simulated again would draw differently
+    MtRandom saved;
+    const bool keep = heap_restoring();
+    if (keep) {
+        std::memcpy(&saved, mt_random_global(), sizeof saved);
+    }
+    g_request_se_hook->get_original<std::remove_pointer_t<RequestSeFn>>()(a1, res, a3, a4, a5, a6, a7, a8);
+    if (keep) {
+        std::memcpy(mt_random_global(), &saved, sizeof saved);
+    }
+}
+
+static void probe_log(const char* text);
+
+static void units_alive(std::vector<std::pair<uintptr_t, uintptr_t>>& live)
+{
+    live.clear();
+    sUnit* su = (sUnit*)*(uintptr_t*)0x00E552CC;
+    if (!su) {
+        return;
+    }
+    for (int line = 0; line < 32; ++line) {
+        uintptr_t previous = 0;
+        for (uintptr_t u = (uintptr_t)su->mMoveLine[line].mTop; u && live.size() < 100000; previous = u, u = *(uintptr_t*)(u + 8)) {
+            if (u < 0x10000 || (u & 3) != 0) {
+                // a broken unit list after a rewind (the game would fault on it too): what links to it
+                char text[200];
+                snprintf(text, sizeof text, "unit list %d broken after a rewind: next %08X after unit %08X (vtable %08X), top %08X",
+                    line, (unsigned)u, (unsigned)previous, previous ? *(const uint32_t*)previous : 0u,
+                    (unsigned)(uintptr_t)su->mMoveLine[line].mTop);
+                probe_log(text);
+                char where[160];
+                heap_snapshot::describe(previous, where, sizeof where);
+                snprintf(text, sizeof text, "  previous %08X: %s", (unsigned)previous, where);
+                probe_log(text);
+                heap_snapshot::describe(previous + 8, where, sizeof where);
+                snprintf(text, sizeof text, "  its next field: %s", where);
+                probe_log(text);
+                int shown = 0;
+                for (uintptr_t c = (uintptr_t)su->mMoveLine[line].mTop; c && c != previous && shown < 24; c = *(uintptr_t*)(c + 8), ++shown) {
+                    snprintf(text, sizeof text, "  chain %08X vtable %08X", (unsigned)c, *(const uint32_t*)c);
+                    probe_log(text);
+                }
+                break;
+            }
+            uintptr_t bytes = (uintptr_t)*(uint32_t*)(u - 16) * 16 - *(uint16_t*)(u - 6);   // MtHeapAllocator::memSize
+            if (bytes == 0 || bytes > 0x1000000) {
+                bytes = 0x10;
+            }
+            live.emplace_back(u, u + bytes);
+        }
+    }
+    std::sort(live.begin(), live.end());
+}
+
+static uint32_t g_voices_detached = 0;
+static void sound_after_rewind()
+{
+    static constexpr uintptr_t kSoundObjects[] = {0x00E559D8, 0x00E47D38};   // sSoundN, sDevil4Sound
+    uintptr_t sound = 0;
+    for (uintptr_t global : kSoundObjects) {
+        const uintptr_t o = *(const uintptr_t*)global;
+        if (o && *(const uintptr_t*)o == 0x00C07544) {
+            sound = o;
+        }
+    }
+    if (!sound) {
+        return;
+    }
+    std::vector<std::pair<uintptr_t, uintptr_t>> live;
+    units_alive(live);
+    auto alive = [&](uintptr_t p) {
+        auto it = std::upper_bound(live.begin(), live.end(), std::make_pair(p, UINTPTR_MAX));
+        return local_world::contains(p) || (it != live.begin() && p < std::prev(it)->second);
+    };
+    const uint32_t voices = *(const uint32_t*)(sound + 0x3CC64);
+    for (uint32_t i = 0; i < voices && i < 1024; ++i) {
+        uintptr_t& source = *(uintptr_t*)(sound + 0x10850 + i * 0x500 + 0xA0);
+        if (source && !alive(source)) {
+            source = 0;
+            ++g_voices_detached;
+        }
+    }
+}
+
+static void begin_heap_snapshot(int rollback_frames)
+{
+    if (g_heap_restore && !heap_snapshot::begin(rollback_frames + 4)) {
+        spdlog::screen(fmt::format("netplay: heap snapshot unavailable ({}), restoring fields instead",
+            heap_snapshot::stats().last_error), 0xFF4C4CFF);
+    }
+}
 
 // Shared event pump for both session types.
 struct SessionPumpResult {
@@ -421,6 +795,7 @@ struct OnlineComponent : NetplayComponent {
             end_session();
             return;
         }
+        begin_heap_snapshot(prediction_window);
 
         GekkoConfig config {0};
         config.desync_detection = true;
@@ -488,6 +863,7 @@ struct OnlineComponent : NetplayComponent {
         // the pin belongs to the session that took it: a plain tick after a Disconnect must run
         // on the live stream, not rewind to the last saved one every frame
         clear_tick_rng_pin();
+        heap_snapshot::end();
         gekko_default_adapter_destroy();
         gekko_destroy(&session);
         session = nullptr;
@@ -534,6 +910,16 @@ struct OnlineComponent : NetplayComponent {
         }
         GekkoRollbackStats rollback {};
         gekko_rollback_stats(session, &rollback);
+        {
+            static int presented = 0;
+            if (++presented % 600 == 0) {
+                char text[200];
+                snprintf(text, sizeof text, "stats: ping %.1f ms, frames ahead %.2f, rollbacks %u avg %.1f max %u, stalls %u",
+                    netstats.avg_ping, frames_ahead, (unsigned)rollback.total_count, rollback.avg_frames,
+                    (unsigned)rollback.max_frames, (unsigned)rollback.total_stalls);
+                probe_log(text);
+            }
+        }
         const bool local_pad_ok = coop_pads::connected(local_control);
         spdlog::screen(fmt::format(
             "net | P {:4.1f}ms PA {:4.1f}ms J {:4.1f}ms | S {:5.2f} R {:5.2f} KB/s | FA {:5.2f} | D {} W {} | RB {} avg {:.1f} max {} stalls {} | pad{} {}",
@@ -547,6 +933,10 @@ struct OnlineComponent : NetplayComponent {
         // applied to their control's pad before every tick (pump_gekko_events).
         NetplayInputInfo input {};
         fill_live_input_control(input, local_control);
+        static const bool random_live = std::getenv("DMC4_RANDOM_LIVE") != nullptr;
+        if (random_live) {
+            random_online_input(input, local_control);
+        }
         gekko_add_local_input(session, local_control, &input);
 
         int event_count = 0;
@@ -559,11 +949,31 @@ struct OnlineComponent : NetplayComponent {
                 // events, so nothing here needs capping
                 spdlog::screen(fmt::format("DESYNC f{} now {:08X} was {:08X}", desync.frame, desync.local_checksum, desync.remote_checksum),
                     0xFF4C4CFF);
+                {
+                    static int logged = 0;
+                    if (logged++ < 200) {
+                        char text[96];
+                        snprintf(text, sizeof text, "DESYNC f%d local %08X remote %08X", (int)desync.frame,
+                            desync.local_checksum, desync.remote_checksum);
+                        probe_log(text);
+                    }
+                }
                 dump_desync_states((int)desync.frame, desync.local_checksum, desync.remote_checksum);
+                flush_latest_saves((int)desync.frame);
             }
         }
 
         const SessionPumpResult result = pump_gekko_events(session, main, *ctx, num_players);
+        if (result.forward_ticks > 1) {
+            // diagnostics: more than one forward tick in a presented frame (the native prelude / tail ran once)
+            static int logged = 0;
+            if (logged++ < 40) {
+                char text[120];
+                snprintf(text, sizeof text, "pump: %d forward ticks, %d ticks, %d loads in one frame (last f%d)",
+                    result.forward_ticks, result.ticks, result.loads, g_tick_frame);
+                probe_log(text);
+            }
+        }
         if (result.rollback_broke) {
             if (result.save_refused) {
                 // A pack that does not fit or a capture that refuses leaves the ring
@@ -759,8 +1169,8 @@ struct OnlineComponent : NetplayComponent {
 // AddStateSaveEvent(current - 1, _replay.PendingState()) next to the ring saves - so keying the
 // copies by frame number diffs two saves that were never the two sides of the comparison. Keep
 // the bytes of the most recent saves and diff the pair whose checksums are the two the event
-// names.
-#ifdef _DEBUG
+// names. Dev builds keep them too (two Release instances over loopback).
+#if defined(_DEBUG) || !defined(PUBLIC_BUILD)
 // One presented frame re-saves check_distance frames, and a frame's checksum is only compared
 // check_distance frames later, so the ring of recent samples has to stay wider than that
 // (one eviction window is enough); at the worst-case state size kDesyncSampleSlots samples
@@ -810,7 +1220,7 @@ static void note_saved_state(int frame, uint32_t checksum, const unsigned char* 
 // pair - netdump_tool diff names the field and decodes both values; netdump_tool scan pairs them.
 // On the FIRST desync of a session the whole recent save window is also flushed, so the first
 // diverging frame can be found by pairing the two machines' files for f<N>-1 .. f<N>.
-// Bytes are only kept in _DEBUG (note_saved_state), so dumps need a debug build on both
+// Bytes are kept in debug and dev builds (note_saved_state), so dumps need such a build on both
 // machines with the same state layout.
 static void dump_sample(const DesyncSample& sample)
 {
@@ -929,6 +1339,11 @@ static bool g_replay_tail_full = false;
 #endif
 #undef DESYNC_FULL_TAIL
 
+static bool full_tail()
+{
+    return g_replay_tail_full || heap_restoring();
+}
+
 static __forceinline void* main_member(sDevil4Main* main, size_t offset)
 {
     return *(void**)((unsigned char*)main + offset);
@@ -994,34 +1409,34 @@ static void run_tail_simulation(sDevil4Main* main)
     // model.now_frame_quat/now_frame_pos, facing_direction, the cancel-permission
     // bytes 0x0C51..0x0C5A, enemies[] position/target_position/knockback_*) is
     // written by one of those three, with pad and MtRandom state identical.
-    if (g_replay_tail_full) {
+    if (full_tail()) {
         call_tail_system(main_member(main, 0x1037C), 0x18, "sDevil4Effect");
     }
     call_tail_system(main_member(main, 0x103C0), 0x18, "timers");
-    if (g_replay_tail_full) {
+    if (full_tail()) {
         call_tail_system(main_member(main, 0x10378), 0x18, "system 0x10378");
         call_tail_system(main_member(main, 0x10358), 0x18, "sCamera");
         call_tail_system(main_member(main, 0x103A0), 0x18, "emitters");
         call_tail_system(main_member(main, 0x103AC), 0x18, "8-entry list");
     }
     call_tail_system(main_member(main, 0x103A8), 0x24, "route queue");
-    if (g_replay_tail_full) {
+    if (g_replay_tail_full && !heap_restoring()) {
         // sDevil4Sound::mpInstance (created in sDevil4Main init at 0x8AE1A1 through
         // sub_486E70(0x560, 0x10)); null until then, and call_system dereferences only a
         // non-null system.
         call_tail_system((void*) * (uintptr_t*)0x00E47D38, 0x18, "sDevil4Sound");
     }
     call_tail_system(main_member(main, 0x10390), 0x18, "state machine");
-    if (g_replay_tail_full) {
+    if (full_tail()) {
         call_tail_system(main_member(main, 0x1034C), 0x18, "sDevil4Tool");
         ((int(__stdcall*)(sDevil4Main*))0x008AFE20)(main);
     }
     call_tail_system(main_member(main, 0x10398), 0x18, "sMediator");
-    if (g_replay_tail_full) {
+    if (full_tail()) {
         call_tail_system(main_member(main, 0x103B8), 0x18, "sSave");
     }
     call_tail_system(main_member(main, 0x1039C), 0x18, "sWorkRate");
-    if (g_replay_tail_full) {
+    if (full_tail()) {
         call_tail_system(main_member(main, 0x10370), 0x18, "system 0x10370");
     }
 }
@@ -1407,6 +1822,7 @@ void StressTestComponent::start_session(uint8_t num_players, uint8_t prediction_
     gekko_set_input_prediction_window(new_session, 0);
 
     session = new_session;
+    begin_heap_snapshot((int)config.check_distance);
     netplay_test::page_session_started((int)config.check_distance);
     spdlog::screen(fmt::format("stress session up: state {} input {} check {} delay {}",
         config.state_size, config.input_size, config.check_distance, local_delay));
@@ -1414,6 +1830,7 @@ void StressTestComponent::start_session(uint8_t num_players, uint8_t prediction_
 
 void StressTestComponent::end_session()
 {
+    heap_snapshot::end();
     if (session) {
         gekko_destroy(&session);
         session = nullptr;
@@ -1707,6 +2124,8 @@ static NetplayMode g_mode = NetplayMode::None;
 
 // Swapping modes ends the old component's session first; the new one starts its own
 // session from its UI or from on_stage_start().
+static void install_fault_logger();
+
 static void select_mode(NetplayMode mode) {
     if (g_mode == mode) {
         return;
@@ -1724,6 +2143,7 @@ static void select_mode(NetplayMode mode) {
 
     if (g_netplay) {
         g_netplay->ctx = &g_sctx;
+        install_fault_logger();   // faults go to netplay_online_<pid>.log
     }
 }
 
@@ -1809,8 +2229,14 @@ static void update_simulation_timing(sDevil4Main* main)
 // request 30fps lock. 30fps paths are not tested
 // this locks to 60, from FramePacer.hpp
 static std::unique_ptr<FunctionHook> g_smain_move_timing_hook;
+static bool fixed_timing_wanted();
 void __fastcall sMain_move_fixed(uint8_t* self, void* unused0)
 {
+    // the game's own timing unless a netplay mode or the rollback probe needs the fixed clock
+    if (!fixed_timing_wanted()) {
+        g_smain_move_timing_hook->get_original<decltype(sMain_move_fixed)>()(self, unused0);
+        return;
+    }
     sDevil4Main* main = (sDevil4Main*)self;
     if (!g_sctx.g_resimulating) {
         // g_pace_scale <= 1: only ever slows the pacer, and only the online component sets it.
@@ -1831,6 +2257,22 @@ void __fastcall sMain_move_fixed(uint8_t* self, void* unused0)
 // recorded pad and the tail owns presentation.
 static void run_frame_prelude(sDevil4Main* main)
 {
+    // 0x8AEEC1..0x8AEECC: sDevil4Effect's frame start (vtable +0x20). The other prelude calls are devices
+    // (pad 0x1035C, keyboard 0x10388, mouse 0x10384, vibration 0x1038C), loading (sResource 0x10354),
+    // rendering (sPrim, the GPU particles, sRender, sShader) or empty (0x1034C +0x24).
+    if (heap_restoring()) {
+        call_system(main_member(main, 0x1037C), 0x20);
+        // 0x8AEECE..0x8AEED4: sPrim's per-frame reset (sub_A34C00, edi = sPrim). Effects submit primitives during the tick;
+        // without the reset the frames simulated again kept theirs, and the next drawn frame drew primitives of particles a
+        // rewind had already taken away.
+        if (void* prim = main_member(main, 0x10360)) {
+            const uintptr_t reset = 0x00A34C00;
+            __asm {
+                mov edi, prim
+                call reset
+            }
+        }
+    }
     // 0x8AEEDF..0x8AEEEA: mpCollision+0x179 = 1, then sCollision::setup (edi = the object).
     if (void* col = main->mpD4Collision) {
         *(uint8_t*)((unsigned char*)col + 0x179) = 1;
@@ -1852,6 +2294,8 @@ static void run_frame_prelude(sDevil4Main* main)
 }
 
 static bool g_smain_prelude_enabled = false;
+static bool g_probe_replay = false;   // the rollback probe's re-run ticks (no GekkoNet event)
+static bool g_probe_coop = false;     // test switch DMC4_PROBE_COOP: a second player with random input
 // One simulation tick, shared by the plain path and by every GekkoNet advance event
 // (rollback included), so a re-simulated tick runs exactly the same code as the
 // original pass. The lockstep clock belongs to the tick: HandleRollback (stress_session.cpp:164)
@@ -1864,6 +2308,10 @@ static bool g_smain_prelude_enabled = false;
 // this function never touches the pad, so a re-simulated tick sees exactly what the pump wrote.
 static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx& ctx)
 {
+    g_rng_eips.clear();
+    g_rng_stacks.clear();
+    g_tick_frame = event ? (int)event->data.adv.frame : -1;
+    ++g_tick_serial;
     restore_tick_rng();
     pin_simulation_environment();
     // The measured fps is frame-time smoothing, per machine, and it feeds both the clock
@@ -1872,15 +2320,26 @@ static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx
     if (main->mFPSlock > 0.0f) {
         main->mFps = main->mFPSlock;
     }
-    if (event && ctx.g_replaying_window) {
+    const bool replaying = (event && ctx.g_replaying_window) || g_probe_replay;
+    const bool prelude = replaying && (g_smain_prelude_enabled || heap_restoring());
+    if (prelude) {
+        // 0x8AEE90 / 0x8AEE9B: sMediator applies pending frame-rate and frame-wait requests before sMain::move
+        if (sMediator* med = main->mpMediator) {
+            ((void(__thiscall*)(sMediator*))0x00493D10)(med);
+            ((void(__thiscall*)(sMediator*))0x00493E20)(med);
+        }
+    }
+    if (replaying) {
         update_simulation_timing(main);
     }
     const float fps = main->mFps;
     ctx.g_simTimeUs += (fps == 60.0f) ? 16667 : (uint64_t)(1000000.0 / fps);
 
-    if (g_smain_prelude_enabled && event && ctx.g_replaying_window) {
+    if (prelude) {
         run_frame_prelude(main);
     }
+    // the mods' per-tick work (Coop's tick), forward and re-simulated alike: after the prelude, as on a forward tick
+    frame_hooks::tick_start();
 
     sCollisionGame__checkInit_sub_47B620(main->mpCollisionGame);
     main->mpUnit->moveExForAll();
@@ -1892,6 +2351,19 @@ static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx
     }
     main->mpUnit->moveAfter();
     sCollisionGame__checkAttackMain_sub_47BC30(main->mpCollisionGame);
+    // the native block's FRAME_END site (0x8AF03F) is skipped with it: the debug server and plugins run here,
+    // once per forward tick
+    if (!ctx.g_resimulating) {
+        {
+            // forward ticks only: what runs here (mods' frame-end work, plugins, the debug server) must not draw from the
+            // game's random stream, or the same frame simulated again would draw differently
+            MtRandom saved;
+            std::memcpy(&saved, mt_random_global(), sizeof saved);
+            frame_hooks::frame_end();
+            std::memcpy(mt_random_global(), &saved, sizeof saved);
+        }
+        local_world::tick();   // the local units (visual mods), never re-simulated: after the forward tick, before the draw
+    }
     call_system(main->mpD4Collision, 0x20);   // original 0x8AF03F post-attack sync pass
     // the tick consumed the pinned stream: the next save must capture the live state again
     g_tick_rng_fresh = false;
@@ -2003,12 +2475,726 @@ static SessionPumpResult pump_gekko_events(GekkoSession* session, sDevil4Main* m
 }
 
 
+#pragma region rollback_probe
+// Rollback probe, on one machine without a session: every `interval` frames the last `depth` frames are
+// simulated again from the heap snapshot, first with made-up input (a mispredicted run whose attacks, jumps
+// and shots the rewind has to undo), then with the input they really had, and heap_snapshot's verify compares
+// every page the window wrote with the original run. GekkoNet's stress session can't find this kind of miss:
+// it re-simulates with the same input. Results also go to netplay_probe.log in the game folder.
+struct RollbackProbe {
+    static constexpr int kHistory = 128;
+    bool enabled = false;
+    bool running = false;
+    bool made_up_first = true;
+    int depth = 8;
+    int interval = 30;
+    int frame = 0;              // the next tick
+    int last_probe = 0;
+    uintptr_t room = 0;         // the room the snapshot belongs to: a rewind can't cross a load
+    int settled = 0;            // frames in that room with a player
+    bool replay_next = false;   // the forward tick after a probe replays its prelude: the rewind undid it
+    uint32_t runs = 0, failures = 0, skipped = 0;
+    uint32_t rng = 0x2545F491u;
+    heap_snapshot::VerifyResult last{};
+    NetplayInputInfo inputs[kHistory]{};
+    NetplayInputInfo inputs2[kHistory]{};   // player 2 (DMC4_PROBE_COOP)
+    netplay_snapshot::TimingState timing[kHistory]{};
+    std::vector<uint8_t> checked[kHistory];   // the checksummed state after each forward tick
+    float trace[kHistory][2][10]{};          // per player: what the stick direction is made of, after each forward tick
+    std::vector<uint8_t> cam_block[kHistory];  // player 2's camera unit, after each forward tick
+    uint32_t checked_differ = 0;              // replays whose checksummed state left the forward run's
+};
+static RollbackProbe g_probe;
+
+// The probe's log, or in an online session one per process (two instances share the game folder in loopback tests).
+static void probe_log(const char* text)
+{
+    char name[64] = "netplay_probe.log";
+    if (g_netplay) {
+        snprintf(name, sizeof name, "netplay_online_%lu.log", GetCurrentProcessId());
+    }
+    if (FILE* f = std::fopen(name, "a")) {
+        std::fputs(text, f);
+        std::fputc('\n', f);
+        std::fclose(f);
+    }
+}
+
+static volatile LONG g_probe_faults = 0;
+static const char* g_probe_phase = "forward";   // what the probe is simulating (fault / watch logs)
+static int g_probe_tick = 0;
+static uintptr_t g_watch_address = 0;           // test switch DMC4_WATCH=<hex offset in the Unit heap>: writes logged
+static volatile LONG g_watch_hits = 0;
+constexpr DWORD kArmWatch = 0xE0D40001;
+
+static void probe_log(const char* text);
+
+// Return addresses on the stack (the game's code and this DLL's), for the watch log.
+static void stack_addresses(const CONTEXT& c, char* out, size_t n)
+{
+    static const uintptr_t dll = (uintptr_t)GetModuleHandleA("dinput8.dll");
+    size_t at = 0;
+    int found = 0;
+    const uint32_t* sp = (const uint32_t*)c.Esp;
+    for (int i = 0; i < 512 && found < 10 && at + 12 < n; ++i) {
+        const uint32_t v = sp[i];
+        const bool game = v >= 0x00401000 && v < 0x00B85000;
+        const bool ours = v >= dll && v < dll + 0x1500000;
+        if (game || ours) {
+            at += snprintf(out + at, n - at, ours ? " d+%X" : " %08X", ours ? (unsigned)(v - dll) : (unsigned)v);
+            ++found;
+        }
+    }
+    out[at] = 0;
+}
+
+// The first faults while the probe runs: where each register points (heap, block), for the probe log.
+static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
+{
+    const DWORD code = info->ExceptionRecord->ExceptionCode;
+    CONTEXT& c = *info->ContextRecord;
+    if (code == kArmWatch) {
+        c.Dr0 = g_watch_address;
+        c.Dr7 = 1u | (1u << 16) | (3u << 18);   // L0, break on write, 4 bytes
+        c.Dr6 = 0;
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
+    if (code == EXCEPTION_SINGLE_STEP && (c.Dr6 & 1) && g_rng_watch) {
+        c.Dr6 = 0;
+        if (g_rng_eips.size() < 8192) {
+            // MtRandom::nextTable 0x4055E0 is a leaf: after its write the caller is at [esp]
+            g_rng_eips.push_back(c.Eip == 0x00405603 ? *(const uint32_t*)c.Esp : (uint32_t)c.Eip);
+        }
+        static const uint32_t stack_of = std::getenv("DMC4_RNG_STACK") ? std::strtoul(std::getenv("DMC4_RNG_STACK"), nullptr, 16) : 0;
+        if (stack_of && c.Eip == 0x00405603 && *(const uint32_t*)c.Esp == stack_of && g_rng_stacks.size() < 64) {
+            char stack[200];
+            stack_addresses(c, stack, sizeof stack);
+            g_rng_stacks.emplace_back(stack);
+        }
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
+    if (code == EXCEPTION_SINGLE_STEP && (c.Dr6 & 1)) {
+        c.Dr6 = 0;
+        static const int watch_from = std::getenv("DMC4_WATCH_FROM") ? std::atoi(std::getenv("DMC4_WATCH_FROM")) : 0;
+        if (g_probe.frame >= watch_from && InterlockedIncrement(&g_watch_hits) <= 3000) {
+            char stack[160];
+            stack_addresses(c, stack, sizeof stack);
+            char line[300];
+            snprintf(line, sizeof line, "watch: %08X now %08X at %08X, %s tick %d, probe frame %d, stack%s",
+                (unsigned)g_watch_address, *(const uint32_t*)g_watch_address, (unsigned)c.Eip, g_probe_phase, g_probe_tick,
+                g_probe.frame, stack);
+            probe_log(line);
+        }
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
+    if ((!g_probe.running && !g_netplay) || code != EXCEPTION_ACCESS_VIOLATION || InterlockedIncrement(&g_probe_faults) > 2) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+    char line[200];
+    snprintf(line, sizeof line, "fault at %08X reading %08X, %s tick %d, probe frame %d", (unsigned)c.Eip,
+        (unsigned)info->ExceptionRecord->ExceptionInformation[1], g_probe_phase, g_probe_tick, g_probe.frame);
+    probe_log(line);
+    const char* names[] = {"eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"};
+    const DWORD values[] = {c.Eax, c.Ebx, c.Ecx, c.Edx, c.Esi, c.Edi, c.Ebp};
+    for (int i = 0; i < 7; ++i) {
+        uintptr_t block = 0;
+        uint32_t bytes = 0;
+        const char* heap = heap_snapshot::locate(values[i], block, bytes);
+        if (!heap) {
+            continue;
+        }
+        snprintf(line, sizeof line, "  %s %08X %s: block %08X +%X of %X, first word %08X", names[i], (unsigned)values[i],
+            heap, (unsigned)block, (unsigned)(block ? values[i] - block : 0), bytes, block ? *(const uint32_t*)block : 0u);
+        probe_log(line);
+        if (block && bytes <= 0x100 && std::strcmp(heap, "Resource") == 0) {
+            // a small Resource-heap object (a cResource): its words and its path
+            const uint32_t* w = (const uint32_t*)block;
+            for (uint32_t k = 0; k < bytes / 4; k += 8) {
+                snprintf(line, sizeof line, "    +%02X %08X %08X %08X %08X %08X %08X %08X %08X", k * 4, w[k], w[k + 1],
+                    w[k + 2], w[k + 3], w[k + 4], w[k + 5], w[k + 6], w[k + 7]);
+                probe_log(line);
+            }
+            char path[80] = {};
+            std::memcpy(path, (const char*)block + 0x0C, 64);
+            for (char& ch : path) {
+                if (ch && (ch < 32 || ch > 126)) ch = '?';
+            }
+            snprintf(line, sizeof line, "    path at +0C: %s", path);
+            probe_log(line);
+        }
+    }
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+static void arm_rng_watch()
+{
+    static bool armed = false;
+    if (armed || !std::getenv("DMC4_RNG_WATCH")) {
+        return;
+    }
+    armed = true;
+    install_fault_logger();
+    g_watch_address = 0x00EAD070;   // MtRandom (0xEAC6B0) mti, +0x9C0
+    g_rng_watch = true;
+    RaiseException(kArmWatch, 0, 0, nullptr);
+}
+
+static void install_fault_logger()
+{
+    static PVOID handler = AddVectoredExceptionHandler(1, probe_fault_logger);
+    (void)handler;
+}
+
+static void probe_stop()
+{
+    if (g_probe.running) {
+        heap_snapshot::end();
+        g_probe.running = false;
+        clear_tick_rng_pin();
+    }
+}
+
+// Buttons, the left stick and the triggers at random: face buttons, shoulders and the d-pad, never
+// Select / L3 / R3 / Start (bits 0-3: the pause menu).
+static NetplayInputInfo probe_made_up_input(const NetplayInputInfo& real, uint32_t& previous_on)
+{
+    auto next = [] {
+        uint32_t& x = g_probe.rng;
+        x ^= x << 13;
+        x ^= x >> 17;
+        x ^= x << 5;
+        return x;
+    };
+    NetplayInputInfo input = real;
+    input.mBtnOn = next() & 0xFFF0u;
+    input.mBtnTrg = input.mBtnOn & ~previous_on;
+    input.mBtnRel = previous_on & ~input.mBtnOn;
+    input.mBtnRep = input.mBtnTrg;
+    previous_on = input.mBtnOn;
+    input.mAnlgX = (float)((int)(next() % 2001) - 1000) / 1000.0f;
+    input.mAnlgY = (float)((int)(next() % 2001) - 1000) / 1000.0f;
+    input.mTrgL = (uint8_t)next();
+    input.mTrgR = (uint8_t)next();
+    return input;
+}
+
+// Diagnostics: the bytes the online checksum is taken from (save_game's scrubbed pack), for the probe's comparison.
+static bool pack_checked(sDevil4Main* main, std::vector<uint8_t>& out)
+{
+    static netplay_snapshot::BattleSnapshot snap;
+    static unsigned char bytes[netplay_snapshot::kWireScratchBytes];
+    const char* reason = nullptr;
+    out.clear();
+    if (!netplay_snapshot::capture_battle(main, g_sctx.g_simTimeUs, snap, reason)) {
+        return false;
+    }
+    for (uint32_t i = 0; i < snap.enemy_count; ++i) {
+        netplay_snapshot::scrub_scratch_gate(snap.enemies[i].gate);
+    }
+    netplay_snapshot::scrub_scratch_camera(snap.camera);
+    netplay_snapshot::scrub_desync_noise(snap);
+    uint32_t len = 0;
+    if (!netplay_snapshot::pack_into(bytes, netplay_snapshot::state_bytes(), len, snap, reason)) {
+        return false;
+    }
+    out.assign(bytes, bytes + len);
+    return true;
+}
+
+// The real-input replay of frame k against its forward run: the first replay that differs writes both packs to
+// netdump/probe_fwd_f<k>.bin / probe_rep_f<k>.bin (netdump_tool diff).
+static bool compare_checked(sDevil4Main* main, int k)
+{
+    const std::vector<uint8_t>& forward = g_probe.checked[k % RollbackProbe::kHistory];
+    static std::vector<uint8_t> replay;
+    if (forward.empty() || !pack_checked(main, replay)) {
+        return true;
+    }
+    if (replay == forward) {
+        return true;
+    }
+    uint32_t first = 0;
+    while (first < replay.size() && first < forward.size() && replay[first] == forward[first]) {
+        ++first;
+    }
+    char line[160];
+    snprintf(line, sizeof line, "  checked state differs at f%d: %u vs %u bytes, first at +%X", k,
+        (unsigned)forward.size(), (unsigned)replay.size(), first);
+    probe_log(line);
+    if (g_probe.checked_differ++ < 3) {
+        CreateDirectoryA("netdump", NULL);
+        char name[MAX_PATH];
+        sprintf_s(name, "netdump/probe_fwd_f%d.bin", k);
+        if (FILE* out = std::fopen(name, "wb")) {
+            std::fwrite(forward.data(), 1, forward.size(), out);
+            std::fclose(out);
+        }
+        sprintf_s(name, "netdump/probe_rep_f%d.bin", k);
+        if (FILE* out = std::fopen(name, "wb")) {
+            std::fwrite(replay.data(), 1, replay.size(), out);
+            std::fclose(out);
+        }
+    }
+    return false;
+}
+
+// Diagnostics: what turns a player's stick into a direction (uPlayer::setCameraAngle 0x7ABCB0 -> +0x16F8 / +0x16F4,
+// setInterfaceAnlgInfo 0x7A9550 -> mAnlg), and the camera eye / target it reads.
+static void trace_players(float out[2][10])
+{
+    std::memset(out, 0, sizeof(float) * 20);
+    for (int i = 0; i < 2; ++i) {
+        const uintptr_t pl = player_info::player(i);
+        if (!pl) {
+            continue;
+        }
+        out[i][0] = *(const float*)(pl + 0x16F8);
+        out[i][1] = *(const float*)(pl + 0x16F4);
+        out[i][2] = *(const float*)(pl + 0x141C);   // mAnlg.pow (as bits, a float view)
+        out[i][3] = *(const float*)(pl + 0x1420);   // mAnlg.radian
+        Coop* coop = get_coop_mod();
+        const uintptr_t cam = i == 0 || !(coop && coop->mod_enabled) ? *(const uintptr_t*)(*(const uintptr_t*)0x00E558B8 + 0xD0)
+                                                                      : (uintptr_t)coop::players[i].cam;
+        if (cam) {
+            for (int k = 0; k < 3; ++k) {
+                out[i][4 + k] = *(const float*)(cam + 0x30 + 4 * k);
+                out[i][7 + k] = *(const float*)(cam + 0x50 + 4 * k);
+            }
+        }
+    }
+}
+
+// Diagnostics: player 2's camera unit, whole (heap block).
+static void copy_cam_block(std::vector<uint8_t>& out)
+{
+    out.clear();
+    Coop* coop = get_coop_mod();
+    const uintptr_t cam = coop && coop->mod_enabled ? (uintptr_t)coop::players[1].cam : 0;
+    uintptr_t block = 0;
+    uint32_t bytes = 0;
+    if (!cam || !heap_snapshot::locate(cam, block, bytes) || block != cam || bytes > 0x10000) {
+        return;
+    }
+    out.assign((const uint8_t*)cam, (const uint8_t*)cam + bytes);
+}
+
+static void compare_cam_block(int k)
+{
+    static std::vector<uint8_t> now;
+    copy_cam_block(now);
+    const std::vector<uint8_t>& was = g_probe.cam_block[k % RollbackProbe::kHistory];
+    static int reports = 0;
+    if (now.empty() || now.size() != was.size() || now == was || reports >= 12) {
+        return;
+    }
+    ++reports;
+    char line[400];
+    int at = snprintf(line, sizeof line, "  camera 2 block differs at f%d:", k);
+    int runs = 0;
+    for (uint32_t o = 0; o + 4 <= now.size() && runs < 24; o += 4) {
+        if (std::memcmp(&now[o], &was[o], 4) != 0) {
+            float a, b;
+            std::memcpy(&a, &was[o], 4);
+            std::memcpy(&b, &now[o], 4);
+            at += snprintf(line + at, sizeof line - at, " +%X(%g/%g)", o, a, b);
+            ++runs;
+            if (at > (int)sizeof line - 40) {
+                break;
+            }
+        }
+    }
+    probe_log(line);
+}
+
+static void compare_trace(int k)
+{
+    float now[2][10];
+    trace_players(now);
+    const float (&was)[2][10] = g_probe.trace[k % RollbackProbe::kHistory];
+    static const char* names[10] = { "cam angle", "angle", "pow", "radian", "eye x", "eye y", "eye z", "at x", "at y", "at z" };
+    static int lines = 0;
+    for (int i = 0; i < 2; ++i) {
+        for (int f = 0; f < 10; ++f) {
+            if (std::memcmp(&now[i][f], &was[i][f], 4) != 0 && lines < 400) {
+                ++lines;
+                char line[160];
+                snprintf(line, sizeof line, "  trace f%d player %d %s: forward %.6f, replay %.6f", k, i + 1, names[f],
+                    was[i][f], now[i][f]);
+                probe_log(line);
+            }
+        }
+    }
+}
+
+static void probe_save(sDevil4Main* main, int frame, bool keep_timing)
+{
+    heap_snapshot::save(frame);
+    if (keep_timing) {
+        netplay_snapshot::capture_timing_state(main, g_sctx.g_simTimeUs,
+            g_probe.timing[frame % RollbackProbe::kHistory]);
+    }
+    pin_tick_rng_from_live();
+}
+
+// Simulates the frames after `base` up to the newest save again, from the state saved at `base`.
+static bool probe_rerun(sDevil4Main* main, int base, bool made_up)
+{
+    RollbackProbe& p = g_probe;
+    char line[96];
+    snprintf(line, sizeof line, "  rerun f%d from f%d%s", p.frame, base, made_up ? " made-up" : "");
+    probe_log(line);
+    if (!heap_snapshot::load(base)) {
+        return false;
+    }
+    sound_after_rewind();
+    netplay_snapshot::apply_timing_state(main, p.timing[base % RollbackProbe::kHistory], g_sctx.g_simTimeUs);
+    pin_tick_rng_from_live();
+    run_tail_simulation(main);   // the save sits between a frame's tick and its tail
+    uint32_t previous_on = p.inputs[base % RollbackProbe::kHistory].mBtnOn;
+    g_probe_phase = made_up ? "made-up" : "real";
+    bool reported = false;   // one line per replay: the first frame whose checksummed state differs
+    for (int k = base + 1; k < p.frame; ++k) {
+        g_probe_tick = k;
+        const NetplayInputInfo& real = p.inputs[k % RollbackProbe::kHistory];
+        const NetplayInputInfo input = made_up ? probe_made_up_input(real, previous_on) : real;
+        apply_recorded_input((const unsigned char*)&input);
+        if (g_probe_coop) {
+            static uint32_t previous_on2 = 0;
+            const NetplayInputInfo& real2 = p.inputs2[k % RollbackProbe::kHistory];
+            const NetplayInputInfo input2 = made_up ? probe_made_up_input(real2, previous_on2) : real2;
+            apply_recorded_input_control(input2, 1);
+        }
+        g_probe_replay = true;
+        run_simulation_tick(main, nullptr, g_sctx);
+        g_probe_replay = false;
+        if (!made_up && !reported) {
+            compare_trace(k);
+            compare_cam_block(k);
+            reported = !compare_checked(main, k);
+        }
+        probe_save(main, k, !made_up);
+        run_tail_simulation(main);
+    }
+    g_probe_phase = "forward";
+    return true;
+}
+
+static void probe_run(sDevil4Main* main, int base)
+{
+    RollbackProbe& p = g_probe;
+    if (!heap_snapshot::verify_begin(base)) {
+        ++p.skipped;
+        return;
+    }
+    g_sctx.g_resimulating = true;
+    const bool ok = (!p.made_up_first || probe_rerun(main, base, true)) && probe_rerun(main, base, false);
+    g_sctx.g_resimulating = false;
+    if (!ok) {
+        // the state is whatever the failed step left: stop probing rather than build on it
+        char line[160];
+        snprintf(line, sizeof line, "probe f%d: load failed (%s), probe stopped", p.frame, heap_snapshot::stats().last_error);
+        probe_log(line);
+        p.enabled = false;
+        ++p.skipped;
+        return;
+    }
+    p.replay_next = true;
+    heap_snapshot::VerifyResult result;
+    if (!heap_snapshot::verify_end(result)) {
+        ++p.skipped;
+        return;
+    }
+    ++p.runs;
+    p.last = result;
+    if (result.pages_differing) {
+        ++p.failures;
+    }
+    static const bool quiet = std::getenv("DMC4_PROBE_VARY") != nullptr;   // many probes: the checked-state lines only
+    if (!quiet && (result.pages_differing || result.data_bytes_differing)) {
+        char line[256];
+        snprintf(line, sizeof line, "probe f%d depth %d%s: %u of %u pages differ, .data (not restored) %u bytes",
+            p.frame, p.depth, p.made_up_first ? " made-up first" : "", result.pages_differing,
+            result.pages_checked, result.data_bytes_differing);
+        probe_log(line);
+        const local_world::Stats lw = local_world::stats();
+        snprintf(line, sizeof line, "  local world %s: %u units, %u bytes, %u frees rerouted, %u outside allocations (first from %08X)",
+            lw.ready ? "ready" : "not made", lw.units, lw.used, lw.frees_rerouted, lw.outside_allocs, (unsigned)lw.outside_from);
+        probe_log(line);
+        snprintf(line, sizeof line, "  local world: %u allocations routed from presentation code", lw.routed_allocs);
+        probe_log(line);
+        local_world::Site sites[12];
+        const int n = local_world::sites(sites, 12);
+        for (int i = 0; i < n; ++i) {
+            snprintf(line, sizeof line, "  temp heap allocation from %08X: %u times, %u bytes", (unsigned)sites[i].from,
+                sites[i].count, sites[i].bytes);
+            probe_log(line);
+        }
+        for (int i = 0; i < result.mismatch_count; ++i) {
+            const heap_snapshot::Mismatch& m = result.mismatches[i];
+            snprintf(line, sizeof line, "  %08X %s: %u bytes, block %08X +%X of %X, first word %08X, referrer %08X (%08X) +%X",
+                (unsigned)m.address, m.where, m.bytes, (unsigned)m.block, (unsigned)(m.block ? m.address - m.block : 0),
+                m.block_bytes, m.first_word, (unsigned)m.referrer, m.referrer_word, m.referrer_offset);
+            probe_log(line);
+        }
+    }
+}
+
+// Diagnostics: units of the local heap on a synced line (a rewind can't put their links back), with the stack that made them.
+static void report_stray_local_units()
+{
+    static std::unordered_set<uintptr_t> seen;
+    sUnit* su = (sUnit*)*(uintptr_t*)0x00E552CC;
+    if (!su || !local_world::enabled()) {
+        return;
+    }
+    static const uintptr_t dll = (uintptr_t)GetModuleHandleA("dinput8.dll");
+    for (int line = 0; line < 32; ++line) {
+        if (line == local_world::kLine) {
+            continue;
+        }
+        int guard = 0;
+        for (uintptr_t u = (uintptr_t)su->mMoveLine[line].mTop; u && guard < 100000; u = *(uintptr_t*)(u + 8), ++guard) {
+            if (!local_world::contains(u) || !seen.insert(u).second) {
+                continue;
+            }
+            void* stack[12];
+            const int n = local_world::origin(u, stack, 12);
+            char text[400];
+            int at = snprintf(text, sizeof text, "local unit %08X (vtable %08X) on synced line %d, made by", (unsigned)u,
+                *(const uint32_t*)u, line);
+            for (int k = 0; k < n && at < (int)sizeof text - 16; ++k) {
+                const uintptr_t a = (uintptr_t)stack[k];
+                at += snprintf(text + at, sizeof text - at, a >= dll && a < dll + 0x1500000 ? " d+%X" : " %08X",
+                    (unsigned)(a >= dll && a < dll + 0x1500000 ? a - dll : a));
+            }
+            probe_log(text);
+        }
+    }
+}
+
+static void probe_frame(sDevil4Main* main)
+{
+    RollbackProbe& p = g_probe;
+    // test switch DMC4_PROBE_COOP: a second (idle) Coop player, armed as netplay arms it
+    static bool coop_armed = false;
+    if (!coop_armed && std::getenv("DMC4_PROBE_COOP")) {
+        coop_armed = true;
+        g_probe_coop = true;
+        if (Coop* coop = get_coop_mod()) {
+            coop->player_num = 2;
+            if (!coop->mod_enabled) {
+                coop->mod_enabled = true;
+                coop->toggle(true);
+            }
+        }
+    }
+    // only inside a loaded room with a player, after it settled: loading can't be rewound (a rewind into the mission's
+    // load left a black screen), so the snapshot starts again in every room
+    sArea* area = devil4_sdk::get_sArea();
+    const uintptr_t room = area ? (uintptr_t)area->aRoomPtr : 0;
+    if (!room || player_info::count() == 0 || room != p.room) {
+        probe_stop();
+        p.room = room;
+        p.settled = 0;
+    }
+    static const int settle = std::getenv("DMC4_PROBE_SETTLE") ? std::atoi(std::getenv("DMC4_PROBE_SETTLE")) : 120;   // test switch
+    if (!p.running && (!room || player_info::count() == 0 || ++p.settled < settle)) {
+        clear_tick_rng_pin();
+        run_simulation_tick(main, nullptr, g_sctx);
+        return;
+    }
+    if (!p.running) {
+        clear_tick_rng_pin();
+        if (!heap_snapshot::begin(p.depth + 4)) {
+            p.enabled = false;
+            spdlog::screen(fmt::format("rollback probe: {}", heap_snapshot::stats().last_error), 0xFF4C4CFF);
+            run_simulation_tick(main, nullptr, g_sctx);
+            return;
+        }
+        heap_snapshot::set_track_data(true);
+        install_fault_logger();
+        {
+            char line[120];
+            const uintptr_t unit = heap_snapshot::region_base("Unit");
+            snprintf(line, sizeof line, "Unit heap at %08X", (unsigned)unit);
+            probe_log(line);
+            if (const char* watch = std::getenv("DMC4_WATCH")) {
+                g_watch_address = unit + std::strtoul(watch, nullptr, 16);
+                RaiseException(kArmWatch, 0, 0, nullptr);
+                snprintf(line, sizeof line, "watching writes to %08X", (unsigned)g_watch_address);
+                probe_log(line);
+            }
+        }
+        local_world::count_sites(0x00C307AC, true);   // what allocates from the Temp heap during play
+        p.running = true;
+        p.frame = 0;
+        p.last_probe = 0;
+        p.replay_next = false;
+    }
+    {
+        // diagnostics (DMC4_TRACE_RES): every write of the traced resource's count, on the game thread
+        static uintptr_t armed = 0;
+        const uintptr_t traced = heap_snapshot::traced_resource();
+        if (traced && traced != armed && !std::getenv("DMC4_WATCH")) {
+            armed = traced;
+            g_watch_address = traced + 0x44;
+            RaiseException(kArmWatch, 0, 0, nullptr);
+            char line[80];
+            snprintf(line, sizeof line, "watching the count of %08X", (unsigned)traced);
+            probe_log(line);
+        }
+    }
+    NetplayInputInfo live{};
+    fill_live_input(live, game_pad());
+    // test switch: random input on the forward ticks and no rewinds (does the input alone crash the game?)
+    static const bool random_live = std::getenv("DMC4_RANDOM_LIVE") != nullptr;
+    static uint32_t random_previous = 0;
+    if (random_live) {
+        live = probe_made_up_input(live, random_previous);
+    }
+    // test switch DMC4_PROBE_VARY: rewinds as online makes them, 1-8 frames deep every 1-4 frames
+    static const bool vary = std::getenv("DMC4_PROBE_VARY") != nullptr;
+    static int vary_depth = 8, vary_interval = 1;
+    const int depth = vary ? vary_depth : p.depth;
+    const int base = p.frame - 1 - depth;
+    if (!random_live && p.frame - p.last_probe >= (vary ? vary_interval : p.interval) && base >= 0 &&
+        heap_snapshot::has_frame(base)) {
+        if (vary) {
+            p.rng ^= p.rng << 13;
+            p.rng ^= p.rng >> 17;
+            p.rng ^= p.rng << 5;
+            vary_depth = 1 + (int)(p.rng % 8);
+            vary_interval = 1 + (int)((p.rng >> 8) % 4);
+        }
+        p.last_probe = p.frame;
+        probe_run(main, base);
+    }
+    apply_recorded_input((const unsigned char*)&live);
+    NetplayInputInfo live2{};
+    if (g_probe_coop) {
+        random_online_input(live2, 1);   // player 2 plays random input, as the peer does online
+        apply_recorded_input_control(live2, 1);
+    }
+    g_probe_tick = p.frame;
+    g_probe_replay = p.replay_next;
+    p.replay_next = false;
+    run_simulation_tick(main, nullptr, g_sctx);
+    g_probe_replay = false;
+    report_stray_local_units();
+    pack_checked(main, p.checked[p.frame % RollbackProbe::kHistory]);
+    trace_players(p.trace[p.frame % RollbackProbe::kHistory]);
+    copy_cam_block(p.cam_block[p.frame % RollbackProbe::kHistory]);
+    p.inputs[p.frame % RollbackProbe::kHistory] = live;
+    p.inputs2[p.frame % RollbackProbe::kHistory] = live2;
+    probe_save(main, p.frame, true);
+    ++p.frame;
+}
+
+static bool fixed_timing_wanted()
+{
+    return g_netplay != nullptr || g_probe.enabled;
+}
+
+static void draw_rollback_ui()
+{
+    if (!ImGui::CollapsingHeader("Rollback state")) {
+        return;
+    }
+    const bool session = g_netplay && g_netplay->get_session();
+    ImGui::BeginDisabled(session);
+    ImGui::Checkbox("Restore from heap pages", &g_heap_restore);
+    ImGui::EndDisabled();
+    ImGui::SameLine();
+    gui::help_marker("On: a rollback puts back the game's own memory (its heaps, page by page), so everything the "
+        "mispredicted frames did is undone. Off: only the fields the battle snapshot lists are restored. "
+        "Takes effect at the next session.");
+    ImGui::BeginDisabled(session || g_probe.running);
+    if (ImGui::Checkbox("Also the Resource heap", &g_heap_resource)) {
+        heap_snapshot::set_optional_heaps(g_heap_resource, g_heap_sound);
+    }
+    ImGui::SameLine();
+    gui::help_marker("Rolls back the heap loaded files live in as well. The loader thread uses it too.");
+    if (ImGui::Checkbox("Also the Sound heap", &g_heap_sound)) {
+        heap_snapshot::set_optional_heaps(g_heap_resource, g_heap_sound);
+    }
+    ImGui::SameLine();
+    gui::help_marker("Rolls back the sound system's heap as well. The sound thread uses it too.");
+    ImGui::EndDisabled();
+
+    const heap_snapshot::Stats& s = heap_snapshot::stats();
+    if (!s.installed || s.heap_count == 0) {
+        ImGui::TextDisabled("heap snapshot unavailable: %s", s.last_error);
+    }
+    if (ImGui::Checkbox("Rollback probe", &g_probe.enabled) && !g_probe.enabled) {
+        probe_stop();
+    }
+    ImGui::SameLine();
+    gui::help_marker("Without a session: every few frames the last frames are simulated again, first with "
+        "random input, then with the real input, and the game's memory is compared with the first run. "
+        "Mismatches show here and go to netplay_probe.log. Play normally while it runs.");
+    ImGui::BeginDisabled(g_probe.running);
+    ImGui::SliderInt("Probe depth", &g_probe.depth, 1, 30);
+    ImGui::SameLine();
+    gui::help_marker("Frames rewound by each probe.");
+    ImGui::EndDisabled();
+    ImGui::SliderInt("Probe interval", &g_probe.interval, 1, 300);
+    ImGui::SameLine();
+    gui::help_marker("Frames between probes.");
+    ImGui::Checkbox("Random input first", &g_probe.made_up_first);
+    ImGui::SameLine();
+    gui::help_marker("Off: the frames are only simulated again with the input they had (what the stress test does).");
+    ImGui::Text("probes %u, failed %u, skipped %u", g_probe.runs, g_probe.failures, g_probe.skipped);
+    const heap_snapshot::VerifyResult& r = g_probe.last;
+    ImGui::Text("last: %u of %u pages differ, .data (not restored) %u bytes", r.pages_differing, r.pages_checked,
+        r.data_bytes_differing);
+    for (int i = 0; i < r.mismatch_count && i < 8; ++i) {
+        ImGui::Text("  %08X %s: %u bytes", (unsigned)r.mismatches[i].address, r.mismatches[i].where,
+            r.mismatches[i].bytes);
+    }
+    if (s.active) {
+        ImGui::Text("frames %d..%d, save %.2f ms (max %.2f), load %.2f ms (max %.2f, %u pages)", s.oldest_frame,
+            s.newest_frame, s.last_save_ms, s.max_save_ms, s.last_load_ms, s.max_load_ms, s.last_load_pages);
+        ImGui::Text("pool %.1f MiB, %u exclusions, %u root allocations while active", s.pool_bytes / 1048576.0,
+            s.exclusions, s.direct_allocs);
+    }
+    for (int i = 0; i < s.heap_count; ++i) {
+        const heap_snapshot::HeapStats& h = s.heaps[i];
+        ImGui::Text("%-9s %08X %6.1f MiB %s shadow %u, dirty %u (max %u)", h.name, (unsigned)h.base,
+            h.size / 1048576.0, h.included ? "in " : "out", h.shadow_pages, h.last_dirty, h.max_dirty);
+    }
+    const local_world::Stats lw = local_world::stats();
+    ImGui::Text("local world %s: %u units, %.1f of %.0f MiB, %u ticks, %u frees rerouted, %u outside allocations (first from %08X)",
+        local_world::enabled() ? "on" : "off", lw.units, lw.used / 1048576.0, lw.size / 1048576.0, lw.ticks, lw.frees_rerouted,
+        lw.outside_allocs, (unsigned)lw.outside_from);
+    ImGui::SameLine();
+    gui::help_marker("Units only this machine sees (ModelExtension's chains and attachments) live in their own heap and line, "
+        "kept out of rollback. Outside allocations are ones local code made from a synced heap anyway: they should stay 0.");
+    ImGui::Checkbox("Allocator overlay", &g_show_allocator_statistics);
+    ImGui::SameLine();
+    gui::help_marker("Draws the game's heaps' use over the game.");
+}
+#pragma endregion
+
 static void __stdcall devil4_main_move_loop(sDevil4Main* main) {
     // Every presented frame opens a page-observation interval; the journal's loop clock
     // only advances here so a rollback burst stays inside one interval.
     netplay_test::page_loop_begin();
 
-    spdlog::screen(fmt::format("FPS{}, FPSLock {}, FPSActual{}", main->mFps, main->mFPSlock, main->mFPSActual), 0xFFF6FF00 );
+    // the local world is on while a netplay mode or the rollback probe is (sdk/LocalWorld.hpp)
+    if (local_world::enabled() != fixed_timing_wanted()) {
+        static bool routed = false;
+        if (!routed) {
+            // the GPU particles' own per-frame allocations (their prelude and tail calls, 0xAA0000..0xAB0000)
+            if (!GetEnvironmentVariableA("DMC4_NO_ROUTE", nullptr, 0)) {
+                local_world::route_code(0x00AA0000, 0x00AB0000);
+            }
+            routed = true;
+        }
+        local_world::set_enabled(fixed_timing_wanted());
+    }
+
+    // while netplay or the probe runs the ticks, the mods' per-tick work runs at each tick's start (frame_hooks::TICK_START)
+    frame_hooks::set_ticks_driven(fixed_timing_wanted());
 
     // re-armed below by whichever path actually ticks forward this presented frame
     g_native_tail_due = false;
@@ -2020,8 +3206,13 @@ static void __stdcall devil4_main_move_loop(sDevil4Main* main) {
         // No session: every presented frame is a real tick of the plain (vanilla) simulation,
         // and the RNG pin must not survive into it - a stale pin would rewind the stream here.
         g_native_tail_due = true;
-        clear_tick_rng_pin();
-        run_simulation_tick(main, nullptr, g_sctx);
+        if (g_probe.enabled) {
+            probe_frame(main);
+        } else {
+            probe_stop();
+            clear_tick_rng_pin();
+            run_simulation_tick(main, nullptr, g_sctx);
+        }
     }
 
     // main->mpCollision->sync(); // actually a nullsub :shrug:
@@ -2075,6 +3266,7 @@ void CoopOnline::on_gui_frame(int display) {
         if (ImGui::Combo("Mode", &mode, mode_names, 3)) {
             select_mode((NetplayMode)mode);
         }
+        draw_rollback_ui();
         if (g_netplay) {
             g_netplay->draw_ui();
         }
@@ -2097,8 +3289,112 @@ std::optional<std::string> install_hooks(CoopOnline* mod) {
     return std::nullopt;
 }
 
+// diagnostics (DMC4_SHAKE_LOG): every camera shake request (uDevilCamera::vibReq 0x531B60, its edi form 0x531A80,
+// vib2Req 0x531AF0), with the tick and who asked, in the probe / online log
+static std::unique_ptr<FunctionHook> g_shake_hooks[4];
+static uintptr_t g_shake_original[4];
+static void __stdcall log_style(uint32_t from, uint32_t type, uint32_t a, uint32_t b, uint32_t c)
+{
+    float fa, fb, fc;
+    std::memcpy(&fa, &a, 4);
+    std::memcpy(&fb, &b, 4);
+    std::memcpy(&fc, &c, 4);
+    void* frames[16];
+    const USHORT n = RtlCaptureStackBackTrace(1, 16, frames, nullptr);
+    static const uintptr_t dll = (uintptr_t)GetModuleHandleA("dinput8.dll");
+    char text[400];
+    int at = snprintf(text, sizeof text, "style f%d%s pass %u from %08X type %u %g %g %g:", g_tick_frame,
+        g_sctx.g_resimulating ? " (again)" : "", g_tick_serial, from, type, fa, fb, fc);
+    for (USHORT k = 0; k < n && at < (int)sizeof text - 16; ++k) {
+        const uintptr_t x = (uintptr_t)frames[k];
+        at += snprintf(text + at, sizeof text - at, x >= dll && x < dll + 0x1500000 ? " d+%X" : " %08X",
+            (unsigned)(x >= dll && x < dll + 0x1500000 ? x - dll : x));
+    }
+    probe_log(text);
+}
+static void __stdcall log_shake(int which, uintptr_t camera)
+{
+    void* frames[16];
+    const USHORT n = RtlCaptureStackBackTrace(1, 16, frames, nullptr);
+    static const uintptr_t dll = (uintptr_t)GetModuleHandleA("dinput8.dll");
+    char text[400];
+    int at = snprintf(text, sizeof text, "shake %d f%d%s pass %u camera %08X:", which, g_tick_frame,
+        g_sctx.g_resimulating ? " (again)" : "", g_tick_serial, (unsigned)camera);
+    for (USHORT k = 0; k < n && at < (int)sizeof text - 16; ++k) {
+        const uintptr_t a = (uintptr_t)frames[k];
+        at += snprintf(text + at, sizeof text - at, a >= dll && a < dll + 0x1500000 ? " d+%X" : " %08X",
+            (unsigned)(a >= dll && a < dll + 0x1500000 ? a - dll : a));
+    }
+    probe_log(text);
+}
+naked void shake_detour0()
+{
+    __asm {
+        pushad
+        push dword ptr [esp + 36]   // vibReq(camera, ...): the camera
+        push 0
+        call log_shake
+        popad
+        jmp dword ptr [g_shake_original]
+    }
+}
+naked void shake_detour1()
+{
+    __asm {
+        pushad
+        push edi
+        push 1
+        call log_shake
+        popad
+        jmp dword ptr [g_shake_original + 4]
+    }
+}
+naked void style_detour()
+{
+    __asm {
+        pushad
+        push dword ptr [esp + 32 + 0x14]
+        push dword ptr [esp + 36 + 0x10]
+        push dword ptr [esp + 40 + 0x0C]
+        push dword ptr [esp + 44 + 4]
+        push dword ptr [esp + 48]
+        call log_style
+        popad
+        jmp dword ptr [g_shake_original + 12]
+    }
+}
+naked void shake_detour2()
+{
+    __asm {
+        pushad
+        push edi
+        push 2
+        call log_shake
+        popad
+        jmp dword ptr [g_shake_original + 8]
+    }
+}
+
 std::optional<std::string> CoopOnline::on_initialize() {
     capture_canonical_environment();
+    if (std::getenv("DMC4_SHAKE_LOG")) {
+        const uintptr_t sites[4] = {0x00531B60, 0x00531A80, 0x00531AF0, 0x004A5DC0};   // + sStylishCount::addComboGauge
+        const uintptr_t detours[4] = {(uintptr_t)&shake_detour0, (uintptr_t)&shake_detour1, (uintptr_t)&shake_detour2,
+            (uintptr_t)&style_detour};
+        for (int i = 0; i < 4; ++i) {
+            g_shake_hooks[i] = std::make_unique<FunctionHook>(sites[i], detours[i]);
+            if (g_shake_hooks[i]->create()) {
+                g_shake_original[i] = g_shake_hooks[i]->get_original();
+            }
+        }
+    }
+    // the game's counter for hit IDs (sMediator::getCollisionUniqueID 0x494990) lives in .data, which a rewind leaves:
+    // a re-simulated attack took the next ID instead of the one it had, and the machines' IDs went apart
+    rollback::add_range("uCollisionMgr::mCurrentUniqueID", (void*)0x00E558D4, 4);
+    g_request_se_hook = std::make_unique<FunctionHook>(0x00A47AA0, (uintptr_t)&request_se_detour);
+    if (!g_request_se_hook->create()) {
+        return "Failed to hook sDevil4Sound::requestSe";
+    }
     if (auto res = install_hooks(this)) {
         return res;
     }
@@ -2132,6 +3428,18 @@ void CoopOnline::on_config_load(const utility::Config& cfg) {
 
     g_smain_prelude_enabled = utility::check_argument("-netplay-prelude");
 
+    g_heap_restore = cfg.get<bool>("netplay_heap_restore").value_or(true);
+    g_heap_resource = cfg.get<bool>("netplay_heap_resource").value_or(false);
+    g_heap_sound = cfg.get<bool>("netplay_heap_sound").value_or(false);
+    heap_snapshot::set_optional_heaps(g_heap_resource, g_heap_sound);
+    g_probe.enabled = cfg.get<bool>("netplay_probe").value_or(false);
+    g_probe.depth = std::clamp(cfg.get<int>("netplay_probe_depth").value_or(8), 1, 30);
+    g_probe.interval = std::clamp(cfg.get<int>("netplay_probe_interval").value_or(30), 1, 300);
+    g_probe.made_up_first = cfg.get<bool>("netplay_probe_random_first").value_or(true);
+    if (!g_probe.enabled) {
+        probe_stop();
+    }
+
     if (g_mode == NetplayMode::Online) {
         g_online_component.arm_from_command_line();
     }
@@ -2140,6 +3448,13 @@ void CoopOnline::on_config_load(const utility::Config& cfg) {
 void CoopOnline::on_config_save(utility::Config& cfg) {
     cfg.set<int>("coop_online_mode", (int)g_mode);
     g_stress_component.on_config_save(cfg);
+    cfg.set<bool>("netplay_heap_restore", g_heap_restore);
+    cfg.set<bool>("netplay_heap_resource", g_heap_resource);
+    cfg.set<bool>("netplay_heap_sound", g_heap_sound);
+    cfg.set<bool>("netplay_probe", g_probe.enabled);
+    cfg.set<int>("netplay_probe_depth", g_probe.depth);
+    cfg.set<int>("netplay_probe_interval", g_probe.interval);
+    cfg.set<bool>("netplay_probe_random_first", g_probe.made_up_first);
 }
 
 void CoopOnline::on_stage_start() {
@@ -2153,9 +3468,10 @@ void CoopOnline::on_stage_start() {
         netplay_test::complete("harness_error", 0);
         return;
     }
-    static constexpr uint32_t kStageRngSeed = 0xB16B00B5;
-    mt_random_init(kStageRngSeed, mt_random_global());
+    probe_stop();
     if (g_netplay) {
+        static constexpr uint32_t kStageRngSeed = 0xB16B00B5;
+        mt_random_init(kStageRngSeed, mt_random_global());
         g_netplay->on_stage_start();
     }
     // The stage seed is the pin, taken here and not inside start_session so no end_session in
@@ -2164,6 +3480,7 @@ void CoopOnline::on_stage_start() {
 }
 
 void CoopOnline::on_stage_end() {
+    probe_stop();
     if (g_netplay) {
         g_netplay->on_stage_end();
     }

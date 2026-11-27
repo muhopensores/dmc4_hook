@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iterator>
 #include <map>
+#include <unordered_map>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -282,6 +283,13 @@ namespace {
     PlayerBanks g_players[8];
     uint32_t g_tick = 0;
 
+    // Every list the registry made, with the layout, model and bank it was made for; the registry keeps one reference to
+    // each. A rewind (rollback netplay, dev/netplay/HeapSnapshot) puts a model's banks back to an earlier list, or to none,
+    // while the records above stay as they were: ensure() then adopts what the banks hold, or puts the list it made before
+    // back on, instead of making a new one (a new 1 MB list per rewind ran the Resource heap out).
+    struct Made { std::shared_ptr<Layout> layout; uintptr_t model; int bank; };
+    std::unordered_map<uintptr_t, Made> g_made;
+
     PlayerBanks& state_for(uintptr_t pl) {
         ++g_tick;
         for (PlayerBanks& p : g_players) if (p.player == pl) { p.last = g_tick; return p; }
@@ -332,10 +340,32 @@ namespace {
 
     // Put the newest built layout on the player's models when it isn't there yet (or was lost with a new player object).
     // Until the builder has the current version, the player keeps what it has.
+    // The models' banks hold lists made for layout L: take them as installed.
+    bool adopt(PlayerBanks& ps, const std::vector<std::pair<int, uintptr_t>>& models, int t, const std::shared_ptr<Layout>& L) {
+        if (!L) return false;
+        std::vector<Installed> found;
+        for (const BankImage& img : L->banks)
+            for (const auto& [kind, model] : models) {
+                if (!img.has[kind]) continue;
+                const uintptr_t cur = devil4_sdk::get_motion_bank((void*)model, img.bank);
+                auto it = g_made.find(cur);
+                if (it == g_made.end() || it->second.layout != L || it->second.model != model || it->second.bank != img.bank)
+                    return false;
+                found.push_back({ model, img.bank, cur });
+            }
+        ps.layout[t] = L;
+        ps.lists[t] = std::move(found);
+        return true;
+    }
+
     void ensure(PlayerBanks& ps, uintptr_t pl, int c, int t) {
         std::shared_ptr<Layout> want = g_layouts[c][t];
         if (!want) return;
-        const bool ok = intact(ps, t);
+        bool ok = intact(ps, t);
+        if (!ok) {
+            const auto models = models_of(pl, c, t);
+            ok = adopt(ps, models, t, want) || adopt(ps, models, t, ps.layout[t]);
+        }
         if (ok && ps.layout[t] == want) return;
         if (ok && t == PLAYER && playing_from(pl, *ps.layout[t])) return;         // swap once no registry motion plays
         const auto models = models_of(pl, c, t);
@@ -361,10 +391,15 @@ namespace {
         for (const BankImage& img : want->banks)
             for (const auto& [kind, model] : models) {
                 if (!img.has[kind]) continue;
-                const uintptr_t list = make_list(img.bytes[kind], img.bank);
-                if (!list) { spdlog::error("motion_registry: {} bank {}: the merged LMT did not load", kCharName[c], img.bank); continue; }
+                uintptr_t list = 0;
+                for (const auto& [made, m] : g_made)
+                    if (m.layout == want && m.model == model && m.bank == img.bank) list = made;
+                if (!list) {
+                    list = make_list(img.bytes[kind], img.bank);                    // its reference stays the registry's
+                    if (!list) { spdlog::error("motion_registry: {} bank {}: the merged LMT did not load", kCharName[c], img.bank); continue; }
+                    g_made[list] = { want, model, img.bank };
+                }
                 set_motion_list(model, list, img.bank);                             // the model's reference
-                devil4_sdk::release_resource((cResource*)list);                     // ours
                 ps.lists[t].push_back({ model, img.bank, list });
             }
         ps.layout[t] = want;

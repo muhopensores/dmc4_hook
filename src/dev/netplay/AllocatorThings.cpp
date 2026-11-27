@@ -41,7 +41,12 @@ static std::array allocators = {
 // Devil4Allocators are 4 bytes apart while sizeof(MtHeapAllocator) == 0x5C, so
 // each element must be re-read as a `MtHeapAllocator**` and dereferenced once
 // before any field is touched.
+bool g_show_allocator_statistics = false;
+
 void imgui_draw_allocator_statistics() {
+    if (!g_show_allocator_statistics) {
+        return;
+    }
     ImFont* font = g_framework ? g_framework->m_imfont_main : nullptr;
     if (font == nullptr) {
         return;

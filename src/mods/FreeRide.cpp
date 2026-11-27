@@ -7,6 +7,7 @@
 #include "../sdk/InputCommand.hpp"
 #include "../sdk/MoveRegistry.hpp"
 #include "../sdk/MotionRegistry.hpp"
+#include "../sdk/Rollback.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -945,6 +946,10 @@ void apply_rows() {
 using namespace free_ride;
 
 std::optional<std::string> FreeRide::on_initialize() {
+    // rollback netplay: the rides go with the frames
+    rollback::add_range("FreeRide rides", g_rides, sizeof g_rides);
+    rollback::add_range("FreeRide serial", &g_ride_serial, sizeof g_ride_serial);
+    free_ride::register_shell_rollback();
     using namespace input_commands;
     // COMMAND attr, start | cancel | repeat, any weapon / style, ground only (atckAs 1), cancel words as Gerb's rows
     // (C_COMMAND open or buffered, or C_ALL). The command byte is written by apply_rows (0x100 = disabled until then).

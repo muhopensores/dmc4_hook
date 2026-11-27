@@ -44,6 +44,8 @@ void leave();
 // Once a frame on the game thread: serial context lines while extra players exist, the grace timers.
 void game_tick(bool extra_players);
 void reset();
+// Rollback netplay: the lock-on cache, holds, enemy aggro and the per-player snatch camera go with the frames.
+void register_rollback();
 
 // Lock-on for players 2-4, around uPlayer::updateLockOn 0x820840. Every cLockOnTarget (sLockOnTargetMgr 0xE558B0,
 // lists mpTop +0x20 / mpSnatchTop +0x24) carries mPILength +0x24, mIsIn +0x34, mIsCameraIn +0x37 and mNearPos +0x40,

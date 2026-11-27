@@ -3,6 +3,7 @@
 #include "../utility/FunctionHook.hpp"
 #include "../utility/Patch.hpp"
 #include "Devil4.hpp"
+#include "Rollback.hpp"
 #include "Math.hpp"             // glm quaternions: this tick's chain orientations by forward kinematics
 #include <algorithm>
 #include <cmath>
@@ -601,6 +602,11 @@ bool install() {
     jmp_ret_unpoke = kUnpokeSite + 6;   // `push ebp; mov ebp, esp; and esp, -8`
     g_patch_local_nero = slot_patch(kLocalSlotNero);
     g_patch_local_dante = slot_patch(kLocalSlotDante);
+    // rollback netplay: the twists and blends go with the frames (they move the joints hitboxes hang from)
+    rollback::add_range("SpineAim states", g_states, sizeof g_states);
+    rollback::add_range("SpineAim tick", &g_tick, sizeof g_tick);
+    rollback::add_range("SpineAim blends", g_inert, sizeof g_inert);
+    rollback::add_range("SpineAim blend clock", &g_inert_clock, sizeof g_inert_clock);
     g_installed = 1;
     return true;
 }

@@ -6,14 +6,18 @@
 // so the plugins, the debug server and later online co-op register callbacks here instead of hooking the same site.
 //
 // FRAME_END: sDevil4Main::move after sCollisionGame::checkAttackMain (0x8AF03F, mov ecx, [ebp+0x10364]): the game
-// thread, once per game frame, every unit ticked and the frame's hits resolved. (TICK_START, 0x8AEFA1, joins when
-// online co-op moves its tick work here.)
+// thread, once per game frame, every unit ticked and the frame's hits resolved.
+//
+// TICK_START: the start of a game tick's simulation, before any unit moves. It has no hook site: it runs where
+// tick_start() is called, which CoopOnline does for every tick it simulates, forward and re-simulated alike. While
+// ticks_driven() is true (a netplay mode or the rollback probe runs the ticks), per-tick game work belongs here and not
+// at a site in sDevil4Main::move's prelude, which runs once per presented frame and never for a re-simulated tick.
 //
 // Callbacks run in the order they were added, on the game thread. Adding / removing is safe from any thread (also from
 // inside a callback: the change applies from the next run).
 namespace frame_hooks {
 
-enum Point : int { FRAME_END = 0, POINT_COUNT };
+enum Point : int { FRAME_END = 0, TICK_START, POINT_COUNT };
 
 using Fn = void (*)(void* user);
 
@@ -21,5 +25,11 @@ bool install();                                         // installs the hooks on
 int add(Point point, Fn fn, void* user, const char* owner);   // > 0 id, 0 on failure
 void remove(int id);
 uint64_t frames();                                      // FRAME_END runs so far
+// Runs FRAME_END by hand, for code that replaces the block holding its site (CoopOnline's netplay tick runs its
+// own copy of 0x8AEFD5..0x8AF04C and calls this once per forward tick, never for re-simulated ones).
+void frame_end();
+void tick_start();                                      // runs TICK_START (CoopOnline, at the start of each simulated tick)
+void set_ticks_driven(bool driven);                     // CoopOnline, once per presented frame before the tick
+bool ticks_driven();
 
 } // namespace frame_hooks

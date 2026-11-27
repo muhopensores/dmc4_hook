@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include "../sdk/Rollback.hpp"
 
 namespace provoke {
 
@@ -917,6 +918,10 @@ int __stdcall get_action_no(uintptr_t mgr, uint32_t mot, float leng, float deg, 
 using namespace provoke;
 
 std::optional<std::string> EnemyAI::on_initialize() {
+    // rollback netplay: the enemies' choices (their random stream) and the live entries go with the frames
+    rollback::add_range("EnemyAI rng", &provoke::g_rng, sizeof provoke::g_rng);
+    rollback::add_range("EnemyAI entries", provoke::g_list, sizeof provoke::g_list);
+    rollback::add_range("EnemyAI any", &provoke::g_any, sizeof provoke::g_any);
     if (!install_hook_absolute(kTauntCall, hook_taunt, &detour_taunt, nullptr, 7)) {
         spdlog::error("Provoke: failed to hook uPlayer::checkProvoke (0x803E67)");
         return "Failed to init Provoke (taunt)";

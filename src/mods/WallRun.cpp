@@ -12,6 +12,7 @@
 #include <cstring>
 #include <filesystem>
 #include <string>
+#include "../sdk/Rollback.hpp"
 
 using namespace wallrun;
 
@@ -855,6 +856,7 @@ naked void detour_wall_jump_check() {
 }
 
 std::optional<std::string> WallRun::on_initialize() {
+    rollback::add_range("WallRun runs", g_runs, sizeof g_runs);   // rollback netplay: goes with the frames
     if (!install_hook_absolute(0x827200, hook1, &detour_wall_jump, &jmp_ret1, 6)) {
         spdlog::error("Failed to init WallRun hook (moveActWallJump entry)\n");
         return "Failed to init WallRun hook (moveActWallJump entry)";

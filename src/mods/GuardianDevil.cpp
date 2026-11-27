@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <random>
 #include <string>
+#include "../sdk/Rollback.hpp"
 
 using namespace wallrun;
 namespace st = nero_stand;
@@ -898,6 +899,7 @@ void GuardianDevil::toggle(bool enable) {
 }
 
 std::optional<std::string> GuardianDevil::on_initialize() {
+    rollback::add_range("GuardianDevil states", guardian_devil::g_states, sizeof guardian_devil::g_states);   // rollback netplay
     using namespace input_commands;
     build_commands();
     for (int i = 0; i < CMD_COUNT; ++i) {

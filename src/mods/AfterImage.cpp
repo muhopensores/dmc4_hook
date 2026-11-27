@@ -2,6 +2,7 @@
 #include "../sdk/Custom.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/InputCommand.hpp"
+#include "../sdk/LocalWorld.hpp"
 #include "../sdk/MtDTI.hpp"
 #include "../sdk/Players.hpp"
 #include "../sdk/RimGlow.hpp"
@@ -387,6 +388,10 @@ void tick(uintptr_t pl) {
         }
         const int size = std::clamp(pool_size, 1, kPoolMax);
         for (int i = size; i < kPoolMax; ++i) despawn(i);
+        // with the local world on (netplay), copies made before it in the synced heaps are a rewind's to free: forgotten
+        if (local_world::enabled())
+            for (Clone*& c : g_pool)
+                if (c && !local_world::contains((uintptr_t)c)) c = nullptr;
         g_active = 0;
         for (int i = 0; i < size; ++i) if (g_pool[i] && g_pool[i]->active) ++g_active;
         if (g_spawn_request.exchange(false)) spawn(pl);
@@ -433,13 +438,17 @@ void trail_request(uintptr_t pl) {
 
 bool spawn(uintptr_t pl) {
     if (!pl) return false;
+    // the copies are only drawn: with the local world on they live in it, out of the rollback's heaps (a rewind would
+    // free them under the pool), made and set up (their models' joints and materials) in its heap, moved on its line
+    local_world::Scope local;
+    const int line = local_world::enabled() ? local_world::kLine : 1;
     const int size = std::clamp(pool_size, 1, kPoolMax);
     Clone* pick = nullptr;
     for (int i = 0; i < size && !pick; ++i)
         if (g_pool[i] && !g_pool[i]->active) pick = g_pool[i];
     for (int i = 0; i < size && !pick; ++i)
         if (!g_pool[i]) {
-            pick = g_pool[i] = Clone::spawn(1, i);
+            pick = g_pool[i] = Clone::spawn(line, i);
             ++g_made;
         }
     if (!pick) {                          // all out: the oldest goes

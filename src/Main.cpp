@@ -3,12 +3,14 @@
 
 #include "ModFramework.hpp"
 #include "utility/FunctionHook.hpp"
+#include "dev/netplay/HeapSnapshot.hpp"
+#include "sdk/LocalWorld.hpp"
 
-#ifndef NDEBUG
+#ifndef PUBLIC_BUILD
 #include "mods/MultipleGameInstances.hpp"
 
 static MultipleGameInstances* multiple_instances_mod = nullptr;
-#endif // !NDEBUG
+#endif // !PUBLIC_BUILD
 
 static HMODULE g_dinput;
 
@@ -232,6 +234,10 @@ static void WINAPI startup_proc() {
 #endif
 
     patch_more_memories();
+#ifndef PUBLIC_BUILD
+    heap_snapshot::install_early();   // before the game makes its heaps: rollback netplay saves their pages
+    local_world::install_early();     // its allocator hooks, before the game's threads run through the allocator
+#endif
 
     g_framework = std::make_unique<ModFramework>();
 
@@ -245,10 +251,12 @@ static int start_hook() {
 
 #ifndef NDEBUG
     assert(g_start_hook);
-
-    multiple_instances_mod = new MultipleGameInstances();
-    auto err               = multiple_instances_mod->on_initialize();
 #endif // !NDEBUG
+#ifndef PUBLIC_BUILD
+    // -mutex <name>: a second instance on the same machine (netplay tests); nothing without the argument
+    multiple_instances_mod = new MultipleGameInstances();
+    (void)multiple_instances_mod->on_initialize();
+#endif // !PUBLIC_BUILD
 
     startup_proc();
     //reserve_memory_virtual_alloc2();
@@ -318,9 +326,9 @@ BOOL APIENTRY DllMain(HMODULE handle, DWORD reason, LPVOID reserved) { //NOLINT
     }
     if (reason == DLL_PROCESS_DETACH) {
         FreeLibrary(g_dinput);
-#ifndef NDEBUG
+#ifndef PUBLIC_BUILD
         delete multiple_instances_mod;
-#endif // !NDEBUG
+#endif // !PUBLIC_BUILD
 
     }
     return TRUE;

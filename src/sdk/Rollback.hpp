@@ -1,0 +1,27 @@
+#pragma once
+// rollback - mod state that goes with the game's frames under rollback netplay (dev/netplay/HeapSnapshot.hpp).
+//
+// A rewind puts the game's own memory back; a mod's own variables about the game (a move's state per player, the style a
+// player picked, the shots a mod fired) live in the hook DLL and stay as they were, so after a rewind the mod would act on
+// what the mispredicted frames did. A mod registers that state here: it is copied at every save and put back at every
+// load. Plain data only (pointers to units are fine: the units come back with the frames). Presentation state (readouts,
+// GUI) stays out. Off netplay nothing is copied.
+#include <cstddef>
+#include <cstdint>
+#include <vector>
+
+namespace rollback {
+
+using SaveFn = void (*)(std::vector<uint8_t>& out);   // append the state
+using LoadFn = void (*)(const uint8_t* in, size_t bytes);   // what SaveFn appended, back
+
+int add(const char* name, SaveFn save, LoadFn load);   // > 0 id
+int add_range(const char* name, void* data, size_t bytes);
+void remove(int id);
+
+// netplay
+void capture(std::vector<uint8_t>& out);
+void apply(const std::vector<uint8_t>& in);
+int count();
+
+} // namespace rollback

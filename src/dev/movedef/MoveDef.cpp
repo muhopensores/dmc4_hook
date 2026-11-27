@@ -24,6 +24,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "../../sdk/Rollback.hpp"
 
 using namespace wallrun;
 
@@ -1272,6 +1273,27 @@ void write_example() {
     spdlog::info("MoveDef: wrote {}", p.string());
 }
 
+// Rollback netplay: every move's per-player states and its tick go with the frames. A reload between a save and a load
+// (another number of moves) leaves the states as they are.
+void save_rollback(std::vector<uint8_t>& out) {
+    for (const auto& m : moves()) {
+        const uint8_t* s = (const uint8_t*)m->states;
+        out.insert(out.end(), s, s + sizeof m->states);
+        const uint8_t* t = (const uint8_t*)&m->tick;
+        out.insert(out.end(), t, t + sizeof m->tick);
+    }
+}
+
+void load_rollback(const uint8_t* in, size_t bytes) {
+    const size_t each = sizeof(Move::states) + sizeof(Move::tick);
+    if (bytes != each * moves().size()) return;
+    for (const auto& m : moves()) {
+        std::memcpy(m->states, in, sizeof m->states);
+        std::memcpy(&m->tick, in + sizeof m->states, sizeof m->tick);
+        in += each;
+    }
+}
+
 } // namespace movedef
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1280,6 +1302,7 @@ void write_example() {
 using namespace movedef;
 
 std::optional<std::string> MoveDef::on_initialize() {
+    rollback::add("MoveDef states", &movedef::save_rollback, &movedef::load_rollback);
     load_all();
     move_registry::set_vanilla_tick(&overlay_tick);
     if (!input_commands::hook_installed) {       // Gerb installs the same hook when it is built in; one installer only

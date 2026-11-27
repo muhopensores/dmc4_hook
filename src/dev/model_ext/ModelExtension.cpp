@@ -10,6 +10,7 @@
 #include "../../sdk/sUnit.hpp"
 #include "../../sdk/World2Screen.hpp"
 #include "../../sdk/uCollisionMgr.hpp"
+#include "../../sdk/LocalWorld.hpp"
 #include <pugixml.hpp>
 #include <algorithm>
 #include <cctype>
@@ -193,6 +194,15 @@ std::unordered_set<uintptr_t> g_excluded;       // other mods' models the lists 
 std::vector<Spawned> g_spawned;
 int g_frame = 0;
 
+// With the local world on (rollback netplay, sdk/LocalWorld.hpp), the models a destructor took, by address: a rewind can
+// bring one back, and its chains and attachments then go on again (its vtable then, so a new unit at the address isn't
+// taken for it; the frame it died, to let it go).
+struct Dead {
+    uintptr_t vtable;
+    int frame;
+};
+std::unordered_map<uintptr_t, Dead> g_dead;
+
 std::string normalize(std::string s) {
     for (char& c : s) { c = (char)std::tolower((unsigned char)c); if (c == '/') c = '\\'; }
     while (!s.empty() && (s.back() == '\\' || s.back() == ' ')) s.pop_back();
@@ -264,7 +274,9 @@ float chain_rate(uintptr_t model) {
     float r = 1.0f;
     for (int depth = 0; model && depth < 8; ++depth) {
         const int line = su ? line_of(model) : -1;
-        if (line >= 0 && su->mMoveLine[line].mPause) return 0.0f;
+        // the local line is paused for the game's own passes and run by local_world::tick()
+        const bool local = local_world::enabled() && line == local_world::kLine;
+        if (line >= 0 && !local && su->mMoveLine[line].mPause) return 0.0f;
         if (is_devil4_model(model)) r *= work_rate(model);
         model = *(uintptr_t*)(model + kCoordParent);
     }
@@ -333,10 +345,12 @@ void spawn_for(uintptr_t model, const std::string& path) {
         if (std::any_of(g_spawned.begin(), g_spawned.end(), [&](const Spawned& s) { return s.entry == e && s.model == model; })) continue;
         if (line == -2) {
             const int own = line_of(model);
-            line = own < 0 ? cns_chain::kDefaultLine : std::min(cns_chain::kDefaultLine, own - 1);
+            line = local_world::enabled() ? local_world::kLine
+                : own < 0 ? cns_chain::kDefaultLine : std::min(cns_chain::kDefaultLine, own - 1);
         }
         if (line < 0) { spdlog::warn("ModelExtension: {} is on line 0, no line runs before it", path); return; }
         const uintptr_t coll = le.collision_model.empty() ? 0 : related_model(model, le.collision_model);
+        local_world::Scope local;   // with the local world on, the chain is made in it
         const uintptr_t chain = cns_chain::spawn(model, le.chain.c_str(), le.col.empty() ? nullptr : le.col.c_str(), coll, line);
         if (!chain) { spdlog::warn("ModelExtension: {} didn't load ({})", le.chain, le.source); continue; }
         g_spawned.push_back({ e, model, chain, line, coll != 0 && !le.col.empty(), false });
@@ -495,7 +509,9 @@ void attach_for(uintptr_t owner, const std::string& path) {
         const AttachEntry& ae = g_attach_entries[e];
         if (ae.to != path) continue;
         if (std::any_of(g_attached.begin(), g_attached.end(), [&](const Attached& a) { return a.entry == e && (a.owner == owner || a.model == owner); })) continue;
-        const uintptr_t m = model_attach::spawn(owner, ae.path.c_str(), ae.mode, ae.joint, &ae.offset, ae.line);
+        local_world::Scope local;   // with the local world on, the attachment is made in it, on its line
+        const uintptr_t m = model_attach::spawn(owner, ae.path.c_str(), ae.mode, ae.joint, &ae.offset,
+                                                local_world::enabled() ? local_world::kLine : ae.line);
         if (!m) { spdlog::warn("ModelExtension: {} didn't load ({})", ae.path, ae.source); continue; }
         g_attached.push_back({ e, owner, m });
         spdlog::info("ModelExtension: {} attached to {} ({}, line {})", ae.path, path,
@@ -625,8 +641,58 @@ void drop_links(uintptr_t model, uintptr_t chain) {
             v.erase(std::remove_if(v.begin(), v.end(), [&](const chain_link::Link& l) { return l.chain_a == chain || l.chain_b == chain; }), v.end());
 }
 
+// With the local world on, after rewinds: the models the synced world no longer has are let go without touching their
+// memory (their chains and attachments, in the local world, go with them), and the ones a rewind brought back are queued
+// again. A model is alive while it lies in the block of a unit on a move line (a sub-model is inside its owner's).
+void reconcile() {
+    sUnit* su = devil4_sdk::get_sUnit();
+    if (!su) return;
+    std::vector<std::pair<uintptr_t, uintptr_t>> live;
+    for (int line = 0; line < 32; ++line)
+        for (uintptr_t u = (uintptr_t)su->mMoveLine[line].mTop; u && live.size() < 100000; u = *(uintptr_t*)(u + 8)) {
+            uintptr_t bytes = (uintptr_t)*(uint32_t*)(u - 16) * 16 - *(uint16_t*)(u - 6);   // MtHeapAllocator::memSize
+            if (bytes == 0 || bytes > 0x1000000) bytes = 0x10;
+            live.emplace_back(u, u + bytes);
+        }
+    std::sort(live.begin(), live.end());
+    auto alive = [&](uintptr_t m) {
+        auto it = std::upper_bound(live.begin(), live.end(), std::make_pair(m, UINTPTR_MAX));
+        return it != live.begin() && m < std::prev(it)->second;
+    };
+    g_pending.erase(std::remove_if(g_pending.begin(), g_pending.end(), [&](uintptr_t m) { return !alive(m); }), g_pending.end());
+    for (auto it = g_models.begin(); it != g_models.end();) {
+        const uintptr_t m = it->first;
+        if (alive(m)) { ++it; continue; }
+        for (size_t i = 0; i < g_spawned.size();) {
+            if (g_spawned[i].model != m) { ++i; continue; }
+            if (chain_exists(g_spawned[i])) cns_chain::despawn(g_spawned[i].chain, false);
+            g_spawned.erase(g_spawned.begin() + i);
+        }
+        detach_of(m);
+        drop_cns_source(m);
+        drop_links(m, 0);
+        remove_cns(m, false);
+        remove_shapes(m, false);
+        g_excluded.erase(m);
+        it = g_models.erase(it);
+    }
+    for (auto it = g_dead.begin(); it != g_dead.end();) {
+        const uintptr_t m = it->first;
+        if (alive(m) && *(uintptr_t*)m == it->second.vtable && !g_models.count(m)) {
+            if (std::find(g_pending.begin(), g_pending.end(), m) == g_pending.end()) g_pending.push_back(m);
+            it = g_dead.erase(it);
+        } else if (g_frame - it->second.frame > 600) {
+            it = g_dead.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
 void frame() {
     std::lock_guard<std::recursive_mutex> lock(g_lock);
+    if (local_world::enabled()) reconcile();
+    else g_dead.clear();
     // the models setModel saw: their path now (the rModel is in place once setModel returned). All of them are known before
     // anything spawns, so what a list says doesn't depend on which model came first.
     std::vector<uintptr_t> pending;
@@ -833,6 +899,8 @@ void __stdcall on_set_model(uintptr_t model) {
 // alive, is queued again so the next frame attaches a new one.
 void __stdcall on_model_dtor(uintptr_t model) {
     std::lock_guard<std::recursive_mutex> lock(g_lock);
+    if (local_world::enabled() && g_models.count(model) && !local_world::contains(model))
+        g_dead[model] = { *(uintptr_t*)model, g_frame };
     g_excluded.erase(model);
     g_pending.erase(std::remove(g_pending.begin(), g_pending.end(), model), g_pending.end());
     drop_cns_source(model);

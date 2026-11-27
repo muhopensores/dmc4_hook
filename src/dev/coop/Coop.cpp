@@ -9,6 +9,8 @@
 #include "../../sdk/cUnit.hpp"
 #include "../../sdk/Players.hpp"
 #include "../../sdk/EnemyStep.hpp"
+#include "../../sdk/Rollback.hpp"
+#include "../../sdk/FrameHooks.hpp"
 #include "../../mods/CharSwitcher.hpp"
 #include "../../mods/DebugCam.hpp" // REGION_* viewport modes; the free camera (Gameplay Cam off) takes the screen
 #include "../../mods/Macro.hpp"
@@ -575,7 +577,9 @@ void apply_teleport() {
     spdlog::info("Coop: moved {} player(s) to player 1", moved);
 }
 
-void __stdcall coop_game_tick() {
+// The game state's share of the game tick. It runs at the pad tick site, or at frame_hooks' TICK_START while netplay
+// runs the ticks: the site runs once per presented frame, and a re-simulated tick has to do this work too.
+void coop_sim_tick() {
     apply_teleport();
     check_units();
     update_split();
@@ -587,7 +591,27 @@ void __stdcall coop_game_tick() {
         extra |= players[i].unit != 0;
     }
     coop_context::game_tick(extra);
+}
+
+bool sim_ticked_at_site = false;   // this frame's coop_sim_tick ran at the pad tick site: TICK_START leaves it
+
+void __stdcall coop_game_tick() {
+    if (!frame_hooks::ticks_driven()) {
+        coop_sim_tick();
+        sim_ticked_at_site = true;
+    }
     coop_pads::game_tick();
+}
+
+void on_tick_start(void*) {
+    if (!Coop::mod_enabled) {
+        return;
+    }
+    if (sim_ticked_at_site) {
+        sim_ticked_at_site = false;
+        return;
+    }
+    coop_sim_tick();
 }
 
 // Once a frame on the game thread, before the pad system moves: unit checks, the coop pads and their rumble.
@@ -1109,6 +1133,12 @@ void Coop::toggle(bool enable) {
 }
 
 std::optional<std::string> Coop::on_initialize() {
+    // rollback netplay: the players' units (and their cameras, cockpits), HP carry and revive timers go with the frames
+    rollback::add_range("Coop players", coop::players, sizeof coop::players);
+    rollback::add_range("Coop carry", carry, sizeof carry);
+    rollback::add_range("Coop down", down, sizeof down);
+    coop_context::register_rollback();
+    frame_hooks::add(frame_hooks::TICK_START, &on_tick_start, nullptr, "Coop");
     if (!coop_pads::init()) {
         spdlog::warn("Coop: no XInput DLL, players 2-4 have no pad\n");
     }

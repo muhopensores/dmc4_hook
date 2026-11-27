@@ -1,5 +1,6 @@
 #include "CoopContext.hpp"
 #include "Coop.hpp"
+#include "../../sdk/Rollback.hpp"
 #include "CoopDiag.hpp"
 #include "CoopPads.hpp"
 #include "CoopPvp.hpp"
@@ -1088,6 +1089,14 @@ void draw_diag() {
         ImGui::Text(_("P%d %08X stand %08X hand %08X hand owner %08X ret %.0f %.0f %.0f"), i + 1, (unsigned)s.player,
                     (unsigned)s.stand, (unsigned)s.hand, (unsigned)s.hand_owner, s.ret[0], s.ret[1], s.ret[2]);
     }
+}
+
+void register_rollback() {
+    rollback::add_range("Coop frame", &g_frame, sizeof g_frame);
+    rollback::add_range("Coop lock-on cache", lock_cache, sizeof lock_cache);
+    rollback::add_range("Coop holds", holds, sizeof holds);
+    rollback::add_range("Coop aggro", aggro, sizeof aggro);
+    rollback::add_range("Coop snatch camera", snatch_camera, sizeof snatch_camera);
 }
 
 } // namespace coop_context

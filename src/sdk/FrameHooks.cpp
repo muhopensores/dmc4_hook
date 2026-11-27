@@ -27,6 +27,7 @@ int g_next_id = 1;
 std::atomic<uint64_t> g_frames{0};
 std::unique_ptr<FunctionHook> g_hook_frame_end;
 bool g_installed = false;
+std::atomic<bool> g_ticks_driven{false};
 uintptr_t g_ret_frame_end = 0;
 
 void run(Point point) {
@@ -81,6 +82,22 @@ int add(Point point, Fn fn, void* user, const char* owner) {
     const int id = g_next_id++;
     g_entries.push_back({id, point, fn, user, owner ? owner : "?"});
     return id;
+}
+
+void frame_end() {
+    on_frame_end();
+}
+
+void tick_start() {
+    run(TICK_START);
+}
+
+void set_ticks_driven(bool driven) {
+    g_ticks_driven = driven;
+}
+
+bool ticks_driven() {
+    return g_ticks_driven.load();
 }
 
 void remove(int id) {

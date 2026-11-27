@@ -4,6 +4,7 @@
 #include "../sdk/Devil4.hpp"         // request_motion_body
 #include "../sdk/uActor.hpp"
 #include "../sdk/InputCommand.hpp"   // the pre-check and post-action ticks
+#include "../sdk/Rollback.hpp"
 #include "../sdk/Enums_Internal.hpp" // CANCEL_NO, MOTION_CTRL
 #include "../utility/FunctionHook.hpp"
 #include <algorithm>
@@ -465,6 +466,7 @@ bool install() {
     spine_aim::install();   // the inertial blends; failed (logged), the shots keep the game's crossfade
     input_commands::add_tick(&precheck_tick);
     input_commands::add_post_tick(&post_action_tick);
+    rollback::add_range("UpperGun shots", g_states, sizeof g_states);   // rollback netplay: goes with the frames
     g_installed = true;
     return true;
 }

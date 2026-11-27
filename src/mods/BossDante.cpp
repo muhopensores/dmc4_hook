@@ -21,6 +21,8 @@
 #include <vector>
 #include <shellapi.h>
 
+#include "../sdk/Rollback.hpp"
+
 namespace boss_dante {
 
 int mode = MODE_VANILLA;
@@ -823,6 +825,13 @@ void wait_then_next(uintptr_t boss) {
 using namespace boss_dante;
 
 std::optional<std::string> BossDante::on_initialize() {
+    // rollback netplay: the boss's choices (its random stream), step, pad, cooldowns and clock go with the frames
+    rollback::add_range("BossDante rng", &boss_dante::g_rng, sizeof boss_dante::g_rng);
+    rollback::add_range("BossDante step", &boss_dante::g_step, sizeof boss_dante::g_step);
+    rollback::add_range("BossDante pad", &boss_dante::g_pad, sizeof boss_dante::g_pad);
+    rollback::add_range("BossDante alive", &boss_dante::g_boss_alive, sizeof boss_dante::g_boss_alive);
+    rollback::add_range("BossDante moves", boss_dante::g_move_stats, sizeof boss_dante::g_move_stats);
+    rollback::add_range("BossDante clock", &boss_dante::g_clock, sizeof boss_dante::g_clock);
     // the dispatch's own table, copied; ids from 60 on run the registered moves (sdk/BossMoves.hpp)
     static_assert(boss_moves::kFirstAction == kGameActions && kGameActions + boss_moves::kMaxMoves < kMaxActions, "action ids");
     std::memcpy(g_actions, (const void*)kActionTable, kGameActions * sizeof(uintptr_t));

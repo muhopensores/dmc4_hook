@@ -20,14 +20,14 @@ static uintptr_t sKeyboard{ 0x00E559C0 };
 static uintptr_t sDevil4Resource { 0x00E552D0 };
 
 namespace devil4_sdk {
+	// The heap global is read on every call: a cached copy kept whatever heap it held the first time, and a first call
+	// inside a local_world::Scope sent every later spawn of every mod to the local heap.
 	void* mt_allocate_heap(size_t size, int alignment) {
-		static MtHeapAllocator* mt_heap_alloc = *mt_heap_alloc_static_ptr;
-
+		MtHeapAllocator* mt_heap_alloc = *mt_heap_alloc_static_ptr;
 		return (void*)mt_heap_alloc->allocate(size, alignment);
 	}
     void* unit_deallocate(MtObject* obj) {
-        static MtHeapAllocator* unit_heap_alloc = *mt_heap_alloc_static_ptr;
-
+        MtHeapAllocator* unit_heap_alloc = *mt_heap_alloc_static_ptr;
         return (void*)unit_heap_alloc->deallocate(obj);
     }
 

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <string>
+#include "../sdk/Rollback.hpp"
 
 using namespace wallrun;
 
@@ -155,6 +156,9 @@ bool bringer_rows_on() { return rows_on_for(g_selected[0]); }
 using namespace nero_style;
 
 std::optional<std::string> NeroStyle::on_initialize() {
+    // rollback netplay: each player's pick and pending switch go with the frames
+    rollback::add_range("NeroStyle states", nero_style::g_states, sizeof nero_style::g_states);
+    rollback::add_range("NeroStyle picks", nero_style::g_selected, sizeof nero_style::g_selected);
     input_commands::add_tick(&tick);
     if (!input_commands::hook_installed) {     // one installer: whichever command mod initialises first
         if (!install_hook_absolute(0x7A83B5, hook_cmd, &input_commands::detour, &input_commands::jmp_ret, 8)) {

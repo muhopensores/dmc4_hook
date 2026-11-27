@@ -76,10 +76,14 @@ inline void wait_for_next_frame_deadline(double fps = 60.0)
     if (!s.freq)
         init(s);
 
+    // the game's rate can read 0 before its first frame-rate request; a period from it never ends
+    if (!(fps >= 10.0) || fps > 1000.0)
+        fps = 60.0;
     const int64_t period = (int64_t)((double)s.freq / fps + 0.5);
     int64_t t = now();
 
-    if (!s.deadline || t - s.deadline > period * kMaxCatchUpFrames) {
+    // a stall restarts the schedule, and so does a deadline further ahead than the catch-up window
+    if (!s.deadline || t - s.deadline > period * kMaxCatchUpFrames || s.deadline - t > period * kMaxCatchUpFrames) {
         s.deadline = t + period;
         return;
     }

@@ -30,6 +30,9 @@
 
 namespace gerb {
 
+// The live shells' pointers go with the frames under rollback netplay (a rewind frees a shell without its destructor).
+void register_shell_rollback();
+
 enum KnockMode : int { KNOCK_JUMP_DIR = 0, KNOCK_PLAYER_FACING = 1, KNOCK_AWAY_FROM_PLAYER = 2 };
 
 extern bool  shell_enabled;

@@ -29,6 +29,9 @@
 
 namespace free_ride {
 
+// The live shell's pointer goes with the frames under rollback netplay (a rewind frees the shell without its destructor).
+void register_shell_rollback();
+
 // Spawns the shell for the ride `serial` of `player` on `enemy`. Returns false when it couldn't be made.
 bool spawn_ride_shell(uintptr_t player, uintptr_t enemy, uint32_t serial);
 

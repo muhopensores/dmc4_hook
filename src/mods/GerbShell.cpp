@@ -1,4 +1,5 @@
 #include "GerbShell.hpp"
+#include "../sdk/Rollback.hpp"
 #include "../sdk/Devil4.hpp"
 #include "../sdk/sMediator.hpp"
 #include "../sdk/DebugDraw.hpp"
@@ -416,6 +417,11 @@ void shell_config_save(utility::Config& cfg) {
     cfg.set<int>("gerb_shell_kind", shell_kind);
     cfg.set<int>("gerb_shell_unit_line", shell_unit_line);
     cfg.set<int>("gerb_shell_vsattr", (int)shell_vsattr);
+}
+
+void register_shell_rollback() {
+    rollback::add_range("Gerb shells", g_live, sizeof g_live);
+    rollback::add_range("Gerb last shell", &g_last_shell, sizeof g_last_shell);
 }
 
 } // namespace gerb

@@ -408,6 +408,8 @@ set(DEV_SRC
   dev/netplay/BattleSnapshot.cpp
   dev/netplay/MemoryPageTracker.hpp
   dev/netplay/MemoryPageTracker.cpp
+  dev/netplay/HeapSnapshot.hpp
+  dev/netplay/HeapSnapshot.cpp
   dev/netplay/FramePacer.hpp
   dev/movedef/XmlMove.hpp
   dev/movedef/XmlMove.cpp
@@ -588,6 +590,10 @@ set(SDK_SRC
     sdk/MtThread.hpp
     sdk/MtRandom.hpp
     sdk/MtRandom.cpp
+    sdk/LocalWorld.hpp
+    sdk/LocalWorld.cpp
+    sdk/Rollback.hpp
+    sdk/Rollback.cpp
     sdk/rEffectList.hpp
     sdk/sArea.hpp
     sdk/sDevil4Main.hpp

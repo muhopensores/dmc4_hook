@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <string>
+#include "../sdk/Rollback.hpp"
 
 using namespace wallrun;
 
@@ -524,6 +525,8 @@ static void input_editor(int row, const char* title) {
 using namespace gerb;
 
 std::optional<std::string> Gerb::on_initialize() {
+    rollback::add_range("Gerb jumps", gerb::g_jumps, sizeof gerb::g_jumps);   // rollback netplay: goes with the frames
+    gerb::register_shell_rollback();
     using namespace input_commands;
     move_registry::register_move(move_registry::NERO, move_id, &mod_enabled, &gerb::move);            // the ID gate + Nero dispatch
     move_registry::register_move(move_registry::NERO, move_id_vertical, &mod_enabled, &gerb::move);
