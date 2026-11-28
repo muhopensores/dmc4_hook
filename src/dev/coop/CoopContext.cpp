@@ -709,6 +709,9 @@ int lock_entries(int slot, uintptr_t* actors, float* lengths, uint8_t* in, uint8
     if (slot < 0 || slot >= kMaxPlayers) return 0;
     const LockCache& c = lock_cache[slot];
     int n = 0;
+    if (c.frame != g_frame) {
+        return 0;   // an older frame's targets may be gone (a room change frees them)
+    }
     for (int i = 0; i < c.n && n < max; ++i, ++n) {
         actors[n] = at<uintptr_t>(c.e[i].target, kTgtModel);
         lengths[n] = c.e[i].length;
@@ -1042,6 +1045,9 @@ void reset() {
     snatch_camera_slot = -1;
     enemy_swapped = 0;
     cam_held_n = 0;   // the room's rDevilCamera goes with it
+    for (LockCache& c : lock_cache) {
+        c.n = 0;   // the room's lock-on targets go with it
+    }
     for (int i = 0; i < kMaxPlayers; i++) {
         cam_copies[i].clear();
         cam_copies_res[i] = 0;

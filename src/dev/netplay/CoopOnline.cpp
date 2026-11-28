@@ -1,6 +1,7 @@
 #include "CoopOnline.hpp"
 #include "sdk/TestSwitch.hpp"
 #include "sdk/HostRules.hpp"
+#include "dev/netplay/SessionCheck.hpp"
 #include "sdk/sDevil4Main.hpp"
 #include "sdk/sCollision.hpp"
 #include "sdk/sMediator.hpp"
@@ -19,8 +20,13 @@
 #include "dev/coop/CoopPvp.hpp"
 #include "sdk/MissionMenu.hpp"
 #include "mods/ArcadeMode.hpp"
+#include "mods/AreaJump.hpp"
+#include "mods/EnemySpawn.hpp"
+#include "sdk/cUnit.hpp"
+#include "sdk/aGame.hpp"
 #include "sdk/FrameHooks.hpp"
 #include "sdk/LocalWorld.hpp"
+#include "dev/water/WaterWakes.hpp"
 #include "sdk/Rollback.hpp"
 #include "sdk/Players.hpp"
 #include "sdk/sArea.hpp"
@@ -187,6 +193,16 @@ static bool g_rng_watch = false;
 static bool g_speed_watch = false;   // DMC4_WATCH_SPEED: the watch is on sDevil4Main::mGlobalSpeed
 static bool g_watch_values = false;  // DMC4_WATCH_PERM: the watched word's value goes with each writer
 static int g_tick_frame = -1;   // the frame run_simulation_tick is simulating (an advance event's), -1 = none
+static uintptr_t g_watched_water = 0;   // DMC4_TRACE_UNIT_ALLOCS: the last water watch_water saw, and its state
+static char g_water_state[200] = {};
+static int g_test_leave_at = 0, g_test_quit_at = 0;   // DMC4_TEST_LEAVE / DMC4_TEST_QUIT (test_leave_tick)
+static bool g_test_leave_due = false;
+// A guest whose host is gone leaves (session, lobby, the host's rules) and goes back to the Mission Menu; so does a
+// machine that leaves a running session. g_host_gone: set by the session's disconnect event for player 1 or the lobby
+// losing the host (OnlineComponent::check_host_gone acts on it, outside the tick).
+// g_to_mission_menu: taken by CoopOnline::on_frame as soon as a stage is running (back_to_mission_menu).
+static bool g_host_gone = false;
+static bool g_to_mission_menu = false;
 static uint32_t g_effect_gen_calls = 0;   // effect generator inits so far in this tick (pres_enter_effect_gen)
 static int g_local_control = -1; // the control this machine plays in an online session
 static uint32_t unit_tag(uintptr_t unit);
@@ -207,6 +223,32 @@ static double qpc_ms(int64_t a, int64_t b)
 }
 static bool g_tick_paused = false;   // a player's input asks for a pause this tick (kInputPause)
 static uint8_t g_tick_rules = 0;     // the host rules version player 1's input names this tick (host_rules)
+// From a stage's start to its session's first tick, the units the machines sync stay put (hold_synced_lines): the
+// stage starts within a plain tick, each machine's own, and a unit moved before the session started it apart (player 1
+// in an air attack on one machine only). Earlier than the stage start the old room's units still have to be deleted,
+// which happens in their own lines' passes: held from the room's end, a room change never reached its stage start.
+static bool g_lines_held = false;
+static constexpr int kHeldLines[] = {13, 14, 15, 16, 18, 23};   // players, Nero's stand, enemies, parts, shells, cameras
+static uint32_t g_held_bits[sizeof kHeldLines / sizeof kHeldLines[0]] = {};
+static void hold_synced_lines(bool on)
+{
+    constexpr uint32_t kPaused = 2;   // MoveLine +0x08 bit 1: sUnit's passes skip the line (as the local world's)
+    sUnit* su = (sUnit*)*(uintptr_t*)0x00E552CC;
+    if (on == g_lines_held || !su) {
+        g_lines_held = on && su;
+        return;
+    }
+    for (size_t i = 0; i < sizeof kHeldLines / sizeof kHeldLines[0]; ++i) {
+        uint32_t& flags = *(uint32_t*)((uintptr_t)&su->mMoveLine[kHeldLines[i]] + 8);
+        if (on) {
+            g_held_bits[i] = flags & kPaused;
+            flags |= kPaused;
+        } else {
+            flags = (flags & ~kPaused) | g_held_bits[i];
+        }
+    }
+    g_lines_held = on;
+}
 // The game's own pause (aRoom::pauseInChk 0x40DE10: Start on the user pad, Esc, the user pad unplugged) never runs under
 // netplay: it pauses in the tail on whichever machine saw it, so its menu, room state and line pause bits would land a
 // tick apart on the two machines even when both saw the same Start. Esc or Start toggles this machine's netplay pause
@@ -1941,6 +1983,14 @@ struct OnlineComponent : NetplayComponent {
     int auto_start_players = 0;
     bool auto_started = false;
     int auto_start_character = -1;   // the menu's character from -character; -1: the start picker's
+    // The code check (session_check): what differs from each guest's code (the host), or from the host's (a guest).
+    // Index 0 on a guest is the host.
+    struct CodeCheck {
+        bool known = false;
+        std::string seen;                 // the text compared last
+        std::vector<std::string> differs;
+    };
+    CodeCheck code_check[lobby::kMaxPlayers];
     // a machine other than the host plays by the host's rules while the lobby is open; its own come back at Leave
     struct SavedRules {
         bool push = true, hits = false, players_first = true, dt_from_players = true;
@@ -1956,6 +2006,25 @@ struct OnlineComponent : NetplayComponent {
     int start_character = 0;   // into draw_start_picker's characters / character_values
     uint16_t start_id = 0;
     bool peer_was_connected[lobby::kMaxPlayers] = {};   // the lobby log's connect / left lines
+    // a guest: when the lobby lost the host (its own 2 s timeout); gone for good kHostGoneMs later
+    uint64_t host_lost_at = 0;
+    static constexpr uint64_t kHostGoneMs = 3000;
+
+    // A guest whose host is gone: leave and go back to the Mission Menu. Outside the tick (on_frame).
+    void check_host_gone() {
+        if (host_lost_at && lobby::is_open() && lobby::local() > 0 && !lobby::peer(0).connected &&
+            GetTickCount64() - host_lost_at > kHostGoneMs) {
+            g_host_gone = true;
+        }
+        if (!g_host_gone) {
+            return;
+        }
+        g_host_gone = false;
+        host_lost_at = 0;
+        probe_log("lobby: the host is gone: leaving, back to the Mission Menu");
+        spdlog::screen("netplay: the host left: back to the Mission Menu", 0xFF4C4CFF);
+        leave(true);
+    }
     static_assert(lobby::kMaxPlayers <= coop::kMaxPlayers, "the lobby's players index coop::players");
 
     OnlineComponent() {
@@ -2333,6 +2402,16 @@ struct OnlineComponent : NetplayComponent {
         int event_count = 0;
         GekkoSessionEvent** events = gekko_session_events(session, &event_count);
         for (int i = 0; i < event_count; ++i) {
+            if (events[i]->type == GekkoPlayerDisconnected || events[i]->type == GekkoPlayerConnected) {
+                const bool gone = events[i]->type == GekkoPlayerDisconnected;
+                char text[96];
+                snprintf(text, sizeof text, "session: player %d %s at f%d", (gone ? events[i]->data.disconnected.handle
+                    : events[i]->data.connected.handle) + 1, gone ? "disconnected" : "connected", g_tick_frame);
+                probe_log(text);
+                if (gone && events[i]->data.disconnected.handle == 0 && local_control != 0) {
+                    g_host_gone = true;   // the actors were added in player order: handle 0 is player 1, the host
+                }
+            }
             if (events[i]->type == GekkoDesyncDetected) {
                 const auto& desync = events[i]->data.desynced;
                 if (resync_on_mismatch((int)desync.frame, local_control == 0)) {
@@ -2412,6 +2491,7 @@ struct OnlineComponent : NetplayComponent {
             }
         }
         lobby_frame();
+        check_host_gone();
     }
 
     // The extra players exist by now (Coop::on_stage_start runs first); a session started in
@@ -2428,6 +2508,7 @@ struct OnlineComponent : NetplayComponent {
         if (!session_wanted()) {
             return;
         }
+        hold_synced_lines(true);   // until the session's first tick
         if (session) {
             end_session();
         }
@@ -2436,6 +2517,7 @@ struct OnlineComponent : NetplayComponent {
 
     void on_stage_end() override {
         end_session();
+        hold_synced_lines(false);
     }
 
     // Launch-line arming: -netplay -plN local|<address> [-plNport <port>], e.g.
@@ -2475,6 +2557,7 @@ struct OnlineComponent : NetplayComponent {
             }
             armed_by_command_line = true;
             lobby_pending = true;   // the session starts with the host's start for everyone, as from the panel
+            ArcadeMode::hold_own_start(true);   // -arcade's own start would run before the lobby opens
             spdlog::screen(host_arg ? fmt::format("netplay: hosting on port {} (command line)", host_port)
                                     : fmt::format("netplay: joining {} (command line)", join_address), 0xFF9ACDFF);
             return;
@@ -2585,16 +2668,18 @@ struct OnlineComponent : NetplayComponent {
             } else if (lobby::local() >= 0) {
                 ImGui::Text(_("Waiting for the other players (%d of %d here)"), here, num_players);
             }
+            draw_code_check();
             if (lobby::host()) {
                 draw_start_picker();
             } else if (lobby::local() >= 0) {
                 ImGui::TextDisabled(_("Player 1 starts the stage: wait in the Mission Menu"));
             }
             if (ImGui::Button(_("Leave"))) {
-                leave();
+                leave(true);
             }
             ImGui::SameLine();
-            gui::help_marker(_("Ends the session and closes the port"));
+            gui::help_marker(_("Ends the session and closes the port. In a stage played together, this machine goes back "
+                               "to the Mission Menu (a guest also does when the host leaves)"));
         }
 
         ImGui::Checkbox(_("Split screen online"), &g_online_split);
@@ -2632,6 +2717,70 @@ struct OnlineComponent : NetplayComponent {
     }
 
     // The online rows follow the Co-op panel's Players count while no lobby is open.
+    // The code check: each guest's list against the host's (on the host), the host's against this one's (a guest).
+    void check_code() {
+        const std::string& mine = session_check::code_text();
+        std::string theirs;
+        for (int i = 0; i < num_players && i < lobby::kMaxPlayers; ++i) {
+            CodeCheck& c = code_check[i];
+            const bool have = lobby::host() ? i > 0 && lobby::guest_blob(i, lobby::Blob::Code, theirs)
+                                            : i == 0 && lobby::host_blob(lobby::Blob::Code, theirs);
+            if (!have || (c.known && theirs == c.seen)) {
+                continue;
+            }
+            char who[24];
+            snprintf(who, sizeof who, i == 0 ? "the host" : "player %d", i + 1);
+            c.known = true;
+            c.seen = theirs;
+            c.differs = session_check::differences(mine, theirs, who);
+            char text[200];
+            snprintf(text, sizeof text, "lobby: code of %s %s", who, c.differs.empty() ? "matches" : "differs:");
+            probe_log(text);
+            std::string list;
+            for (const std::string& s : c.differs) {
+                probe_log(("  " + s).c_str());
+                list += (list.empty() ? "" : ", ") + s;
+            }
+            if (!c.differs.empty()) {
+                spdlog::screen(i == 0 ? fmt::format("netplay: your code differs from the host's: {}", list)
+                                      : fmt::format("netplay: {}'s code differs, the stage can't start: {}", who, list),
+                    0xFF4C4CFF);
+            }
+        }
+    }
+
+    // The host: every guest's code arrived and matches.
+    bool code_ok() const {
+        for (int i = 1; i < num_players && i < lobby::kMaxPlayers; ++i) {
+            if (!code_check[i].known || !code_check[i].differs.empty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // The code check's lines in the panel: what differs, per machine.
+    void draw_code_check() {
+        for (int i = 0; i < num_players && i < lobby::kMaxPlayers; ++i) {
+            const CodeCheck& c = code_check[i];
+            if (i == local_control || (!lobby::host() && i != 0) || !c.known || c.differs.empty()) {
+                continue;
+            }
+            std::string list;
+            for (size_t k = 0; k < c.differs.size(); ++k) {
+                list += (k ? ", " : "") + c.differs[k];
+            }
+            if (i == 0) {
+                ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), _("Your code differs from the host's: %s"), list.c_str());
+            } else {
+                ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), _("Player %d's code differs: %s"), i + 1, list.c_str());
+            }
+            ImGui::SameLine();
+            gui::help_marker(_("Every machine needs the same game exe, dmc4_hook.dll and gameplay plugins (compared by "
+                               "their contents). Nothing is sent: the one who differs gets the same build themselves"));
+        }
+    }
+
     // The host's roster (Host / Join): which player this machine plays, how many there are, and where the others are.
     void take_roster() {
         if (lobby::local() >= 0) {
@@ -2661,6 +2810,9 @@ struct OnlineComponent : NetplayComponent {
         snprintf(text, sizeof text, "lobby: roster %u, player %d of %d", lobby::roster_serial(), lobby::local() + 1,
             lobby::players());
         probe_log(text);
+        if (lobby::local() > 0) {
+            spdlog::screen(fmt::format("netplay: you play player {} of {}", lobby::local() + 1, lobby::players()), 0xFF9ACDFF);
+        }
     }
 
     void sync_player_count() {
@@ -2705,13 +2857,14 @@ struct OnlineComponent : NetplayComponent {
                 everyone_ready = false;
             }
         }
-        if (!lobby::all_connected()) {
+        const bool can_start = lobby::all_connected() && code_ok();
+        if (!can_start) {
             ImGui::BeginDisabled();
         }
         if (ImGui::Button(_("Start for everyone"))) {
             start_for_everyone();
         }
-        if (!lobby::all_connected()) {
+        if (!can_start) {
             ImGui::EndDisabled();
         }
         ImGui::SameLine();
@@ -2720,6 +2873,9 @@ struct OnlineComponent : NetplayComponent {
         if (start_id && !lobby::start_confirmed()) {
             ImGui::SameLine();
             ImGui::TextDisabled(_("(sending)"));
+        } else if (lobby::all_connected() && !code_ok()) {
+            ImGui::SameLine();
+            ImGui::TextDisabled(_("(the code check isn't through)"));
         } else if (!everyone_ready && lobby::all_connected()) {
             ImGui::SameLine();
             ImGui::TextDisabled(_("(not everyone is in the Mission Menu)"));
@@ -2764,6 +2920,7 @@ struct OnlineComponent : NetplayComponent {
             return false;
         }
         roster_seen = lobby::roster_serial() - 1;   // taken at the next frame
+        lobby::set_blob(lobby::Blob::Code, session_check::code_text());
         if (lobby_kind != lobby::Kind::Fixed) {
             ArcadeMode::hold_own_start(true);   // every machine starts with the host's start
         }
@@ -2818,8 +2975,22 @@ struct OnlineComponent : NetplayComponent {
         probe_log(text);
     }
 
-    void leave() {
+    // to_menu: in a stage played together (a session or the start for everyone), go back to the Mission Menu after
+    void leave(bool to_menu = false) {
+        if (to_menu && (session || connect_requested)) {
+            g_to_mission_menu = true;
+        }
+        if (session) {
+            // the others hear it now instead of after GekkoNet's 5 s timeout (the call flushes the message itself)
+            for (int i = 0; i < num_players && i < MAX_PLAYERS; ++i) {
+                if (peers[i].is_local) {
+                    gekko_disconnect_actor(session, peers[i].handle);
+                    break;
+                }
+            }
+        }
         connect_requested = false;
+        hold_synced_lines(false);
         end_session();
         lobby::close();
         host_rules::set_role(host_rules::Role::None);
@@ -2852,7 +3023,11 @@ struct OnlineComponent : NetplayComponent {
         if (lobby::kind() != lobby::Kind::Fixed && lobby::roster_serial() != roster_seen) {
             roster_seen = lobby::roster_serial();
             take_roster();
+            for (CodeCheck& c : code_check) {
+                c = CodeCheck{};
+            }
         }
+        check_code();
         if (lobby::host()) {
             // the host's edits of the registered settings: a version every guest has is the one its input names
             host_rules::host_frame();
@@ -2867,7 +3042,7 @@ struct OnlineComponent : NetplayComponent {
                 host_rules::set_in_force(v);
             }
             if (auto_start_players > 1 && !auto_started && num_players >= auto_start_players && lobby::all_connected() &&
-                mission_menu::in_mission_menu()) {
+                code_ok() && mission_menu::in_mission_menu()) {
                 bool all_waiting = true;
                 for (int i = 1; i < num_players; ++i) {
                     all_waiting &= lobby::peer(i).where == lobby::Where::MissionMenu;
@@ -2884,6 +3059,12 @@ struct OnlineComponent : NetplayComponent {
                 const lobby::Peer& p = lobby::peer(i);
                 if (p.connected != peer_was_connected[i]) {
                     peer_was_connected[i] = p.connected;
+                    if (i == 0 && lobby::local() > 0) {
+                        host_lost_at = p.connected ? 0 : GetTickCount64();
+                    }
+                    spdlog::screen(fmt::format("netplay: {} {}", i == 0 ? std::string("the host") : fmt::format("player {}", i + 1),
+                        p.connected ? (p.build == lobby::build_id() ? "is here" : "is here, with another build of dmc4_hook")
+                                    : "left"), p.connected && p.build == lobby::build_id() ? 0xFF9ACDFF : 0xFF4C4CFF);
                     char text[120];
                     snprintf(text, sizeof text, "lobby: player %d %s (build %s, where %d, character %d)", i + 1,
                         p.connected ? "connected" : "left", p.build == lobby::build_id() ? "same" : "other", (int)p.where,
@@ -4325,6 +4506,9 @@ static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx
     if (prelude) {
         run_frame_prelude(main);
     }
+    if (event) {
+        hold_synced_lines(false);   // the session runs: its ticks move everything
+    }
     // the host rules in force this tick, on every machine: the version player 1's input names (host_rules)
     if (event && g_mode == NetplayMode::Online) {
         host_rules::tick(g_tick_rules);
@@ -4679,6 +4863,48 @@ static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
     // inside MtHeapAllocator (allocate / free walk the blocks): the words around each heap register, to see what wrote
     // over a block header
     const bool in_allocator = c.Eip >= 0x008BB000 && c.Eip < 0x008BC000;
+    // diagnostics: which co-op player a register's unit is, and Nero's models in the resource table (sDevil4Resource
+    // +0x1038, 0x2000 slots; cResource +0x04 path, +0x44 count, +0x48 attr, +0x4C state)
+    {
+        const char* names[] = {"eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"};
+        const DWORD values[] = {c.Eax, c.Ebx, c.Ecx, c.Edx, c.Esi, c.Edi, c.Ebp};
+        for (int i = 0; i < 7; ++i) {
+            for (int p = 0; p < coop::kMaxPlayers; ++p) {
+                if (coop::players[p].unit && values[i] == coop::players[p].unit) {
+                    snprintf(line, sizeof line, "  %s = player %d's unit", names[i], p + 1);
+                    probe_log(line);
+                }
+            }
+        }
+        if (const uintptr_t manager = *(const uintptr_t*)0x00E552D0) {
+            const uintptr_t* slots = (const uintptr_t*)(manager + 0x1038);
+            int shown = 0;
+            static const char* const models[] = {"model\\game\\pl000\\pl000", "model\\game\\pl000\\pl000_01", "model\\game\\pl000\\pl000_02", "model\\game\\pl000\\pl000_03"};
+            for (int i = 0; i < 0x2000 && shown < 24; ++i) {
+                const uintptr_t r = slots[i];
+                bool wanted = false;
+                for (const char* m : models) {
+                    wanted |= r && !std::strcmp((const char*)r + 4, m);
+                }
+                if (!wanted) {
+                    continue;
+                }
+                char path[72] = {};
+                std::memcpy(path, (const char*)r + 4, 64);
+                snprintf(line, sizeof line, "  resource %08X %s count %d attr %08X state %08X", (unsigned)r, path,
+                    *(const int32_t*)(r + 0x44), *(const uint32_t*)(r + 0x48), *(const uint32_t*)(r + 0x4C));
+                probe_log(line);
+                ++shown;
+            }
+            if (!shown) {
+                probe_log("  no model\\game\\pl000\\pl000* in the resource table");
+            }
+        }
+    }
+    if (g_watched_water) {
+        snprintf(line, sizeof line, "  last water seen: %s", g_water_state);
+        probe_log(line);
+    }
     const char* names[] = {"eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"};
     const DWORD values[] = {c.Eax, c.Ebx, c.Ecx, c.Edx, c.Esi, c.Edi, c.Ebp};
     for (int i = 0; i < 7; ++i) {
@@ -4691,6 +4917,28 @@ static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
         snprintf(line, sizeof line, "  %s %08X %s: block %08X +%X of %X, first word %08X", names[i], (unsigned)values[i],
             heap, (unsigned)block, (unsigned)(block ? values[i] - block : 0), bytes, block ? *(const uint32_t*)block : 0u);
         probe_log(line);
+        local_world::AllocTrace history[8];
+        for (uintptr_t probe : {(uintptr_t)values[i], (uintptr_t)values[i] - 0x20}) {
+            const int n = in_allocator ? local_world::unit_alloc_history(probe, history, 8) : 0;
+            for (int k = 0; k < n; ++k) {
+                const local_world::AllocTrace& trace = history[k];
+                snprintf(line, sizeof line, "    %08X: in block %08X (%u bytes) made at f%d seq %u, %s %08X seq %u, by", (unsigned)probe,
+                    (unsigned)trace.p, trace.size, trace.frame, trace.seq, trace.freed_seq ? "freed from" : "not freed",
+                    (unsigned)trace.freed_from, trace.freed_seq);
+                probe_log(line);
+                int at = 0;
+                char stack[160] = {};
+                for (uintptr_t s : trace.stack) {
+                    if (s) {
+                        at += snprintf(stack + at, sizeof stack - at, " %08X", (unsigned)s);
+                    }
+                }
+                probe_log(stack);
+            }
+            if (n) {
+                break;
+            }
+        }
         if (in_allocator) {
             const uintptr_t from = (values[i] & ~(uintptr_t)0xF) - 0x40;
             MEMORY_BASIC_INFORMATION mbi{};
@@ -6048,12 +6296,121 @@ std::optional<std::string> CoopOnline::on_initialize() {
     return std::nullopt;
 }
 
+// g_to_mission_menu: once a stage runs (player 1 is in it and the area is aGame), aGame::move's state (+0x04) goes to 10:
+// its case 10 (0x402AF8) kills every unit and changes the area to aMission00 (the Mission Menu), the game over screen's
+// Mission Select. Already in the Mission Menu: nothing to do.
+static void back_to_mission_menu()
+{
+    constexpr uintptr_t kAGameVtable = 0x00B8FA7C;
+    constexpr uint8_t kStateMissionSelect = 10;
+    if (!g_to_mission_menu) {
+        return;
+    }
+    if (mission_menu::in_mission_menu()) {
+        g_to_mission_menu = false;
+        return;
+    }
+    sArea* area = devil4_sdk::get_sArea();
+    const uintptr_t game = area ? (uintptr_t)area->aGamePtr : 0;
+    if (!game || *(const uintptr_t*)game != kAGameVtable || !player_info::player(0)) {
+        return;   // loading, or not in a stage yet: wait
+    }
+    uint8_t& state = *(uint8_t*)(game + 0x04);
+    char text[80];
+    snprintf(text, sizeof text, "back to the Mission Menu (aGame state %d)", (int)state);
+    probe_log(text);
+    state = kStateMissionSelect;
+    g_to_mission_menu = false;
+}
+
 void CoopOnline::on_frame(fmilliseconds& dt) {
+    if (g_test_leave_due) {   // DMC4_TEST_LEAVE: the Leave button, outside the session's tick
+        g_test_leave_due = false;
+        g_online_component.leave(true);
+    }
+    back_to_mission_menu();
     if (g_netplay) {
         g_netplay->on_frame();
     }
     spdlog::hehe_draw();
     spdlog::hehe_flush();
+}
+
+// Test switch DMC4_TEST_ROOM=<frames>: every <frames> session frames of an online session, every machine sends Bloody
+// Palace on to the next floor at the start of that tick, as clearing a floor does: a room change on the same tick
+// everywhere, so the session ends with the room and starts again in the next one (the session frame counts from 0 again
+// there).
+static int g_test_room_every = 0;
+static void test_room_tick(void*)
+{
+    const int f = frame_hooks::tick_frame();
+    if (g_test_room_every <= 0 || f <= 0 || f % g_test_room_every != 0) {
+        return;
+    }
+    sArea* area = devil4_sdk::get_sArea();
+    const int floor = area && area->aGamePtr ? area->aGamePtr->bp_floor : 0;
+    if (floor <= 0 || floor >= 101 || !AreaJump::jump_to_bp_floor(floor + 1)) {
+        return;
+    }
+    char text[80];
+    snprintf(text, sizeof text, "test: room change to Bloody Palace floor %d at f%d%s", floor + 1, f,
+        g_sctx.g_resimulating ? " (again)" : "");
+    probe_log(text);
+}
+
+// Test switch DMC4_TEST_SPAWN=<every>:<most>: every <every> session frames, while the enemy line (15) holds fewer than
+// <most> units, a ground enemy (scarecrows, Frost, Assault, Bianco Angelo in turn; flying ones never reach the water or
+// the floor) is made above player 1 at the start of the tick, on every machine and in every re-run of the tick, as the
+// game's own spawns are.
+static int g_test_spawn_every = 0, g_test_spawn_most = 0;
+static void test_spawn_tick(void*)
+{
+    const int f = frame_hooks::tick_frame();
+    if (g_test_spawn_every <= 0 || f <= 0 || f % g_test_spawn_every != 0) {
+        return;
+    }
+    const sUnit* su = devil4_sdk::get_sUnit();
+    if (!su) {
+        return;
+    }
+    int units = 0;
+    for (uintptr_t u = (uintptr_t)su->mMoveLine[15].mTop; u && units < 1000; u = (uintptr_t)((const cUnit*)u)->mp_next_unit) {
+        ++units;
+    }
+    if (units >= g_test_spawn_most) {
+        return;
+    }
+    static constexpr SpawnableEnemyType kTypes[] = {SpawnableEnemyType::SCARECROW_LEG, SpawnableEnemyType::SCARECROW_ARM,
+        SpawnableEnemyType::FROST, SpawnableEnemyType::ASSAULT, SpawnableEnemyType::SCARECROW_MEGA, SpawnableEnemyType::ANGELO_BIANCO};
+    const SpawnableEnemyType type = kTypes[(f / g_test_spawn_every) % (sizeof kTypes / sizeof kTypes[0])];
+    EnemySpawn::spawn_em00x(type);
+    char text[80];
+    snprintf(text, sizeof text, "test: enemy %d spawned at f%d (%d on line 15)%s", (int)type, f, units,
+        g_sctx.g_resimulating ? " (again)" : "");
+    probe_log(text);
+}
+
+// Test switches DMC4_TEST_LEAVE=<frame> / DMC4_TEST_QUIT=<frame>: on the forward tick of session frame <frame> (the
+// first session that gets there), this machine leaves as the Leave button does (after the frame: the session can't end
+// inside its own tick) or ends its process at once, as a crash or a closed window does.
+static void test_leave_tick(void*)
+{
+    const int f = frame_hooks::tick_frame();
+    if (g_sctx.g_resimulating || f <= 0) {
+        return;
+    }
+    char text[80];
+    if (g_test_quit_at > 0 && f == g_test_quit_at) {
+        snprintf(text, sizeof text, "test: quitting at f%d", f);
+        probe_log(text);
+        TerminateProcess(GetCurrentProcess(), 0);
+    }
+    if (g_test_leave_at > 0 && f == g_test_leave_at) {
+        g_test_leave_at = 0;
+        g_test_leave_due = true;
+        snprintf(text, sizeof text, "test: leaving at f%d", f);
+        probe_log(text);
+    }
 }
 
 void CoopOnline::on_config_load(const utility::Config& cfg) {
@@ -6076,6 +6433,25 @@ void CoopOnline::on_config_load(const utility::Config& cfg) {
 
     g_online_split = cfg.get<bool>("netplay_split_screen").value_or(false);
     g_online_split_test = test_switch("DMC4_NET_SPLIT") != nullptr;
+    if (const char* v = test_switch("DMC4_TEST_ROOM")) {
+        g_test_room_every = std::atoi(v);
+        frame_hooks::add(frame_hooks::TICK_START, &test_room_tick, nullptr, "netplay test room changes");
+    }
+    if (const char* v = test_switch("DMC4_TEST_SPAWN")) {
+        g_test_spawn_every = std::atoi(v);
+        const char* most = std::strchr(v, ':');
+        g_test_spawn_most = most ? std::atoi(most + 1) : 12;
+        frame_hooks::add(frame_hooks::TICK_START, &test_spawn_tick, nullptr, "netplay test enemy spawns");
+    }
+    if (const char* v = test_switch("DMC4_TEST_LEAVE")) {
+        g_test_leave_at = std::atoi(v);
+    }
+    if (const char* v = test_switch("DMC4_TEST_QUIT")) {
+        g_test_quit_at = std::atoi(v);
+    }
+    if (g_test_leave_at > 0 || g_test_quit_at > 0) {
+        frame_hooks::add(frame_hooks::TICK_START, &test_leave_tick, nullptr, "netplay test leave / quit");
+    }
     g_heap_restore = cfg.get<bool>("netplay_heap_restore").value_or(true);
     g_heap_resource = cfg.get<bool>("netplay_heap_resource").value_or(false);
     g_heap_sound = cfg.get<bool>("netplay_heap_sound").value_or(false);
@@ -6125,7 +6501,96 @@ void CoopOnline::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("netplay_probe_random_first", g_probe.made_up_first);
 }
 
+// Test switch DMC4_TRACE_UNIT_ALLOCS: each moving water (uInteractiveWater) and its two Unit-heap buffers (+0xF0 the
+// vertices, 0x1E000 bytes; +0x104 the force list, 0x2000), as the heap's block list sees them, logged when that changes:
+// a buffer outside any block is memory the heap hands out again while the water still writes it.
+static void water_state(uintptr_t water, char* out, size_t n)
+{
+    auto where = [](uintptr_t p, char* text, size_t size) {
+        uintptr_t block = 0;
+        uint32_t bytes = 0;
+        const char* heap = heap_snapshot::locate(p, block, bytes);
+        if (!heap) {
+            snprintf(text, size, "%08X in no heap", (unsigned)p);
+        } else if (!block) {
+            snprintf(text, size, "%08X %s, in no block", (unsigned)p, heap);
+        } else {
+            snprintf(text, size, "%08X %s block %08X +%X of %X", (unsigned)p, heap, (unsigned)block, (unsigned)(p - block), bytes);
+        }
+    };
+    char w[64], v[64], f[64];
+    where(water, w, sizeof w);
+    where(*(const uintptr_t*)(water + 0xF0), v, sizeof v);
+    where(*(const uintptr_t*)(water + 0x104), f, sizeof f);
+    snprintf(out, n, "water %s; vertices %s; forces %s", w, v, f);
+}
+static void watch_water(uintptr_t water)
+{
+    // the last move's vertex scratch use (its tail quads start at +0x178 and end 80 bytes on; WaterWakes.hpp), logged from
+    // 0x18000 bytes up as it grows
+    static uintptr_t most_water = 0;
+    static uint32_t most = 0;
+    const uintptr_t vb = *(const uintptr_t*)(water + 0xF0), tail = *(const uintptr_t*)(water + 0x178);
+    if (water != most_water) {
+        most_water = water;
+        most = 0;
+    }
+    if (tail > vb && tail - vb < 0x40000) {
+        const uint32_t used = (uint32_t)(tail - vb) + 80;
+        if (used > most && used >= 0x18000) {
+            most = used;
+            char text[120];
+            snprintf(text, sizeof text, "water %08X: its last move used %X of 1E000 vertex bytes, at f%d%s", (unsigned)water, used,
+                g_tick_frame, g_sctx.g_resimulating ? " (again)" : "");
+            probe_log(text);
+        }
+    }
+    char state[200];
+    water_state(water, state, sizeof state);
+    if (water == g_watched_water && std::strcmp(state, g_water_state) == 0) {
+        return;
+    }
+    g_watched_water = water;
+    std::memcpy(g_water_state, state, sizeof state);
+    char line[260];
+    snprintf(line, sizeof line, "%s at f%d%s", state, g_tick_frame, g_sctx.g_resimulating ? " (again)" : "");
+    probe_log(line);
+}
+
+// Test switch DMC4_TRACE_PLMODELS: at every stage start and end, Nero's models and archive in the resource table (path,
+// count, attr, state), local play included, to compare what a room change keeps with and without a session.
+static void trace_player_models(const char* when)
+{
+    static const bool on = test_switch("DMC4_TRACE_PLMODELS") != nullptr;
+    const uintptr_t manager = on ? *(const uintptr_t*)0x00E552D0 : 0;
+    if (!manager) {
+        return;
+    }
+    static const char* const wanted[] = {"model\\game\\pl000\\pl000", "model\\game\\pl000\\pl000_01", "model\\game\\pl000\\pl000_02", "model\\game\\pl000\\pl000_03", "rom\\player\\uPlayerNero"};
+    char line[200];
+    snprintf(line, sizeof line, "plmodels %s, session %d", when, g_netplay && g_netplay->get_session() ? 1 : 0);
+    probe_log(line);
+    const uintptr_t* slots = (const uintptr_t*)(manager + 0x1038);
+    for (int i = 0; i < 0x2000; ++i) {
+        const uintptr_t r = slots[i];
+        if (!r) {
+            continue;
+        }
+        for (const char* w : wanted) {
+            if (!std::strcmp((const char*)r + 4, w)) {
+                snprintf(line, sizeof line, "  %08X %s count %d attr %08X state %08X vtable %08X", (unsigned)r, w,
+                    *(const int32_t*)(r + 0x44), *(const uint32_t*)(r + 0x48), *(const uint32_t*)(r + 0x4C),
+                    *(const uint32_t*)r);
+                probe_log(line);
+            }
+        }
+    }
+}
+
 void CoopOnline::on_stage_start() {
+    trace_player_models("stage start");
+    static const bool watch = test_switch("DMC4_TRACE_UNIT_ALLOCS") != nullptr;
+    water_wakes::set_watch(watch ? &watch_water : nullptr);
     // Safety net: a stage can load before on_config_load ran, so re-check the arguments.
     if (!g_netplay) {
         select_mode_from_args();
@@ -6148,6 +6613,7 @@ void CoopOnline::on_stage_start() {
 }
 
 void CoopOnline::on_stage_end() {
+    trace_player_models("stage end");
     probe_stop();
     if (g_netplay) {
         g_netplay->on_stage_end();

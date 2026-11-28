@@ -18,6 +18,12 @@ constexpr uint8_t kBye = net_link::kFirstMessageKind + 2;
 constexpr uint8_t kStart = net_link::kFirstMessageKind + 3;
 constexpr uint8_t kStartAck = net_link::kFirstMessageKind + 4;
 constexpr uint8_t kRoster = net_link::kFirstMessageKind + 5;
+constexpr uint8_t kBlobChunk = net_link::kFirstMessageKind + 6;
+constexpr uint8_t kBlobAck = net_link::kFirstMessageKind + 7;
+constexpr int kBlobKinds = (int)Blob::Count;
+constexpr size_t kChunkBytes = 1100;       // under net_link's 1200-byte messages with the head
+constexpr size_t kMaxBlobBytes = 1u << 20;
+constexpr double kBlobEvery = 1000.0;
 constexpr double kStartEvery = 250.0;
 constexpr uint32_t kMagic = 0x3259424Cu;   // "LBY2"
 constexpr double kHelloEvery = 500.0;
@@ -35,6 +41,7 @@ struct Hello {
     uint8_t character;
     uint8_t where;
     uint8_t rules_version;
+    uint32_t settings_applied;   // a guest: the hash of the host's settings in force on it
 };
 struct RulesMessage {
     uint32_t magic;
@@ -61,6 +68,23 @@ struct StartAck {
     uint16_t id;
     uint8_t player;
     uint8_t spare;
+};
+struct ChunkHead {
+    uint32_t magic;
+    uint8_t kind;
+    uint8_t from;        // the sender's player
+    uint16_t index;
+    uint16_t count;
+    uint16_t spare;
+    uint32_t hash;       // of the whole text: the version
+    uint32_t total;      // its bytes
+};
+struct BlobAck {
+    uint32_t magic;
+    uint8_t kind;
+    uint8_t from;
+    uint16_t spare;
+    uint32_t hash;
 };
 #pragma pack(pop)
 
@@ -95,6 +119,27 @@ uint16_t g_taken_start = 0;          // the others: the last start taken
 bool g_start_ready = false;
 Start g_start_in;
 
+// the long data: this machine's own, what each receiver has acknowledged of it, and what arrived from each player
+struct Outgoing {
+    std::string text;
+    uint32_t hash = 0;
+};
+struct Incoming {
+    uint32_t hash = 0;
+    uint32_t total = 0;
+    uint16_t count = 0;
+    uint16_t have = 0;
+    std::vector<uint8_t> data;
+    std::vector<bool> got;
+    bool complete = false;
+    std::string text;
+};
+Outgoing g_out[kBlobKinds];
+uint32_t g_acked[kMaxPlayers][kBlobKinds] = {};
+Incoming g_in[kMaxPlayers][kBlobKinds];
+double g_last_blob = -1e9;
+uint32_t g_settings_applied_self = 0;
+
 double now_ms()
 {
     LARGE_INTEGER t, f;
@@ -112,6 +157,24 @@ bool take_socket()
     net_link::wrap(adapter);
     g_socket = true;
     return true;
+}
+
+void forget_blobs()
+{
+    for (int p = 0; p < kMaxPlayers; ++p) {
+        for (int k = 0; k < kBlobKinds; ++k) {
+            g_acked[p][k] = 0;
+            g_in[p][k] = Incoming{};
+        }
+    }
+}
+
+void forget_slot(int p)
+{
+    for (int k = 0; k < kBlobKinds; ++k) {
+        g_acked[p][k] = 0;
+        g_in[p][k] = Incoming{};
+    }
 }
 
 void roster_changed()
@@ -144,11 +207,16 @@ void drop(int slot)
         g_peers[i] = g_peers[i + 1];
         g_seen[i] = g_seen[i + 1];
         g_gone[i] = g_gone[i + 1];
+        for (int k = 0; k < kBlobKinds; ++k) {
+            g_acked[i][k] = g_acked[i + 1][k];
+            g_in[i][k] = std::move(g_in[i + 1][k]);
+        }
     }
     --g_players;
     g_address[g_players].clear();
     g_peers[g_players] = Peer{};
     g_gone[g_players] = false;
+    forget_slot(g_players);
     roster_changed();
 }
 
@@ -208,6 +276,9 @@ void take_roster(const net_link::Message& m)
         for (Peer& p : g_peers) {
             p = Peer{};   // the players moved: their hellos say again who is where
         }
+        for (int k = 0; k < kBlobKinds; ++k) {
+            g_acked[0][k] = 0;   // the host knows this machine by its new player: ours go again
+        }
     }
     g_players = r.players;
     g_local = r.you;
@@ -217,10 +288,116 @@ void take_roster(const net_link::Message& m)
     roster_changed();
 }
 
+// The player a long-data message came from: the host knows its guests by address; a guest takes the host's only.
+int blob_sender(const net_link::Message& m, uint8_t claimed)
+{
+    if (g_cfg.kind == Kind::Host) {
+        return slot_of(m.from);
+    }
+    if (host()) {
+        return claimed > 0 && claimed < g_players ? claimed : -1;   // Fixed: the roster is the command line's
+    }
+    return claimed == 0 ? 0 : -1;
+}
+
+void take_chunk(const net_link::Message& m)
+{
+    ChunkHead head;
+    std::memcpy(&head, m.data.data(), sizeof head);
+    const int p = blob_sender(m, head.from);
+    if (head.magic != kMagic || head.kind >= kBlobKinds || p < 0 || p >= kMaxPlayers || !head.count ||
+        head.index >= head.count || head.total > kMaxBlobBytes || (size_t)head.count * kChunkBytes < head.total) {
+        return;
+    }
+    Incoming& in = g_in[p][head.kind];
+    if (in.complete && in.hash == head.hash) {
+        const BlobAck ack{kMagic, head.kind, (uint8_t)g_local, 0, head.hash};
+        net_link::send_message(m.from, kBlobAck, &ack, sizeof ack);   // the ack was lost
+        return;
+    }
+    if (in.hash != head.hash || in.total != head.total || in.count != head.count) {
+        in = Incoming{};
+        in.hash = head.hash;
+        in.total = head.total;
+        in.count = head.count;
+        in.data.assign(head.total, 0);
+        in.got.assign(head.count, false);
+    }
+    const size_t at = (size_t)head.index * kChunkBytes;
+    const size_t bytes = m.data.size() - sizeof head;
+    if (in.got[head.index] || at + bytes > in.total || bytes != std::min(kChunkBytes, (size_t)in.total - at)) {
+        return;
+    }
+    std::memcpy(in.data.data() + at, m.data.data() + sizeof head, bytes);
+    in.got[head.index] = true;
+    if (++in.have < in.count) {
+        return;
+    }
+    std::string text(in.data.begin(), in.data.end());
+    if (text_hash(text) != in.hash) {
+        in = Incoming{};   // a mixed-up set of chunks: the next round sends it again
+        return;
+    }
+    in.text = std::move(text);
+    in.complete = true;
+    in.data.clear();
+    in.got.clear();
+    const BlobAck ack{kMagic, head.kind, (uint8_t)g_local, 0, head.hash};
+    net_link::send_message(m.from, kBlobAck, &ack, sizeof ack);
+}
+
+void send_blob(int kind, const std::string& to)
+{
+    const Outgoing& o = g_out[kind];
+    const uint16_t count = (uint16_t)((o.text.size() + kChunkBytes - 1) / kChunkBytes);
+    std::vector<uint8_t> msg;
+    for (uint16_t i = 0; i < count; ++i) {
+        const size_t at = (size_t)i * kChunkBytes;
+        const size_t bytes = std::min(kChunkBytes, o.text.size() - at);
+        const ChunkHead head{kMagic, (uint8_t)kind, (uint8_t)g_local, i, count, 0, o.hash, (uint32_t)o.text.size()};
+        msg.resize(sizeof head + bytes);
+        std::memcpy(msg.data(), &head, sizeof head);
+        std::memcpy(msg.data() + sizeof head, o.text.data() + at, bytes);
+        net_link::send_message(to, kBlobChunk, msg.data(), (uint32_t)msg.size());
+    }
+}
+
+// Every second: each blob of ours to every receiver that hasn't acknowledged its version (guests send to the host).
+void send_blobs()
+{
+    if (g_local < 0) {
+        return;
+    }
+    for (int k = 0; k < kBlobKinds; ++k) {
+        if (g_out[k].text.empty()) {
+            continue;
+        }
+        for (int p = 0; p < g_players && p < kMaxPlayers; ++p) {
+            const bool target = host() ? p != g_local : p == 0;
+            if (target && !g_address[p].empty() && g_peers[p].connected && g_acked[p][k] != g_out[k].hash) {
+                send_blob(k, g_address[p]);
+            }
+        }
+    }
+}
+
 void receive(double t)
 {
     net_link::Message m;
     while (net_link::take_message(m)) {
+        if (m.kind == kBlobChunk && m.data.size() > sizeof(ChunkHead)) {
+            take_chunk(m);
+            continue;
+        }
+        if (m.kind == kBlobAck && m.data.size() == sizeof(BlobAck)) {
+            BlobAck a;
+            std::memcpy(&a, m.data.data(), sizeof a);
+            const int p = blob_sender(m, a.from);
+            if (a.magic == kMagic && a.kind < kBlobKinds && p >= 0 && p < kMaxPlayers) {
+                g_acked[p][a.kind] = a.hash;
+            }
+            continue;
+        }
         if (m.kind == kHello && m.data.size() == sizeof(Hello)) {
             Hello h;
             std::memcpy(&h, m.data.data(), sizeof h);
@@ -237,6 +414,7 @@ void receive(double t)
                     player = g_players++;
                     g_address[player] = m.from;
                     g_gone[player] = false;
+                    forget_slot(player);
                     roster_changed();
                 }
             } else if (player >= kMaxPlayers || player == g_local || player >= g_players) {
@@ -248,6 +426,7 @@ void receive(double t)
             p.character = h.character;
             p.where = (Where)h.where;
             p.rules_version = h.rules_version;
+            p.settings_applied = h.settings_applied;
             g_seen[player] = t;
         } else if (m.kind == kRoster && m.data.size() == sizeof(RosterMessage) && g_cfg.kind == Kind::Join) {
             take_roster(m);
@@ -345,6 +524,8 @@ bool open(const Config& cfg)
         g_local = -1;
     }
     ++g_roster_serial;
+    forget_blobs();
+    g_settings_applied_self = 0;
     g_have_rules = false;
     g_taken_serial = 0;
     g_rules_version_sent = 0;
@@ -466,7 +647,7 @@ void update(bool session_running)
     if (t - g_last_hello >= kHelloEvery) {
         g_last_hello = t;
         const Hello h{kMagic, build_id(), (uint8_t)(g_local < 0 ? kNobody : g_local), g_self_character,
-            (uint8_t)g_self_where, host_rules::newest_received()};
+            (uint8_t)g_self_where, host_rules::newest_received(), g_settings_applied_self};
         send_all(kHello, &h, sizeof h);
         if (g_cfg.kind == Kind::Host) {
             send_roster();
@@ -485,6 +666,10 @@ void update(bool session_running)
         std::memcpy(out.data(), &r, sizeof r);
         out.insert(out.end(), values.begin(), values.end());
         send_all(kRules, out.data(), (uint32_t)out.size());
+    }
+    if (t - g_last_blob >= kBlobEvery) {
+        g_last_blob = t;
+        send_blobs();
     }
     if (g_start_sending && t - g_last_start >= kStartEvery) {
         g_last_start = t;
@@ -529,6 +714,55 @@ bool take_start(Start& out)
     g_start_ready = false;
     out = g_start_in;
     return true;
+}
+
+uint32_t text_hash(const std::string& text)
+{
+    uint32_t h = 2166136261u;   // FNV-1a
+    for (const unsigned char ch : text) {
+        h = (h ^ ch) * 16777619u;
+    }
+    return text.empty() ? 0u : (h ? h : 1u);
+}
+
+void set_blob(Blob kind, const std::string& text)
+{
+    Outgoing& o = g_out[(int)kind];
+    if (o.text == text) {
+        return;
+    }
+    o.text = text;
+    o.hash = text_hash(text);
+    g_last_blob = -1e9;   // out at the next update
+}
+
+bool host_blob(Blob kind, std::string& out)
+{
+    const Incoming& in = g_in[0][(int)kind];
+    if (host() || !in.complete) {
+        return false;
+    }
+    out = in.text;
+    return true;
+}
+
+bool guest_blob(int player, Blob kind, std::string& out)
+{
+    if (!host() || player <= 0 || player >= kMaxPlayers || !g_in[player][(int)kind].complete) {
+        return false;
+    }
+    out = g_in[player][(int)kind].text;
+    return true;
+}
+
+void set_settings_applied(uint32_t hash)
+{
+    g_settings_applied_self = hash;
+}
+
+uint32_t settings_applied(int player)
+{
+    return player >= 0 && player < kMaxPlayers ? g_peers[player].settings_applied : 0;
 }
 
 void set_self(uint8_t character, Where where)

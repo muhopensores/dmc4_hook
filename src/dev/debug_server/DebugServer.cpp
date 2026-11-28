@@ -2,6 +2,8 @@
 #include "Server.hpp"
 #include "Tools.hpp"
 #include "../../sdk/FrameHooks.hpp"
+#include "../../sdk/TestSwitch.hpp"
+#include <cstdlib>
 #include <spdlog/spdlog.h>
 
 bool DebugServer::mod_enabled = false;
@@ -21,7 +23,10 @@ void drain_jobs(void*) {
 
 void apply(bool on) {
     if (on) {
-        if (!debug_server::start(DebugServer::server_port, g_error)) {
+        // test switch DMC4_DEBUG_PORT: this instance's port (a second instance on one PC), the setting left as it is
+        static const char* test_port = test_switch("DMC4_DEBUG_PORT");
+        const int port = test_port ? std::atoi(test_port) : DebugServer::server_port;
+        if (!debug_server::start(port, g_error)) {
             spdlog::error("DebugServer: {}", g_error);
             DebugServer::mod_enabled = false;
         } else {

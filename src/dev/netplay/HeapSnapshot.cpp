@@ -478,6 +478,10 @@ void restore_counts(const std::vector<std::pair<uintptr_t, int32_t>>& counts)
     }
 }
 
+// local_refs_enter / _exit: the counts as the outermost local scope found them
+std::unordered_map<uintptr_t, int32_t> g_scope_counts;
+bool g_scope_open = false;
+
 void release_hold()
 {
     g_unheld_since.clear();
@@ -1364,6 +1368,7 @@ void install()
 
 bool begin(int max_records)
 {
+    local_world::set_scope_watch(&local_refs_enter, &local_refs_exit);
     light_heap::install();
     if (g_active) {
         end();
@@ -1418,6 +1423,46 @@ bool begin(int max_records)
     g_active = true;
     refresh_stats();
     return true;
+}
+
+void local_refs_enter()
+{
+    g_scope_open = g_active;
+    if (!g_scope_open) {
+        return;
+    }
+    ResourceLock lock;
+    g_scope_counts.clear();
+    for_resources([&](uintptr_t r) { g_scope_counts[r] = *(const int32_t*)(r + kResourceCount); });
+}
+
+void local_refs_exit()
+{
+    if (!g_scope_open || !g_active) {
+        g_scope_open = false;
+        return;
+    }
+    g_scope_open = false;
+    ResourceLock lock;
+    std::vector<std::pair<uintptr_t, int32_t>> changed;
+    for_resources([&](uintptr_t r) {
+        const auto it = g_scope_counts.find(r);
+        if (it != g_scope_counts.end()) {   // one made in the scope isn't in any older frame: loads leave it alone
+            const int32_t delta = *(const int32_t*)(r + kResourceCount) - it->second;
+            if (delta) {
+                changed.emplace_back(r, delta);
+            }
+        }
+    });
+    for (Record& rec : g_records) {
+        for (auto& [r, count] : rec.resources) {
+            for (const auto& [cr, delta] : changed) {
+                if (cr == r) {
+                    count += delta;
+                }
+            }
+        }
+    }
 }
 
 void end()

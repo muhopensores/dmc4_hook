@@ -27,6 +27,12 @@
 
 namespace heap_snapshot {
 
+// Around each outermost local_world::Scope (set up by begin()): the resource counts the scope's code changed (the
+// resources local units take or let go of) go into every frame kept, so a load's count restore keeps them: local units
+// aren't rewound, so neither are their references.
+void local_refs_enter();
+void local_refs_exit();
+
 constexpr int kMaxHeaps = 16;
 constexpr int kMaxMismatches = 400;
 

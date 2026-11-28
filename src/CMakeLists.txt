@@ -414,6 +414,8 @@ set(DEV_SRC
   dev/netplay/NetLink.cpp
   dev/netplay/Lobby.hpp
   dev/netplay/Lobby.cpp
+  dev/netplay/SessionCheck.hpp
+  dev/netplay/SessionCheck.cpp
   dev/netplay/FramePacer.hpp
   dev/movedef/XmlMove.hpp
   dev/movedef/XmlMove.cpp

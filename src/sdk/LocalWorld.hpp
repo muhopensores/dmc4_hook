@@ -23,6 +23,24 @@ void set_enabled(bool on);  // netplay / the rollback probe: before the stage's 
 void set_zero_fill(bool on);   // netplay: new blocks of the game's heaps (not Resource, Sound, Temp, the local one) zeroed
 bool enabled();
 
+// Netplay: called as the outermost Scope starts and ends, so what local code does to shared counts (the resources its
+// units hold) can be kept apart from what a rewind puts back (dev/netplay/HeapSnapshot.cpp, local_refs_enter / _exit).
+void set_scope_watch(void (*enter)(), void (*exit)());
+
+// Diagnostics (test switch DMC4_TRACE_UNIT_ALLOCS): the latest allocations of the Unit heap with their callers, and its
+// frees through the allocator (a rewind's page restore frees without it), so a fault can say whose block an address was.
+struct AllocTrace {
+    uintptr_t p = 0;
+    uint32_t size = 0;
+    uint32_t seq = 0;          // the order of allocations and frees
+    int frame = -1;            // the session frame (frame_hooks::tick_frame) when it was made
+    uintptr_t stack[8] = {};
+    uint32_t freed_seq = 0;    // 0: no free of it seen since
+    uintptr_t freed_from = 0;
+};
+bool find_unit_alloc(uintptr_t address, AllocTrace& out);   // the latest allocation holding `address`
+int unit_alloc_history(uintptr_t address, AllocTrace* out, int max);   // the latest `max` holding it, oldest first
+
 // While alive (game thread), the game's heaps are the local one. Nested scopes are fine.
 struct Scope {
     Scope();

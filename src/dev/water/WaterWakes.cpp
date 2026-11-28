@@ -3,6 +3,7 @@
 #include "../../sdk/sUnit.hpp"
 #include "../../sdk/cUnit.hpp"
 #include "../debug_server/Memory.hpp"
+#include "../../sdk/TestSwitch.hpp"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <atomic>
@@ -51,9 +52,9 @@ constexpr float kAttackMinSpeed    = 4.0f;
 constexpr int   kAttackPoints      = 6;
 uint32_t g_attack_logged = 0;   // g_call of the last attack log line (one every 120 calls at most)
 
-// speed: a smoothed cm per call. move runs twice a frame (120 calls a second at 60 fps; the characters move on every other
+// speed: a smoothed cm per call. rain is called twice a move (120 calls a second at 60 fps; the characters move on every other
 // call) and each call hands the simulation its own list, so a wake is pushed on every call from the smoothed speed
-// a splash is pushed on at least 2 calls in a row (one frame): move runs twice a frame and each call replaces the list the
+// a splash is pushed on at least 2 calls in a row (one frame): rain is called twice a move and each pass replaces the list the
 // draw hands to the simulation (+0x164 / +0x19C, built from the forces), so a force pushed on one call reached the water
 // only half the time (a Split's splash changed nothing at 1x or 10x strength, height map read back 2026-11-26). Faster
 // impacts push longer (kSplashCalls more calls per unit of grow past 1): pushed for 4 frames, a plain jump's splash already
@@ -73,6 +74,7 @@ std::atomic<uint32_t> g_waters{0};
 
 uintptr_t g_dti_player = 0, g_dti_enemy = 0;
 bool g_dti_looked = false;
+void (*g_watch)(uintptr_t water) = nullptr;
 
 bool dti_under(uintptr_t dti, uintptr_t target) {
     for (int i = 0; dti && target && i < 16; ++i) {
@@ -94,11 +96,19 @@ bool invert3(const float* r, float* inv) {
     return true;
 }
 
+// forces a pass may hold: move's vertex scratch takes both passes' quads, 1015 forces a move (WaterWakes.hpp); rain and
+// wave push after these, so they keep their share
+constexpr uint32_t kPassForces = 507;
+
 void push(uintptr_t water, float x, float y, float size, float strength) {
     auto* base = *reinterpret_cast<float**>(water + 0x104);
     auto*& ptr = *reinterpret_cast<float**>(water + 0x108);
     if (!base || !ptr) return;
-    if (((reinterpret_cast<uintptr_t>(ptr) - reinterpret_cast<uintptr_t>(base)) & ~0xFu) >= 0x2000u) return;   // full
+    const uint32_t used = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(ptr) - reinterpret_cast<uintptr_t>(base)) / 16;
+    const uint32_t rain = *reinterpret_cast<const uint32_t*>(water + 0x138);                // mDestinyOfRain
+    const uint32_t wave = *reinterpret_cast<const float*>(water + 0x13C) > 0.0f ? 32u : 0u;   // mWaveHeight
+    static const bool no_cap = test_switch("DMC4_TEST_WAKE_NO_CAP") != nullptr;   // the list's own 512 only (the bug)
+    if (used >= 512 || (!no_cap && used + rain + wave >= kPassForces)) return;   // full
     ptr[0] = x; ptr[1] = y; ptr[2] = size; ptr[3] = strength;
     ptr += 4;
     g_pushed.fetch_add(1, std::memory_order_relaxed);
@@ -114,7 +124,7 @@ void push(uintptr_t water, float x, float y, float size, float strength) {
 // overlap: one-texel quads left nothing in the height map (the force pass seems to fade a quad towards its UV edges,
 // and a one-texel quad is sampled at its edge), and kRoundGain makes up for the overlap. Bigger disks use coarser cells
 // (at most kRoundCells), and past kCallBudget forces in a call the rest go as single quads, so the rain keeps room in the
-// list (512 forces, 0x2000 bytes).
+// list (kPassForces at most, with the rain and wave).
 constexpr float kTexel      = 2.0f / 512.0f;   // map units per texel of the 512 x 512 height map (st705 / BP floors)
 // GUI multipliers on every force's strength and radius (user, 2026-11-26: "force should be more exaggerated"; defaults
 // 2 / 1.5 over the values above)
@@ -360,6 +370,15 @@ void push_wakes_body(uintptr_t water) {
     }
 }
 
+// test switch DMC4_TEST_WAKE_FLOOD: as many single-texel forces as the list takes, on every pass, spread over the map
+void push_flood(uintptr_t water) {
+    for (int k = 0; k < 600; ++k) {
+        auto* const before = *reinterpret_cast<float**>(water + 0x108);
+        push(water, -0.9f + 0.075f * (k % 25), -0.9f + 0.075f * (k / 25 % 25), kTexel, 0.05f);
+        if (*reinterpret_cast<float**>(water + 0x108) == before) break;
+    }
+}
+
 // the walk under SEH (units run on this thread, but a character can go mid-walk). The body is its own function: a
 // function with __try can't hold objects that need unwinding, and in Debug builds the standard library's iterators do
 // (C2712; Release's are trivial, so only Debug failed)
@@ -371,7 +390,15 @@ void push_wakes_raw(uintptr_t water) {
 }
 
 void __stdcall push_wakes(uintptr_t water) {
-    if (!WaterWakes::mod_enabled || !water) return;
+    if (!water) return;
+    if (g_watch) g_watch(water);
+    static const bool test_off = test_switch("DMC4_TEST_NO_WAKES") != nullptr;   // a run without the forces, setting kept
+    if (!WaterWakes::mod_enabled || test_off) return;
+    static const bool flood = test_switch("DMC4_TEST_WAKE_FLOOD") != nullptr;
+    if (flood) {
+        push_flood(water);
+        return;
+    }
     if (!g_dti_looked) {
         g_dti_player = debug_server::mem::find_dti("uPlayer");
         g_dti_enemy = debug_server::mem::find_dti("uEnemy");
@@ -406,6 +433,10 @@ bool site_matches() {
     int32_t rel;
     std::memcpy(&rel, b + 1, 4);
     return kRainCall + 5 + rel == kRain;
+}
+
+void set_watch(void (*watch)(uintptr_t water)) {
+    g_watch = watch;
 }
 
 } // namespace water_wakes

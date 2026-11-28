@@ -1,4 +1,6 @@
 #include "LocalWorld.hpp"
+#include "FrameHooks.hpp"
+#include "TestSwitch.hpp"
 
 #include <windows.h>
 #include <intrin.h>
@@ -51,6 +53,8 @@ uintptr_t g_base = 0, g_end = 0;
 bool g_failed = false;
 
 int g_depth = 0;
+void (*g_watch_enter)() = nullptr;
+void (*g_watch_exit)() = nullptr;
 // The game's one random stream, as the outermost Scope found it: local code draws from it too (effects, model setup), and
 // it runs on some machines' ticks and not others' (forward ticks only, or per-machine mod state), so it leaves it as it was.
 MtRandom g_rng_saved;
@@ -75,8 +79,43 @@ uintptr_t owner_of(uintptr_t p)
     return 0;
 }
 
+// DMC4_TRACE_UNIT_ALLOCS: rings of the Unit heap's allocations and frees (any thread: a slot is claimed by an atomic index)
+struct UnitAlloc {
+    uintptr_t p;
+    uint32_t size, seq;
+    int frame;
+    void* stack[8];
+};
+struct UnitFree {
+    uintptr_t p, from;
+    uint32_t seq;
+};
+constexpr int kUnitAllocs = 1 << 16, kUnitFrees = 1 << 16;
+UnitAlloc* g_unit_allocs = nullptr;
+UnitFree* g_unit_frees = nullptr;
+volatile LONG g_unit_alloc_next = 0, g_unit_free_next = 0, g_unit_seq = 0;
+bool trace_unit_allocs()
+{
+    static const bool on = [] {
+        if (!test_switch("DMC4_TRACE_UNIT_ALLOCS")) {
+            return false;
+        }
+        g_unit_allocs = (UnitAlloc*)VirtualAlloc(nullptr, sizeof(UnitAlloc) * kUnitAllocs, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+        g_unit_frees = (UnitFree*)VirtualAlloc(nullptr, sizeof(UnitFree) * kUnitFrees, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+        return g_unit_allocs && g_unit_frees;
+    }();
+    return on;
+}
+uintptr_t unit_heap() { return *(const uintptr_t*)0x00E1434C; }
+
 void __fastcall free_detour(uintptr_t self, void*, void* p)
 {
+    if (p && trace_unit_allocs() && (self == unit_heap() || owner_of((uintptr_t)p) == unit_heap())) {
+        UnitFree& f = g_unit_frees[(InterlockedIncrement(&g_unit_free_next) - 1) & (kUnitFrees - 1)];
+        f.p = (uintptr_t)p;
+        f.from = (uintptr_t)_ReturnAddress();
+        f.seq = (uint32_t)InterlockedIncrement(&g_unit_seq);
+    }
     const uintptr_t owner = p && g_local ? owner_of((uintptr_t)p) : 0;
     if (owner && owner != self) {
         g_rerouted.fetch_add(1, std::memory_order_relaxed);
@@ -158,6 +197,17 @@ void* __fastcall alloc_detour(uintptr_t self, void*, size_t size, int align)
         }
     }
     void* p = g_alloc_original(self, size, align);
+    if (p && trace_unit_allocs() && self == unit_heap()) {
+        UnitAlloc& a = g_unit_allocs[(InterlockedIncrement(&g_unit_alloc_next) - 1) & (kUnitAllocs - 1)];
+        a.p = (uintptr_t)p;
+        a.size = (uint32_t)size;
+        a.seq = (uint32_t)InterlockedIncrement(&g_unit_seq);
+        a.frame = frame_hooks::tick_frame();
+        const USHORT n = CaptureStackBackTrace(1, 8, a.stack, nullptr);
+        for (USHORT k = n; k < 8; ++k) {
+            a.stack[k] = nullptr;
+        }
+    }
     if (p && size && g_zero_fill.load(std::memory_order_relaxed) && zero_filled_heap(self)) {
         std::memset(p, 0, size);
     }
@@ -317,6 +367,9 @@ Scope::Scope() : ok(false)
         return;
     }
     if (g_depth++ == 0) {
+        if (g_watch_enter) {
+            g_watch_enter();
+        }
         std::memcpy(&g_rng_saved, (const void*)kMtRandom, sizeof g_rng_saved);
         g_scope_thread = GetCurrentThreadId();
         for (int i = 0; i < kSwappedCount; ++i) {
@@ -337,7 +390,95 @@ Scope::~Scope()
             *(uintptr_t*)kSwapped[i] = g_saved[i];
         }
         std::memcpy((void*)kMtRandom, &g_rng_saved, sizeof g_rng_saved);
+        if (g_watch_exit) {
+            g_watch_exit();
+        }
     }
+}
+
+bool find_unit_alloc(uintptr_t address, AllocTrace& out)
+{
+    if (!trace_unit_allocs()) {
+        return false;
+    }
+    const UnitAlloc* best = nullptr;
+    for (int i = 0; i < kUnitAllocs; ++i) {
+        const UnitAlloc& a = g_unit_allocs[i];
+        if (a.p && address >= a.p && address < a.p + std::max<uint32_t>(a.size, 1) && (!best || a.seq > best->seq)) {
+            best = &a;
+        }
+    }
+    if (!best) {
+        return false;
+    }
+    out = AllocTrace{};
+    out.p = best->p;
+    out.size = best->size;
+    out.seq = best->seq;
+    out.frame = best->frame;
+    for (int k = 0; k < 8; ++k) {
+        out.stack[k] = (uintptr_t)best->stack[k];
+    }
+    for (int i = 0; i < kUnitFrees; ++i) {
+        const UnitFree& f = g_unit_frees[i];
+        if (f.p == best->p && f.seq > best->seq && (!out.freed_seq || f.seq < out.freed_seq)) {
+            out.freed_seq = f.seq;
+            out.freed_from = f.from;
+        }
+    }
+    return true;
+}
+
+int unit_alloc_history(uintptr_t address, AllocTrace* out, int max)
+{
+    if (!trace_unit_allocs() || max <= 0) {
+        return 0;
+    }
+    const UnitAlloc* found[64];
+    int n = 0;
+    for (int i = 0; i < kUnitAllocs; ++i) {
+        const UnitAlloc& a = g_unit_allocs[i];
+        if (!a.p || address < a.p || address >= a.p + std::max<uint32_t>(a.size, 1)) {
+            continue;
+        }
+        if (n < 64) {
+            found[n++] = &a;
+        } else {   // keep the latest 64
+            int oldest = 0;
+            for (int k = 1; k < 64; ++k) {
+                if (found[k]->seq < found[oldest]->seq) oldest = k;
+            }
+            if (a.seq > found[oldest]->seq) found[oldest] = &a;
+        }
+    }
+    std::sort(found, found + n, [](const UnitAlloc* x, const UnitAlloc* y) { return x->seq < y->seq; });
+    const int first = std::max(0, n - max);
+    for (int k = first; k < n; ++k) {
+        const UnitAlloc& a = *found[k];
+        AllocTrace& t = out[k - first];
+        t = AllocTrace{};
+        t.p = a.p;
+        t.size = a.size;
+        t.seq = a.seq;
+        t.frame = a.frame;
+        for (int s = 0; s < 8; ++s) {
+            t.stack[s] = (uintptr_t)a.stack[s];
+        }
+        for (int i = 0; i < kUnitFrees; ++i) {
+            const UnitFree& f = g_unit_frees[i];
+            if (f.p == a.p && f.seq > a.seq && (!t.freed_seq || f.seq < t.freed_seq)) {
+                t.freed_seq = f.seq;
+                t.freed_from = f.from;
+            }
+        }
+    }
+    return n - first;
+}
+
+void set_scope_watch(void (*enter)(), void (*exit)())
+{
+    g_watch_enter = enter;
+    g_watch_exit = exit;
 }
 
 void tick()

@@ -39,6 +39,7 @@ struct Peer {
     uint8_t character = 0;
     Where where = Where::Elsewhere;
     uint8_t rules_version = 0;   // the newest host rules version it has (host_rules)
+    uint32_t settings_applied = 0;   // a guest: the hash of the host's settings in force on it
 };
 
 // Host: this machine is player 1, the others join it. Join: the host's address only, the rest comes from the host.
@@ -74,6 +75,21 @@ void set_self(uint8_t character, Where where);
 const Peer& peer(int player);
 bool all_connected();
 uint32_t build_id();   // this DLL's link time: every machine has to run the same build
+
+// Longer data, as text (online.md "Mods and settings"): each guest sends its own to the host, the host its own to
+// every guest; chunked, and sent again every second until the receiver acknowledges that version (its hash).
+enum class Blob : uint8_t {
+    Code = 0,       // the code each machine runs (session_check::code_text)
+    Settings = 1,   // the host's config map
+    Files = 2,      // the files each machine's game loaded
+    Count
+};
+void set_blob(Blob kind, const std::string& text);   // this machine's own (an empty text sends nothing)
+bool host_blob(Blob kind, std::string& out);         // a guest: the host's, once one arrived whole
+bool guest_blob(int player, Blob kind, std::string& out);   // the host: player i's, once one arrived whole
+uint32_t text_hash(const std::string& text);         // what versions a blob
+void set_settings_applied(uint32_t hash);            // a guest: the host's settings in force here (its hello says so)
+uint32_t settings_applied(int player);               // the host: what player i's hello says
 
 bool host();
 void set_rules(const Rules& rules);   // the host's, sent to every other machine
