@@ -2593,6 +2593,11 @@ struct OnlineComponent : NetplayComponent {
         if (local >= 0) {
             local_control = local;
         }
+        g_online_split = utility::check_argument("-onlinesplit");
+        const int c = utility::get_argument("-localdelay");
+        if (c >= 0) {
+            peers[local_control].local_delay = c;
+        }
         num_players = highest + 1;
         lobby_kind = lobby::Kind::Fixed;
         armed_by_command_line = true;
