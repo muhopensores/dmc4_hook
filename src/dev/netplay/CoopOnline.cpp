@@ -4330,7 +4330,7 @@ static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx
         host_rules::tick(g_tick_rules);
     }
     // the mods' per-tick work (Coop's tick), forward and re-simulated alike: after the prelude, as on a forward tick
-    frame_hooks::tick_start();
+    frame_hooks::tick_start(g_tick_frame);
 
     sCollisionGame__checkInit_sub_47B620(main->mpCollisionGame);
     main->mpUnit->moveExForAll();
@@ -4676,6 +4676,9 @@ static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
         (unsigned)info->ExceptionRecord->ExceptionInformation[1], g_probe_phase, g_probe_tick, g_probe.frame, g_tick_frame,
         g_sctx.g_resimulating ? " (again)" : "");
     probe_log(line);
+    // inside MtHeapAllocator (allocate / free walk the blocks): the words around each heap register, to see what wrote
+    // over a block header
+    const bool in_allocator = c.Eip >= 0x008BB000 && c.Eip < 0x008BC000;
     const char* names[] = {"eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"};
     const DWORD values[] = {c.Eax, c.Ebx, c.Ecx, c.Edx, c.Esi, c.Edi, c.Ebp};
     for (int i = 0; i < 7; ++i) {
@@ -4688,6 +4691,19 @@ static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
         snprintf(line, sizeof line, "  %s %08X %s: block %08X +%X of %X, first word %08X", names[i], (unsigned)values[i],
             heap, (unsigned)block, (unsigned)(block ? values[i] - block : 0), bytes, block ? *(const uint32_t*)block : 0u);
         probe_log(line);
+        if (in_allocator) {
+            const uintptr_t from = (values[i] & ~(uintptr_t)0xF) - 0x40;
+            MEMORY_BASIC_INFORMATION mbi{};
+            const bool readable = VirtualQuery((const void*)from, &mbi, sizeof mbi) && mbi.State == MEM_COMMIT &&
+                (uintptr_t)mbi.BaseAddress + mbi.RegionSize >= from + 0x100 &&
+                (mbi.Protect & (PAGE_READONLY | PAGE_READWRITE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE));
+            for (uint32_t k = 0; readable && k < 0x100; k += 0x20) {
+                const uint32_t* w = (const uint32_t*)(from + k);
+                snprintf(line, sizeof line, "    %08X %08X %08X %08X %08X %08X %08X %08X %08X", (unsigned)(from + k), w[0], w[1],
+                    w[2], w[3], w[4], w[5], w[6], w[7]);
+                probe_log(line);
+            }
+        }
         if (block && bytes <= 0x100 && std::strcmp(heap, "Resource") == 0) {
             // a small Resource-heap object (a cResource): its words and its path
             const uint32_t* w = (const uint32_t*)block;

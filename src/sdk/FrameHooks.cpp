@@ -28,6 +28,7 @@ std::atomic<uint64_t> g_frames{0};
 std::unique_ptr<FunctionHook> g_hook_frame_end;
 bool g_installed = false;
 std::atomic<bool> g_ticks_driven{false};
+int g_tick_frame = -1;
 uintptr_t g_ret_frame_end = 0;
 
 void run(Point point) {
@@ -88,8 +89,13 @@ void frame_end() {
     on_frame_end();
 }
 
-void tick_start() {
+void tick_start(int frame) {
+    g_tick_frame = frame;
     run(TICK_START);
+}
+
+int tick_frame() {
+    return g_ticks_driven.load() ? g_tick_frame : -1;
 }
 
 void set_ticks_driven(bool driven) {

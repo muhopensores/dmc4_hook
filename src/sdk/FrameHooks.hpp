@@ -28,7 +28,10 @@ uint64_t frames();                                      // FRAME_END runs so far
 // Runs FRAME_END by hand, for code that replaces the block holding its site (CoopOnline's netplay tick runs its
 // own copy of 0x8AEFD5..0x8AF04C and calls this once per forward tick, never for re-simulated ones).
 void frame_end();
-void tick_start();                                      // runs TICK_START (CoopOnline, at the start of each simulated tick)
+void tick_start(int frame);                              // runs TICK_START (CoopOnline, at the start of each simulated tick)
+// The session frame the tick being simulated belongs to, the same on every machine (-1 outside a netplay tick: the
+// rollback probe's ticks, or no tick driven). Valid from TICK_START until the next tick.
+int tick_frame();
 void set_ticks_driven(bool driven);                     // CoopOnline, once per presented frame before the tick
 bool ticks_driven();
 

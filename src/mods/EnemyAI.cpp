@@ -13,6 +13,10 @@
 #include <cstdlib>
 #include <cstring>
 #include "../sdk/Rollback.hpp"
+#include "../sdk/FrameHooks.hpp"
+#include "../sdk/Players.hpp"
+#include "../sdk/TestSwitch.hpp"
+#include "../sdk/HostRules.hpp"
 
 namespace provoke {
 
@@ -115,14 +119,15 @@ constexpr int      kOrbLine   = 0x14;
 constexpr float    kOrbGap    = 30.0f;           // frames: the game's own gap between two pickups' flashes
 
 // ---- Provoked enemies ----------------------------------------------------------------------------------------------
-// Written on the game thread only (the taunt and the unit delta); seen is the render thread's frame count when the enemy
-// last ticked, so an entry whose enemy is gone (killed, the room left) is reused after a while.
+// Written on the game thread only (the taunt and the unit delta). An entry is the unit at its address until a unit starts
+// there (unit_rate sees its init): the game makes units where dead ones were, and each machine lays its heaps out its own
+// way, so under netplay only some machines would reuse an address. A full list takes the entry of an enemy that's gone
+// (no longer on a move line).
 struct Entry {
     uintptr_t enemy = 0;
     uintptr_t by = 0;        // the player who provoked it
     uintptr_t size = 0;      // its DTI size (which cThinkMgr is its own)
     float left = 0.0f;       // frames, unscaled
-    uint32_t seen = 0;
     uintptr_t coll = 0;      // its main uCollisionMgr (cancels: mLand, mMotType, mDamage), found once
     uintptr_t colls[4] = {}; // every uCollisionMgr it owns (their groups are its attacks)
     int ncolls = 0;
@@ -143,7 +148,6 @@ struct Entry {
     float since_flash = kOrbGap;    // frames since its last one
 };
 constexpr int kMaxEntries = 64;
-constexpr uint32_t kStaleFrames = 120;
 Entry g_list[kMaxEntries];
 bool g_any = false;                  // any entry live (the hooks' fast way out)
 // No attacks (cfg enemy_no_attacks, no checkbox: the practice mode plugin holds it through api->mods for its Don't
@@ -154,7 +158,6 @@ bool g_no_attacks = false;
 std::unique_ptr<Patch> g_no_attack_patch, g_no_attack_patch2;
 constexpr uintptr_t kGetAttackPermission = 0x72FBD0;   // uEnemy::getAttackPermission (eax = the enemy; retn 8)
 constexpr uintptr_t kNoGroupFree = 0x72FC6A;           // sub_72FC50 (uEm000Base::checkChase's permit check), no group: mov al, 1
-volatile uint32_t g_frame = 0;       // render frames
 uint32_t g_taunts = 0, g_provoked = 0, g_auras_made = 0, g_permits = 0, g_flashes = 0;   // readout
 struct CancelStats {
     enum Why { NONE, LOOPING, SHORT_LEFT, AIR, HITS_AHEAD, COUNT };
@@ -208,11 +211,29 @@ bool alive(uintptr_t unit) {
     return false;
 }
 
+// diagnostics: a line for netplay's log (DMC4_SHAKE_LOG) about `enemy`, by its id and position (machines' addresses differ)
+void pv_diag(const char* what, uintptr_t enemy, float value) {
+#if defined(_DEBUG) || !defined(PUBLIC_BUILD)
+    if (!rollback::diag_writer) return;
+    char text[160];
+    snprintf(text, sizeof text, "pv %s em%X at %.1f %.1f %.1f value %.3f", what, enemy ? at<int>(enemy, kEnemyId) : -1,
+        enemy ? at<float>(enemy, kPos) : 0.0f, enemy ? at<float>(enemy, kPos + 4) : 0.0f, enemy ? at<float>(enemy, kPos + 8) : 0.0f,
+        value);
+    rollback::diag(text);
+#else
+    (void)what; (void)enemy; (void)value;
+#endif
+}
+
 void provoke_one(uintptr_t enemy, uintptr_t by) {
     Entry* e = find(enemy);
     if (!e) {
         for (Entry& c : g_list) {
-            if (!c.enemy || c.left <= 0.0f || g_frame - c.seen > kStaleFrames) { e = &c; break; }
+            if (!c.enemy || c.left <= 0.0f) { e = &c; break; }
+        }
+        for (Entry& c : g_list) {   // full: an entry whose enemy is gone (killed, the room left) makes room
+            if (e) break;
+            if (!alive(c.enemy)) e = &c;
         }
         if (!e) return;
         *e = Entry{};
@@ -223,8 +244,8 @@ void provoke_one(uintptr_t enemy, uintptr_t by) {
     e->by = by;
     e->left = std::max(duration, 0.0f) * 60.0f;
     e->flash_in = 0.0f;
-    e->seen = g_frame;
     g_any = true;
+    pv_diag("on", enemy, e->left);
 }
 
 float dist2(uintptr_t a, uintptr_t b) {
@@ -236,11 +257,19 @@ float dist2(uintptr_t a, uintptr_t b) {
     return d;
 }
 
+void provoke_around(uintptr_t player);
+
 // After setProvoke (the taunt has started).
 void __stdcall on_taunt(uintptr_t player) {
     if (!mod_enabled || !player) return;
     if (counted_only && !at<uint8_t>(player, kTauntCounts)) return;
+    provoke_around(player);
+}
+
+// The enemies a taunt by `player` provokes: its lock-on target (targeted), and those within the radius.
+void provoke_around(uintptr_t player) {
     ++g_taunts;
+    pv_diag("taunt speed", 0, speed);
     if (targeted && at<uint8_t>(player, kLockOn)) {
         const uintptr_t t = at<uintptr_t>(player, kLockTarget);
         const uintptr_t model = t ? at<uintptr_t>(t, 0x08) : 0;
@@ -478,6 +507,7 @@ void orb_flash_tick(Entry& e, float raw) {
     }
     e.flash_in = orb_flash_every > 0.0f ? std::max(orb_flash_every * 60.0f, kOrbGap) : 1e30f;
     if (dead(e)) return;
+    pv_diag("flash", e.enemy, e.left);
     if (devil4_sdk::effect_const(kOrbList, kOrbFile, (void*)e.enemy, kOrbGroup, 0xFFFFFFFFu, kOrbLine, (void*)e.enemy))
         ++g_flashes;
     e.since_flash = 0.0f;
@@ -485,11 +515,16 @@ void orb_flash_tick(Entry& e, float raw) {
 
 // sUnit::move, every unit, before its move: the factor its delta is multiplied by.
 float __stdcall unit_rate(uintptr_t unit, float raw) {
+    if ((at<uint32_t>(unit, 0x04) & 7) == 1) {   // a unit starting (its init): what the list kept for this address goes
+        release_aura(unit);
+        forget(unit);
+        return 1.0f;
+    }
     Entry* e = find(unit);
     if (!e) return 1.0f;
-    e->seen = g_frame;
     e->left -= raw;
     if (!mod_enabled || e->left <= 0.0f) {
+        pv_diag("off", unit, e->left);
         release_aura(unit);
         *e = Entry{};
         update_any();
@@ -522,6 +557,7 @@ bool __stdcall permit_override(uintptr_t enemy) {
     const uintptr_t u = enemy ? enemy : g_unit;
     if (!u || !find(u)) return false;
     ++g_permits;
+    pv_diag(enemy ? "permit" : "permit free", u, 0.0f);
     return true;
 }
 
@@ -529,18 +565,34 @@ bool __stdcall permit_override(uintptr_t enemy) {
 rim_glow::Cube g_cube;
 bool glow_ready() { return rim_glow::base_ready() && g_cube.ready(); }
 
+// diagnostics: a line for netplay's log (DMC4_SHAKE_LOG) about aura `index`
+void aura_diag(const char* what, int index, uintptr_t enemy, uint32_t value) {
+#if defined(_DEBUG) || !defined(PUBLIC_BUILD)
+    if (!rollback::diag_writer) return;
+    char text[160];
+    snprintf(text, sizeof text, "pv aura%d %s em%X value %u", index, what, enemy ? at<int>(enemy, kEnemyId) : -1, value);
+    rollback::diag(text);
+#else
+    (void)what; (void)index; (void)enemy; (void)value;
+#endif
+}
+
 struct Aura;
 constexpr int kAuraMax = 16;
+constexpr uint32_t kAuraMaterials = 64;   // the most materials of an enemy model the glow dresses (the DX9 files: 19)
 Aura* g_auras[kAuraMax] = {};
 
-// A copy of one provoked enemy's model in DT, posed from its joints at every draw. Its memory is its own to free (the
-// game deletes a unit without running C++ destructors).
+// A copy of one provoked enemy's model in DT, posed from its joints at every draw. Rollback netplay: an aura is a unit in
+// the game's heap, and every machine must make, assign and free it on the same ticks, so that comes from the game's state
+// alone (the enemy provoked and alive); the render thread's glow textures decide only whether its materials are dressed
+// and whether it draws. All its state is in the unit (no memory of ours), and g_auras goes with the frames.
 struct Aura : CustomUnit<Aura> {
     int index = 0;
     uintptr_t enemy = 0;        // whose model it copies, 0 = free
     uintptr_t built = 0;        // the rModel it was set up with
-    rim_glow::Saved* saved = nullptr;
-    uint32_t saved_num = 0, saved_cap = 0;
+    bool dressed = false;       // its materials wear the glow
+    uint32_t saved_num = 0;
+    rim_glow::Saved saved[kAuraMaterials];
 
     explicit Aura(int i) : index(i) {
         mActorType = 5;
@@ -551,9 +603,11 @@ struct Aura : CustomUnit<Aura> {
     void restore_materials() {
         for (uint32_t i = 0; i < saved_num; ++i) rim_glow::restore(saved[i]);
         saved_num = 0;
+        dressed = false;
     }
 
     void release() {
+        if (enemy) aura_diag("release", index, 0, 0);
         enemy = 0;
         mTransparency = 0.0f;
     }
@@ -565,6 +619,7 @@ struct Aura : CustomUnit<Aura> {
         if (built == rmodel) return true;
         restore_materials();
         auto* m = (uDevil4Model*)this;
+        aura_diag("build", index, (uintptr_t)src, (uint32_t)((uDevil4Model*)src)->mJointNum);
         custom_utils::get_model(m, (void*)rmodel);
         built = rmodel;
         ++g_auras_made;
@@ -573,21 +628,23 @@ struct Aura : CustomUnit<Aura> {
         m->Render.mRenderMode = 0;
         m->mShadowCastGroup = 0;
         m->mShadowRecvGroup = 0;
+        return true;
+    }
+
+    // Its materials wear the glow (once the glow's textures exist: they're the render thread's).
+    void dress() {
+        if (dressed || !glow_ready()) return;
+        auto* m = (uDevil4Model*)this;
         const uintptr_t* mats = (const uintptr_t*)m->mpMaterial;
         const uint32_t num = mats ? m->MaterialNum : 0;
-        if (num > saved_cap) {
-            auto* p = (rim_glow::Saved*)std::realloc(saved, num * sizeof(rim_glow::Saved));
-            if (!p) return false;
-            saved = p;
-            saved_cap = num;
-        }
-        for (uint32_t i = 0; i < num; ++i) {
+        for (uint32_t i = 0; i < num && saved_num < kAuraMaterials; ++i) {
             const uintptr_t mat = mats[i];
             if (!mat || !rim_glow::is_standard(mat)) continue;
             saved[saved_num] = rim_glow::save(mat);
             rim_glow::put_look(saved[saved_num++], true, &g_cube, false, false);
         }
-        return true;
+        dressed = true;
+        aura_diag("dress", index, enemy, saved_num);
     }
 
     void tick() {
@@ -599,11 +656,11 @@ struct Aura : CustomUnit<Aura> {
         }
         Entry* e = find(enemy);
         auto* src = (uDevil4Model*)enemy;
-        if (!e || !mod_enabled || !aura_wanted(enemy) || !glow_ready() || !is_enemy(enemy) ||
-            src->mTransparency <= 0.0f || !build(src)) {
+        if (!e || !mod_enabled || !aura_wanted(enemy) || !is_enemy(enemy) || src->mTransparency <= 0.0f || !build(src)) {
             release();
             return;
         }
+        dress();
         auto* m = (uDevil4Model*)this;
         m->mTransparency = 1.0f;     // the glow keeps mAlpha at 1; the strength is the blend factor
         m->mLightGroup = src->mLightGroup;
@@ -613,7 +670,7 @@ struct Aura : CustomUnit<Aura> {
 
     void render(void* trans) {
         const uintptr_t src_u = enemy;
-        if (!src_u || mTransparency <= 0.0f) return;
+        if (!src_u || mTransparency <= 0.0f || !dressed) return;
         const uintptr_t context = at<uintptr_t>((uintptr_t)trans, 0x2A90);
         if (!context || !at<uint8_t>(context, 0x1FC)) return;
         auto* m = (uDevil4Model*)this;
@@ -637,24 +694,28 @@ struct Aura : CustomUnit<Aura> {
     }
 
     void destructor(uint32_t flag) {
+        aura_diag("gone", index, 0, flag);
         restore_materials();
-        std::free(saved);
-        saved = nullptr;
         if (index >= 0 && index < kAuraMax && g_auras[index] == this) g_auras[index] = nullptr;
         CustomActor::destructor(flag);
     }
 };
 
 void ensure_aura(uintptr_t enemy) {
-    if (!glow_ready()) return;
     Aura* pick = nullptr;
     for (Aura* a : g_auras)
         if (a && a->enemy == enemy) return;
     for (Aura* a : g_auras)
         if (a && !a->enemy) { pick = a; break; }
     for (int i = 0; i < kAuraMax && !pick; ++i)
-        if (!g_auras[i]) pick = g_auras[i] = Aura::spawn(kAuraLine, i);
-    if (pick) pick->enemy = enemy;
+        if (!g_auras[i]) {
+            pick = g_auras[i] = Aura::spawn(kAuraLine, i);
+            aura_diag("spawn", i, enemy, (uint32_t)sizeof(Aura));
+        }
+    if (pick) {
+        pick->enemy = enemy;
+        aura_diag("take", pick->index, enemy, 0);
+    }
 }
 
 void release_aura(uintptr_t enemy) {
@@ -917,7 +978,33 @@ int __stdcall get_action_no(uintptr_t mgr, uint32_t mot, float leng, float deg, 
 // ---- The mod -------------------------------------------------------------------------------------------------------
 using namespace provoke;
 
+// Test switch DMC4_TEST_PROVOKE=<frames>[:<speed>]: Provoke on for the run (the cfg keeps its values), and every
+// <frames> session frames of netplay player 1 taunts as far as Provoke is concerned (the test input never presses the
+// taunt). TICK_START runs for every tick netplay simulates, forward and again, and the session frame is every machine's,
+// so they all taunt on the same ticks (a count of the ticks themselves would start wherever each machine started
+// ticking). <speed>: this machine's animation speed, to check online that the others play by the host's.
+namespace provoke {
+namespace {
+int g_test_every = 0;
+float g_test_speed = 0.0f;
+bool g_cfg_enabled = false;   // the cfg's values while the test switch holds them
+float g_cfg_speed = 0.0f;
+void test_tick(void*) {
+    const int frame = frame_hooks::tick_frame();
+    if (g_test_every <= 0 || frame <= 0 || frame % g_test_every != 0) return;
+    if (const uintptr_t p = player_info::player(0)) provoke_around(p);
+}
+} // namespace
+} // namespace provoke
+
 std::optional<std::string> EnemyAI::on_initialize() {
+    if (const char* v = test_switch("DMC4_TEST_PROVOKE")) {
+        provoke::g_test_every = std::atoi(v);
+        if (const char* colon = std::strchr(v, ':')) {
+            provoke::g_test_speed = (float)std::atof(colon + 1);
+        }
+        frame_hooks::add(frame_hooks::TICK_START, provoke::test_tick, nullptr, "EnemyAI test taunts");
+    }
     // rollback netplay: the enemies' choices (their random stream) and the live entries go with the frames
     rollback::add_range("EnemyAI rng", &provoke::g_rng, sizeof provoke::g_rng);
     rollback::add_range("EnemyAI entries", provoke::g_list, sizeof provoke::g_list);
@@ -977,6 +1064,7 @@ std::optional<std::string> EnemyAI::on_initialize() {
 
 // The room's units are about to be freed (aRoom::cleanRoom): no provoke or aura may outlive them.
 void EnemyAI::on_stage_end() {
+    provoke::aura_diag("stage end", -1, 0, 0);
     for (Entry& e : g_list) e = Entry{};
     g_any = false;
     g_unit = 0;
@@ -985,7 +1073,6 @@ void EnemyAI::on_stage_end() {
 }
 
 void EnemyAI::on_frame(fmilliseconds& dt) {
-    g_frame = g_frame + 1;
     if (rim_glow::update_base()) g_cube.update(aura_color);
     think_trace::draw_window();
 }
@@ -1162,9 +1249,13 @@ void EnemyAI::on_config_load(const utility::Config& cfg) {
     if (g_no_attacks && !g_no_attack_patch2 && std::memcmp(reinterpret_cast<const void*>(kNoGroupFree), "\xB0\x01", 2) == 0)
         g_no_attack_patch2 = Patch::create(kNoGroupFree, {0x32, 0xC0}, true);   // xor al, al
     mod_enabled         = cfg.get<bool>("provoke").value_or(false);
+    g_cfg_enabled       = mod_enabled;
+    if (g_test_every > 0) mod_enabled = true;
     radius              = cfg.get<float>("provoke_radius").value_or(radius);
     duration            = cfg.get<float>("provoke_duration").value_or(duration);
     speed               = cfg.get<float>("provoke_speed").value_or(speed);
+    g_cfg_speed         = speed;
+    if (g_test_speed > 0.0f) speed = g_test_speed;
     think_speed         = cfg.get<float>("provoke_think_speed").value_or(speed);   // missing: the animation speed
     dt_rate             = cfg.get<float>("provoke_dt_rate").value_or(dt_rate);
     dt_any_difficulty   = cfg.get<bool>("provoke_dt_any_difficulty").value_or(dt_any_difficulty);
