@@ -159,6 +159,7 @@ static bool g_native_tail_due = false;
 static bool g_tick_probe_enabled = false;  // debug: run two ticks from one state (perturbs the run)
 
 static void note_saved_state(int frame, uint32_t checksum, const unsigned char* bytes, uint32_t len);
+static void resync_note_save(const GekkoGameEvent* event, const unsigned char* bytes, uint32_t len);
 static void probe_tick_determinism(sDevil4Main* main, const netplay_snapshot::BattleSnapshot& state, SimCtx& ctx);
 static void verify_restore_roundtrip(sDevil4Main* main, const unsigned char* loaded, uint32_t loaded_len, uint64_t sim_time);
 static void reset_desync_diff();
@@ -173,7 +174,9 @@ static bool heap_restoring()
     return g_heap_restore && heap_snapshot::active();
 }
 static void sound_after_rewind();   // below, with the sound hooks
-static std::map<int, std::vector<uint8_t>> g_latest_saves;   // diagnostics: the latest packed save of each recent frame
+// The latest checksummed save of each recent frame: what a resync compares and sends, and the desync dumps' first frames
+static std::map<int, std::vector<uint8_t>> g_latest_saves;
+constexpr int kLatestSavesKept = 64;   // > kResyncKeep and the dumps' 41 frames
 // diagnostics (DMC4_RNG_WATCH): the code that drew from the game's random stream in each tick (a write watch on its index)
 static bool g_rng_watch = false;
 static bool g_speed_watch = false;   // DMC4_WATCH_SPEED: the watch is on sDevil4Main::mGlobalSpeed
@@ -586,6 +589,7 @@ struct Devil4State {
             return false;
         }
         *event->data.save.state_len = written;
+        resync_note_save(event, buffer, written);
         // Root cursors are real simulation state and remain checksummed. Only the lock-on copies of
         // another unit's position/HP are excluded; those are rebound and re-derived on restore.
         static unsigned char crc_bytes[netplay_snapshot::kWireScratchBytes];
@@ -607,8 +611,8 @@ struct Devil4State {
             // the diagnostic diffs whatever produced the checksum, so it must hold the same bytes
             note_saved_state((int)event->data.save.frame, *event->data.save.checksum, crc_bytes, crc_len);
             {
-                // diagnostics: this machine's latest save of each recent frame (the confirmed one once rollbacks passed
-                // it), written out at the first desync (flush_latest_saves) to diff against the peer's (netdump_tool diff)
+                // this machine's latest save of each recent frame (the confirmed one once rollbacks passed it): the
+                // resync's, and written out at the first desync (flush_latest_saves) to diff against the peer's
                 const int f = (int)event->data.save.frame;
                 g_latest_saves[f].assign(crc_bytes, crc_bytes + crc_len);
                 while (!g_latest_saves.empty() && g_latest_saves.begin()->first < f - kLatestSavesKept) {
@@ -911,6 +915,914 @@ static void sound_after_rewind()
     }
 }
 
+#pragma region resync
+// Resync. GekkoNet compares one checksum per confirmed frame and only reports a mismatch; from there the machines would
+// run apart for good, since every later frame starts from the differing state. So the host (control 0) answers a
+// mismatch with its packed state of its newest confirmed frame (net_link), and every other machine takes it: back to
+// that frame through the heap snapshot, the host's value wherever the two checksummed states differ (its own for
+// everything the checksum leaves out: the camera, the lock-on copies, the per-process words in the motion blocks), then
+// the frames since simulated again with the inputs they had. Their saves replace the earlier ones, in GekkoNet's storage
+// too, so the checksums that go out from then on are the corrected ones. Mismatches of frames whose checksums went out
+// before the replay are expected and ignored. A difference the checksum doesn't cover (a unit outside the snapshot) can
+// still split the machines again later; each new mismatch gets its own resync. Test switch DMC4_NO_RESYNC turns it off.
+constexpr int kResyncKeep = 48;          // recent frames of raw saves and inputs kept
+constexpr int kResyncHeapFrames = 16;    // heap records kept beyond the rollback window: an offer is that old on arrival
+constexpr int kResyncRetryFrames = 60;   // an offer without its replies goes out again, with a newer frame
+constexpr int kResyncRefusedWait = 30;   // frames before the next offer after a refusal
+constexpr int kResyncHeld = 120;         // a mismatch this soon after a resync means it didn't hold: the next waits longer
+constexpr int kResyncMaxBackoff = 960;
+constexpr int kResyncMinBackoff = 30;     // the first wait after a resync that didn't hold
+
+struct ResyncSlot {
+    unsigned char* state = nullptr;
+    unsigned int* state_len = nullptr;
+    unsigned int* checksum = nullptr;
+};
+static std::map<int, std::vector<uint8_t>> g_rs_raw;      // this machine's packed state of each recent frame, as a load restores it
+static std::map<int, std::vector<uint8_t>> g_rs_inputs;   // each recent frame's input blocks, as its newest advance had them
+static std::map<int, ResyncSlot> g_rs_slots;              // the GekkoNet storage entry each recent frame was saved into
+static std::unordered_map<const unsigned char*, int> g_rs_slot_frame;   // the frame each storage entry holds now
+static std::vector<unsigned char> g_rs_scratch;           // saves of replayed frames GekkoNet no longer stores
+static unsigned int g_rs_scratch_len = 0;
+static unsigned int g_rs_scratch_sum = 0;
+static int g_rs_last_forward = -1;     // the newest frame a forward advance ran
+static int g_rs_ignore_upto = -1;      // mismatches of frames up to here predate the last resync
+static bool g_rs_enabled = true;
+static bool g_rs_episode = false;      // a mismatch is being dealt with: the ones after it are expected
+static std::vector<std::string> g_rs_peers;   // the host's remote players, "ip:port"
+// the host's offer
+static uint16_t g_rs_next_id = 1;
+static bool g_rs_wanted = false;
+static bool g_rs_in_flight = false;
+static uint16_t g_rs_flight_id = 0;
+static int g_rs_flight_sent = 0;
+static std::vector<std::string> g_rs_flight_replied;   // the peers that answered this flight
+static int g_rs_wait_until = -1;
+static int g_rs_last_applied = -1000000;   // the host's frame when the last resync was applied
+static int g_rs_backoff = 0;               // frames the next offer waits: grows while resyncs don't hold
+// the other machines' pending offer
+static bool g_rs_have_offer = false;
+static net_link::Offer g_rs_offer;
+// readout
+static uint32_t g_rs_count = 0;
+static uint32_t g_rs_same = 0;
+static uint32_t g_rs_refused = 0;
+static uint32_t g_rs_expected = 0;
+static const char* g_rs_last_refusal = "";
+
+static void run_tail_simulation(sDevil4Main* main);
+
+static void resync_reset()
+{
+    g_rs_raw.clear();
+    g_rs_inputs.clear();
+    g_rs_slots.clear();
+    g_rs_slot_frame.clear();
+    g_rs_last_forward = -1;
+    g_rs_ignore_upto = -1;
+    g_rs_enabled = test_switch("DMC4_NO_RESYNC") == nullptr;
+    g_rs_episode = false;
+    g_rs_wanted = false;
+    g_rs_in_flight = false;
+    g_rs_wait_until = -1;
+    g_rs_last_applied = -1000000;
+    g_rs_backoff = 0;
+    g_rs_have_offer = false;
+    g_rs_offer = net_link::Offer{};
+    g_rs_count = g_rs_same = g_rs_refused = g_rs_expected = 0;
+    g_rs_last_refusal = "";
+    g_rs_peers.clear();
+    g_rs_flight_replied.clear();
+    std::vector<unsigned char>().swap(g_rs_scratch);   // up to a whole state: freed between sessions
+    g_rs_scratch_len = g_rs_scratch_sum = 0;
+}
+
+template <class Map>
+static void resync_trim(Map& frames, int newest)
+{
+    while (!frames.empty() && frames.begin()->first < newest - kResyncKeep) {
+        frames.erase(frames.begin());
+    }
+}
+
+static void resync_note_save(const GekkoGameEvent* event, const unsigned char* bytes, uint32_t len)
+{
+    const int f = event->data.save.frame;
+    g_rs_raw[f].assign(bytes, bytes + len);
+    resync_trim(g_rs_raw, f);
+    if (event->data.save.state != g_rs_scratch.data()) {
+        g_rs_slots[f] = ResyncSlot{event->data.save.state, event->data.save.state_len, event->data.save.checksum};
+        g_rs_slot_frame[event->data.save.state] = f;
+        resync_trim(g_rs_slots, f);
+    }
+}
+
+static void resync_note_advance(const GekkoGameEvent* event)
+{
+    const int f = event->data.adv.frame;
+    g_rs_inputs[f].assign(event->data.adv.inputs, event->data.adv.inputs + event->data.adv.input_len);
+    resync_trim(g_rs_inputs, f);
+    if (!event->data.adv.rolling_back && f > g_rs_last_forward) {
+        g_rs_last_forward = f;
+    }
+}
+
+// The frames after `base` up to the newest forward one, simulated again from the state just put in place, in the pump's
+// order: tick(k), save(k), tail(k). The newest frame's tail is the native one when it is still due this presented frame.
+static void resync_replay(sDevil4Main* main, SimCtx& ctx, int base, int input_players)
+{
+    const int last = g_rs_last_forward;
+    const int players = input_players > 1 ? input_players : 1;
+    ctx.g_replaying_window = true;
+    run_tail_simulation(main);   // the loaded state is pre-tail
+    for (int k = base + 1; k <= last; ++k) {
+        std::vector<uint8_t>& in = g_rs_inputs[k];
+        GekkoGameEvent adv{};
+        adv.type = GekkoAdvanceEvent;
+        adv.data.adv.frame = k;
+        adv.data.adv.input_len = (unsigned int)in.size();
+        adv.data.adv.inputs = in.data();
+        adv.data.adv.rolling_back = true;
+        ctx.g_resimulating = true;
+        const NetplayInputInfo* blocks = (const NetplayInputInfo*)in.data();
+        g_tick_paused = false;
+        for (int p = 0; p < players; ++p) {
+            g_tick_paused |= (blocks[p].mFlags & kInputPause) != 0;
+        }
+        g_tick_rules = blocks[0].mRules;
+        if (input_players > 1) {
+            for (int p = 0; p < input_players; ++p) {
+                apply_recorded_input_control(blocks[p], p);
+            }
+        } else {
+            apply_recorded_input(in.data());
+        }
+        run_simulation_tick(main, &adv, ctx);
+        ResyncSlot slot{};
+        const auto s = g_rs_slots.find(k);
+        if (s != g_rs_slots.end()) {
+            const auto owner = g_rs_slot_frame.find(s->second.state);
+            if (owner != g_rs_slot_frame.end() && owner->second == k) {
+                slot = s->second;
+            }
+        }
+        if (!slot.state) {
+            if (g_rs_scratch.size() < netplay_snapshot::state_bytes()) {
+                g_rs_scratch.resize(netplay_snapshot::state_bytes());
+            }
+            slot = ResyncSlot{g_rs_scratch.data(), &g_rs_scratch_len, &g_rs_scratch_sum};
+        }
+        GekkoGameEvent sav{};
+        sav.type = GekkoSaveEvent;
+        sav.data.save.frame = k;
+        sav.data.save.state = slot.state;
+        sav.data.save.state_len = slot.state_len;
+        sav.data.save.checksum = slot.checksum;
+        g_devil4_state.save_game(main, &sav, ctx);
+        if (k < last || !g_native_tail_due) {
+            run_tail_simulation(main);
+        }
+    }
+    ctx.g_resimulating = false;
+    ctx.g_replaying_window = false;
+}
+
+// Whole units with a resync: the units of these move lines go with an offer as the save of its frame left them, and the
+// other machine takes every word of theirs that differs and isn't a heap pointer on either machine (the host marks its
+// own: the heaps sit at other addresses in each process). The battle snapshot holds picked fields of the players and
+// enemies; this carries what it leaves out, like a camera's follow state, which turns its player's stick into a
+// direction. Units pair up by move line, order on the line and class. The blocks a unit points to go with it, one level
+// deep (the camera's cCameraPlayer is its own allocation), except other units, blocks the game's static data points to
+// (its systems: sCamera's viewports are this machine's screen) and big ones; the other machine finds its own through the
+// same word of its own unit. A child block's bounds are this machine's live ones: the cameras' blocks live as long as
+// their camera. Test switch DMC4_RESYNC_LINES=<line>,<line>... picks the lines (default: 23, the cameras).
+constexpr uint32_t kImageMagic = 0x474D4955u;   // "UIMG"
+constexpr uint32_t kImageMaxUnit = 0x40000u;
+constexpr uint32_t kImageMaxChild = 0x10000u;
+constexpr uint32_t kImageKeepHead = 0x18u;      // cUnit's own words (vtable, flags, line links) are never written
+#pragma pack(push, 1)
+struct ImageUnit {
+    uint8_t line;
+    uint8_t spare;
+    uint16_t index;
+    uint32_t vtable;
+    uint32_t bytes;      // then a bit per word (set: an address on the host, a heap's or a DLL's), then the bytes
+    uint32_t children;   // then that many ImageChild records
+};
+struct ImageChild {
+    uint32_t word;    // the unit's word that points to it
+    uint32_t inner;   // where in the block that word points
+    uint32_t bytes;   // then its mask and bytes, as a unit's
+};
+#pragma pack(pop)
+
+// Blocks never written by a resync: every unit on a move line, and what the game's static data and sDevil4Main point to
+// (the heap words there, sorted: a block is fixed when one of them falls inside it).
+struct ResyncFixed {
+    std::unordered_set<uintptr_t> units;
+    std::vector<uint32_t> statics;
+    std::vector<std::pair<uintptr_t, uintptr_t>> modules;   // loaded DLLs: their addresses differ per process too
+
+    bool block(uintptr_t at, uint32_t bytes) const
+    {
+        if (units.count(at)) {
+            return true;
+        }
+        const auto it = std::lower_bound(statics.begin(), statics.end(), (uint32_t)at);
+        return it != statics.end() && *it < at + bytes;
+    }
+    // a word that is an address on this machine: a game heap or a DLL
+    bool pointer(uint32_t v) const
+    {
+        if (heap_snapshot::in_heap(v)) {
+            return true;
+        }
+        for (const auto& [lo, hi] : modules) {
+            if (v >= lo && v < hi) {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+static void resync_fixed_blocks(ResyncFixed& out)
+{
+    out.units.clear();
+    out.statics.clear();
+    out.modules.clear();
+    if (const sUnit* su = (const sUnit*)*(const uintptr_t*)0x00E552CC) {
+        for (int line = 0; line < 32; ++line) {
+            int guard = 0;
+            for (uintptr_t u = (uintptr_t)su->mMoveLine[line].mTop; u && guard < 4096; u = *(const uintptr_t*)(u + 8), ++guard) {
+                out.units.insert(u);
+            }
+        }
+    }
+    uintptr_t lo = 0, hi = 0;
+    heap_snapshot::heap_span(lo, hi);
+    const auto add = [&](uint32_t v) {
+        if (v >= lo && v < hi && heap_snapshot::in_heap(v)) {
+            out.statics.push_back(v);
+        }
+    };
+    for (uintptr_t a = 0x00C20000; a < 0x00EB3000; a += 4) {
+        add(*(const uint32_t*)a);
+    }
+    if (const uintptr_t main = *(const uintptr_t*)0x00E5574C) {
+        out.statics.push_back((uint32_t)main);
+        for (uintptr_t a = main; a < main + 0x10400; a += 4) {
+            add(*(const uint32_t*)a);
+        }
+    }
+    std::sort(out.statics.begin(), out.statics.end());
+    // every image mapping but the game's own (the exe's statics are the same in every process)
+    const uintptr_t exe = (uintptr_t)GetModuleHandleA(nullptr);
+    MEMORY_BASIC_INFORMATION mbi{};
+    for (uintptr_t a = 0x10000; VirtualQuery((LPCVOID)a, &mbi, sizeof mbi) == sizeof mbi; a = (uintptr_t)mbi.BaseAddress + mbi.RegionSize) {
+        if (mbi.Type == MEM_IMAGE && (uintptr_t)mbi.AllocationBase != exe && mbi.State == MEM_COMMIT) {
+            const uintptr_t b = (uintptr_t)mbi.BaseAddress, e = b + mbi.RegionSize;
+            if (!out.modules.empty() && out.modules.back().second == b) {
+                out.modules.back().second = e;
+            } else {
+                out.modules.push_back({b, e});
+            }
+        }
+        if ((uintptr_t)mbi.BaseAddress + mbi.RegionSize < (uintptr_t)mbi.BaseAddress) {
+            break;
+        }
+    }
+}
+
+static const std::vector<int>& resync_image_lines()
+{
+    static const std::vector<int> lines = [] {
+        std::vector<int> v;
+        const char* e = test_switch("DMC4_RESYNC_LINES");
+        if (!e) {
+            v.push_back(23);
+            return v;
+        }
+        for (const char* s = e; *s;) {
+            char* end = nullptr;
+            const long n = std::strtol(s, &end, 10);
+            if (end == s) {
+                break;
+            }
+            if (n >= 0 && n < 32) {
+                v.push_back((int)n);
+            }
+            s = *end == ',' ? end + 1 : end;
+        }
+        return v;
+    }();
+    return lines;
+}
+
+// A word as the save of `frame` left it (frame < 0: as it is now): through the heap snapshot in a kept heap, as it is
+// now outside the heaps (the game's static data).
+static bool resync_word_at(int frame, uintptr_t address, uint32_t& value)
+{
+    if (frame >= 0 && heap_snapshot::read_at(frame, address, &value, 4)) {
+        return true;
+    }
+    if (frame >= 0 && heap_snapshot::in_heap(address)) {
+        return false;
+    }
+    value = *(const uint32_t*)address;
+    return true;
+}
+
+// The size of the unit at `u` as the save of `frame` left it (frame < 0: now), from its heap block's header.
+static bool unit_bytes_at(int frame, uintptr_t u, uint32_t& bytes)
+{
+    if (frame < 0) {
+        return heap_snapshot::block_bytes(u, bytes);
+    }
+    uint32_t units = 0;
+    uint16_t pad = 0;
+    if ((u & 0xF) != 0 || !heap_snapshot::in_heap(u) || !heap_snapshot::read_at(frame, u - 16, &units, 4) ||
+        !heap_snapshot::read_at(frame, u - 6, &pad, 2) || units == 0 || units > 0x100000u || units * 16u <= pad) {
+        return false;
+    }
+    bytes = units * 16u - pad;
+    return true;
+}
+
+static void resync_empty_image(std::vector<uint8_t>& out)
+{
+    const uint32_t head[2] = {kImageMagic, 0};
+    out.assign((const uint8_t*)head, (const uint8_t*)head + sizeof head);
+}
+
+// The host: the image lines' units as the save of `frame` left them.
+static bool resync_build_image(int frame, std::vector<uint8_t>& out)
+{
+    resync_empty_image(out);
+    const sUnit* su = (const sUnit*)*(const uintptr_t*)0x00E552CC;
+    if (!su) {
+        return false;
+    }
+    const auto put = [&](const void* p, size_t n) {
+        const uint8_t* b = (const uint8_t*)p;
+        out.insert(out.end(), b, b + n);
+    };
+    uint32_t count = 0;
+    std::vector<uint8_t> bytes;
+    ResyncFixed fixed;
+    std::unordered_set<uintptr_t> taken;
+    resync_fixed_blocks(fixed);
+    for (int line : resync_image_lines()) {
+        uint32_t u = 0;
+        if (!resync_word_at(frame, (uintptr_t)&su->mMoveLine[line].mTop, u)) {
+            return false;
+        }
+        for (uint16_t index = 0; u && index < 512; ++index) {
+            uint32_t unit_bytes = 0;
+            if (!unit_bytes_at(frame, u, unit_bytes) || unit_bytes > kImageMaxUnit || unit_bytes < kImageKeepHead) {
+                // not a block of the game's heaps: left out (the other machine pairs units by class)
+                uint32_t next = 0;
+                if (!resync_word_at(frame, u + 8, next)) {
+                    return false;
+                }
+                u = next;
+                continue;
+            }
+            bytes.resize(unit_bytes & ~3u);
+            if (!heap_snapshot::read_at(frame, u, bytes.data(), bytes.size())) {
+                return false;
+            }
+            uint32_t vtable = 0;
+            std::memcpy(&vtable, bytes.data(), 4);
+            std::vector<uint8_t> mask;
+            const auto mask_of = [&](const std::vector<uint8_t>& b) {
+                mask.assign((b.size() / 4 + 7) / 8, 0);
+                for (size_t w = 0; w < b.size() / 4; ++w) {
+                    uint32_t v = 0;
+                    std::memcpy(&v, b.data() + 4 * w, 4);
+                    if (fixed.pointer(v)) {
+                        mask[w / 8] |= (uint8_t)(1u << (w % 8));
+                    }
+                }
+            };
+            // the blocks it points to, one level deep
+            std::vector<std::pair<ImageChild, std::vector<uint8_t>>> children;
+            for (size_t w = kImageKeepHead / 4; w < bytes.size() / 4; ++w) {
+                uint32_t v = 0;
+                std::memcpy(&v, bytes.data() + 4 * w, 4);
+                uintptr_t block = 0;
+                uint32_t block_bytes = 0;
+                if (!heap_snapshot::in_heap(v) || !heap_snapshot::locate(v, block, block_bytes) || !block ||
+                    block_bytes > kImageMaxChild || block_bytes < 4 || fixed.block(block, block_bytes) || !taken.insert(block).second) {
+                    continue;
+                }
+                std::vector<uint8_t> child(block_bytes & ~3u);
+                if (!heap_snapshot::read_at(frame, block, child.data(), child.size())) {
+                    continue;
+                }
+                children.push_back({ImageChild{(uint32_t)w, (uint32_t)(v - block), (uint32_t)child.size()}, std::move(child)});
+            }
+            const ImageUnit head{(uint8_t)line, 0, index, vtable, (uint32_t)bytes.size(), (uint32_t)children.size()};
+            put(&head, sizeof head);
+            mask_of(bytes);
+            put(mask.data(), mask.size());
+            put(bytes.data(), bytes.size());
+            for (const auto& [rec, child] : children) {
+                put(&rec, sizeof rec);
+                mask_of(child);
+                put(mask.data(), mask.size());
+                put(child.data(), child.size());
+            }
+            ++count;
+            uint32_t next = 0;
+            if (!resync_word_at(frame, u + 8, next)) {
+                return false;
+            }
+            u = next;
+        }
+    }
+    std::memcpy(out.data() + 4, &count, 4);
+    return true;
+}
+
+struct ImageResult {
+    uint32_t units = 0;     // paired with one here
+    uint32_t blocks = 0;    // their blocks paired with one here
+    uint32_t missing = 0;   // no unit of that class at that place here, or no block at that word
+    uint32_t words = 0;     // words that differ (written when asked)
+};
+
+// One block of the image against this machine's at `at` (frame < 0: written).
+static bool resync_block(uintptr_t at, const uint8_t* mask, const uint8_t* host, uint32_t bytes, uint32_t from_word,
+    int frame, std::vector<uint8_t>& mine, const ResyncFixed& fixed, ImageResult& res)
+{
+    mine.resize(bytes);
+    if (frame >= 0) {
+        if (!heap_snapshot::read_at(frame, at, mine.data(), mine.size())) {
+            return false;
+        }
+    } else {
+        std::memcpy(mine.data(), (const void*)at, mine.size());
+    }
+    for (size_t w = from_word; w < bytes / 4; ++w) {
+        if (mask[w / 8] & (1u << (w % 8))) {
+            continue;
+        }
+        uint32_t hv = 0, mv = 0;
+        std::memcpy(&hv, host + 4 * w, 4);
+        std::memcpy(&mv, mine.data() + 4 * w, 4);
+        if (hv == mv || fixed.pointer(mv)) {
+            continue;
+        }
+        ++res.words;
+        if (frame < 0) {
+            ((uint32_t*)at)[w] = hv;
+#if defined(_DEBUG) || !defined(PUBLIC_BUILD)
+            // diagnostics: the words the first resyncs wrote (what the block is, where, both values); test switch
+            // DMC4_RESYNC_LOG_VT=<hex vtable>: only that class's units, and more of them
+            static const uint32_t only_vt = test_switch("DMC4_RESYNC_LOG_VT") ?
+                (uint32_t)std::strtoul(test_switch("DMC4_RESYNC_LOG_VT"), nullptr, 16) : 0u;
+            static int logged = 0;
+            if ((!only_vt || *(const uint32_t*)at == only_vt) && logged < (only_vt ? 20000 : 600)) {
+                ++logged;
+                float hf = 0.0f, mf = 0.0f;
+                std::memcpy(&hf, &hv, 4);
+                std::memcpy(&mf, &mv, 4);
+                char text[160];
+                snprintf(text, sizeof text, "resync word %08X+%X of %X: %08X (%g) was %08X (%g)", *(const uint32_t*)at,
+                    (unsigned)(w * 4), bytes, hv, hf, mv, mf);
+                probe_log(text);
+            }
+#endif
+        }
+    }
+    return true;
+}
+
+// The other machines: the host's image against this machine's units, as the save of `frame` left them (frame < 0: as
+// they are now, and then the differing words are written).
+static bool resync_image(const uint8_t* p, size_t n, int frame, ImageResult& res)
+{
+    const sUnit* su = (const sUnit*)*(const uintptr_t*)0x00E552CC;
+    uint32_t head2[2] = {};
+    if (!su || n < sizeof head2) {
+        return false;
+    }
+    std::memcpy(head2, p, sizeof head2);
+    if (head2[0] != kImageMagic) {
+        return false;
+    }
+    size_t at = sizeof head2;
+    int line = -1;
+    // units pair up by class: the host's nth unit of a class on a line with this machine's nth of it, so a shell only one
+    // machine has shifts no unit of another class
+    std::vector<std::pair<uint32_t, uint32_t>> here;   // this machine's units of the line: address, vtable
+    std::unordered_map<uint32_t, uint32_t> seen;       // the host's units of each class so far on the line
+    std::vector<uint8_t> mine;
+    ResyncFixed fixed;
+    resync_fixed_blocks(fixed);
+    for (uint32_t k = 0; k < head2[1]; ++k) {
+        ImageUnit head{};
+        if (at + sizeof head > n) {
+            return false;
+        }
+        std::memcpy(&head, p + at, sizeof head);
+        at += sizeof head;
+        const size_t mask_bytes = (head.bytes / 4 + 7) / 8;
+        if (head.bytes % 4 || head.bytes > kImageMaxUnit || head.line >= 32 || at + mask_bytes + head.bytes > n) {
+            return false;
+        }
+        const uint8_t* mask = p + at;
+        const uint8_t* host = p + at + mask_bytes;
+        at += mask_bytes + head.bytes;
+        // its blocks: read now, used once the unit is found
+        struct Child {
+            ImageChild rec;
+            const uint8_t* mask;
+            const uint8_t* host;
+        };
+        std::vector<Child> children;
+        for (uint32_t c = 0; c < head.children; ++c) {
+            ImageChild rec{};
+            if (at + sizeof rec > n) {
+                return false;
+            }
+            std::memcpy(&rec, p + at, sizeof rec);
+            at += sizeof rec;
+            const size_t child_mask = (rec.bytes / 4 + 7) / 8;
+            if (rec.bytes % 4 || rec.bytes > kImageMaxChild || rec.word >= head.bytes / 4 || at + child_mask + rec.bytes > n) {
+                return false;
+            }
+            children.push_back({rec, p + at, p + at + child_mask});
+            at += child_mask + rec.bytes;
+        }
+        if (head.line != line) {
+            line = head.line;
+            here.clear();
+            seen.clear();
+            uint32_t v = 0;
+            if (!resync_word_at(frame, (uintptr_t)&su->mMoveLine[line].mTop, v)) {
+                return false;
+            }
+            for (int guard = 0; v && guard < 4096; ++guard) {
+                uint32_t vtable = 0, next = 0;
+                if (!resync_word_at(frame, v, vtable) || !resync_word_at(frame, v + 8, next)) {
+                    return false;
+                }
+                here.push_back({v, vtable});
+                v = next;
+            }
+        }
+        const uint32_t nth = seen[head.vtable]++;
+        uint32_t u = 0;
+        for (uint32_t i = 0, k = 0; i < (uint32_t)here.size(); ++i) {
+            if (here[i].second == head.vtable && k++ == nth) {
+                u = here[i].first;
+                break;
+            }
+        }
+        uint32_t unit_bytes = 0;
+        if (!u || !unit_bytes_at(frame, u, unit_bytes) || (unit_bytes & ~3u) != head.bytes) {
+            ++res.missing;
+            continue;
+        }
+        // this machine's blocks first, through the unit's words as they are before anything is written
+        std::vector<uintptr_t> blocks(children.size(), 0);
+        for (size_t c = 0; c < children.size(); ++c) {
+            uint32_t v = 0;
+            uintptr_t block = 0;
+            uint32_t block_bytes = 0;
+            if (resync_word_at(frame, u + 4 * children[c].rec.word, v) && heap_snapshot::in_heap(v) &&
+                heap_snapshot::locate(v, block, block_bytes) && block && v - block == children[c].rec.inner &&
+                (block_bytes & ~3u) == children[c].rec.bytes && !fixed.block(block, block_bytes)) {
+                blocks[c] = block;
+            }
+        }
+        if (!resync_block(u, mask, host, head.bytes, kImageKeepHead / 4, frame, mine, fixed, res)) {
+            ++res.missing;
+            continue;
+        }
+        ++res.units;
+        for (size_t c = 0; c < children.size(); ++c) {
+            if (blocks[c] && resync_block(blocks[c], children[c].mask, children[c].host, children[c].rec.bytes, 0, frame, mine, fixed, res)) {
+                ++res.blocks;
+            } else {
+                ++res.missing;
+            }
+        }
+    }
+    return true;
+}
+
+static void resync_reply(const net_link::Offer& offer, net_link::Status status, int32_t value)
+{
+    net_link::Reply reply;
+    reply.id = offer.id;
+    reply.frame = offer.frame;
+    reply.status = status;
+    reply.value = value;
+    net_link::send_reply(offer.from, reply);
+}
+
+static const char* resync_refusal_text(int32_t code)
+{
+    switch ((net_link::Refusal)code) {
+    case net_link::Refusal::NotKept: return "the frame is no longer kept";
+    case net_link::Refusal::Units: return "the machines have different units";
+    case net_link::Refusal::Restore: return "the state could not be applied";
+    default: return "refused";
+    }
+}
+
+// The part records pair up by line, class and place, not by their order: this machine's records in the host's order,
+// so the byte merge below compares each unit with itself. A unit only the host has gets the host's record on this side
+// too (nothing of another unit mixes in; restore finds no unit for it here and leaves it).
+static void align_parts(const netplay_snapshot::BattleSnapshot& host, netplay_snapshot::BattleSnapshot& own)
+{
+    using netplay_snapshot::PartState;
+    const uint32_t n = std::min(host.part_count, netplay_snapshot::kMaxParts);
+    const uint32_t own_n = std::min(own.part_count, netplay_snapshot::kMaxParts);
+    auto ordered = std::make_unique<PartState[]>(n ? n : 1);
+    for (uint32_t i = 0; i < n; ++i) {
+        const PartState& h = host.parts[i];
+        ordered[i] = h;
+        for (uint32_t j = 0; j < own_n; ++j) {
+            const PartState& o = own.parts[j];
+            if (o.line == h.line && o.class_id == h.class_id && o.nth == h.nth) {
+                ordered[i] = o;
+                break;
+            }
+        }
+    }
+    for (uint32_t i = 0; i < n; ++i) {
+        own.parts[i] = ordered[i];
+    }
+    for (uint32_t i = n; i < own_n; ++i) {
+        own.parts[i] = host.parts[i];
+    }
+    own.part_count = host.part_count;
+    own.part_overflow = host.part_overflow;
+}
+
+// A machine other than the host takes the pending offer. false: its frame isn't final here yet (wait a frame).
+static bool resync_take(sDevil4Main* main, SimCtx& ctx, int window, int input_players)
+{
+    using netplay_snapshot::BattleSnapshot;
+    const net_link::Offer& offer = g_rs_offer;
+    const int base = offer.frame;
+    const int last = g_rs_last_forward;
+    // the payload: the battle snapshot's length, the battle snapshot, the units' image
+    uint32_t battle_len = 0;
+    if (offer.state.size() >= 4) {
+        std::memcpy(&battle_len, offer.state.data(), 4);
+    }
+    if (offer.state.size() < 4 || battle_len > offer.state.size() - 4) {
+        resync_reply(offer, net_link::Status::Refused, (int32_t)net_link::Refusal::Restore);   // not this build's offer
+        return true;
+    }
+    const std::vector<uint8_t> battle(offer.state.begin() + 4, offer.state.begin() + 4 + battle_len);
+    const uint8_t* image = offer.state.data() + 4 + battle_len;
+    const size_t image_len = offer.state.size() - 4 - battle_len;
+    // GekkoNet's own rule for the frames it checks: later inputs can still roll a newer frame back
+    if (base > last - window - 2) {
+        return false;
+    }
+    const int sent_upto = last - window;   // the newest frame whose checksum this machine has sent
+    char text[240];
+    const auto refuse = [&](net_link::Refusal why, const char* detail) {
+        ++g_rs_refused;
+        g_rs_last_refusal = detail;
+        resync_reply(offer, net_link::Status::Refused, (int32_t)why);
+        snprintf(text, sizeof text, "resync f%d refused: %s", base, detail);
+        probe_log(text);
+        return true;
+    };
+    const auto own = g_latest_saves.find(base);
+    const auto raw = g_rs_raw.find(base);
+    if (own == g_latest_saves.end() || raw == g_rs_raw.end() || !heap_snapshot::has_frame(base)) {
+        return refuse(net_link::Refusal::NotKept, "the frame is no longer kept");
+    }
+    const size_t input_bytes = (size_t)(input_players > 1 ? input_players : 1) * sizeof(NetplayInputInfo);
+    for (int k = base + 1; k <= last; ++k) {
+        const auto in = g_rs_inputs.find(k);
+        if (in == g_rs_inputs.end() || in->second.size() < input_bytes) {
+            return refuse(net_link::Refusal::NotKept, "an input of the frames since is missing");
+        }
+    }
+    ImageResult unchanged{};
+    const bool image_ok = resync_image(image, image_len, base, unchanged);
+    if (own->second == battle && (!image_ok || unchanged.words == 0)) {
+        ++g_rs_same;
+        g_rs_ignore_upto = std::max(g_rs_ignore_upto, sent_upto);
+        resync_reply(offer, net_link::Status::Same, sent_upto);
+        snprintf(text, sizeof text, "resync f%d: already the same", base);
+        probe_log(text);
+        return true;
+    }
+    // ~6 MB each: made for the resync, freed after it (a 32-bit process can run short of room for them: refused then)
+    std::unique_ptr<BattleSnapshot> host(new (std::nothrow) BattleSnapshot());
+    std::unique_ptr<BattleSnapshot> mine(new (std::nothrow) BattleSnapshot());
+    std::unique_ptr<BattleSnapshot> merged(new (std::nothrow) BattleSnapshot());
+    if (!host || !mine || !merged) {
+        return refuse(net_link::Refusal::Restore, "no memory for the states");
+    }
+    const char* reason = nullptr;
+    if (!netplay_snapshot::unpack_from(battle.data(), (uint32_t)battle.size(), *host, reason) ||
+        !netplay_snapshot::unpack_from(own->second.data(), (uint32_t)own->second.size(), *mine, reason) ||
+        !netplay_snapshot::unpack_from(raw->second.data(), (uint32_t)raw->second.size(), *merged, reason)) {
+        return refuse(net_link::Refusal::Restore, reason ? reason : "a state did not unpack");
+    }
+    // the host's values only fit the same units in the same order
+    bool same_units = host->player_count == merged->player_count && host->enemy_count == merged->enemy_count &&
+        host->mediator.mission_id == merged->mediator.mission_id && host->mediator.room_id == merged->mediator.room_id;
+    for (uint32_t i = 0; same_units && i < merged->player_count && i < netplay_snapshot::kMaxPlayers; ++i) {
+        same_units = host->players[i].controller_id == merged->players[i].controller_id &&
+            host->players[i].pad_id == merged->players[i].pad_id;
+    }
+    for (uint32_t i = 0; same_units && i < merged->enemy_count && i < netplay_snapshot::kMaxEnemies; ++i) {
+        same_units = host->enemies[i].id == merged->enemies[i].id;
+    }
+    if (!same_units) {
+        return refuse(net_link::Refusal::Units, "the machines have different units");
+    }
+    align_parts(*host, *mine);
+    align_parts(*host, *merged);
+    const netplay_snapshot::TimingState own_timing = merged->timing;
+    const uint8_t* h = (const uint8_t*)host.get();
+    const uint8_t* m = (const uint8_t*)mine.get();
+    uint8_t* out = (uint8_t*)merged.get();
+    uint32_t differ = 0;
+    for (size_t i = 0; i < sizeof(BattleSnapshot); ++i) {
+        if (h[i] != m[i]) {
+            out[i] = h[i];
+            ++differ;
+        }
+    }
+#if defined(_DEBUG) || !defined(PUBLIC_BUILD)
+    {
+        // diagnostics: both checksummed states of the first resyncs (netdump_tool diff names the fields)
+        static int dumped = 0;
+        if (dumped++ < 40) {
+            CreateDirectoryA("netdump", NULL);
+            for (int side = 0; side < 2; ++side) {
+                char name[MAX_PATH];
+                sprintf_s(name, "netdump/resync_%lu_f%d_%s.bin", GetCurrentProcessId(), base, side ? "own" : "host");
+                const std::vector<uint8_t>& bytes = side ? own->second : battle;
+                if (FILE* f = std::fopen(name, "wb")) {
+                    std::fwrite(bytes.data(), 1, bytes.size(), f);
+                    std::fclose(f);
+                }
+            }
+        }
+    }
+#endif
+    LARGE_INTEGER t0, t1;
+    QueryPerformanceCounter(&t0);
+    if (!heap_snapshot::load(base)) {
+        return refuse(net_link::Refusal::NotKept, heap_snapshot::stats().last_error);
+    }
+    sound_after_rewind();
+    const bool applied = netplay_snapshot::restore_battle(main, *merged, ctx.g_simTimeUs, reason);
+    if (!applied) {
+        // restore_battle checks everything before it writes: the frames since are simulated again as they were
+        netplay_snapshot::apply_timing_state(main, own_timing, ctx.g_simTimeUs);
+    }
+    ImageResult taken{};
+    if (applied && image_ok) {
+        resync_image(image, image_len, -1, taken);
+    }
+    pin_tick_rng_from_live();
+    resync_replay(main, ctx, base, input_players);
+    QueryPerformanceCounter(&t1);
+    if (!applied) {
+        return refuse(net_link::Refusal::Restore, reason ? reason : "restore refused");
+    }
+    ++g_rs_count;
+    g_rs_ignore_upto = std::max(g_rs_ignore_upto, sent_upto);
+    resync_reply(offer, net_link::Status::Applied, sent_upto);
+    snprintf(text, sizeof text, "resync f%d: %u bytes from the host, %u words of %u units and %u blocks (%u missing), f%d-f%d simulated again in %.1f ms",
+        base, differ, taken.words, taken.units, taken.blocks, taken.missing, base + 1, last, qpc_ms(t0.QuadPart, t1.QuadPart));
+    probe_log(text);
+    return true;
+}
+
+// The host's offer: its packed state of its newest confirmed frame, to every remote player.
+static void resync_offer(int window)
+{
+    const int frame = g_rs_last_forward - window - 1;
+    const auto own = g_latest_saves.find(frame);
+    if (own == g_latest_saves.end() || g_rs_peers.empty()) {
+        return;
+    }
+    g_rs_flight_id = g_rs_next_id++;
+    if (g_rs_next_id == 0) {
+        g_rs_next_id = 1;
+    }
+    std::vector<uint8_t> image;
+    if (!resync_build_image(frame, image)) {
+        resync_empty_image(image);
+    }
+    uint32_t units = 0;
+    std::memcpy(&units, image.data() + 4, 4);
+    const uint32_t battle_len = (uint32_t)own->second.size();
+    std::vector<uint8_t> payload(4 + own->second.size() + image.size());
+    std::memcpy(payload.data(), &battle_len, 4);
+    std::memcpy(payload.data() + 4, own->second.data(), own->second.size());
+    std::memcpy(payload.data() + 4 + own->second.size(), image.data(), image.size());
+    char text[128];
+    for (const std::string& to : g_rs_peers) {
+        if (!net_link::send_offer(to, g_rs_flight_id, frame, payload.data(), (uint32_t)payload.size())) {
+            snprintf(text, sizeof text, "resync offer f%d not sent: %u bytes is too big", frame, (unsigned)payload.size());
+            probe_log(text);
+            g_rs_wanted = false;
+            return;
+        }
+    }
+    g_rs_wanted = false;
+    g_rs_in_flight = true;
+    g_rs_flight_sent = g_rs_last_forward;
+    g_rs_flight_replied.clear();
+    snprintf(text, sizeof text, "resync offer f%d (%u bytes, %u units in the image)", frame, (unsigned)payload.size(), units);
+    probe_log(text);
+}
+
+// After the pump, every presented frame: the host's replies and offers, the other machines' pending offer.
+static void resync_step(sDevil4Main* main, SimCtx& ctx, bool host, int window, int input_players)
+{
+    if (!g_rs_enabled) {
+        return;
+    }
+    if (host) {
+        net_link::Reply reply;
+        while (net_link::take_reply(reply)) {
+            if (!g_rs_in_flight || reply.id != g_rs_flight_id ||
+                std::find(g_rs_flight_replied.begin(), g_rs_flight_replied.end(), reply.from) != g_rs_flight_replied.end()) {
+                continue;   // another flight's, or a peer's second answer
+            }
+            g_rs_flight_replied.push_back(reply.from);
+            if (reply.status == net_link::Status::Refused) {
+                ++g_rs_refused;
+                g_rs_last_refusal = resync_refusal_text(reply.value);
+                g_rs_wait_until = g_rs_last_forward + kResyncRefusedWait;
+            } else {
+                if (reply.status == net_link::Status::Applied) {
+                    ++g_rs_count;
+                    g_rs_last_applied = g_rs_last_forward;
+                } else {
+                    ++g_rs_same;
+                }
+                g_rs_ignore_upto = std::max(g_rs_ignore_upto, (int)reply.value);
+            }
+            if (g_rs_flight_replied.size() >= g_rs_peers.size()) {
+                g_rs_in_flight = false;
+                g_rs_episode = false;
+            }
+        }
+        if (g_rs_in_flight && g_rs_last_forward - g_rs_flight_sent > kResyncRetryFrames) {
+            // a chunk or the reply was lost: again, with a newer frame
+            g_rs_in_flight = false;
+            g_rs_wanted = true;
+        }
+        if (g_rs_wanted && !g_rs_in_flight && g_rs_last_forward >= g_rs_wait_until) {
+            resync_offer(window);
+        }
+        return;
+    }
+    net_link::Offer offer;
+    if (net_link::take_offer(offer)) {
+        g_rs_offer = std::move(offer);
+        g_rs_have_offer = true;
+    }
+    if (g_rs_have_offer && resync_take(main, ctx, window, input_players)) {
+        g_rs_have_offer = false;
+        g_rs_offer = net_link::Offer{};
+        g_rs_episode = false;
+    }
+}
+
+// A mismatch GekkoNet reported. true: expected (an earlier mismatch is being dealt with, or the frame predates a resync).
+static bool resync_on_mismatch(int frame, bool host)
+{
+    if (!g_rs_enabled) {
+        return false;
+    }
+    if (frame <= g_rs_ignore_upto || g_rs_episode) {
+        ++g_rs_expected;
+        return true;
+    }
+    g_rs_episode = true;
+    if (host) {
+        g_rs_wanted = true;
+        // a resync that didn't hold (a difference the snapshot doesn't carry keeps coming back): each next one waits
+        // twice as long, so it can't take the game's frame rate with it; a resync that held starts over
+        g_rs_backoff = g_rs_last_forward - g_rs_last_applied < kResyncHeld
+            ? std::min(kResyncMaxBackoff, std::max(kResyncMinBackoff, g_rs_backoff * 2)) : 0;
+        g_rs_wait_until = std::max(g_rs_wait_until, g_rs_last_forward + g_rs_backoff);
+    }
+    return false;
+}
+#pragma endregion
+
 static void begin_heap_snapshot(int rollback_frames)
 {
     if (g_heap_restore && !heap_snapshot::begin(rollback_frames + 4 + kResyncHeapFrames)) {
@@ -1101,6 +2013,7 @@ struct OnlineComponent : NetplayComponent {
                 GekkoNetAddress addr = {};
                 addr.data = (void*)buffer;
                 addr.size = std::strlen(buffer);
+                g_rs_peers.emplace_back(buffer);
 
                 player.handle = gekko_add_actor(session, GekkoRemotePlayer, &addr);
             }
@@ -1119,6 +2032,18 @@ struct OnlineComponent : NetplayComponent {
         // on the live stream, not rewind to the last saved one every frame
         clear_tick_rng_pin();
         heap_snapshot::end();
+        g_pause_from_inputs = false;
+        g_menu_paused = false;
+        g_tick_pausers = 0;
+        if (g_user_pad_saved) {
+            g_user_pad_saved = false;
+            if (sDevil4Pad* pad = game_pad()) {
+                std::memcpy((uint8_t*)pad + 0x9D0, g_user_pad_words, sizeof g_user_pad_words);
+            }
+        }
+        resync_reset();
+        g_local_control = -1;
+        net_link::wrap(nullptr);
         gekko_default_adapter_destroy();
         gekko_destroy(&session);
         session = nullptr;
@@ -1224,6 +2149,7 @@ struct OnlineComponent : NetplayComponent {
         gekko_rollback_stats(session, &rollback);
 #if defined(_DEBUG) || !defined(PUBLIC_BUILD)
         {
+            // diagnostics: the session's stats, resyncs and cost every 600 presented frames
             static int presented = 0;
             if (++presented % 600 == 0) {
                 char text[320];
@@ -1231,6 +2157,21 @@ struct OnlineComponent : NetplayComponent {
                     netstats.avg_ping, frames_ahead, (unsigned)rollback.total_count, rollback.avg_frames,
                     (unsigned)rollback.max_frames, (unsigned)rollback.total_stalls);
                 probe_log(text);
+                snprintf(text, sizeof text, "resyncs %u, already the same %u, refused %u (%s), mismatches after one %u",
+                    g_rs_count, g_rs_same, g_rs_refused, g_rs_last_refusal, g_rs_expected);
+                probe_log(text);
+                FrameCost& c = frame_cost();
+                if (c.frames) {
+                    snprintf(text, sizeof text, "cost: %.1f fps (a frame %.2f ms), move loop %.2f ms, pacer wait %.2f ms, simulation %.2f ms (max %.1f), ticks %.2f a frame, save %.2f ms, loads %.2f a frame at %.2f ms",
+                        c.interval_ms > 0.0 ? 1000.0 * c.frames / c.interval_ms : 0.0, c.interval_ms / c.frames, g_cost_loop_ms / c.frames,
+                        g_cost_wait_ms / c.frames, c.move_ms / c.frames, c.max_ms,
+                        (double)c.ticks / c.frames, c.save_ms / c.frames, (double)c.loads / c.frames, c.loads ? c.load_ms / c.loads : 0.0);
+                    g_cost_wait_ms = g_cost_loop_ms = 0.0;
+                    probe_log(text);
+                }
+                const int64_t keep = c.last_start;
+                c = FrameCost{};
+                c.last_start = keep;
             }
         }
 #endif
@@ -1239,7 +2180,7 @@ struct OnlineComponent : NetplayComponent {
             "net | P {:4.1f}ms PA {:4.1f}ms J {:4.1f}ms | S {:5.2f} R {:5.2f} KB/s | FA {:5.2f} | D {} W {} | RB {} avg {:.1f} max {} stalls {} | RS {} | pad{} {}",
             last_ping, netstats.avg_ping, netstats.jitter, netstats.kb_sent, netstats.kb_received,
             frames_ahead, peers[local_control].local_delay, prediction_window,
-            rollback.total_count, rollback.avg_frames, rollback.max_frames, rollback.total_stalls,
+            rollback.total_count, rollback.avg_frames, rollback.max_frames, rollback.total_stalls, g_rs_count,
             local_control, local_pad_ok ? "ok" : "NOT CONNECTED (Coop panel: player pad index)"),
             0xFFF6FF00);
 
@@ -1318,6 +2259,9 @@ struct OnlineComponent : NetplayComponent {
         for (int i = 0; i < event_count; ++i) {
             if (events[i]->type == GekkoDesyncDetected) {
                 const auto& desync = events[i]->data.desynced;
+                if (resync_on_mismatch((int)desync.frame, local_control == 0)) {
+                    continue;
+                }
                 // the dump has to run for every event (the pairing is by checksum name); the
                 // stress loop caps its screen text, this overlay only ever sees one frame's
                 // events, so nothing here needs capping
@@ -1338,6 +2282,7 @@ struct OnlineComponent : NetplayComponent {
         }
 
         const SessionPumpResult result = pump_gekko_events(session, main, *ctx, num_players);
+        resync_step(main, *ctx, local_control == 0, prediction_window, num_players);
         if (result.forward_ticks > 1) {
             // diagnostics: more than one forward tick in a presented frame (the native prelude / tail ran once)
             static int logged = 0;
@@ -2927,6 +3872,33 @@ static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx
     }
     call_system(main->mpD4Collision, 0x20);   // original 0x8AF03F post-attack sync pass
     settle_loads(main);
+    {
+        // Test switch DMC4_TEST_DESYNC=<frame>:<control>[:<every>]: the machine playing <control> moves the first enemy
+        // 50 cm on that frame (and every <every> frames after), in every tick of it, re-simulated ones too: a difference
+        // of this machine's own, as a real cause would be, for the resync to correct.
+        static int test_frame = -1, test_control = -1, test_every = 0;
+        static bool parsed = false;
+        if (!parsed) {
+            parsed = true;
+            if (const char* v = test_switch("DMC4_TEST_DESYNC")) {
+                sscanf_s(v, "%d:%d:%d", &test_frame, &test_control, &test_every);
+            }
+        }
+        const int f = event ? (int)event->data.adv.frame : -1;
+        if (test_frame >= 0 && f >= test_frame && g_local_control == test_control &&
+            (f == test_frame || (test_every > 0 && (f - test_frame) % test_every == 0))) {
+            const sUnit* su = (const sUnit*)*(const uintptr_t*)0x00E552CC;
+            const uintptr_t u = su ? (uintptr_t)su->mMoveLine[15].mTop : 0;
+            if (u) {
+                *(float*)(u + 0x30) += 50.0f;
+                if (!ctx.g_resimulating) {
+                    char text[80];
+                    snprintf(text, sizeof text, "test desync f%d", f);
+                    probe_log(text);
+                }
+            }
+        }
+    }
     // the tick consumed the pinned stream: the next save must capture the live state again
     g_tick_rng_fresh = false;
 }
@@ -3036,6 +4008,7 @@ static SessionPumpResult pump_gekko_events(GekkoSession* session, sDevil4Main* m
             } else {
                 apply_recorded_input(event->data.adv.inputs);
             }
+            resync_note_advance(event);
             ++result.ticks;
             netplay_test::page_advance((int)event->data.adv.frame, event->data.adv.rolling_back,
                 !event->data.adv.rolling_back);

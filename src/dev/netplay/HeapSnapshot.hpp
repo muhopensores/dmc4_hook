@@ -99,12 +99,13 @@ bool verify_begin(int frame);
 // Call after re-simulating up to the same newest frame (its save done).
 bool verify_end(VerifyResult& out);
 void set_track_data(bool on);    // copy .data at every save (for verify's .data report)
-// Diagnostics: the heap holding `address` and its block (user pointer, bytes); null when no heap holds it.
+// The heap holding `address` and its block (user pointer, bytes); null when no heap holds it (the resync's images, the
+// diagnostics). A walk of the heap's blocks: not for every frame.
 const char* locate(uintptr_t address, uintptr_t& block, uint32_t& block_bytes);
 bool resource_live(uintptr_t resource);   // diagnostics: in sDevil4Resource's table
 uintptr_t traced_resource();              // diagnostics: the resource DMC4_TRACE_RES names, once a save saw it
 uintptr_t region_base(const char* name);   // 0 = no such heap
-void heap_span(uintptr_t& lowest, uintptr_t& highest);   // diagnostics: the lowest and highest address of the heaps
+void heap_span(uintptr_t& lowest, uintptr_t& highest);   // the lowest and highest address of the heaps (resync, diagnostics)
 // Diagnostics: how the snapshot treats `address` (heap, page exclusion, excluded byte, a tracked lock, a shadow copy).
 void describe(uintptr_t address, char* out, size_t n);
 
