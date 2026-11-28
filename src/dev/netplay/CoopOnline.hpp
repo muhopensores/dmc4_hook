@@ -21,3 +21,14 @@ private:
     std::unique_ptr<Patch> patch1;
     std::unique_ptr<FunctionHook> hook1;
 };
+
+// The online part of the Co-op panel (Coop::on_gui_frame) and what it asks of netplay.
+namespace coop_online {
+bool online();                      // the panel's Online mode (netplay's online component)
+void set_online(bool on);           // off: leaves the lobby and the session
+bool rules_from_host();             // online, this machine isn't player 1: the players and rules are the host's
+int local_player();                 // the player this machine plays online (0 otherwise)
+bool session_armed();               // online: the next stage load starts a session (the host started it for everyone)
+const char* player_status(int player);   // "this machine", "waiting", "connected, in a stage", ...
+void draw_panel();                  // this machine's player, the addresses, Connect / Leave, split screen, Advanced
+} // namespace coop_online

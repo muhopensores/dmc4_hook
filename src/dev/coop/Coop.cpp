@@ -35,8 +35,6 @@ namespace coop_tint {
 bool enabled = false;
 float colors[4][4] = {{1.0f, 1.0f, 1.0f, 0.0f}, {1.0f, 0.6f, 0.6f, 0.0f}, {0.6f, 0.6f, 1.0f, 0.0f}, {0.6f, 1.0f, 0.6f, 0.0f}};
 } // namespace coop_tint
-float Coop::revive_delay = 5.0f;
-float Coop::revive_hp = 0.5f;
 
 uintptr_t Coop::jmp_ret2 = NULL;
 uintptr_t Coop::jmp_ret5 = NULL;
@@ -1318,115 +1316,159 @@ void Coop::on_gui_frame(int display) {
         return;
     }
     ImGui::PushID("Coop");
-    if (ImGui::Checkbox(_("Coop mode"), &mod_enabled)) {
-        toggle(mod_enabled);
+    int mode = coop_online::online() ? 2 : (mod_enabled ? 1 : 0);
+    const char* modes[] = {_("Off"), _("Local"), _("Online")};
+    ImGui::SetNextItemWidth(sameLineItemWidth);
+    if (ImGui::Combo(_("Co-op"), &mode, modes, IM_ARRAYSIZE(modes))) {
+        coop_online::set_online(mode == 2);
+        const bool on = mode != 0;
+        if (on != mod_enabled) {
+            mod_enabled = on;
+            toggle(on);
+        }
     }
     ImGui::SameLine();
-    help_marker(_("Split-screen co-op. The extra players spawn when the next stage starts"));
-    ImGui::SameLine(sameLineWidth);
-    ImGui::SetNextItemWidth(sameLineItemWidth / 2.0f);
-    ImGui::SliderInt(_("Players"), (int*)&player_num, 2, kMaxPlayers);
-    ImGui::SameLine();
-    help_marker(_("How many players, including you. Change it before the stage starts"));
-
-    if (!mod_enabled) {
+    help_marker(_("Local: split screen on this machine, a pad per player. Online: each player on their own machine "
+                  "(rollback netplay); player 1 hosts and decides the players and the rules. The extra players spawn "
+                  "when the next stage starts"));
+    if (mode == 0) {
         ImGui::PopID();
         return;
     }
+    const bool online = mode == 2;
+    const bool from_host = coop_online::rules_from_host();
+    const int me = online ? coop_online::local_player() : -1;
+
     ImGui::Indent(lineIndent);
+    if (online) {
+        ImGui::BeginDisabled();
+    }
+    ImGui::SetNextItemWidth(sameLineItemWidth / 2.0f);
+    ImGui::SliderInt(_("Players"), (int*)&player_num, 2, kMaxPlayers);
+    if (online) {
+        ImGui::EndDisabled();
+    }
+    ImGui::SameLine();
+    help_marker(online ? _("Everyone who joined the host (the lobby counts them)")
+                       : _("How many players, including you. Change it before the stage starts"));
+
     for (int i = 0; i < (int)player_num; i++) {
         ImGui::PushID(i);
         ImGui::Text(_("Player %d"), i + 1);
+        const bool own = !online || i == me;   // local: every row; online: this machine's player
         if (i > 0) {
             ImGui::SameLine();
             ImGui::SetNextItemWidth(sameLineItemWidth);
+            if (!own) {
+                ImGui::BeginDisabled();
+            }
             ImGui::Combo(_("Character"), &players[i].character, kCharNames, IM_ARRAYSIZE(kCharNames));
-            ImGui::SameLine();
-            help_marker(_("Who this player spawns as, at the next stage start"));
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(sameLineItemWidth / 1.5f);
-            ImGui::Combo(_("Pad"), &players[i].xinput, kPadNames, IM_ARRAYSIZE(kPadNames));
-            ImGui::SameLine();
-            help_marker(_("The XInput controller this player uses"));
-        } else {
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(sameLineItemWidth / 1.5f);
-            int p1_pad = players[0].xinput + 1;
-            if (ImGui::Combo(_("Pad"), &p1_pad, kP1PadNames, IM_ARRAYSIZE(kP1PadNames))) {
-                players[0].xinput = p1_pad - 1;
-                coop_pads::stop_all();
+            if (!own) {
+                ImGui::EndDisabled();
             }
             ImGui::SameLine();
-            help_marker(_("Game's pad: player 1 plays on whatever the game reads (its own controller settings). An XInput "
-                          "pad: player 1 uses that controller like the other players, with his own button layout below "
-                          "and rumble on it. Menus still follow the game's pad"));
+            help_marker(online ? _("Who this player spawns as, at the next stage start. Each player picks their own")
+                               : _("Who this player spawns as, at the next stage start"));
         }
-        ImGui::SameLine();
-        ImGui::TextUnformatted(coop_pads::connected(i) ? _("connected") : _("no pad"));
-        if (coop_pads::uses_stand_in(i)) {
-            ImGui::Indent(lineIndent);
-            coop_pads::draw_bindings(i);
-            ImGui::Unindent(lineIndent);
+        if (own) {
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(sameLineItemWidth / 1.5f);
+            if (i > 0) {
+                ImGui::Combo(_("Pad"), &players[i].xinput, kPadNames, IM_ARRAYSIZE(kPadNames));
+                ImGui::SameLine();
+                help_marker(_("The XInput controller this player uses"));
+            } else {
+                int p1_pad = players[0].xinput + 1;
+                if (ImGui::Combo(_("Pad"), &p1_pad, kP1PadNames, IM_ARRAYSIZE(kP1PadNames))) {
+                    players[0].xinput = p1_pad - 1;
+                    coop_pads::stop_all();
+                }
+                ImGui::SameLine();
+                help_marker(_("Game's pad: player 1 plays on whatever the game reads (its own controller settings). An "
+                              "XInput pad: player 1 uses that controller like the other players, with their own button "
+                              "layout below and rumble on it. Menus still follow the game's pad"));
+            }
+            ImGui::SameLine();
+            ImGui::TextUnformatted(online ? _("this machine") : coop_pads::connected(i) ? _("connected") : _("no pad"));
+            if (coop_pads::uses_stand_in(i)) {
+                ImGui::Indent(lineIndent);
+                coop_pads::draw_bindings(i);
+                ImGui::Unindent(lineIndent);
+            }
+        } else {
+            ImGui::SameLine();
+            ImGui::TextDisabled("%s", coop_online::player_status(i));
         }
         ImGui::PopID();
     }
 
-    int owner = coop_pads::keyboard_owner + 1;
-    const char* owners[] = {"Nobody", "Player 1", "Player 2", "Player 3", "Player 4"};
-    ImGui::SetNextItemWidth(sameLineItemWidth);
-    if (ImGui::Combo(_("Keyboard"), &owner, owners, (int)player_num + 1)) {
-        coop_pads::set_keyboard_owner(owner - 1);
+    if (!online) {
+        int owner = coop_pads::keyboard_owner + 1;
+        const char* owners[] = {"Nobody", "Player 1", "Player 2", "Player 3", "Player 4"};
+        ImGui::SetNextItemWidth(sameLineItemWidth);
+        if (ImGui::Combo(_("Keyboard"), &owner, owners, (int)player_num + 1)) {
+            coop_pads::set_keyboard_owner(owner - 1);
+        }
+        ImGui::SameLine();
+        help_marker(_("Which player the keyboard controls (buttons, movement keys, Exceed key). The others ignore it"));
+        ImGui::SameLine(sameLineWidth + lineIndent);
+        if (ImGui::Checkbox(_("Rumble for players 2-4"), &coop_pads::rumble) && !coop_pads::rumble) {
+            coop_pads::stop_all();
+        }
+        ImGui::SameLine();
+        help_marker(_("Players 2-4 feel their own hits on their own pad. Player 1's rumble is the game's"));
     }
-    ImGui::SameLine();
-    help_marker(_("Which player the keyboard controls (buttons, movement keys, Exceed key). The others ignore it"));
-    ImGui::SameLine(sameLineWidth + lineIndent);
-    if (ImGui::Checkbox(_("Rumble for players 2-4"), &coop_pads::rumble) && !coop_pads::rumble) {
-        coop_pads::stop_all();
+
+    if (from_host) {
+        ImGui::BeginDisabled();
     }
-    ImGui::SameLine();
-    help_marker(_("Players 2-4 feel their own hits on their own pad. Player 1's rumble is the game's"));
-
-    ImGui::SetNextItemWidth(sameLineItemWidth);
-    ImGui::SliderFloat(_("HUD size"), &coop_hud::hud_scale, 0.25f, 1.0f, "%.2f");
-    ImGui::SameLine();
-    help_marker(_("The size of every player's HUD while the screen is split (full size while paused). Each part keeps to "
-                  "its own edge of the player's view: gauges top-left, style meter and orbs on the right, centred text in "
-                  "the middle. 0.5 fits a half or a quarter of the screen, 1 is the normal size. The lock-on reticle keeps "
-                  "its size, as it follows the target"));
-
-    if (ImGui::Button(_("Refresh cameras"))) {
-        apply_viewport_layout();
-        coop_hud::split_shown = true;
-    }
-    ImGui::SameLine();
-    help_marker(_("Give every camera its viewport again, after a camera event took the screen back"));
-
-    ImGui::SliderFloat(_("Revive after"), &revive_delay, 1.0f, 30.0f, "%.0f s");
-    ImGui::SameLine();
-    help_marker(_("A player 2-4 who dies stays down this long, then gets up by himself. Player 1's death is the game's own "
-                  "(game over or a Gold Orb continue). Enemies leave a downed player alone"));
-    ImGui::SliderFloat(_("Revive HP"), &revive_hp, 0.1f, 1.0f, "%.2f");
-    ImGui::SameLine();
-    help_marker(_("The share of his maximum HP a revived player gets up with"));
-
     ImGui::Checkbox(_("Players push each other"), &coop_pvp::push);
     ImGui::SameLine();
     help_marker(_("Players' bodies collide and push each other apart, as an enemy and a player do (not while one is held by "
                   "a grab). Off: they pass through each other, as the game alone would"));
-
     if (ImGui::Checkbox(_("PvP hits"), &coop_pvp::hits)) {
         coop_pvp::retry();
     }
     ImGui::SameLine();
     help_marker(_("Players' attacks and shots hit the other players (never their own player), and Nero's Snatch and "
-                  "Buster grab them while they're stunned (hit, launched or blown away; the generic reactions of the Dante boss fight). Enemies still hit everyone as usual. "
-                  "Players can lock on to each other. Rounds come later"));
+                  "Buster grab them while they're stunned (hit, launched or blown away; the generic reactions of the "
+                  "Dante boss fight). Enemies still hit everyone as usual. Players can lock on to each other"));
+    if (coop_pvp::hits) {
+        ImGui::Indent(lineIndent);
+        ImGui::Checkbox(_("Lock on to players first"), &coop_pvp::players_first);
+        ImGui::SameLine();
+        help_marker(_("While another player is in reach and in your view, lock-on picks a player and skips the enemies. "
+                      "Off: players and enemies are picked alike, the nearest first"));
+        ImGui::Checkbox(_("Hitting players fills Devil Trigger"), &coop_pvp::dt_from_players);
+        ImGui::SameLine();
+        help_marker(_("A hit on another player gives the attacker the attack's Devil Trigger, as a hit on an enemy does "
+                      "(not while the attacker is in Devil Trigger). Off: hitting players gives none, as the game alone "
+                      "would"));
+        ImGui::Unindent(lineIndent);
+    }
+    if (from_host) {
+        ImGui::EndDisabled();
+        ImGui::SameLine();
+        ImGui::TextDisabled(_("(player 1's)"));
+    }
+    if (coop_pvp::hits && !coop_pvp::grabs_ready()) {
+        ImGui::SameLine();
+        ImGui::TextDisabled(_("(grabs off)"));
+        ImGui::SameLine();
+        help_marker(_("Grabbing players needs the Dante boss fight's Buster motions, read from nativePC\\rom\\enemy\\"
+                      "em_dante.arc while PvP hits is on. They didn't load"));
+        const char* why = coop_pvp::grabs_error();
+        if (why && *why) {
+            ImGui::TextDisabled("%s", why);
+        }
+    }
+
     if (ImGui::Checkbox(_("Tint players"), &coop_tint::enabled) && !coop_tint::enabled) {
         tint_restore = true;
     }
     ImGui::SameLine();
-    help_marker(_("Each player's character, weapons and (Nero) Devil Trigger stand get his colour, so two of the same "
-                  "character can be told apart. White = as the game draws it"));
+    help_marker(_("Each player's character, weapons and (Nero) Devil Trigger stand get that player's colour, so two of "
+                  "the same character can be told apart. White = as the game draws it. Only on this machine's screen"));
     if (coop_tint::enabled) {
         ImGui::Indent(lineIndent);
         for (int i = 0; i < (int)player_num && i < kMaxPlayers; i++) {
@@ -1441,67 +1483,18 @@ void Coop::on_gui_frame(int display) {
         ImGui::Unindent(lineIndent);
     }
 
-    if (coop_pvp::hits) {
-        ImGui::Indent(lineIndent);
-        ImGui::Checkbox(_("Lock on to players first"), &coop_pvp::players_first);
+    if (coop::online_view < 0) {   // online, each machine shows its own player's view (update_online_view)
+        if (ImGui::Button(_("Refresh cameras"))) {
+            apply_viewport_layout();
+            coop_hud::split_shown = true;
+        }
         ImGui::SameLine();
-        help_marker(_("While another player is in reach and in your view, lock-on picks a player and skips the enemies. "
-                      "Off: players and enemies are picked alike, the nearest first"));
-        ImGui::Checkbox(_("Hitting players fills Devil Trigger"), &coop_pvp::dt_from_players);
-        ImGui::SameLine();
-        help_marker(_("A hit on another player gives the attacker the attack's Devil Trigger, as a hit on an enemy does (not "
-                      "while he is in Devil Trigger). Off: hitting players gives none, as the game alone would"));
-        ImGui::SliderFloat(_("Grab window after a flinch"), &coop_pvp::grab_window, 0.0f, 3.0f, "%.2f s");
-        ImGui::SameLine();
-        help_marker(_("A player can be snatched or bustered while he reels from a hit, and for this long after he recovers "
-                      "(his own game time), unless he is invincible. 0 = only during the hit reaction"));
-        ImGui::SliderFloat(_("Grab grace"), &coop_pvp::grab_grace, 0.0f, 10.0f, "%.1f s");
-        ImGui::SameLine();
-        help_marker(_("After a player is let go from a Snatch, Buster or hold, no Nero can grab him again for this long (his "
-                      "own game time), so he can't be grabbed over and over while stunned. Hits still land. 0 = no grace"));
-        ImGui::Unindent(lineIndent);
+        help_marker(_("Give every camera its viewport again, after a camera event took the screen back"));
     }
-    if (coop_pvp::hits && ImGui::TreeNode(_("PvP flinching"))) {
-        static char* rows[] = {"Flinch", "Blow away", "Flinch in DT", "Blow away in DT", "Flinch in the air",
-                               "Blow away in the air"};
-        int* data[] = {coop_pvp::flinch[0], coop_pvp::blow[0], coop_pvp::flinch[1], coop_pvp::blow[1], coop_pvp::flinch[2],
-                       coop_pvp::blow[2]};
-        for (int r = 0; r < 6; r++) {
-            ImGui::SetNextItemWidth(sameLineItemWidth * 1.5f);
-            ImGui::InputScalarN(_(rows[r]), ImGuiDataType_S32, data[r], 5);
-            for (int lv = 0; lv < 5; lv++) {
-                data[r][lv] = std::clamp(data[r][lv], -1, 100);
-            }
-            ImGui::SameLine();
-            help_marker(_("Hits from another player needed before this reaction, for attack levels 0 to 4 (each attack's "
-                          "level is in its .atk entry; combo hits are mostly 2, launchers and finishers 3 and 4). -1 = "
-                          "never, 1 = every hit. The count starts over after the reaction, or 3 seconds after the last hit. "
-                          "The DT rows apply while the player is in Devil Trigger, the air rows while he is off the ground "
-                          "(launched, knocked up, jumping; DT or not), so a launched player can be juggled. Enemies' hits use "
-                          "the game's own values"));
-        }
-        if (ImGui::Button(_("Default flinching"))) {
-            const int f[3][5] = {{-1, -1, 3, 2, 1}, {-1, -1, -1, 3, 2}, {-1, -1, 1, 1, 1}};
-            const int b[3][5] = {{-1, -1, -1, 2, 1}, {-1, -1, -1, 3, 1}, {-1, -1, -1, 2, 1}};
-            memcpy(coop_pvp::flinch, f, sizeof(f));
-            memcpy(coop_pvp::blow, b, sizeof(b));
-        }
-        ImGui::SameLine();
-        help_marker(_("Light combo hits need three in a row to stun, finishers still land at once; Devil Trigger takes more; "
-                      "in the air every hit flinches (juggles) and finishers blow away. The game's own values are 1 for "
-                      "every attack level from 2 up"));
-        ImGui::TreePop();
-    }
-    if (coop_pvp::hits && !coop_pvp::grabs_ready()) {
-        ImGui::SameLine();
-        ImGui::TextDisabled(_("(grabs off)"));
-        ImGui::SameLine();
-        help_marker(_("Grabbing players needs the Dante boss fight's Buster motions, read from nativePC\\rom\\enemy\\"
-                      "em_dante.arc while PvP hits is on. They didn't load"));
-        const char* why = coop_pvp::grabs_error();
-        if (why && *why) {
-            ImGui::TextDisabled("%s", why);
-        }
+
+    if (online) {
+        ImGui::Separator();
+        coop_online::draw_panel();
     }
 
     if (ImGui::TreeNode(_("Diagnostics"))) {
@@ -1538,6 +1531,9 @@ void Coop::on_stage_start() {
     }
     if (main_pl.unit) {
         *reinterpret_cast<uint8_t*>(main_pl.unit + coop::kControlNumber) = 0;
+    }
+    if (coop_online::online() && !coop_online::session_armed()) {
+        return;   // online, a stage the host didn't start for everyone: single player (the others come with a session)
     }
     for (int i = 1; i < (int)player_num; i++) {
         spawn_player(players[i].character, i);
@@ -1583,9 +1579,6 @@ void Coop::on_config_load(const utility::Config& cfg) {
     }
     coop_pads::set_keyboard_owner(std::clamp(cfg.get<int>("coop_keyboard").value_or(0), -1, kMaxPlayers - 1));
     coop_pads::rumble = cfg.get<bool>("coop_rumble").value_or(true);
-    coop_hud::hud_scale = std::clamp(cfg.get<float>("coop_hud_scale").value_or(0.5f), 0.25f, 1.0f);
-    revive_delay = std::clamp(cfg.get<float>("coop_revive_delay").value_or(5.0f), 1.0f, 30.0f);
-    revive_hp = std::clamp(cfg.get<float>("coop_revive_hp").value_or(0.5f), 0.1f, 1.0f);
     coop_pvp::hits = cfg.get<bool>("coop_pvp_hits").value_or(cfg.get<bool>("FriendlyFire").value_or(false));
     coop_tint::enabled = cfg.get<bool>("coop_tint").value_or(false);
     for (int i = 0; i < kMaxPlayers; i++) {
@@ -1638,15 +1631,6 @@ void Coop::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("coop_push", coop_pvp::push);
     cfg.set<bool>("coop_pvp_players_first", coop_pvp::players_first);
     cfg.set<bool>("coop_pvp_dt_from_players", coop_pvp::dt_from_players);
-    cfg.set<float>("coop_pvp_grab_grace", coop_pvp::grab_grace);
-    cfg.set<float>("coop_pvp_grab_window", coop_pvp::grab_window);
-    for (int s = 0; s < 3; s++) {
-        for (int lv = 0; lv < 5; lv++) {
-            const std::string k = std::to_string(s) + "_" + std::to_string(lv);
-            cfg.set<int>("coop_pvp_flinch" + k, coop_pvp::flinch[s][lv]);
-            cfg.set<int>("coop_pvp_blow" + k, coop_pvp::blow[s][lv]);
-        }
-    }
 }
 
 #undef naked_extern

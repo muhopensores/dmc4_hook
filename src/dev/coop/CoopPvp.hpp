@@ -57,12 +57,12 @@ extern bool hits;   // players' attacks hit the other players; Nero's Snatch / B
 extern bool push;   // players' bodies push each other (not while one is grabbed)
 extern bool players_first;   // lock-on picks another player over enemies while one is in reach and in view
 extern bool dt_from_players; // hitting a player fills the attacker's Devil Trigger as hitting an enemy does
-extern float grab_grace;     // seconds after a grab ends during which that player can't be grabbed again
-extern float grab_window;    // seconds after a hit reaction ends during which that player can still be grabbed
+inline constexpr float grab_grace = 2.0f;    // seconds after a grab ends during which that player can't be grabbed again
+inline constexpr float grab_window = 0.5f;   // seconds after a hit reaction ends during which that player can still be grabbed
 // Hits from another player needed to flinch / blow a player, per attack level 0-4 (-1 = never); [0] normal, [1] in
 // Devil Trigger. Counters reset after the reaction or 3 s after the last hit.
-extern int flinch[3][5];
-extern int blow[3][5];
+inline constexpr int flinch[3][5] = {{-1, -1, 3, 2, 1}, {-1, -1, -1, 3, 2}, {-1, -1, 1, 1, 1}};
+inline constexpr int blow[3][5]   = {{-1, -1, -1, 2, 1}, {-1, -1, -1, 3, 1}, {-1, -1, -1, 2, 1}};
 
 std::optional<std::string> install();   // the hooks; an error text on failure
 void tick();                            // game thread, once a frame: the em_dante rows in while PvP hits is on

@@ -51,8 +51,8 @@ class Coop : public Mod {
 public:
     static bool mod_enabled;
     static unsigned int player_num;
-    static float revive_delay;   // seconds a dead player 2-4 stays down
-    static float revive_hp;      // his HP share after getting up (0.1-1)
+    static constexpr float revive_delay = 5.0f;   // seconds a dead player 2-4 stays down
+    static constexpr float revive_hp = 0.5f;      // their HP share after getting up
 
     static uintptr_t jmp_ret2;
     static uintptr_t jmp_ret5;

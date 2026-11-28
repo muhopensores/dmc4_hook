@@ -12,7 +12,6 @@
 
 namespace coop_hud {
 
-float hud_scale = 0.5f;
 bool split_shown = false;
 bool view_scaled[4] = {};
 

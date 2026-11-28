@@ -20,10 +20,6 @@ bool hits = false;
 bool push = true;
 bool players_first = true;
 bool dt_from_players = true;
-float grab_grace = 2.0f;
-float grab_window = 0.5f;
-int flinch[3][5] = {{-1, -1, 3, 2, 1}, {-1, -1, -1, 3, 2}, {-1, -1, 1, 1, 1}};
-int blow[3][5]   = {{-1, -1, -1, 2, 1}, {-1, -1, -1, 3, 1}, {-1, -1, -1, 2, 1}};
 
 } // namespace coop_pvp
 

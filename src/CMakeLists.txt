@@ -410,6 +410,10 @@ set(DEV_SRC
   dev/netplay/MemoryPageTracker.cpp
   dev/netplay/HeapSnapshot.hpp
   dev/netplay/HeapSnapshot.cpp
+  dev/netplay/NetLink.hpp
+  dev/netplay/NetLink.cpp
+  dev/netplay/Lobby.hpp
+  dev/netplay/Lobby.cpp
   dev/netplay/FramePacer.hpp
   dev/movedef/XmlMove.hpp
   dev/movedef/XmlMove.cpp
@@ -594,6 +598,12 @@ set(SDK_SRC
     sdk/LocalWorld.cpp
     sdk/Rollback.hpp
     sdk/Rollback.cpp
+    sdk/PresentationRng.hpp
+    sdk/PresentationRng.cpp
+    sdk/SimView.hpp
+    sdk/TestSwitch.hpp
+    sdk/HostRules.hpp
+    sdk/HostRules.cpp
     sdk/rEffectList.hpp
     sdk/sArea.hpp
     sdk/sDevil4Main.hpp

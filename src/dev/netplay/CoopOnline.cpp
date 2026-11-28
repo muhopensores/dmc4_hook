@@ -14,6 +14,11 @@
 #include "zpp_bits.h"
 #include "dev/netplay/BattleSnapshot.hpp"
 #include "dev/netplay/HeapSnapshot.hpp"
+#include "dev/netplay/NetLink.hpp"
+#include "dev/netplay/Lobby.hpp"
+#include "dev/coop/CoopPvp.hpp"
+#include "sdk/MissionMenu.hpp"
+#include "mods/ArcadeMode.hpp"
 #include "sdk/FrameHooks.hpp"
 #include "sdk/LocalWorld.hpp"
 #include "sdk/Rollback.hpp"
@@ -1886,6 +1891,38 @@ struct OnlineComponent : NetplayComponent {
     // g_framework (and the mods list get_coop_mod walks) is not usable yet. The first frame
     // is safe and precedes any stage load, so Coop::on_stage_start sees the right player_num.
     bool coop_prep_pending = false;
+    bool lobby_pending = false;   // armed from the command line: the lobby opens at the first frame
+    // What Connect opens: the panel's Host or Join (the host hands out the players), or Fixed (-netplay -plN: every
+    // address given). The panel's choices are kept in the cfg; a command line's never are.
+    lobby::Kind lobby_kind = lobby::Kind::Host;
+    char join_address[64] = "127.0.0.1:7000";   // Join: the host's "ip:port"
+    uint16_t host_port = 7000;                   // Host: the port the others join on
+    bool armed_by_command_line = false;
+    bool cfg_join = false;
+    std::string cfg_join_address = "127.0.0.1:7000";
+    uint16_t cfg_host_port = 7000;
+    uint32_t roster_seen = 0;
+    // -host -players <n> (test runs): the host starts the command line's stage for everyone once n players wait in the
+    // Mission Menu
+    int auto_start_players = 0;
+    bool auto_started = false;
+    int auto_start_character = -1;   // the menu's character from -character; -1: the start picker's
+    // a machine other than the host plays by the host's rules while the lobby is open; its own come back at Leave
+    struct SavedRules {
+        bool push = true, hits = false, players_first = true, dt_from_players = true;
+        int character[coop::kMaxPlayers] = {};
+    };
+    SavedRules saved_rules{};
+    bool rules_saved = false;
+    // the host's start picker
+    int start_kind = 1;        // 0 mission, 1 Bloody Palace
+    int start_mission = 1;
+    int start_floor = 1;
+    int start_difficulty = 3;
+    int start_character = 0;   // into draw_start_picker's characters / character_values
+    uint16_t start_id = 0;
+    bool peer_was_connected[lobby::kMaxPlayers] = {};   // the lobby log's connect / left lines
+    static_assert(lobby::kMaxPlayers <= coop::kMaxPlayers, "the lobby's players index coop::players");
 
     OnlineComponent() {
         constexpr uint16_t default_port = 7000;
@@ -1986,7 +2023,10 @@ struct OnlineComponent : NetplayComponent {
             end_session();
             return;
         }
-        gekko_net_adapter_set(session, adapter);
+        gekko_net_adapter_set(session, net_link::wrap(adapter));
+        lobby::on_session_start();
+        host_rules::set_session(true);
+        resync_reset();
         gekko_set_runahead(session, 0); // NOTE(): no runahead :harold:
 
         for (int index = 0; index < num_players; ++index) {
@@ -2045,6 +2085,8 @@ struct OnlineComponent : NetplayComponent {
         g_local_control = -1;
         net_link::wrap(nullptr);
         gekko_default_adapter_destroy();
+        lobby::on_session_end();
+        host_rules::set_session(false);
         gekko_destroy(&session);
         session = nullptr;
         coop::online_view = -1;
@@ -2316,14 +2358,40 @@ struct OnlineComponent : NetplayComponent {
             coop_prep_pending = false;
             prepare_coop();
         }
+        if (lobby_pending) {
+            lobby_pending = false;
+            if (!open_lobby()) {
+                connect_requested = false;   // the port is taken: nothing to connect through
+            }
+            if (const char* v = test_switch("DMC4_TEST_RNG_SKEW")) {
+                // test switch DMC4_TEST_RNG_SKEW=<n>:<player index>: that machine's random stream is thrown off before
+                // the stage loads, as menus leave it on a real machine (on_stage_start's seed has to make it not matter)
+                int n = 0, control = -1;
+                sscanf_s(v, "%d:%d", &n, &control);
+                if (control == local_control) {
+                    uint32_t* mt = (uint32_t*)kMtRandom;
+                    for (uint32_t i = 0; i < kMtRandomWords; ++i) {
+                        mt[i] ^= (uint32_t)n * 2654435761u + i;
+                    }
+                    probe_log("test: this machine's random stream thrown off");
+                }
+            }
+        }
+        lobby_frame();
     }
 
     // The extra players exist by now (Coop::on_stage_start runs first); a session started in
     // an earlier stage carries stale saved states, so restart at every stage. Both machines
     // have to be in the same stage - GekkoNet syncs from wherever each side starts. Nothing
     // runs until Connect armed it: no session in the main menu.
+    // A session starts at a stage the host started for everyone (do_start armed it on every machine), or with the -plN
+    // command line; any other stage is single player.
+    bool session_wanted() const {
+        return connect_requested && (lobby_kind == lobby::Kind::Fixed || (lobby::local() >= 0 && num_players >= 2));
+    }
+
     void on_stage_start() override {
-        if (!connect_requested) {
+        if (!session_wanted()) {
             return;
         }
         if (session) {
@@ -2346,6 +2414,37 @@ struct OnlineComponent : NetplayComponent {
     // line are handled by MultipleGameInstances and ArcadeMode.)
     void arm_from_command_line() {
         char value[MAX_PATH] = {};
+        // -host [-port <port>]: this machine hosts; -join <ip:port>: it joins that host, which hands out the players
+        const bool host_arg = utility::check_argument("-host");
+        if (host_arg || utility::get_argument("-join", value, sizeof value)) {
+            if (host_arg) {
+                lobby_kind = lobby::Kind::Host;
+                const int port = utility::get_argument("-port");
+                if (port > 0 && port < 65536) {
+                    host_port = (uint16_t)port;
+                }
+                auto_start_players = std::clamp(utility::get_argument("-players"), 0, (int)lobby::kMaxPlayers);
+                if (utility::check_argument("-bp")) {
+                    start_kind = 1;
+                    start_floor = std::clamp(utility::get_argument("-bp"), 1, 101);
+                } else if (utility::get_argument("-mission") > 0) {
+                    start_kind = 0;
+                    start_mission = std::clamp(utility::get_argument("-mission"), 1, 20);
+                }
+                if (utility::get_argument("-difficulty") >= 0) {
+                    start_difficulty = std::clamp(utility::get_argument("-difficulty"), 0, 6);
+                }
+                auto_start_character = utility::get_argument("-character");
+            } else {
+                lobby_kind = lobby::Kind::Join;
+                strncpy_s(join_address, value, _TRUNCATE);
+            }
+            armed_by_command_line = true;
+            lobby_pending = true;   // the session starts with the host's start for everyone, as from the panel
+            spdlog::screen(host_arg ? fmt::format("netplay: hosting on port {} (command line)", host_port)
+                                    : fmt::format("netplay: joining {} (command line)", join_address), 0xFF9ACDFF);
+            return;
+        }
         int highest = -1;
         int local = -1;
         for (int control = 0; control < MAX_PLAYERS; ++control) {
@@ -2378,6 +2477,304 @@ struct OnlineComponent : NetplayComponent {
             local_control = local;
         }
         num_players = highest + 1;
+        lobby_kind = lobby::Kind::Fixed;
+        armed_by_command_line = true;
+        connect_requested = true;
+        coop_prep_pending = true;
+        lobby_pending = true;
+        spdlog::screen(fmt::format("netplay: armed from the command line, {} players, local {}",
+            num_players, local_control), 0xFF9ACDFF);
+    }
+
+    // The online part of the Co-op panel (Coop::on_gui_frame draws the players and the rules above it).
+    void draw_ui() override {
+        const bool open = lobby::is_open();
+        if (!open) {
+            sync_player_count();   // the Co-op panel's Players count, above
+            int role = lobby_kind == lobby::Kind::Join ? 1 : 0;
+            ImGui::RadioButton(_("Host"), &role, 0);
+            ImGui::SameLine();
+            ImGui::RadioButton(_("Join"), &role, 1);
+            ImGui::SameLine();
+            gui::help_marker(_("Host: you are player 1, the others join you, and the players and the rules are yours. Join: "
+                               "type the host's address; the host tells your machine which player it plays and where the "
+                               "others are"));
+            lobby_kind = role == 1 ? lobby::Kind::Join : lobby::Kind::Host;
+            if (lobby_kind == lobby::Kind::Host) {
+                ImGui::SetNextItemWidth(Mod::sameLineItemWidth / 2.0f);
+                ImGui::InputScalar(_("Port"), ImGuiDataType_U16, &host_port);
+                ImGui::SameLine();
+                gui::help_marker(_("The UDP port the others join on (they type your address and this port). It has to reach "
+                                   "this machine: forward it on the router, or play over a virtual LAN (Tailscale, ZeroTier, "
+                                   "Radmin)"));
+                if (ImGui::Button(_("Open the lobby"))) {
+                    connect();
+                }
+                ImGui::SameLine();
+                gui::help_marker(_("Opens the port and waits for the others to join. Players join in order (player 2, 3, 4); "
+                                   "someone who joins during a stage plays from the next one"));
+            } else {
+                ImGui::SetNextItemWidth(Mod::sameLineItemWidth);
+                ImGui::InputText(_("Host's address"), join_address, sizeof join_address);
+                ImGui::SameLine();
+                gui::help_marker(_("The host's address and port, e.g. 100.64.0.5:7000: its address on the virtual LAN, or its "
+                                   "public address with the port forwarded"));
+                if (ImGui::Button(_("Join"))) {
+                    connect();
+                }
+                ImGui::SameLine();
+                gui::help_marker(_("Finds the host. Everything else (which player you play, the others, the rules) comes "
+                                   "from the host"));
+            }
+        } else {
+            if (lobby::local() < 0) {
+                ImGui::Text(_("Joining %s: waiting for the host"), join_address);
+            } else if (lobby::kind() == lobby::Kind::Fixed) {
+                ImGui::Text(_("Player %d of %d (command line)"), local_control + 1, num_players);
+            } else if (lobby::host()) {
+                ImGui::Text(_("Hosting on port %u: %d players"), (unsigned)lobby::port(), num_players);
+            } else {
+                ImGui::Text(_("You play player %d of %d"), local_control + 1, num_players);
+            }
+            int here = 1;
+            for (int i = 0; i < num_players; ++i) {
+                if (i != local_control && lobby::peer(i).connected) {
+                    ++here;
+                }
+            }
+            if (session) {
+                ImGui::Text(_("In a session: ping %d ms, frames ahead %.2f"), avg_ping_ms, frames_ahead);
+            } else if (lobby::local() >= 0 && num_players < 2) {
+                ImGui::TextUnformatted(_("Waiting for players to join"));
+            } else if (lobby::all_connected()) {
+                ImGui::TextUnformatted(_("Everyone is here"));
+            } else if (lobby::local() >= 0) {
+                ImGui::Text(_("Waiting for the other players (%d of %d here)"), here, num_players);
+            }
+            if (lobby::host()) {
+                draw_start_picker();
+            } else if (lobby::local() >= 0) {
+                ImGui::TextDisabled(_("Player 1 starts the stage: wait in the Mission Menu"));
+            }
+            if (ImGui::Button(_("Leave"))) {
+                leave();
+            }
+            ImGui::SameLine();
+            gui::help_marker(_("Ends the session and closes the port"));
+        }
+
+        ImGui::Checkbox(_("Split screen online"), &g_online_split);
+        ImGui::SameLine();
+        gui::help_marker(_("Off: each machine shows only its own player's view, full screen, with that player's HUD. On: every "
+                      "player's view on each screen, as in local co-op. Only changes what is drawn"));
+
+#if defined(_DEBUG) || !defined(PUBLIC_BUILD)
+        // timing values for test runs (dev builds): a public build keeps the defaults
+        if (ImGui::TreeNode(_("Advanced"))) {
+            if (open) {
+                ImGui::BeginDisabled();
+            }
+            ImGui::SetNextItemWidth(Mod::sameLineItemWidth / 2.0f);
+            ImGui::InputScalar(_("Prediction window"), ImGuiDataType_U8, &prediction_window);
+            if (prediction_window > kMaxPredictionWindow) {
+                prediction_window = kMaxPredictionWindow;
+            }
+            ImGui::SameLine();
+            gui::help_marker(_("How many frames this machine may run ahead of the other players' input before it waits "
+                          "for it (rolling back when the guess was wrong)"));
+            ImGui::SetNextItemWidth(Mod::sameLineItemWidth / 2.0f);
+            ImGui::InputScalar(_("Local delay"), ImGuiDataType_U8, &peers[local_control].local_delay);
+            if (peers[local_control].local_delay > kMaxLocalDelay) {
+                peers[local_control].local_delay = kMaxLocalDelay;
+            }
+            ImGui::SameLine();
+            gui::help_marker(_("Frames this machine's input waits before it's used: more delay, fewer rollbacks"));
+            if (open) {
+                ImGui::EndDisabled();
+            }
+            ImGui::TreePop();
+        }
+#endif
+    }
+
+    // The online rows follow the Co-op panel's Players count while no lobby is open.
+    // The host's roster (Host / Join): which player this machine plays, how many there are, and where the others are.
+    void take_roster() {
+        if (lobby::local() >= 0) {
+            local_control = lobby::local();
+        }
+        const int n = lobby::players();
+        if (n >= 1) {
+            num_players = std::min(n, (int)MAX_PLAYERS);
+            if (Coop* coop = get_coop_mod()) {
+                coop->player_num = (unsigned)std::clamp(num_players, 2, (int)MAX_PLAYERS);
+            }
+        }
+        for (int i = 0; i < (int)MAX_PLAYERS; ++i) {
+            if (i == local_control) {
+                peers[i].port = lobby::port();
+                continue;
+            }
+            const std::string a = lobby::address(i);
+            const size_t colon = a.rfind(':');
+            if (colon == std::string::npos) {
+                continue;
+            }
+            strncpy_s(peers[i].address_cstr, a.substr(0, colon).c_str(), _TRUNCATE);
+            peers[i].port = (uint16_t)std::atoi(a.c_str() + colon + 1);
+        }
+        char text[120];
+        snprintf(text, sizeof text, "lobby: roster %u, player %d of %d", lobby::roster_serial(), lobby::local() + 1,
+            lobby::players());
+        probe_log(text);
+    }
+
+    void sync_player_count() {
+        if (Coop* coop = get_coop_mod()) {
+            num_players = std::clamp((int)coop->player_num, 2, (int)MAX_PLAYERS);
+        }
+        local_control = std::clamp(local_control, 0, num_players - 1);
+    }
+
+    void draw_start_picker() {
+        static const char* kinds[] = {"Mission", "Bloody Palace"};
+        static const char* difficulties[] = {"Human", "Devil Hunter", "Son of Sparda", "Dante Must Die",
+            "Legendary Dark Knight", "Heaven or Hell", "Hell and Hell"};
+        static const char* characters[] = {"Nero", "Dante", "Super Nero", "Super Dante"};
+        ImGui::SetNextItemWidth(Mod::sameLineItemWidth);
+        ImGui::Combo(_("Start"), &start_kind, kinds, IM_ARRAYSIZE(kinds));
+        ImGui::SameLine();
+        gui::help_marker(_("What every machine starts when you press Start for everyone below, from its Mission Menu"));
+        ImGui::SetNextItemWidth(Mod::sameLineItemWidth);
+        if (start_kind == 0) {
+            ImGui::InputInt(_("Mission"), &start_mission, 1, 1);
+            start_mission = std::clamp(start_mission, 1, 20);
+            ImGui::SameLine();
+            gui::help_marker(_("The mission every machine starts (1-20)"));
+            ImGui::SetNextItemWidth(Mod::sameLineItemWidth);
+            ImGui::Combo(_("Difficulty"), &start_difficulty, difficulties, IM_ARRAYSIZE(difficulties));
+            ImGui::SameLine();
+            gui::help_marker(_("The mission's difficulty, the same for everyone"));
+        } else {
+            ImGui::InputInt(_("Floor"), &start_floor, 1, 10);
+            start_floor = std::clamp(start_floor, 1, 101);
+            ImGui::SameLine();
+            gui::help_marker(_("The Bloody Palace floor every machine starts from (1-101)"));
+        }
+        ImGui::SetNextItemWidth(Mod::sameLineItemWidth);
+        ImGui::Combo(_("Player 1 as"), &start_character, characters, IM_ARRAYSIZE(characters));
+        ImGui::SameLine();
+        gui::help_marker(_("Your character (players 2-4 pick theirs above)"));
+        bool everyone_ready = lobby::all_connected();
+        for (int i = 0; i < num_players; ++i) {
+            if (i != local_control && lobby::peer(i).where != lobby::Where::MissionMenu) {
+                everyone_ready = false;
+            }
+        }
+        if (!lobby::all_connected()) {
+            ImGui::BeginDisabled();
+        }
+        if (ImGui::Button(_("Start for everyone"))) {
+            start_for_everyone();
+        }
+        if (!lobby::all_connected()) {
+            ImGui::EndDisabled();
+        }
+        ImGui::SameLine();
+        gui::help_marker(_("Every machine starts it at once, in its Mission Menu (each player waits there). Stay in yours "
+                           "too: the start happens as the menu runs"));
+        if (start_id && !lobby::start_confirmed()) {
+            ImGui::SameLine();
+            ImGui::TextDisabled(_("(sending)"));
+        } else if (!everyone_ready && lobby::all_connected()) {
+            ImGui::SameLine();
+            ImGui::TextDisabled(_("(not everyone is in the Mission Menu)"));
+        }
+    }
+
+    // Opens the lobby. The session waits for the host's start for everyone (do_start), on every machine at once.
+    void connect() {
+        open_lobby();
+    }
+
+    // The lobby (Lobby.hpp): opened by Open the lobby / Join (or the command line), closed by Leave; between stages it
+    // keeps the port.
+    bool open_lobby() {
+        lobby::Config cfg;
+        cfg.kind = lobby_kind;
+        if (lobby_kind == lobby::Kind::Fixed) {
+            sync_player_count();
+            cfg.local = local_control;
+            cfg.players = num_players;
+            cfg.port = peers[local_control].port;
+            for (int i = 0; i < num_players && i < lobby::kMaxPlayers; ++i) {
+                if (i != local_control) {
+                    char address[MAX_PATH + 8];
+                    snprintf(address, sizeof address, "%s:%hu", peers[i].address_cstr, peers[i].port);
+                    cfg.address[i] = address;
+                }
+            }
+        } else if (lobby_kind == lobby::Kind::Host) {
+            cfg.port = host_port;
+        } else {
+            cfg.host_address = join_address;
+            cfg.port = (uint16_t)(host_port + 1);   // the first port tried: the next free one is taken
+        }
+        if (!mission_menu::install()) {
+            spdlog::screen("netplay: the Mission Menu can't be watched: Start for everyone won't see who is there", 0xFF4C4CFF);
+        }
+        if (!lobby::open(cfg)) {
+            spdlog::screen(lobby_kind == lobby::Kind::Join ? fmt::format("netplay: no free UDP port from {}", cfg.port)
+                                                           : fmt::format("netplay: UDP port {} is already in use", cfg.port),
+                0xFF4C4CFF);
+            return false;
+        }
+        roster_seen = lobby::roster_serial() - 1;   // taken at the next frame
+        if (lobby_kind != lobby::Kind::Fixed) {
+            ArcadeMode::hold_own_start(true);   // every machine starts with the host's start
+        }
+        host_rules::set_role(lobby::host() ? host_rules::Role::Host : host_rules::Role::Guest);
+        if (!lobby::host() && !rules_saved) {
+            // the host's rules replace these while the lobby is open
+            rules_saved = true;
+            saved_rules.push = coop_pvp::push;
+            saved_rules.hits = coop_pvp::hits;
+            saved_rules.players_first = coop_pvp::players_first;
+            saved_rules.dt_from_players = coop_pvp::dt_from_players;
+            for (int i = 0; i < coop::kMaxPlayers; ++i) {
+                saved_rules.character[i] = coop::players[i].character;
+            }
+        }
+        return true;
+    }
+
+    // The host: the start picker's stage, for every machine.
+    void start_for_everyone() {
+        static const int character_values[] = {4, 0, 6, 2};   // the Mission Menu's, for the picker's characters
+        lobby::Start s;
+        s.id = ++start_id;
+        s.bloody_palace = start_kind == 1;
+        s.difficulty = (uint8_t)start_difficulty;
+        s.mission = (int16_t)start_mission;
+        s.floor = (int16_t)start_floor;
+        s.character = (uint8_t)(auto_start_character >= 0 ? auto_start_character
+            : character_values[std::clamp(start_character, 0, (int)IM_ARRAYSIZE(character_values) - 1)]);
+        lobby::start(s);
+        do_start(s);
+    }
+
+    // Every machine, the host's start in hand: the Mission Menu launches it and the session starts at that stage's load
+    // (where CoopOnline::on_stage_start seeds the random stream the same on every machine).
+    void do_start(const lobby::Start& s) {
+        ArcadeMode::Launch launch;
+        launch.difficulty = s.difficulty;
+        launch.mission = s.mission;
+        launch.bp_floor = s.bloody_palace ? s.floor : 0;
+        launch.character = s.character;
+        if (!ArcadeMode::arm_launch(launch)) {
+            spdlog::screen("netplay: the Mission Menu's start couldn't be hooked", 0xFF4C4CFF);
+            return;
+        }
         connect_requested = true;
         coop_prep_pending = true;
         char text[120];
@@ -2387,68 +2784,117 @@ struct OnlineComponent : NetplayComponent {
         probe_log(text);
     }
 
-    void draw_ui() override {
-        // These shape the session's input buffers and actor set: num_players sizes every
-        // advance input block and local_control picks which one is submitted, so changing them
-        // while a session runs would read past the buffer or aim the local input at a remote
-        // handle. The values take effect when the session (re)starts at the next stage.
-        if (session) {
-            ImGui::BeginDisabled();
-        }
-        ImGui::InputInt("Number of players", &num_players, 1, 1);
-        if (num_players < 1) {
-            num_players = 1;
-        }
-        if (num_players > MAX_PLAYERS) {
-            num_players = MAX_PLAYERS;
-        }
-        ImGui::InputScalar("Prediction window", ImGuiDataType_U8, &prediction_window);
-        if (prediction_window > kMaxPredictionWindow) {
-            prediction_window = kMaxPredictionWindow;
+    void leave() {
+        connect_requested = false;
+        end_session();
+        lobby::close();
+        host_rules::set_role(host_rules::Role::None);
+        ArcadeMode::hold_own_start(false);
+        std::fill(std::begin(peer_was_connected), std::end(peer_was_connected), false);
+        if (rules_saved) {
+            rules_saved = false;
+            coop_pvp::push = saved_rules.push;
+            if (coop_pvp::hits != saved_rules.hits) {
+                coop_pvp::hits = saved_rules.hits;
+                coop_pvp::retry();
+            }
+            coop_pvp::players_first = saved_rules.players_first;
+            coop_pvp::dt_from_players = saved_rules.dt_from_players;
+            for (int i = 0; i < coop::kMaxPlayers; ++i) {
+                coop::players[i].character = saved_rules.character[i];
+            }
         }
     }
 
-        int local = local_control;
-        if (ImGui::InputInt("This machine plays player #", &local, 1, 1)) {
-            local_control = local < 0 ? 0 : (local >= num_players ? num_players - 1 : local);
+    // Every frame, in menus too: this machine's hello, the host's rules out, or in.
+    void lobby_frame() {
+        if (!lobby::is_open()) {
+            return;
         }
-        ImGui::TextDisabled("Control i == GekkoNet player i. Extra players spawn at the next stage start.");
-        ImGui::Text("Configure players:");
-
-        for (int i = 0; i < num_players; ++i) {
-            ImGui::PushID(0xC005 + i);
-            ImGui::Text("Player: %d%s", i + 1, i == local_control ? "  (this machine)" : "");
+        const lobby::Where where = mission_menu::in_mission_menu() ? lobby::Where::MissionMenu
+            : player_info::player(0) ? lobby::Where::Stage : lobby::Where::Elsewhere;
+        lobby::set_self((uint8_t)coop::players[local_control].character, where);
+        lobby::update(session != nullptr);
+        if (lobby::kind() != lobby::Kind::Fixed && lobby::roster_serial() != roster_seen) {
+            roster_seen = lobby::roster_serial();
+            take_roster();
+        }
+        if (lobby::host()) {
+            // the host's edits of the registered settings: a version every guest has is the one its input names
+            host_rules::host_frame();
+            const uint8_t v = host_rules::latest();
+            bool everyone = true;
+            for (int i = 1; i < num_players && i < lobby::kMaxPlayers; ++i) {
+                if (lobby::peer(i).connected && lobby::peer(i).rules_version != v) {
+                    everyone = false;
+                }
+            }
+            if (everyone) {
+                host_rules::set_in_force(v);
+            }
+            if (auto_start_players > 1 && !auto_started && num_players >= auto_start_players && lobby::all_connected() &&
+                mission_menu::in_mission_menu()) {
+                bool all_waiting = true;
+                for (int i = 1; i < num_players; ++i) {
+                    all_waiting &= lobby::peer(i).where == lobby::Where::MissionMenu;
+                }
+                if (all_waiting) {
+                    auto_started = true;
+                    probe_log("lobby: the command line's start, for everyone");
+                    start_for_everyone();
+                }
+            }
+        }
+        {
+            for (int i = 0; i < lobby::kMaxPlayers; ++i) {
+                const lobby::Peer& p = lobby::peer(i);
+                if (p.connected != peer_was_connected[i]) {
+                    peer_was_connected[i] = p.connected;
+                    char text[120];
+                    snprintf(text, sizeof text, "lobby: player %d %s (build %s, where %d, character %d)", i + 1,
+                        p.connected ? "connected" : "left", p.build == lobby::build_id() ? "same" : "other", (int)p.where,
+                        (int)p.character);
+                    probe_log(text);
+                }
+            }
+        }
+        if (lobby::host()) {
+            lobby::Rules r;
+            r.players = (uint8_t)num_players;
+            for (int i = 1; i < num_players && i < lobby::kMaxPlayers; ++i) {
+                // each player picks their own character; the host spawns them so
+                if (i != local_control && lobby::peer(i).connected) {
+                    coop::players[i].character = lobby::peer(i).character;
+                }
+                r.character[i] = (uint8_t)coop::players[i].character;
+            }
+            r.push = coop_pvp::push;
+            r.hits = coop_pvp::hits;
+            r.players_first = coop_pvp::players_first;
+            r.dt_from_players = coop_pvp::dt_from_players;
+            lobby::set_rules(r);
+            return;
+        }
+        lobby::Start s;
+        if (lobby::take_start(s)) {
+            do_start(s);
+        }
+        lobby::Rules r;
+        if (!lobby::rules(r)) {
+            return;
+        }
+        for (int i = 1; i < lobby::kMaxPlayers; ++i) {
             if (i != local_control) {
-                ImGui::InputText("address", peers[i].address_cstr, sizeof peers[i].address_cstr);
-                ImGui::InputScalar("port", ImGuiDataType_U16, &peers[i].port);
-            }
-            ImGui::InputScalar("local delay", ImGuiDataType_U8, &peers[i].local_delay);
-            if (peers[i].local_delay > kMaxLocalDelay) {
-                peers[i].local_delay = kMaxLocalDelay;
+                coop::players[i].character = r.character[i];
             }
         }
-        if (session) {
-            ImGui::EndDisabled();
+        coop_pvp::push = r.push != 0;
+        if (coop_pvp::hits != (r.hits != 0)) {
+            coop_pvp::hits = r.hits != 0;
+            coop_pvp::retry();
         }
-
-        if (session) {
-            ImGui::Text("ping: %d ms   frames ahead: %.2f", avg_ping_ms, frames_ahead);
-            if (ImGui::Button("Disconnect")) {
-                connect_requested = false;
-                end_session();
-            }
-        }
-        else if (connect_requested) {
-            ImGui::Text("Connect armed: the session starts at the next stage load.");
-            if (ImGui::Button("Cancel connect")) {
-                connect_requested = false;
-            }
-        }
-        else if (ImGui::Button("Connect (session starts at the next stage load)")) {
-            connect_requested = true;
-            coop_prep_pending = true;
-            spdlog::screen("netplay: connect armed, waiting for the next stage load", 0xFF9ACDFF);
-        }
+        coop_pvp::players_first = r.players_first != 0;
+        coop_pvp::dt_from_players = r.dt_from_players != 0;
     }
 
     GekkoSession* get_session() override { return session; }
@@ -3844,6 +4290,10 @@ static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx
     if (prelude) {
         run_frame_prelude(main);
     }
+    // the host rules in force this tick, on every machine: the version player 1's input names (host_rules)
+    if (event && g_mode == NetplayMode::Online) {
+        host_rules::tick(g_tick_rules);
+    }
     // the mods' per-tick work (Coop's tick), forward and re-simulated alike: after the prelude, as on a forward tick
     frame_hooks::tick_start();
 
@@ -4929,9 +5379,12 @@ void CoopOnline::on_gui_frame(int display) {
 
         const char* mode_names[] = { "None", "Online (gekkonet)", "Stress test (rollback verify)" };
         int mode = (int)g_mode;
-        if (ImGui::Combo("Mode", &mode, mode_names, 3)) {
+        if (ImGui::Combo(_("Netplay testing"), &mode, mode_names, 3)) {
             select_mode((NetplayMode)mode);
         }
+        ImGui::SameLine();
+        help_marker(_("Online play is set up in the Co-op panel (Co-op: Online). Stress test: rolls back and simulates "
+                      "again on one machine to check the rollback"));
         draw_rollback_ui();
         if (g_netplay && g_mode == NetplayMode::Stress) {
             g_netplay->draw_ui();
@@ -5285,6 +5738,16 @@ void CoopOnline::on_config_load(const utility::Config& cfg) {
         probe_stop();
     }
 
+    OnlineComponent& on = g_online_component;
+    on.cfg_join = cfg.get<bool>("coop_online_join").value_or(false);
+    if (const auto a = cfg.get("coop_online_host_address")) {
+        on.cfg_join_address = *a;
+    }
+    on.cfg_host_port = (uint16_t)std::clamp(cfg.get<int>("coop_online_port").value_or(7000), 1, 65535);
+    on.lobby_kind = on.cfg_join ? lobby::Kind::Join : lobby::Kind::Host;
+    strncpy_s(on.join_address, on.cfg_join_address.c_str(), _TRUNCATE);
+    on.host_port = on.cfg_host_port;
+
     if (g_mode == NetplayMode::Online) {
         g_online_component.arm_from_command_line();
     }
@@ -5292,6 +5755,15 @@ void CoopOnline::on_config_load(const utility::Config& cfg) {
 
 void CoopOnline::on_config_save(utility::Config& cfg) {
     cfg.set<int>("coop_online_mode", (int)g_mode);
+    OnlineComponent& on = g_online_component;
+    if (!on.armed_by_command_line) {
+        on.cfg_join = on.lobby_kind == lobby::Kind::Join;
+        on.cfg_join_address = on.join_address;
+        on.cfg_host_port = on.host_port;
+    }
+    cfg.set<bool>("coop_online_join", on.cfg_join);
+    cfg.set("coop_online_host_address", on.cfg_join_address);
+    cfg.set<int>("coop_online_port", on.cfg_host_port);
     g_stress_component.on_config_save(cfg);
     cfg.set<bool>("netplay_heap_restore", g_heap_restore);
     cfg.set<bool>("netplay_split_screen", g_online_split);
@@ -5333,3 +5805,62 @@ void CoopOnline::on_stage_end() {
     netplay_test::complete(g_stress_component.desyncs ? "desync" : "stage_end",
         g_stress_component.desyncs);
 }
+
+namespace coop_online {
+
+bool online()
+{
+    return g_mode == NetplayMode::Online;
+}
+
+void set_online(bool on)
+{
+    if (on) {
+        select_mode(NetplayMode::Online);
+    } else if (g_mode == NetplayMode::Online) {
+        select_mode(NetplayMode::None);
+    }
+}
+
+bool rules_from_host()
+{
+    return online() && lobby::is_open() && !lobby::host();
+}
+
+bool session_armed()
+{
+    return online() && g_online_component.session_wanted();
+}
+
+int local_player()
+{
+    return online() ? g_online_component.local_control : 0;
+}
+
+const char* player_status(int player)
+{
+    if (!online() || !lobby::is_open()) {
+        return "";
+    }
+    if (player == g_online_component.local_control) {
+        return _("this machine");
+    }
+    const lobby::Peer& p = lobby::peer(player);
+    if (!p.connected) {
+        return _("waiting");
+    }
+    if (p.build != lobby::build_id()) {
+        return _("connected, another build");
+    }
+    return p.where == lobby::Where::Stage ? _("connected, in a stage")
+        : p.where == lobby::Where::MissionMenu ? _("connected, in the Mission Menu") : _("connected");
+}
+
+void draw_panel()
+{
+    if (online()) {
+        g_online_component.draw_ui();
+    }
+}
+
+} // namespace coop_online

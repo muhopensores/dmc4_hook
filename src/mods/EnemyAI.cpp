@@ -922,6 +922,29 @@ std::optional<std::string> EnemyAI::on_initialize() {
     rollback::add_range("EnemyAI rng", &provoke::g_rng, sizeof provoke::g_rng);
     rollback::add_range("EnemyAI entries", provoke::g_list, sizeof provoke::g_list);
     rollback::add_range("EnemyAI any", &provoke::g_any, sizeof provoke::g_any);
+    rollback::add_range("EnemyAI auras", provoke::g_auras, sizeof provoke::g_auras);
+    // online co-op: what changes the enemies is the host's (sdk/HostRules); the aura's look stays each machine's
+    host_rules::add("Provoke", provoke::mod_enabled);
+    host_rules::add("Provoke radius", provoke::radius);
+    host_rules::add("Provoke duration", provoke::duration);
+    host_rules::add("Provoke speed", provoke::speed);
+    host_rules::add("Provoke thinking speed", provoke::think_speed);
+    host_rules::add("Provoke DT timer", provoke::dt_rate);
+    host_rules::add("Provoke DT on every difficulty", provoke::dt_any_difficulty);
+    host_rules::add("Provoke attacks in DT", provoke::think_rate);
+    host_rules::add("Provoke cancel chance", provoke::cancel_chance);
+    host_rules::add("Provoke counted taunts", provoke::counted_only);
+    host_rules::add("Provoke attack limit", provoke::ignore_attack_limit);
+    host_rules::add("Provoke locked-on", provoke::targeted);
+    host_rules::add("Provoke locked-on and radius", provoke::targeted_and_radius);
+    host_rules::add("Provoke aura", provoke::aura);
+    host_rules::add("Provoke aura in DT only", provoke::aura_dt_only);
+    host_rules::add("Provoke orb flash", provoke::orb_flash);
+    host_rules::add("Provoke orb flash every", provoke::orb_flash_every);
+    host_rules::add("Anti-air", anti_air::enabled);
+    host_rules::add("Anti-air height", anti_air::window_factor);
+    host_rules::add("Anti-air prefer", anti_air::win_roll);
+    host_rules::add("Anti-air no cooldown", anti_air::skip_cooldown);
     if (!install_hook_absolute(kTauntCall, hook_taunt, &detour_taunt, nullptr, 7)) {
         spdlog::error("Provoke: failed to hook uPlayer::checkProvoke (0x803E67)");
         return "Failed to init Provoke (taunt)";
@@ -974,70 +997,82 @@ void EnemyAI::on_gui_frame(int display) {
     }
     if (display != DISPLAY_SYSTEM_A) return;
     ImGui::PushID("EnemyAI");
+    const bool from_host = host_rules::from_host();   // online, not hosting: these are the host's
+    auto host = [from_host](auto&& draw) {
+        ImGui::BeginDisabled(from_host);
+        draw();
+        ImGui::EndDisabled();
+    };
     ImGui::SeparatorText(_("Provoke"));
-    ImGui::Checkbox(_("Provoke"), &mod_enabled);
+    if (from_host) {
+        ImGui::TextDisabled(_("Online: the host's settings"));
+        ImGui::SameLine();
+        help_marker(_("In an online session the host decides how Provoke and the anti-air behave, for everyone (the aura's "
+                      "colour and size stay yours). Your own settings come back when you leave"));
+    }
+    host([&] { ImGui::Checkbox(_("Provoke"), &host_rules::ui(mod_enabled)); });
     ImGui::SameLine();
     help_marker(_("Taunting provokes the enemies near you: they glow at their edges, move faster, decide faster and "
                   "reach their Devil Trigger sooner. In Devil Trigger they choose their next attack sooner still. A new "
                   "taunt starts the time again."));
-    if (mod_enabled) {
+    if (host_rules::ui(mod_enabled)) {
         ImGui::Indent();
-        ImGui::SliderFloat(_("Radius"), &radius, 100.0f, 5000.0f, "%.0f cm");
+        host([&] { ImGui::SliderFloat(_("Radius"), &host_rules::ui(radius), 100.0f, 5000.0f, "%.0f cm"); });
         ImGui::SameLine();
         help_marker(_("How far from you an enemy can be and still be provoked (100 cm = 1 m)."));
-        ImGui::SliderFloat(_("Duration"), &duration, 1.0f, 60.0f, "%.1f s");
+        host([&] { ImGui::SliderFloat(_("Duration"), &host_rules::ui(duration), 1.0f, 60.0f, "%.1f s"); });
         ImGui::SameLine();
         help_marker(_("How long an enemy stays provoked. Taunting again while it is near starts it again; it doesn't add up."));
-        ImGui::SliderFloat(_("Animation speed"), &speed, 1.0f, 2.0f, "x%.2f");
+        host([&] { ImGui::SliderFloat(_("Animation speed"), &host_rules::ui(speed), 1.0f, 2.0f, "x%.2f"); });
         ImGui::SameLine();
         help_marker(_("How much faster a provoked enemy's animations play: its moves, movement and timers. Its decisions "
                       "keep their own speed (next option)."));
-        ImGui::SliderFloat(_("Thinking speed"), &think_speed, 1.0f, 4.0f, "x%.2f");
+        host([&] { ImGui::SliderFloat(_("Thinking speed"), &host_rules::ui(think_speed), 1.0f, 4.0f, "x%.2f"); });
         ImGui::SameLine();
         help_marker(_("How much sooner a provoked enemy may decide on its next move: its decision cooldowns run this much "
                       "faster, whatever its animation speed. x1 = the game's pace."));
-        ImGui::SliderFloat(_("Devil Trigger timer"), &dt_rate, 1.0f, 5.0f, "x%.2f");
+        host([&] { ImGui::SliderFloat(_("Devil Trigger timer"), &host_rules::ui(dt_rate), 1.0f, 5.0f, "x%.2f"); });
         ImGui::SameLine();
         help_marker(_("How much faster a provoked enemy's Devil Trigger timer runs, on top of Animation speed (x2 with x1.25: "
                       "it reaches Devil Trigger in 40% of the usual time). Enemies only Devil Trigger on Dante Must Die "
                       "and in Bloody Palace above floor 80, unless the next option is on."));
-        ImGui::Checkbox(_("Devil Trigger on every difficulty"), &dt_any_difficulty);
+        host([&] { ImGui::Checkbox(_("Devil Trigger on every difficulty"), &host_rules::ui(dt_any_difficulty)); });
         ImGui::SameLine();
         help_marker(_("Provoked enemies count down to Devil Trigger on every difficulty, not only where the game does it."));
-        ImGui::SliderFloat(_("Attacks in Devil Trigger"), &think_rate, 1.0f, 4.0f, "x%.2f");
+        host([&] { ImGui::SliderFloat(_("Attacks in Devil Trigger"), &host_rules::ui(think_rate), 1.0f, 4.0f, "x%.2f"); });
         ImGui::SameLine();
         help_marker(_("In Devil Trigger, how much sooner a provoked enemy may repeat its moves (its decision cooldowns run "
                       "this much faster, on top of Thinking speed)."));
-        ImGui::SliderFloat(_("Cancel chance"), &cancel_chance, 0.0f, 100.0f, "%.0f%%");
+        host([&] { ImGui::SliderFloat(_("Cancel chance"), &host_rules::ui(cancel_chance), 0.0f, 100.0f, "%.0f%%"); });
         ImGui::SameLine();
         help_marker(_("Once a provoked enemy's attack has stopped hitting, the chance that it skips the rest of the "
                       "attack's recovery and chooses its next move at once, as if the attack had ended (its own AI picks "
                       "what comes next, waits included). Rolled once per attack, only on the ground, and not while more "
                       "hits of the same attack are still to come. 0 = never."));
-        ImGui::Checkbox(_("Ignores the attack limit"), &ignore_attack_limit);
+        host([&] { ImGui::Checkbox(_("Ignores the attack limit"), &host_rules::ui(ignore_attack_limit)); });
         ImGui::SameLine();
         help_marker(_("Enemies take turns to attack (only a few at once; Enemy Slotting sets how many) and the rest hang "
                       "back. A provoked enemy doesn't wait for its turn: it comes at you whatever the others do. It still "
                       "only attacks while it is on screen."));
-        ImGui::Checkbox(_("Locked-on taunt"), &targeted);
+        host([&] { ImGui::Checkbox(_("Locked-on taunt"), &host_rules::ui(targeted)); });
         ImGui::SameLine();
         help_marker(_("Taunting while locked on to an enemy provokes that enemy alone, however far away it is. It stays "
                       "provoked if you let go of the lock."));
-        if (targeted) {
+        if (host_rules::ui(targeted)) {
             ImGui::SameLine();
-            ImGui::Checkbox(_("And the radius"), &targeted_and_radius);
+            host([&] { ImGui::Checkbox(_("And the radius"), &host_rules::ui(targeted_and_radius)); });
             ImGui::SameLine();
             help_marker(_("A locked-on taunt also provokes the enemies near you."));
         }
-        ImGui::Checkbox(_("Only taunts that count"), &counted_only);
+        host([&] { ImGui::Checkbox(_("Only taunts that count"), &host_rules::ui(counted_only)); });
         ImGui::SameLine();
         help_marker(_("Only taunts the style meter counts provoke (an enemy near you, and not the same taunt repeated)."));
-        ImGui::Checkbox(_("Aura"), &aura);
+        host([&] { ImGui::Checkbox(_("Aura"), &host_rules::ui(aura)); });
         ImGui::SameLine();
         help_marker(_("Provoked enemies glow at their edges while they are provoked."));
-        if (aura) {
+        if (host_rules::ui(aura)) {
             ImGui::SameLine();
-            ImGui::Checkbox(_("Only in Devil Trigger"), &aura_dt_only);
+            host([&] { ImGui::Checkbox(_("Only in Devil Trigger"), &host_rules::ui(aura_dt_only)); });
             ImGui::SameLine();
             help_marker(_("The glow only while a provoked enemy is in Devil Trigger."));
             ImGui::ColorEdit3(_("Aura colour"), aura_color, ImGuiColorEditFlags_NoInputs);
@@ -1055,12 +1090,12 @@ void EnemyAI::on_gui_frame(int display) {
                           "Too close to x1 and the glow flickers against the enemy's own surface; too big and it floats "
                           "off thin parts."));
         }
-        ImGui::Checkbox(_("Orb flash"), &orb_flash);
+        host([&] { ImGui::Checkbox(_("Orb flash"), &host_rules::ui(orb_flash)); });
         ImGui::SameLine();
         help_marker(_("Provoked enemies flash with the red glow you get when you pick up red orbs: when a taunt provokes "
                       "them, then again every so often while they stay provoked."));
-        if (orb_flash) {
-            ImGui::SliderFloat(_("Flash every"), &orb_flash_every, 0.0f, 5.0f, "%.1f s");
+        if (host_rules::ui(orb_flash)) {
+            host([&] { ImGui::SliderFloat(_("Flash every"), &host_rules::ui(orb_flash_every), 0.0f, 5.0f, "%.1f s"); });
             ImGui::SameLine();
             help_marker(_("Seconds between flashes while an enemy stays provoked. 0 = only when a taunt provokes it. "
                           "Never closer than half a second, the game's own gap between two orb pickups' flashes."));
@@ -1093,21 +1128,21 @@ void EnemyAI::on_gui_frame(int display) {
     }
 
     ImGui::SeparatorText(_("Anti-air"));
-    ImGui::Checkbox(_("Aggressive anti-air"), &anti_air::enabled);
+    host([&] { ImGui::Checkbox(_("Aggressive anti-air"), &host_rules::ui(anti_air::enabled)); });
     ImGui::SameLine();
     help_marker(_("Enemies use their own anti-air attacks more readily while you are above them. Only enemies that have "
                   "anti-air attacks are affected; how many may attack at once is still set by Enemy Slotting."));
-    if (anti_air::enabled) {
+    if (host_rules::ui(anti_air::enabled)) {
         ImGui::Indent();
-        ImGui::SliderFloat(_("Reaction height"), &anti_air::window_factor, 0.2f, 1.0f, "x%.2f");
+        host([&] { ImGui::SliderFloat(_("Reaction height"), &host_rules::ui(anti_air::window_factor), 0.2f, 1.0f, "x%.2f"); });
         ImGui::SameLine();
         help_marker(_("How high you must be before they react, as a share of the game's own height for each attack (x1 = "
                       "the game's; x0.6 = at 60% of it, so they answer lower jumps)."));
-        ImGui::Checkbox(_("Prefer anti-air"), &anti_air::win_roll);
+        host([&] { ImGui::Checkbox(_("Prefer anti-air"), &host_rules::ui(anti_air::win_roll)); });
         ImGui::SameLine();
         help_marker(_("When an enemy would choose its next move at random, it takes the anti-air attack whenever you are "
                       "in its reach above it."));
-        ImGui::Checkbox(_("No anti-air cooldown"), &anti_air::skip_cooldown);
+        host([&] { ImGui::Checkbox(_("No anti-air cooldown"), &host_rules::ui(anti_air::skip_cooldown)); });
         ImGui::SameLine();
         help_marker(_("Anti-air attacks ignore the wait the game puts between two uses of the same move."));
         ImGui::Text(_("Now: %u anti-air choices adjusted"), anti_air::g_adjusted);
@@ -1157,31 +1192,31 @@ void EnemyAI::on_config_load(const utility::Config& cfg) {
 
 void EnemyAI::on_config_save(utility::Config& cfg) {
     cfg.set<bool>("enemy_no_attacks", g_no_attacks);
-    cfg.set<bool>("provoke", mod_enabled);
-    cfg.set<float>("provoke_radius", radius);
-    cfg.set<float>("provoke_duration", duration);
-    cfg.set<float>("provoke_speed", speed);
-    cfg.set<float>("provoke_think_speed", think_speed);
-    cfg.set<float>("provoke_dt_rate", dt_rate);
-    cfg.set<bool>("provoke_dt_any_difficulty", dt_any_difficulty);
-    cfg.set<float>("provoke_think_rate", think_rate);
-    cfg.set<float>("provoke_cancel_chance", cancel_chance);
-    cfg.set<bool>("provoke_counted_only", counted_only);
-    cfg.set<bool>("provoke_ignore_attack_limit", ignore_attack_limit);
-    cfg.set<bool>("provoke_targeted", targeted);
-    cfg.set<bool>("provoke_targeted_and_radius", targeted_and_radius);
-    cfg.set<bool>("provoke_aura", aura);
-    cfg.set<bool>("provoke_aura_dt_only", aura_dt_only);
+    cfg.set<bool>("provoke", g_test_every > 0 ? g_cfg_enabled : host_rules::own(mod_enabled));
+    cfg.set<float>("provoke_radius", host_rules::own(radius));
+    cfg.set<float>("provoke_duration", host_rules::own(duration));
+    cfg.set<float>("provoke_speed", g_test_speed > 0.0f ? g_cfg_speed : host_rules::own(speed));
+    cfg.set<float>("provoke_think_speed", host_rules::own(think_speed));
+    cfg.set<float>("provoke_dt_rate", host_rules::own(dt_rate));
+    cfg.set<bool>("provoke_dt_any_difficulty", host_rules::own(dt_any_difficulty));
+    cfg.set<float>("provoke_think_rate", host_rules::own(think_rate));
+    cfg.set<float>("provoke_cancel_chance", host_rules::own(cancel_chance));
+    cfg.set<bool>("provoke_counted_only", host_rules::own(counted_only));
+    cfg.set<bool>("provoke_ignore_attack_limit", host_rules::own(ignore_attack_limit));
+    cfg.set<bool>("provoke_targeted", host_rules::own(targeted));
+    cfg.set<bool>("provoke_targeted_and_radius", host_rules::own(targeted_and_radius));
+    cfg.set<bool>("provoke_aura", host_rules::own(aura));
+    cfg.set<bool>("provoke_aura_dt_only", host_rules::own(aura_dt_only));
     cfg.set<float>("provoke_aura_r", aura_color[0]);
     cfg.set<float>("provoke_aura_g", aura_color[1]);
     cfg.set<float>("provoke_aura_b", aura_color[2]);
     cfg.set<float>("provoke_aura_brightness", aura_brightness);
     cfg.set<float>("provoke_aura_width", aura_reach);
     cfg.set<float>("provoke_aura_scale", aura_scale);
-    cfg.set<bool>("provoke_orb_flash", orb_flash);
-    cfg.set<float>("provoke_orb_flash_every", orb_flash_every);
-    cfg.set<bool>("anti_air", anti_air::enabled);
-    cfg.set<float>("anti_air_window", anti_air::window_factor);
-    cfg.set<bool>("anti_air_win_roll", anti_air::win_roll);
-    cfg.set<bool>("anti_air_skip_cooldown", anti_air::skip_cooldown);
+    cfg.set<bool>("provoke_orb_flash", host_rules::own(orb_flash));
+    cfg.set<float>("provoke_orb_flash_every", host_rules::own(orb_flash_every));
+    cfg.set<bool>("anti_air", host_rules::own(anti_air::enabled));
+    cfg.set<float>("anti_air_window", host_rules::own(anti_air::window_factor));
+    cfg.set<bool>("anti_air_win_roll", host_rules::own(anti_air::win_roll));
+    cfg.set<bool>("anti_air_skip_cooldown", host_rules::own(anti_air::skip_cooldown));
 }

@@ -11,6 +11,8 @@
 #include "utility/CommandLineArgs.hpp"
 #include "AreaJump.hpp"
 
+#include <algorithm>
+
 #define ARCADE_BP_DIFF 7
 
 bool ArcadeMode::mod_enabled            = false;
@@ -19,6 +21,11 @@ bool ArcadeMode::user_modified_settings = false;
 
 uMissionMenu ArcadeMode::g_our_mission_menu{};
 static int g_bp_floor = 1;
+static ArcadeMode* g_arcade = nullptr;
+static bool g_hooks_in = false;
+static bool g_launch_armed = false;
+static bool g_hold_own = false;
+static ArcadeMode::Launch g_launch;
 
 void uMissionMenu_our_set_mission_num(int mission) {
     if ((mission < 1) || (mission > 20)) {
@@ -36,7 +43,27 @@ void uMissionMenu_our_set_mission_num(int mission) {
 }
 
 bool __fastcall uMissionStart_check_start_flag_sub_89F4C0(uMissionMenu* mission_struct) {
-    if (ArcadeMode::mod_enabled || ArcadeMode::launched_via_cmd) {
+    if (g_launch_armed) {
+        if (mission_struct->vtable == 0xBDFD88) {
+            mission_struct->cursor = g_launch.bp_floor > 0 ? ARCADE_BP_DIFF : g_launch.difficulty;
+            const int m = std::clamp(g_launch.mission, 1, 20);
+            mission_struct->hum = m;
+            mission_struct->idk = m;
+            mission_struct->dvh = m;
+            mission_struct->sos = m;
+            mission_struct->dmd = m;
+            mission_struct->ldk = m;
+            mission_struct->hoh = m;
+            mission_struct->hah = m;
+            mission_struct->character = g_launch.character;
+            return true;
+        }
+        if (mission_struct->vtable == 0xBE0AC8) {
+            g_launch_armed = false;
+            return true;
+        }
+    }
+    if ((ArcadeMode::mod_enabled || ArcadeMode::launched_via_cmd) && !g_hold_own) {
         // uMissionMenu check
         if (mission_struct->vtable == 0xBDFD88) {
             mission_struct->cursor = ArcadeMode::g_our_mission_menu.cursor;
@@ -64,15 +91,17 @@ bool __fastcall uMissionStart_check_start_flag_sub_89F4C0(uMissionMenu* mission_
 }
 
 bool __fastcall uBloodyPalaceStart_check_start_sub_854050(uBloodyPalaceStart* bp) {
-    if (ArcadeMode::mod_enabled || ArcadeMode::launched_via_cmd) {
-        if (g_bp_floor != 1) {
-            auto* stage = AreaJump::bp_stage(g_bp_floor);
+    if (g_launch_armed || ((ArcadeMode::mod_enabled || ArcadeMode::launched_via_cmd) && !g_hold_own)) {
+        const int floor = g_launch_armed ? std::clamp(g_launch.bp_floor, 1, 101) : g_bp_floor;
+        g_launch_armed = false;
+        if (floor != 1) {
+            auto* stage = AreaJump::bp_stage(floor);
             sArea* sap  = devil4_sdk::get_sArea();
             assert(sap);
             aGame* agp = sap->aGamePtr;
             assert(agp);
             agp->room_id  = stage->id;
-            agp->bp_floor = g_bp_floor;
+            agp->bp_floor = floor;
             agp->init_jump = 1;
         }
 
@@ -212,7 +241,24 @@ void ArcadeMode::on_gui_frame(int display) {
 }
 
 std::optional<std::string> ArcadeMode::on_initialize() {
+    g_arcade = this;
     return Mod::on_initialize();
+}
+
+void ArcadeMode::hold_own_start(bool hold) {
+    g_hold_own = hold;
+}
+
+bool ArcadeMode::arm_launch(const Launch& launch) {
+    if (!g_hooks_in) {
+        if (!g_arcade || install_hooks(g_arcade).has_value()) {
+            return false;
+        }
+        g_hooks_in = true;
+    }
+    g_launch = launch;
+    g_launch_armed = true;
+    return true;
 }
 
 void ArcadeMode::on_config_load(const utility::Config& cfg) {
@@ -253,10 +299,12 @@ void ArcadeMode::on_config_load(const utility::Config& cfg) {
         }
     }
 
-    if (mod_enabled || launched_via_cmd) {
+    if ((mod_enabled || launched_via_cmd) && !g_hooks_in) {
         auto res = install_hooks(this);
         if (res.has_value()) {
             spdlog::error("error initializing arcade mode {}", res.value());
+        } else {
+            g_hooks_in = true;
         }
     }
 }

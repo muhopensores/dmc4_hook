@@ -21,7 +21,7 @@
 
 namespace coop_hud {
 
-extern float hud_scale;   // the HUDs' size while players 2-4 are in (0.5 fits a half or a quarter of the screen)
+inline constexpr float hud_scale = 0.5f;   // the HUDs' size while players 2-4 are in (fits a half or a quarter of the screen)
 extern bool view_scaled[4];  // per player's view: it shares the screen (Coop's layout; a view in a window doesn't)
 extern bool split_shown;  // the views are split now (Coop's update_split; the HUD scale applies only then)
 
