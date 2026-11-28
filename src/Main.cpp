@@ -5,6 +5,7 @@
 #include "utility/FunctionHook.hpp"
 #include "dev/netplay/HeapSnapshot.hpp"
 #include "sdk/LocalWorld.hpp"
+#include "sdk/TestSwitch.hpp"
 
 #ifndef PUBLIC_BUILD
 #include "mods/MultipleGameInstances.hpp"

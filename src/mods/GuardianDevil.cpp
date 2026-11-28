@@ -851,6 +851,14 @@ void post_command_tick(uintptr_t pl) {
     const uintptr_t stand = st::stand_of(pl);
     if (!stand) return;
     State& s = state_for(pl);
+#if defined(_DEBUG) || !defined(PUBLIC_BUILD)
+    if (rollback::diag_writer) {   // diagnostics: netplay's DMC4_SHAKE_LOG
+        char text[200];
+        snprintf(text, sizeof text, "gd%d fired %X cooldown %.3f reguard %.3f phase %d stand %d lower %X atck %X", player_info::index_of(pl) + 1,
+            fired, s.cooldown, s.reguard_left, s.phase, at<int>(stand, st::mActionNo), at<uint32_t>(pl, 0x1500), at<uint32_t>(pl, 0x1564));
+        rollback::diag(text);
+    }
+#endif
     if (s.reguard_left > 0.0f) { reguard(s); return; }             // after a guard a press guards again (kReguardTime)
     if (s.cooldown > 0.0f) return;
     const int cmd = (fired & (1u << CMD_RUSH)) ? CMD_RUSH : (fired & (1u << CMD_FORWARD)) ? CMD_FORWARD

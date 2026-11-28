@@ -1,4 +1,5 @@
 #include "InfDT.hpp"
+#include "sdk/TestSwitch.hpp"
 #include "Console.hpp"
 #include "utility/MessageDisplay.hpp"
 

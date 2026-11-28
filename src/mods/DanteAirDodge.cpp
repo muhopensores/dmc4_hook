@@ -6,6 +6,7 @@
 #include "../sdk/MoveRegistry.hpp"
 #include "../sdk/MotionRegistry.hpp"
 #include "../sdk/CtnScript.hpp"
+#include "../sdk/Rollback.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -468,6 +469,10 @@ static void register_boss_move() {
 }
 
 std::optional<std::string> DanteAirDodge::on_initialize() {
+    // rollback netplay: the dodges and their built cancel scripts go with the frames (a player's script manager points into
+    // the scripts, and a later dodge rebuilds the bytes)
+    rollback::add_range("DanteAirDodge dodges", dante_air_dodge::g_dodges, sizeof dante_air_dodge::g_dodges);
+    rollback::add_range("DanteAirDodge cancel scripts", dante_air_dodge::g_cancel_scripts, sizeof dante_air_dodge::g_cancel_scripts);
     using namespace input_commands;
     move_registry::register_move(move_registry::DANTE, move_id, &mod_enabled, &dodge_move);   // the ID gate + Dante dispatch
     g_dodge_cmd.condition(CND_POSE).button(BTN_JUMP);

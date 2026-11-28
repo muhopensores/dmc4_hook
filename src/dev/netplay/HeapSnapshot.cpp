@@ -1,4 +1,5 @@
 #include "HeapSnapshot.hpp"
+#include "sdk/TestSwitch.hpp"
 #include <cstdio>
 #include <cstdlib>
 
@@ -370,7 +371,7 @@ void hold_and_record(std::vector<std::pair<uintptr_t, int32_t>>& out, int frame,
             }
         }
         out.emplace_back(r, own - sound_count(sound_refs, r));
-        static const char* trace = std::getenv("DMC4_TRACE_RES");   // diagnostics: one resource's count at every save
+        static const char* trace = test_switch("DMC4_TRACE_RES");   // diagnostics: one resource's count at every save
         if (trace && std::strstr((const char*)r + 4, trace)) {
             g_traced = r;
             if (FILE* f = std::fopen("netplay_probe.log", "a")) {
@@ -466,7 +467,7 @@ void restore_counts(const std::vector<std::pair<uintptr_t, int32_t>>& counts)
     for (const auto& [r, count] : counts) {
         if (live.count(r) && g_held.count(r)) {
             *(int32_t*)(r + kResourceCount) = count + sound_count(sound_refs, r) + kHold;
-            static const char* trace = std::getenv("DMC4_TRACE_RES");
+            static const char* trace = test_switch("DMC4_TRACE_RES");
             if (trace && std::strstr((const char*)r + 4, trace)) {
                 if (FILE* f = std::fopen("netplay_probe.log", "a")) {
                     std::fprintf(f, "res load %08X game %d sound %d\n", (unsigned)r, count, sound_count(sound_refs, r));

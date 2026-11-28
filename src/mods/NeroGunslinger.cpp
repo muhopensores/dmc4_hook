@@ -981,6 +981,8 @@ std::optional<std::string> NeroGunslinger::on_initialize() {
     rollback::add_range("Gunslinger states", gunslinger::g_states, sizeof gunslinger::g_states);
     rollback::add_range("Gunslinger shots", gunslinger::g_bullets, sizeof gunslinger::g_bullets);
     rollback::add_range("Gunslinger next shot", &gunslinger::g_bullet_next, sizeof gunslinger::g_bullet_next);
+    // the built cancel scripts too: a player's script manager points into them, and a later move rebuilds the bytes
+    rollback::add_range("Gunslinger cancel scripts", gunslinger::g_cancel_scripts, sizeof gunslinger::g_cancel_scripts);
     using namespace input_commands;
     // the rows: COMMAND attr, cancel words as Gerb's / FreeRide's (C_COMMAND open, or C_ALL); the dodges ground only
     // (atckAs 1), the air shot air only (2)

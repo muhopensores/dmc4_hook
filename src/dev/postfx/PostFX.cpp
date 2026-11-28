@@ -1,4 +1,5 @@
 #include "PostFX.hpp"
+#include "sdk/TestSwitch.hpp"
 #include "../../sdk/Selection.hpp"
 #include "Cel.hpp"
 #include "Tags.hpp"
@@ -845,6 +846,8 @@ static void draw_outline_gui() {
     ImGui::Unindent(Mod::lineIndent);
 }
 
+static post_fx::Settings cfg_settings;   // what the cfg says (DMC4_NO_GFX)
+
 void PostFX::on_config_load(const utility::Config& cfg) {
     const Settings d;
     settings.ao = cfg.get<bool>("postfx_ao").value_or(d.ao);
@@ -867,27 +870,38 @@ void PostFX::on_config_load(const utility::Config& cfg) {
     settings.outline_color[0] = std::clamp(cfg.get<float>("postfx_outline_r").value_or(d.outline_color[0]), 0.0f, 1.0f);
     settings.outline_color[1] = std::clamp(cfg.get<float>("postfx_outline_g").value_or(d.outline_color[1]), 0.0f, 1.0f);
     settings.outline_color[2] = std::clamp(cfg.get<float>("postfx_outline_b").value_or(d.outline_color[2]), 0.0f, 1.0f);
+    cfg_settings = settings;
+    if (test_switch("DMC4_NO_GFX")) {   // test runs (netplay soak, frame-rate checks): the passes off, the cfg keeps its values
+        settings.ao = settings.contact = settings.aa = settings.outline = false;
+    }
 }
 
 void PostFX::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("postfx_ao", settings.ao);
-    cfg.set<float>("postfx_ao_strength", settings.ao_strength);
-    cfg.set<float>("postfx_ao_radius", settings.ao_radius);
+    post_fx::Settings saved = settings;   // the live ones stay as they are (the render thread reads them)
+    if (test_switch("DMC4_NO_GFX")) {
+        saved.ao = cfg_settings.ao;
+        saved.contact = cfg_settings.contact;
+        saved.aa = cfg_settings.aa;
+        saved.outline = cfg_settings.outline;
+    }
+    cfg.set<bool>("postfx_ao", saved.ao);
+    cfg.set<float>("postfx_ao_strength", saved.ao_strength);
+    cfg.set<float>("postfx_ao_radius", saved.ao_radius);
     cel::save(cfg);
     tex_filter::save(cfg);
     remix::save(cfg);
-    cfg.set<bool>("postfx_contact", settings.contact);
-    cfg.set<bool>("postfx_aa", settings.aa);
-    cfg.set<bool>("postfx_highlight", settings.highlight);
-    cfg.set<float>("postfx_aa_softness", settings.aa_softness);
-    cfg.set<float>("postfx_contact_length", settings.contact_length);
-    cfg.set<float>("postfx_contact_darkness", settings.contact_darkness);
-    cfg.set<bool>("postfx_outline", settings.outline);
-    cfg.set<float>("postfx_outline_width", settings.outline_width);
-    cfg.set<float>("postfx_outline_detail", settings.outline_detail);
-    cfg.set<float>("postfx_outline_opacity", settings.outline_opacity);
-    cfg.set<float>("postfx_outline_distance", settings.outline_distance);
-    cfg.set<float>("postfx_outline_r", settings.outline_color[0]);
-    cfg.set<float>("postfx_outline_g", settings.outline_color[1]);
-    cfg.set<float>("postfx_outline_b", settings.outline_color[2]);
+    cfg.set<bool>("postfx_contact", saved.contact);
+    cfg.set<bool>("postfx_aa", saved.aa);
+    cfg.set<bool>("postfx_highlight", saved.highlight);
+    cfg.set<float>("postfx_aa_softness", saved.aa_softness);
+    cfg.set<float>("postfx_contact_length", saved.contact_length);
+    cfg.set<float>("postfx_contact_darkness", saved.contact_darkness);
+    cfg.set<bool>("postfx_outline", saved.outline);
+    cfg.set<float>("postfx_outline_width", saved.outline_width);
+    cfg.set<float>("postfx_outline_detail", saved.outline_detail);
+    cfg.set<float>("postfx_outline_opacity", saved.outline_opacity);
+    cfg.set<float>("postfx_outline_distance", saved.outline_distance);
+    cfg.set<float>("postfx_outline_r", saved.outline_color[0]);
+    cfg.set<float>("postfx_outline_g", saved.outline_color[1]);
+    cfg.set<float>("postfx_outline_b", saved.outline_color[2]);
 }

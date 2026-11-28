@@ -526,6 +526,8 @@ using namespace gerb;
 
 std::optional<std::string> Gerb::on_initialize() {
     rollback::add_range("Gerb jumps", gerb::g_jumps, sizeof gerb::g_jumps);   // rollback netplay: goes with the frames
+    // the built cancel scripts too: a player's script manager points into them, and a later jump rebuilds the bytes
+    rollback::add_range("Gerb cancel scripts", gerb::g_cancel_scripts, sizeof gerb::g_cancel_scripts);
     gerb::register_shell_rollback();
     using namespace input_commands;
     move_registry::register_move(move_registry::NERO, move_id, &mod_enabled, &gerb::move);            // the ID gate + Nero dispatch

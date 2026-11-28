@@ -1,4 +1,5 @@
 #include "HealthSettings.hpp"
+#include "sdk/TestSwitch.hpp"
 #include "../sdk/Players.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/sStylishCount.hpp"

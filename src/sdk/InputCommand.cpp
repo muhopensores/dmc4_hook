@@ -45,6 +45,25 @@ struct Entry {
 
 std::vector<Entry>& entries() { static std::vector<Entry> v; return v; }
 
+// each command's progress per player goes with the frames under rollback netplay (entries are added at start-up only):
+// an entry's players .. tick
+constexpr size_t kStateBytes = offsetof(Entry, tick) + sizeof(Entry::tick) - offsetof(Entry, players);
+void save_states(std::vector<uint8_t>& out) {
+    for (const Entry& e : entries()) {
+        const uint8_t* b = (const uint8_t*)e.players;
+        out.insert(out.end(), b, b + kStateBytes);
+    }
+}
+void load_states(const uint8_t* in, size_t bytes) {
+    const size_t each = kStateBytes;
+    if (bytes != each * entries().size()) return;
+    for (Entry& e : entries()) { memcpy(e.players, in, each); in += each; }
+}
+void ensure_rollback() {
+    static bool done = false;
+    if (!done) { done = true; rollback::add("input_commands states", save_states, load_states); }
+}
+
 uintptr_t fn_commandCheckSub = 0x00805A10;
 
 } // namespace

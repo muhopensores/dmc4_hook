@@ -1,4 +1,5 @@
 #include "Shadows.hpp"
+#include "sdk/TestSwitch.hpp"
 #include "ShadowReceiver.hpp"
 #include "PbrShadow.hpp"
 #include "../../ModFramework.hpp"

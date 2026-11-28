@@ -1,4 +1,5 @@
 #include "PbrMaterials.hpp"
+#include "sdk/TestSwitch.hpp"
 #include "PbrSpheres.hpp"
 #include "../../ModFramework.hpp"
 #include "../ps_bind.hpp"

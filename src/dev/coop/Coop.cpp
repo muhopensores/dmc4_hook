@@ -1308,7 +1308,22 @@ std::optional<std::string> Coop::on_initialize() {
     return Mod::on_initialize();
 }
 
+// Test switch DMC4_TEST_PVP: local co-op with PvP hits for the run, switched on once the game is up (the cfg keeps its
+// PvP value; co-op's mode is never saved).
+namespace {
+bool g_test_pvp = false;
+bool g_test_pvp_done = false;
+bool g_cfg_pvp_hits = false;   // the cfg's value while the test switch holds PvP hits on
+} // namespace
+
 void Coop::on_frame(fmilliseconds& dt) {
+    if (g_test_pvp && !g_test_pvp_done && devil4_sdk::get_sMediator()) {
+        g_test_pvp_done = true;
+        if (!mod_enabled && !coop_online::online()) {
+            mod_enabled = true;
+            toggle(true);
+        }
+    }
     coop_diag::on_frame(dt.count());
     if (tint_restore) {
         tint_restore = false;
@@ -1596,14 +1611,10 @@ void Coop::on_config_load(const utility::Config& cfg) {
     coop_pvp::push = cfg.get<bool>("coop_push").value_or(true);
     coop_pvp::players_first = cfg.get<bool>("coop_pvp_players_first").value_or(true);
     coop_pvp::dt_from_players = cfg.get<bool>("coop_pvp_dt_from_players").value_or(true);
-    coop_pvp::grab_grace = std::clamp(cfg.get<float>("coop_pvp_grab_grace").value_or(2.0f), 0.0f, 10.0f);
-    coop_pvp::grab_window = std::clamp(cfg.get<float>("coop_pvp_grab_window").value_or(0.5f), 0.0f, 3.0f);
-    for (int s = 0; s < 3; s++) {
-        for (int lv = 0; lv < 5; lv++) {
-            const std::string k = std::to_string(s) + "_" + std::to_string(lv);
-            coop_pvp::flinch[s][lv] = std::clamp(cfg.get<int>("coop_pvp_flinch" + k).value_or(coop_pvp::flinch[s][lv]), -1, 100);
-            coop_pvp::blow[s][lv] = std::clamp(cfg.get<int>("coop_pvp_blow" + k).value_or(coop_pvp::blow[s][lv]), -1, 100);
-        }
+    g_cfg_pvp_hits = coop_pvp::hits;
+    if (test_switch("DMC4_TEST_PVP")) {
+        g_test_pvp = true;
+        coop_pvp::hits = true;
     }
 }
 
@@ -1623,10 +1634,7 @@ void Coop::on_config_save(utility::Config& cfg) {
     }
     cfg.set<int>("coop_keyboard", coop_pads::keyboard_owner);
     cfg.set<bool>("coop_rumble", coop_pads::rumble);
-    cfg.set<float>("coop_hud_scale", coop_hud::hud_scale);
-    cfg.set<float>("coop_revive_delay", revive_delay);
-    cfg.set<float>("coop_revive_hp", revive_hp);
-    cfg.set<bool>("coop_pvp_hits", coop_pvp::hits);
+    cfg.set<bool>("coop_pvp_hits", g_test_pvp ? g_cfg_pvp_hits : coop_pvp::hits);
     cfg.set<bool>("coop_tint", coop_tint::enabled);
     for (int i = 0; i < kMaxPlayers; i++) {
         const std::string n = std::to_string(i + 1);

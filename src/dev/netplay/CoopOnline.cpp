@@ -277,7 +277,7 @@ static void hash_units(std::vector<uint32_t>& out)
             out.push_back((uint32_t)(line << 16 | guard));
             out.push_back(*(const uint32_t*)u);
             out.push_back(bytes);
-            static const char* raw_lines = std::getenv("DMC4_UNIT_RAW");   // "13,15": those lines' words themselves
+            static const char* raw_lines = test_switch("DMC4_UNIT_RAW");   // "13,15": those lines' words themselves
             char tag[8];
             snprintf(tag, sizeof tag, ",%d,", line);
             static std::string raw_list = raw_lines ? std::string(",") + raw_lines + "," : std::string();
@@ -379,7 +379,7 @@ struct Devil4State {
             restore_tick_rng();
         }
         arm_rng_watch();
-        static const bool shake_log = std::getenv("DMC4_SHAKE_LOG") != nullptr;
+        static const bool shake_log = test_switch("DMC4_SHAKE_LOG") != nullptr;
         if (shake_log) {
             // with sStylishCount's gauge +0x18C, rank +0x20 and its repetition guard's timers (+0x2C, 30 x 12 bytes)
             char text[900];
@@ -592,12 +592,12 @@ struct Devil4State {
                 }
             }
         }
-        static const bool unit_hash = std::getenv("DMC4_UNIT_HASH") != nullptr;
-        static const int unit_upto = std::getenv("DMC4_UNIT_UPTO") ? std::atoi(std::getenv("DMC4_UNIT_UPTO")) : 1 << 30;
+        static const bool unit_hash = test_switch("DMC4_UNIT_HASH") != nullptr;
+        static const int unit_upto = test_switch("DMC4_UNIT_UPTO") ? std::atoi(test_switch("DMC4_UNIT_UPTO")) : 1 << 30;
         if (unit_hash && (int)event->data.save.frame <= unit_upto) {
             const int f = (int)event->data.save.frame;
             hash_units(g_unit_hashes[f]);
-            static const int keep = std::getenv("DMC4_UNIT_KEEP") ? std::atoi(std::getenv("DMC4_UNIT_KEEP")) : 300;
+            static const int keep = test_switch("DMC4_UNIT_KEEP") ? std::atoi(test_switch("DMC4_UNIT_KEEP")) : 300;
             while (!g_unit_hashes.empty() && g_unit_hashes.begin()->first < f - keep) {
                 g_unit_hashes.erase(g_unit_hashes.begin());
             }
@@ -2264,7 +2264,7 @@ struct OnlineComponent : NetplayComponent {
         // applied to their control's pad before every tick (pump_gekko_events).
         NetplayInputInfo input {};
         fill_live_input_control(input, local_control);
-        static const bool random_live = std::getenv("DMC4_RANDOM_LIVE") != nullptr;
+        static const bool random_live = test_switch("DMC4_RANDOM_LIVE") != nullptr;
         if (random_live) {
             random_online_input(input, local_control);
         }
@@ -4278,7 +4278,7 @@ static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx
     ++g_tick_serial;
     {
         // diagnostics: the inputs this tick runs on and the pads they were written to (FNV)
-        static const bool shake_log = std::getenv("DMC4_SHAKE_LOG") != nullptr;
+        static const bool shake_log = test_switch("DMC4_SHAKE_LOG") != nullptr;
         const auto fnv = [](const void* p, size_t n) {
             uint32_t h = 2166136261u;
             for (size_t k = 0; k < n; ++k) h = (h ^ ((const uint8_t*)p)[k]) * 16777619u;
@@ -4646,7 +4646,7 @@ static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
                 g_rng_stacks.emplace_back(text);
             }
         }
-        static const uint32_t stack_of = std::getenv("DMC4_RNG_STACK") ? std::strtoul(std::getenv("DMC4_RNG_STACK"), nullptr, 16) : 0;
+        static const uint32_t stack_of = test_switch("DMC4_RNG_STACK") ? std::strtoul(test_switch("DMC4_RNG_STACK"), nullptr, 16) : 0;
         if (stack_of && c.Eip == 0x00405603 && *(const uint32_t*)c.Esp == stack_of && g_rng_stacks.size() < 64) {
             char stack[200];
             stack_addresses(c, stack, sizeof stack);
@@ -4656,7 +4656,7 @@ static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
     }
     if (code == EXCEPTION_SINGLE_STEP && (c.Dr6 & 1)) {
         c.Dr6 = 0;
-        static const int watch_from = std::getenv("DMC4_WATCH_FROM") ? std::atoi(std::getenv("DMC4_WATCH_FROM")) : 0;
+        static const int watch_from = test_switch("DMC4_WATCH_FROM") ? std::atoi(test_switch("DMC4_WATCH_FROM")) : 0;
         if (g_probe.frame >= watch_from && InterlockedIncrement(&g_watch_hits) <= 3000) {
             char stack[160];
             stack_addresses(c, stack, sizeof stack);
@@ -4785,7 +4785,7 @@ static void arm_rng_watch()
         RaiseException(kArmWatch, 0, 0, nullptr);
         return;
     }
-    if (armed || !std::getenv("DMC4_RNG_WATCH")) {
+    if (armed || !test_switch("DMC4_RNG_WATCH")) {
         return;
     }
     armed = true;
@@ -5065,7 +5065,7 @@ static void probe_run(sDevil4Main* main, int base)
     if (result.pages_differing) {
         ++p.failures;
     }
-    static const bool quiet = std::getenv("DMC4_PROBE_VARY") != nullptr;   // many probes: the checked-state lines only
+    static const bool quiet = test_switch("DMC4_PROBE_VARY") != nullptr;   // many probes: the checked-state lines only
     if (!quiet && (result.pages_differing || result.data_bytes_differing)) {
         char line[256];
         snprintf(line, sizeof line, "probe f%d depth %d%s: %u of %u pages differ, .data (not restored) %u bytes",
@@ -5133,7 +5133,7 @@ static void probe_frame(sDevil4Main* main)
     RollbackProbe& p = g_probe;
     // test switch DMC4_PROBE_COOP: a second (idle) Coop player, armed as netplay arms it
     static bool coop_armed = false;
-    if (!coop_armed && std::getenv("DMC4_PROBE_COOP")) {
+    if (!coop_armed && test_switch("DMC4_PROBE_COOP")) {
         coop_armed = true;
         g_probe_coop = true;
         if (Coop* coop = get_coop_mod()) {
@@ -5153,7 +5153,7 @@ static void probe_frame(sDevil4Main* main)
         p.room = room;
         p.settled = 0;
     }
-    static const int settle = std::getenv("DMC4_PROBE_SETTLE") ? std::atoi(std::getenv("DMC4_PROBE_SETTLE")) : 120;   // test switch
+    static const int settle = test_switch("DMC4_PROBE_SETTLE") ? std::atoi(test_switch("DMC4_PROBE_SETTLE")) : 120;   // test switch
     if (!p.running && (!room || player_info::count() == 0 || ++p.settled < settle)) {
         clear_tick_rng_pin();
         run_simulation_tick(main, nullptr, g_sctx);
@@ -5174,7 +5174,7 @@ static void probe_frame(sDevil4Main* main)
             const uintptr_t unit = heap_snapshot::region_base("Unit");
             snprintf(line, sizeof line, "Unit heap at %08X", (unsigned)unit);
             probe_log(line);
-            if (const char* watch = std::getenv("DMC4_WATCH")) {
+            if (const char* watch = test_switch("DMC4_WATCH")) {
                 g_watch_address = unit + std::strtoul(watch, nullptr, 16);
                 RaiseException(kArmWatch, 0, 0, nullptr);
                 snprintf(line, sizeof line, "watching writes to %08X", (unsigned)g_watch_address);
@@ -5191,7 +5191,7 @@ static void probe_frame(sDevil4Main* main)
         // diagnostics (DMC4_TRACE_RES): every write of the traced resource's count, on the game thread
         static uintptr_t armed = 0;
         const uintptr_t traced = heap_snapshot::traced_resource();
-        if (traced && traced != armed && !std::getenv("DMC4_WATCH")) {
+        if (traced && traced != armed && !test_switch("DMC4_WATCH")) {
             armed = traced;
             g_watch_address = traced + 0x44;
             RaiseException(kArmWatch, 0, 0, nullptr);
@@ -5203,13 +5203,13 @@ static void probe_frame(sDevil4Main* main)
     NetplayInputInfo live{};
     fill_live_input(live, game_pad());
     // test switch: random input on the forward ticks and no rewinds (does the input alone crash the game?)
-    static const bool random_live = std::getenv("DMC4_RANDOM_LIVE") != nullptr;
+    static const bool random_live = test_switch("DMC4_RANDOM_LIVE") != nullptr;
     static uint32_t random_previous = 0;
     if (random_live) {
         live = probe_made_up_input(live, random_previous);
     }
     // test switch DMC4_PROBE_VARY: rewinds as online makes them, 1-8 frames deep every 1-4 frames
-    static const bool vary = std::getenv("DMC4_PROBE_VARY") != nullptr;
+    static const bool vary = test_switch("DMC4_PROBE_VARY") != nullptr;
     static int vary_depth = 8, vary_interval = 1;
     const int depth = vary ? vary_depth : p.depth;
     const int base = p.frame - 1 - depth;
@@ -5571,7 +5571,7 @@ static std::unique_ptr<FunctionHook> g_combo_gauge_hook, g_combo_gauge2_hook;
 static uintptr_t g_combo_gauge_original = 0, g_combo_gauge2_original = 0;
 static void __stdcall combo_gauge_entry(uint32_t* stack, int which)
 {
-    static const bool log = std::getenv("DMC4_SHAKE_LOG") != nullptr;
+    static const bool log = test_switch("DMC4_SHAKE_LOG") != nullptr;
     if (log) {
         log_style(stack[0], stack[1], which == 0 ? stack[3] : stack[2], which == 0 ? stack[4] : stack[3],
             which == 0 ? stack[5] : stack[4]);
