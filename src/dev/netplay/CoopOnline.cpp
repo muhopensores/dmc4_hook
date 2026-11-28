@@ -27,6 +27,11 @@
 #include "dev/netplay/NetplayTestHarness.hpp"
 #include "dev/coop/Coop.hpp"
 #include "dev/coop/CoopPads.hpp"
+#include "dev/coop/CoopContext.hpp"
+#include "sdk/PresentationRng.hpp"
+#include "sdk/sWorkRate.hpp"
+#include "mods/WorkRate.hpp"
+#include "mods/TrainerPause.hpp"
 #include "Mods.hpp"
 #include <map>
 #include <string>
@@ -731,8 +736,12 @@ struct NetplayInputInfo {
     float mAnlgRX, mAnlgRY;     // cPadInfo::mAnlg[1] - right stick
     uint8_t mTrgL;              // PAD_DATA::Lz - left trigger raw (0-255)
     uint8_t mTrgR;              // PAD_DATA::Rz - right trigger raw
+    uint8_t mFlags;             // kInputPause: this player asks for a pause (Esc / Start, their trainer open, their pause hotkey)
+    uint8_t mRules;             // player 1's: the host rules version in force (host_rules); 0 for the others
 };
-static_assert(sizeof(NetplayInputInfo) == 36, "input record layout (34 bytes + 2 tail pad)");
+static_assert(sizeof(NetplayInputInfo) == 36, "input record layout (36 bytes, sent whole)");
+constexpr uint8_t kInputPause = 1;
+constexpr uint32_t kPadStart = 0x8;   // cPadInfo::mBtn: Start
 
 // Test switch DMC4_RANDOM_LIVE for online soak runs: this machine's control plays random face buttons, shoulders, d-pad
 // and left stick (never Select / L3 / R3 / Start: the pause menu), seeded by the control so the machines differ.
@@ -1113,6 +1122,8 @@ struct OnlineComponent : NetplayComponent {
         gekko_default_adapter_destroy();
         gekko_destroy(&session);
         session = nullptr;
+        coop::online_view = -1;
+        g_sim_speed_known = false;
         ctx->g_pace_scale = 1.0f;
         frames_ahead = 0.0f;
         ahead_average = 0.0f;
@@ -1239,6 +1250,66 @@ struct OnlineComponent : NetplayComponent {
         static const bool random_live = std::getenv("DMC4_RANDOM_LIVE") != nullptr;
         if (random_live) {
             random_online_input(input, local_control);
+        }
+        {
+            // Esc or this player's Start toggles this machine's netplay pause (the game's own never runs in a session); Esc
+            // is taken off the game's keyboard state, so nothing else acts on it on this machine alone
+            constexpr uint32_t kEsc = 0x8000000u;   // sKeyboard::mState word 0
+            bool toggle = (input.mBtnTrg & kPadStart) != 0;
+            if (sKeyboard* kb = *(sKeyboard**)0x00E559C0) {
+                toggle |= (kb->mState.trg[0] & kEsc) != 0;
+                for (uint32_t* part : {kb->mState.on, kb->mState.old, kb->mState.trg, kb->mState.release, kb->mState.change, kb->mState.rep}) {
+                    part[0] &= ~kEsc;
+                }
+            }
+            // Test switch DMC4_TEST_PAUSE=<frame>:<control>:<length>: that control presses Start once its machine has run
+            // <frame>, and again <length> frames later
+            static int test_frame = -1, test_control = -1, test_length = 0, test_presses = 0;
+            static bool parsed = false;
+            if (!parsed) {
+                parsed = true;
+                if (const char* v = test_switch("DMC4_TEST_PAUSE")) {
+                    sscanf_s(v, "%d:%d:%d", &test_frame, &test_control, &test_length);
+                }
+            }
+            if (test_frame >= 0 && local_control == test_control && test_presses < 2 &&
+                g_rs_last_forward >= test_frame + test_presses * test_length) {
+                toggle = true;
+                ++test_presses;
+                char text[64];
+                snprintf(text, sizeof text, "test pause: Start at f%d", g_rs_last_forward);
+                probe_log(text);
+            }
+            if (toggle) {
+                g_menu_paused = !g_menu_paused;
+            }
+            if (g_tick_pausers) {
+                char who[48] = "";
+                int at = 0;
+                for (int c = 0; c < num_players && at < (int)sizeof who - 12; ++c) {
+                    if (g_tick_pausers & (1u << c)) {
+                        at += snprintf(who + at, sizeof who - at, "%s%s", at ? ", " : "", c == local_control ? "you" : "");
+                        if (c != local_control) {
+                            at += snprintf(who + at, sizeof who - at, "player %d", c + 1);
+                        }
+                    }
+                }
+                spdlog::screen(fmt::format("Paused by {}{}", who,
+                    g_menu_paused ? " (Esc or Start to resume)" : ""), 0xFFFFFFFF);
+            }
+        }
+        input.mFlags = local_pause_wanted() ? kInputPause : 0;
+        input.mRules = local_control == 0 ? host_rules::in_force() : 0;
+        g_pause_from_inputs = true;
+        if (sDevil4Pad* pad = game_pad()) {
+            // the user pad (sDevil4Pad::getUserPadId 0x485380: +0x9D4 set = the id at +0x9D0) is the one control 0's input
+            // goes to, not the first one this machine has plugged in
+            if (!g_user_pad_saved) {
+                g_user_pad_saved = true;
+                std::memcpy(g_user_pad_words, (const uint8_t*)pad + 0x9D0, sizeof g_user_pad_words);
+            }
+            *(int32_t*)((uint8_t*)pad + 0x9D0) = 0;
+            *((uint8_t*)pad + 0x9D4) = 1;
         }
         gekko_add_local_input(session, local_control, &input);
 
@@ -2769,6 +2840,12 @@ struct NeutralKeyboard {
 
 static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx& ctx)
 {
+    struct InSim { InSim() { g_in_sim_tick = true; } ~InSim() { g_in_sim_tick = false; } } in_sim;
+    g_pres_thread = fixed_timing_wanted() ? GetCurrentThreadId() : 0;   // the thunks pass through otherwise
+    SimSpeed sim_speed(event != nullptr && fixed_timing_wanted(), event != nullptr && g_tick_paused);
+    NeutralKeyboard neutral_keyboard(fixed_timing_wanted());   // netplay and the probe only: off them the keyboard plays
+    SimViews sim_views(fixed_timing_wanted());
+    MainThreadJobs main_thread_jobs(main, fixed_timing_wanted());
     g_rng_eips.clear();
     g_rng_stacks.clear();
     g_tick_frame = event ? (int)event->data.adv.frame : -1;
@@ -2935,6 +3012,21 @@ static SessionPumpResult pump_gekko_events(GekkoSession* session, sDevil4Main* m
                 // restore_battle refused before writing: discard historical Advances/Saves and
                 // execute only the final forward Advance once from the still-live state.
                 break;
+            }
+            {
+                const NetplayInputInfo* blocks = (const NetplayInputInfo*)event->data.adv.inputs;
+                g_tick_paused = false;
+                g_tick_rules = blocks[0].mRules;
+                uint32_t pausers = 0;
+                for (int player = 0; player < (input_players > 1 ? input_players : 1); ++player) {
+                    if (blocks[player].mFlags & kInputPause) {
+                        g_tick_paused = true;
+                        pausers |= 1u << player;
+                    }
+                }
+                if (!event->data.adv.rolling_back) {
+                    g_tick_pausers = pausers;
+                }
             }
             if (input_players > 1) {
                 const NetplayInputInfo* blocks = (const NetplayInputInfo*)event->data.adv.inputs;

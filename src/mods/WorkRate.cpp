@@ -75,6 +75,7 @@ void WorkRate::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_B) {
 		if (ImGui::Checkbox(_("Pause"), &hotkey_paused)) {
 			if (!s_work_rate_ptr) { return; }
+			if (frame_hooks::ticks_driven()) { return; }   // netplay: the flag goes to every machine as a pause request
 			if (hotkey_paused){
 				s_work_rate_ptr->global_speed = 0.0f;
 			} else {
@@ -100,6 +101,11 @@ void WorkRate::on_game_pause(bool toggle) {
 	if (!check_work_rate_ptr(s_work_rate_ptr)) {
 		return;
 	}
+	menu_open = toggle;
+	// netplay: the speed is the session's; an open trainer (with Trainer Pauses) goes out as a pause request instead
+	if (frame_hooks::ticks_driven()) {
+		return;
+	}
 	if (toggle == true && TrainerPause::mod_enabled == true) {
 		s_work_rate_ptr->global_speed = 0.0f;
 	}
@@ -115,6 +121,10 @@ void WorkRate::on_update_input(utility::Input& input) {
         return;
     }
     if (WorkRate::m_hotkeys[0]->check(input)) {
+        if (frame_hooks::ticks_driven()) {   // netplay: only the flag, sent to every machine as a pause request
+            hotkey_paused = !hotkey_paused;
+            return;
+        }
         if (hotkey_paused){
 			s_work_rate_ptr->global_speed = m_global_speed;
 			hotkey_paused = false;

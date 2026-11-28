@@ -11,6 +11,7 @@ public:
     static bool force_custom_turbo;
     static float custom_turbo;
     static bool hotkey_paused;
+    static bool menu_open;   // the trainer is open (on_game_pause); netplay sends it as a pause request
 
     std::string get_mod_name() override { return "WorkRate"; };
     std::vector<std::string> get_search_terms() override {
