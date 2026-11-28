@@ -2636,9 +2636,11 @@ struct OnlineComponent : NetplayComponent {
                 ImGui::SameLine();
                 gui::help_marker(_("The host's address and port, e.g. 100.64.0.5:7000: its address on the virtual LAN, or its "
                                    "public address with the port forwarded"));
+                ImGui::PushID("join_button");   // the role's "Join" radio above has the same label
                 if (ImGui::Button(_("Join"))) {
                     connect();
                 }
+                ImGui::PopID();
                 ImGui::SameLine();
                 gui::help_marker(_("Finds the host. Everything else (which player you play, the others, the rules) comes "
                                    "from the host"));
