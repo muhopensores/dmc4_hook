@@ -242,6 +242,30 @@ constexpr auto wire(EnemyState& e, Archive& archive)
 }
 
 template <class Archive>
+constexpr auto wire(PartState& p, Archive& archive)
+{
+    auto result = archive(p.line, p.kind, p.nth, p.class_id, p.unit_flags, p.delta, p.state,
+        p.position.x, p.position.y, p.position.z, p.quat.x, p.quat.y, p.quat.z, p.quat.w,
+        p.scale.x, p.scale.y, p.scale.z, p.damage_valid, p.hp, p.hp_max, p.hp_taken,
+        p.stun[0], p.stun[1], p.stun[2], p.stun[3], p.stun[4],
+        p.displacement[0], p.displacement[1], p.displacement[2], p.displacement[3], p.displacement[4],
+        p.is_dead, p.coll_valid, p.coll_land, p.coll_flags);
+    if (zpp::bits::failure(result)) {
+        return result;
+    }
+    for (uint32_t i = 0; i < kCollCorrectWords; ++i) {
+        result = archive(p.coll_correct[i]);
+        if (zpp::bits::failure(result)) {
+            return result;
+        }
+    }
+    if (p.kind & kPartActor) {
+        return wire(p.model, archive);
+    }
+    return zpp::bits::errc{};
+}
+
+template <class Archive>
 constexpr auto wire(RngState& r, Archive& archive)
 {
     auto result = archive(r.mti);
@@ -267,16 +291,16 @@ constexpr auto wire(PadState& p, Archive& archive)
 template <class Archive>
 constexpr auto wire(BattleSnapshot& s, Archive& archive)
 {
-    if (s.player_count > kMaxPlayers || s.enemy_count > kMaxEnemies) {
+    if (s.player_count > kMaxPlayers || s.enemy_count > kMaxEnemies || s.part_count > kMaxParts) {
         return zpp::bits::errc{std::errc::invalid_argument};
     }
-    auto result = archive(s.magic, s.version, s.player_count, s.enemy_count);
+    auto result = archive(s.magic, s.version, s.player_count, s.enemy_count, s.part_count, s.part_overflow);
     if (zpp::bits::failure(result)) {
         return result;
     }
     // On input these fields came from the wire, so validate them before indexing fixed arrays.
     if (s.magic != kWireMagic || s.version != kWireVersion ||
-        s.player_count > kMaxPlayers || s.enemy_count > kMaxEnemies) {
+        s.player_count > kMaxPlayers || s.enemy_count > kMaxEnemies || s.part_count > kMaxParts) {
         return zpp::bits::errc{std::errc::invalid_argument};
     }
     result = wire(s.timing, archive);
@@ -311,6 +335,12 @@ constexpr auto wire(BattleSnapshot& s, Archive& archive)
             return result;
         }
     }
+    for (uint32_t index = 0; index < s.part_count; ++index) {
+        result = wire(s.parts[index], archive);
+        if (zpp::bits::failure(result)) {
+            return result;
+        }
+    }
     return zpp::bits::errc{};
 }
 
@@ -334,6 +364,12 @@ uint32_t state_bytes()
     for (uint32_t i = 0; i < kMaxEnemies; ++i) {
         worst->enemies[i].model.motion_count = (uint8_t)kMaxMotionSlots;
         worst->enemies[i].model.joint_count = (uint16_t)kMaxMotionJoints;
+    }
+    worst->part_count = kMaxParts;
+    for (uint32_t i = 0; i < kMaxParts; ++i) {
+        worst->parts[i].kind = kPartCoord | kPartActor;
+        worst->parts[i].model.motion_count = (uint8_t)kMaxMotionSlots;
+        worst->parts[i].model.joint_count = (uint16_t)kMaxMotionJoints;
     }
     const auto scratch = std::make_unique_for_overwrite<unsigned char[]>(kWireScratchBytes);
     zpp::bits::out<std::span<unsigned char>> out{std::span<unsigned char>{scratch.get(), kWireScratchBytes}};
@@ -916,6 +952,22 @@ void scrub_desync_noise(BattleSnapshot& snap)
     };
     for (uint32_t i = 0; i < snap.player_count; ++i) {
         scrub_model(snap.players[i].model);
+    }
+    // in classes without those uEnemy fields an enemy's vectors hold pointers or their halves (no real value is that small)
+    // |f| < 1e-9: also a whole pointer below 0x30800000 (the heaps here, the exe); a heap address higher up reads as an
+    // ordinary small float (0x3D7491B8 = 0.0597), so pointer-looking values can't be told apart and are left alone
+    const auto scrub_denormal = [](float& f) {
+        uint32_t bits;
+        std::memcpy(&bits, &f, 4);
+        if ((bits & 0x7F800000u) < 0x30800000u) f = 0.0f;
+    };
+    for (uint32_t i = 0; i < snap.part_count; ++i) {
+        PartState& p = snap.parts[i];
+        scrub_model(p.model);
+        for (float* f : {&p.position.x, &p.position.y, &p.position.z, &p.quat.x, &p.quat.y, &p.quat.z, &p.quat.w,
+                 &p.scale.x, &p.scale.y, &p.scale.z}) {
+            scrub_denormal(*f);
+        }
     }
     for (uint32_t i = 0; i < snap.enemy_count; ++i) {
         scrub_model(snap.enemies[i].model);
@@ -1577,6 +1629,231 @@ void apply_timing_state(sDevil4Main* main, const TimingState& snap, uint64_t& si
     apply_timing(main, snap, sim_time_us);
 }
 
+// The classes on the part lines whose uDamage block and collision manager lie at known places (their constructors).
+struct PartLayout {
+    uintptr_t vtable;
+    uint32_t damage;   // uDamage::init(this + damage)
+    uint32_t coll;     // the first uCollisionMgr::uCollisionMgr(this + coll)
+};
+constexpr PartLayout kPartLayouts[] = {
+    {0x00BD3520, 0x151C, 0x1720},   // uEm021_Leaf (Echidna, uEnemy id 21), constructor 0x69A7D0
+    {0x00BD36C0, 0x1504, 0x1710},   // uEm021_Snake, 0x69E4B0
+    {0x00BD3860, 0x1504, 0x1710},   // uEm021_Pipe, 0x6A30C0
+    {0x00BD3A00, 0x1504, 0x1710},   // uEm021_Hand, 0x6A0A70
+    {0x00BD3C30, 0x151C, 0x1720},   // uEm021Shell (line 18), 0x6A55E0
+};
+
+static const PartLayout* part_layout(uintptr_t vtable)
+{
+    for (const PartLayout& l : kPartLayouts) {
+        if (l.vtable == vtable) {
+            return &l;
+        }
+    }
+    return nullptr;
+}
+
+// A unit's class through its DTI (MtObject's getDTI, vtable +0x10): the id and whether uCoord / uActor are among its
+// bases. false: no DTI.
+static bool part_class_walk(const cUnit* unit, uint32_t& id, uint8_t& kind)
+{
+    __try {
+        using GetDti = const MtDTI*(__thiscall*)(const void*);
+        const GetDti get = (GetDti)(*(const uintptr_t* const*)unit)[4];
+        const MtDTI* dti = get(unit);
+        if (!dti) {
+            return false;
+        }
+        id = dti->m_id;
+        kind = 0;
+        for (int depth = 0; dti && depth < 32; dti = dti->mp_parent, ++depth) {
+            if (!dti->m_name) {
+                continue;
+            }
+            if (std::strcmp(dti->m_name, "uCoord") == 0) {
+                kind |= kPartCoord;
+            } else if (std::strcmp(dti->m_name, "uActor") == 0) {
+                kind |= kPartActor;
+            }
+        }
+        return true;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
+        return false;
+    }
+}
+
+static bool part_class(const cUnit* unit, uint32_t& id, uint8_t& kind)
+{
+    struct Known {
+        uintptr_t vtable;
+        uint32_t id;
+        uint8_t kind;
+    };
+    static Known known[128];
+    static uint32_t known_count = 0;
+    const uintptr_t vtable = *(const uintptr_t*)unit;
+    for (uint32_t i = 0; i < known_count; ++i) {
+        if (known[i].vtable == vtable) {
+            id = known[i].id;
+            kind = known[i].kind;
+            return true;
+        }
+    }
+    if (!part_class_walk(unit, id, kind)) {
+        return false;
+    }
+    if (known_count < 128) {
+        known[known_count++] = {vtable, id, kind};
+    }
+    return true;
+}
+
+static void capture_part(cUnit* unit, int line, uint16_t nth, uint32_t id, uint8_t kind, PartState& p)
+{
+    const char* base = (const char*)unit;
+    p.line = (uint8_t)line;
+    p.kind = kind;
+    p.nth = nth;
+    p.class_id = id;
+    p.unit_flags = *(const uint16_t*)(base + 4);
+    p.delta = *(const float*)(base + 0x10);
+    p.state = *(const uint32_t*)(base + 0x14);
+    p.position = {};
+    p.quat = {};
+    p.scale = {};
+    if (kind & kPartCoord) {
+        std::memcpy(&p.position, base + 0x30, 12);
+        std::memcpy(&p.quat, base + 0x40, 16);
+        std::memcpy(&p.scale, base + 0x50, 12);
+    }
+    p.damage_valid = false;
+    p.hp = p.hp_max = p.hp_taken = 0.0f;
+    std::memset(p.stun, 0, sizeof p.stun);
+    std::memset(p.displacement, 0, sizeof p.displacement);
+    p.is_dead = false;
+    p.coll_valid = false;
+    p.coll_land = p.coll_flags = 0;
+    std::memset(p.coll_correct, 0, sizeof p.coll_correct);
+    if (const PartLayout* l = part_layout(*(const uintptr_t*)unit)) {
+        const uDamage_Old* damage = (const uDamage_Old*)(base + l->damage);
+        p.damage_valid = true;
+        p.hp = damage->HP;
+        p.hp_max = damage->HPMax;
+        p.hp_taken = damage->HPTaken;
+        for (int i = 0; i < 5; ++i) {
+            p.stun[i] = damage->stun[i];
+            p.displacement[i] = damage->displacement[i];
+        }
+        p.is_dead = damage->isDead;
+        const char* coll = base + l->coll;
+        p.coll_valid = true;
+        std::memcpy(&p.coll_land, coll + kCollLandOffset, sizeof p.coll_land);
+        std::memcpy(&p.coll_flags, coll + kCollFlagsOffset, sizeof p.coll_flags);
+        std::memcpy(p.coll_correct, coll + kCollCorrectOffset, sizeof p.coll_correct);
+    }
+    if ((kind & kPartActor) && !capture_model((uModel*)unit, p.model)) {
+        p.kind &= (uint8_t)~kPartActor;   // a sampler the record can't hold: the rest still travels
+    }
+}
+
+static void capture_parts(sUnit* unit_system, BattleSnapshot& out)
+{
+    out.part_count = 0;
+    out.part_overflow = 0;
+    for (int line : kPartLines) {
+        struct Seen {
+            uint32_t id;
+            uint16_t count;
+        };
+        Seen seen[kMaxParts];
+        uint32_t seen_count = 0;
+        int walked = 0;
+        for (cUnit* unit = (cUnit*)unit_system->mMoveLine[line].mTop; unit && walked < kMaxLineWalk;
+            unit = unit->mp_next_unit, ++walked) {
+            uint32_t id = 0;
+            uint8_t kind = 0;
+            if (!part_class(unit, id, kind)) {
+                ++out.part_overflow;
+                continue;
+            }
+            uint16_t nth = 0;
+            uint32_t s = 0;
+            for (; s < seen_count && seen[s].id != id; ++s) {
+            }
+            if (s < seen_count) {
+                nth = seen[s].count++;
+            } else if (seen_count < kMaxParts) {
+                seen[seen_count++] = {id, 1};
+            }
+            if (out.part_count >= kMaxParts) {
+                ++out.part_overflow;
+                continue;
+            }
+            capture_part(unit, line, nth, id, kind, out.parts[out.part_count++]);
+        }
+    }
+}
+
+// The unit a part record names on this machine: the nth of its class on its line.
+static cUnit* find_part(sUnit* unit_system, const PartState& p)
+{
+    if (p.line >= 32) {
+        return nullptr;
+    }
+    uint16_t nth = 0;
+    int walked = 0;
+    for (cUnit* unit = (cUnit*)unit_system->mMoveLine[p.line].mTop; unit && walked < kMaxLineWalk;
+        unit = unit->mp_next_unit, ++walked) {
+        uint32_t id = 0;
+        uint8_t kind = 0;
+        if (part_class(unit, id, kind) && id == p.class_id && nth++ == p.nth) {
+            return unit;
+        }
+    }
+    return nullptr;
+}
+
+static void apply_part(cUnit* unit, const PartState& p)
+{
+    char* base = (char*)unit;
+    // only between units live on both machines (lifecycle 2): a resync never revives or kills one. The flags, delta and
+    // state bytes (+0x14: the move a shell or part is in) are compared, never written: a state's set-up (a shell's
+    // effect at +0x1844, made as it enters move 2) doesn't come with it, and a shell put into move 2 without it would
+    // read through null (0x70E851)
+    const uint16_t own_flags = *(const uint16_t*)(base + 4);
+    if ((own_flags & 7u) != 2u || (p.unit_flags & 7u) != 2u) {
+        return;
+    }
+    if (p.kind & kPartCoord) {
+        std::memcpy(base + 0x30, &p.position, 12);
+        std::memcpy(base + 0x40, &p.quat, 16);
+        std::memcpy(base + 0x50, &p.scale, 12);
+    }
+    if (const PartLayout* l = part_layout(*(const uintptr_t*)unit)) {
+        if (p.damage_valid) {
+            uDamage_Old* damage = (uDamage_Old*)(base + l->damage);
+            damage->HP = p.hp;
+            damage->HPMax = p.hp_max;
+            damage->HPTaken = p.hp_taken;
+            for (int i = 0; i < 5; ++i) {
+                damage->stun[i] = p.stun[i];
+                damage->displacement[i] = p.displacement[i];
+            }
+            damage->isDead = p.is_dead;
+        }
+        if (p.coll_valid) {
+            char* coll = base + l->coll;
+            std::memcpy(coll + kCollLandOffset, &p.coll_land, sizeof p.coll_land);
+            std::memcpy(coll + kCollFlagsOffset, &p.coll_flags, sizeof p.coll_flags);
+            std::memcpy(coll + kCollCorrectOffset, p.coll_correct, sizeof p.coll_correct);
+        }
+    }
+    if ((p.kind & kPartActor) && model_assets_available((const uModel*)unit, p.model)) {
+        apply_model((uModel*)unit, p.model);
+    }
+}
+
 bool capture_battle(sDevil4Main* main, uint64_t sim_time_us, BattleSnapshot& out, const char*& reason)
 {
     // No whole-record memset: a braced assignment materializes a whole BattleSnapshot
@@ -1590,6 +1867,8 @@ bool capture_battle(sDevil4Main* main, uint64_t sim_time_us, BattleSnapshot& out
     out.version = kWireVersion;
     out.player_count = 0;
     out.enemy_count = 0;
+    out.part_count = 0;
+    out.part_overflow = 0;
     out.timing = {};
     out.mediator = {};
     out.rng = {};
@@ -1644,6 +1923,7 @@ bool capture_battle(sDevil4Main* main, uint64_t sim_time_us, BattleSnapshot& out
         }
         ++out.enemy_count;
     }
+    capture_parts(unit_system, out);
 
     reason = nullptr;
     return true;
@@ -1764,6 +2044,14 @@ bool restore_battle(sDevil4Main* main, const BattleSnapshot& snap, uint64_t& sim
         unit = unit->mp_next_unit, ++walked) {
         apply_enemy((uEnemy_Old*)unit, snap.enemies[index++]);
     }
+    // the parts where this machine has each one's unit; a shell only one machine has stays as it is (test switch
+    // DMC4_NO_PART_APPLY: compared only, never written)
+    static const bool no_part_apply = test_switch("DMC4_NO_PART_APPLY") != nullptr;
+    for (uint32_t i = 0; !no_part_apply && i < snap.part_count && i < kMaxParts; ++i) {
+        if (cUnit* unit = find_part(unit_system, snap.parts[i])) {
+            apply_part(unit, snap.parts[i]);
+        }
+    }
 
     apply_mediator(mediator, snap.mediator);
     std::memcpy((void*)kGameRngAddress, snap.rng.mt, sizeof snap.rng.mt);
@@ -1805,7 +2093,7 @@ bool unpack_from(const unsigned char* buffer, uint32_t length, BattleSnapshot& s
         reason = "state is truncated or corrupt";
         return false;
     }
-    if (snap.player_count > kMaxPlayers || snap.enemy_count > kMaxEnemies) {
+    if (snap.player_count > kMaxPlayers || snap.enemy_count > kMaxEnemies || snap.part_count > kMaxParts) {
         reason = "state holds more units than this build can restore";
         return false;
     }

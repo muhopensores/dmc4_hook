@@ -37,6 +37,10 @@ namespace coop_context {
 
 // The unit's owner while it updates; true when mpPlayer was swapped (leave() puts player 1 back).
 bool enter(uintptr_t unit);
+// A unit starts (its init, before enter): what the tables kept for a unit that lived at the same address goes. Units are
+// made where dead ones were, and since each process lays out its heaps its own way, only some machines reuse a given
+// address: a new unit there would take the dead one's target and hold on that machine only.
+void unit_born(uintptr_t unit);
 // Same for code run on behalf of `player`: swaps only for players 2-4.
 bool enter_player(uintptr_t player);
 void leave();

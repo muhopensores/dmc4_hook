@@ -70,6 +70,10 @@ void end();
 bool save(int frame);
 bool load(int frame);
 bool has_frame(int frame);
+// [address, address + bytes) as the save of `frame` left it, without loading it (false: not all in a kept heap)
+bool read_at(int frame, uintptr_t address, void* out, size_t bytes);
+bool in_heap(uintptr_t address);   // in one of the game's heaps, kept or not
+bool block_bytes(uintptr_t block, uint32_t& bytes);   // a heap block that starts at `block`: its size, from its header
 const Stats& stats();
 void set_included(int heap, bool on);   // only while inactive
 // The Resource and Sound heaps are out by default (loaded files, the renderer's and sound's objects); these put them in.

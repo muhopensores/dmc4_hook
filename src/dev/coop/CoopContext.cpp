@@ -851,6 +851,18 @@ bool swap_for(int slot, uintptr_t camera = 0, bool lock = true) {
     return true;
 }
 
+void unit_born(uintptr_t unit) {
+    for (Aggro& a : aggro) {
+        if (a.enemy == unit) a = Aggro{};
+    }
+    for (Hold& h : holds) {
+        if (h.enemy == unit) h = Hold{};
+    }
+    for (Grip& g : grips) {
+        if (g.unit == unit) g = Grip{};
+    }
+}
+
 bool enter(uintptr_t unit) {
     // player 1 on an XInput pad: his camera and the boss camera (sMediator +0xD4, player 1's;
     // uCameraBoss::moveRightStickAxisY) read the stick from sDevil4Pad::mpInstance, so give them his stand-in (the

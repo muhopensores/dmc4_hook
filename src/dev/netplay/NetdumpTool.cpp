@@ -30,7 +30,10 @@ static constexpr size_t kRngWords = 624;
 static constexpr size_t kCollCorrectWords = 23;
 static constexpr size_t kMaxMotionSlots = 8;
 static constexpr size_t kMaxMotionJoints = 192;
-static constexpr size_t kMaxUnits = 8;      // kMaxPlayers / kMaxEnemies headroom
+static constexpr size_t kMaxPlayers = 8;    // BattleSnapshot.hpp's
+static constexpr size_t kMaxEnemies = 64;
+static constexpr size_t kMaxParts = 32;
+static constexpr uint8_t kPartActor = 2;    // PartState::kind: a model follows the record
 static constexpr uint32_t kNoMotionTrack = 0xFFFFFFFFu;
 
 enum Type { U8, U16, U32, I32, F32, U64, Bool };
@@ -73,7 +76,17 @@ constexpr size_t table_size(const FieldDef* t) {
 #define END { nullptr, U8, 0 }
 
 static constexpr FieldDef kHeader[] = {
-    F("magic", U32), F("version", U32), F("player_count", U32), F("enemy_count", U32), END };
+    F("magic", U32), F("version", U32), F("player_count", U32), F("enemy_count", U32),
+    F("part_count", U32), F("part_overflow", U32), END };
+
+// --- PartState (BattleSnapshot.cpp wire(PartState), struct hpp) --------------------------
+static constexpr FieldDef kPart[] = {
+    F("line", U8), F("kind", U8), F("nth", U16), F("class_id", U32), F("unit_flags", U16),
+    F("delta", F32), F("state", U32), A("position", F32, 3), A("quat", F32, 4), A("scale", F32, 3),
+    F("damage_valid", Bool), F("hp", F32), F("hp_max", F32), F("hp_taken", F32),
+    A("stun", I32, 5), A("displacement", I32, 5), F("is_dead", Bool),
+    F("coll_valid", Bool), F("coll_land", U32), F("coll_flags", U32),
+    A("coll_correct", U32, (int)kCollCorrectWords), END };
 
 // --- TimingState (BattleSnapshot.cpp:56, struct hpp:82) ----------------------------------
 static constexpr FieldDef kTiming[] = {

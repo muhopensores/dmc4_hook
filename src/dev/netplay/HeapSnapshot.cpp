@@ -1448,6 +1448,81 @@ bool has_frame(int frame)
     return false;
 }
 
+bool block_bytes(uintptr_t block, uint32_t& bytes)
+{
+    uintptr_t b = 0, e = 0;
+    if (!block_range(block, b, e) || b != block) {
+        return false;
+    }
+    bytes = (uint32_t)(e - b);
+    return true;
+}
+
+bool in_heap(uintptr_t address)
+{
+    for (int i = 0; i < g_region_count; ++i) {
+        const Region& r = g_regions[i];
+        if (address >= (uintptr_t)r.base && address < (uintptr_t)r.base + r.size) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool read_at(int frame, uintptr_t address, void* out, size_t bytes)
+{
+    if (!g_active || !has_frame(frame)) {
+        return false;
+    }
+    uint8_t* dst = (uint8_t*)out;
+    while (bytes) {
+        int ri = -1;
+        for (int i = 0; i < g_region_count; ++i) {
+            const Region& r = g_regions[i];
+            if (address >= (uintptr_t)r.base && address < (uintptr_t)r.base + r.size) {
+                ri = i;
+                break;
+            }
+        }
+        if (ri < 0 || !g_regions[ri].include) {
+            return false;
+        }
+        const Region& r = g_regions[ri];
+        const size_t off = address - (uintptr_t)r.base;
+        const uint32_t page = (uint32_t)(off / kPage);
+        const size_t in_page = off % kPage;
+        const size_t n = std::min(bytes, kPage - in_page);
+        // the page as that save left it: the copy the first later save took before its writes, else the newest save's
+        const uint8_t* src = r.shadow[page];
+        bool found = false;
+        if (r.excluded[page] == 2) {
+            src = r.base + (size_t)page * kPage;   // never kept: as it is now
+            found = true;
+        }
+        for (auto rec = g_records.begin(); !found && rec != g_records.end(); ++rec) {
+            if (rec->frame <= frame) {
+                continue;
+            }
+            for (const UndoEntry& e : rec->undo) {
+                if (e.region == (uint16_t)ri && e.page == page) {
+                    src = e.old;
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (src) {
+            std::memcpy(dst, src + in_page, n);
+        } else {
+            std::memset(dst, 0, n);
+        }
+        dst += n;
+        address += n;
+        bytes -= n;
+    }
+    return true;
+}
+
 bool save(int frame)
 {
     if (!g_active) {

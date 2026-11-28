@@ -187,6 +187,40 @@ static bool g_rng_watch = false;
 static bool g_speed_watch = false;   // DMC4_WATCH_SPEED: the watch is on sDevil4Main::mGlobalSpeed
 static bool g_watch_values = false;  // DMC4_WATCH_PERM: the watched word's value goes with each writer
 static int g_tick_frame = -1;   // the frame run_simulation_tick is simulating (an advance event's), -1 = none
+static uint32_t g_effect_gen_calls = 0;   // effect generator inits so far in this tick (pres_enter_effect_gen)
+static int g_local_control = -1; // the control this machine plays in an online session
+static uint32_t unit_tag(uintptr_t unit);
+static bool local_pause_wanted();
+static bool fixed_timing_wanted();
+static bool g_online_split = false;   // online: both players' views on each screen (the local split), else only this machine's
+static bool g_online_split_test = false;   // test switch DMC4_NET_SPLIT: split screen for this run, never saved
+static DWORD g_pres_thread = 0;   // the thread running the ticks; on any other the thunks only pass through
+static double g_cost_wait_ms = 0.0, g_cost_loop_ms = 0.0;   // diagnostics: the pacer's waits, the whole move loop (the cost line)
+static double qpc_ms(int64_t a, int64_t b)
+{
+    static const double per_ms = [] {
+        LARGE_INTEGER f;
+        QueryPerformanceFrequency(&f);
+        return (double)f.QuadPart / 1000.0;
+    }();
+    return (double)(b - a) / per_ms;
+}
+static bool g_tick_paused = false;   // a player's input asks for a pause this tick (kInputPause)
+static uint8_t g_tick_rules = 0;     // the host rules version player 1's input names this tick (host_rules)
+// The game's own pause (aRoom::pauseInChk 0x40DE10: Start on the user pad, Esc, the user pad unplugged) never runs under
+// netplay: it pauses in the tail on whichever machine saw it, so its menu, room state and line pause bits would land a
+// tick apart on the two machines even when both saw the same Start. Esc or Start toggles this machine's netplay pause
+// instead, which goes out in its input like the trainer's (kInputPause).
+static bool g_pause_from_inputs = false;   // a session runs: the game's pause check is skipped (pause_check_detour)
+static bool g_menu_paused = false;
+static uint32_t g_tick_pausers = 0;   // the players whose input asks for the pause, as the newest forward tick had them
+static bool g_user_pad_saved = false;
+static uint8_t g_user_pad_words[8];   // sDevil4Pad +0x9D0..+0x9D7 before the session pinned the user pad
+// The game speed (sWorkRate::global_speed) as the simulation left it: each online tick starts from it, so a write from
+// outside the ticks (a mod, the trainer) never reaches the simulation, and a paused tick runs at 0 without losing it.
+static float g_sim_speed = 1.0f;
+static bool g_sim_speed_known = false;
+static bool g_in_sim_tick = false;   // inside run_simulation_tick (diagnostics)
 static uint32_t g_tick_serial = 0;   // run_simulation_tick calls so far (diagnostics: which pass a log line is from)
 static uint32_t g_tick_input_hash = 0, g_tick_pad_hash[2] = {}, g_tick_raw_hash[2] = {};   // what the tick ran on
 static std::vector<uint32_t> g_rng_eips;
@@ -4240,6 +4274,7 @@ static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx
     g_rng_eips.clear();
     g_rng_stacks.clear();
     g_tick_frame = event ? (int)event->data.adv.frame : -1;
+    g_effect_gen_calls = 0;
     ++g_tick_serial;
     {
         // diagnostics: the inputs this tick runs on and the pads they were written to (FNV)
@@ -5656,9 +5691,308 @@ naked void shake_detour2()
     }
 }
 
+// Game state the draw writes and the tick reads. A forward frame draws, a re-simulated one doesn't, so on each machine the
+// tick read what its own last draw left. Each one is recomputed in the tick, before its reader, as the draw computes it.
+// - uEm030Spada (the flying swords): its draw (vtable slot 9, 0x70FC70) sets +0x1A4C = its parent's (+0x1A48) +0x264C;
+//   sub_70FE70 (its move) makes or drops its effect on that flag, an effect whose start draws from the game's random stream.
+static std::unique_ptr<FunctionHook> g_spada_hook;
+static uintptr_t g_spada_original = 0;
+static void __stdcall spada_flag(uintptr_t spada)
+{
+    if (!fixed_timing_wanted() || !spada) {
+        return;
+    }
+    const uintptr_t parent = *(const uintptr_t*)(spada + 0x1A48);
+    *(uint8_t*)(spada + 0x1A4C) = parent ? *(const uint8_t*)(parent + 0x264C) : 0;
+}
+naked void spada_detour()
+{
+    __asm {
+        pushad
+        push esi                    // sub_70FE70: the spada in esi
+        call spada_flag
+        popad
+        jmp dword ptr [g_spada_original]
+    }
+}
+
+// diagnostics (DMC4_SHL_LOG): uEm030Shl::moveFan's two kills, the timer +0x187C at 0 or, once the scale +0x1870 reaches
+// 0.7, the stage line cast sub_70F090 (100 cm above it to 100 cm below) finding nothing; with the frame and the shell's
+// position, so the two machines' logs show which one fired where
+static std::unique_ptr<FunctionHook> g_shl_cast_hook, g_shl_kill_hook;
+static uintptr_t g_shl_cast_fn = 0x0070F090, g_shl_cast_ret = 0x0070EBB3, g_shl_kill_ret = 0x0070EBBC;
+static void __stdcall shl_note(uintptr_t shl, uint32_t what)
+{
+    char text[240];
+    snprintf(text, sizeof text, "shl %s f%d%s pass %u type %d pos %.4f %.4f %.4f timer %.4f scale %.4f",
+        what ? "kill" : "cast miss", g_tick_frame, g_sctx.g_resimulating ? " (again)" : "", g_tick_serial,
+        *(const int*)(shl + 0x1878), *(const float*)(shl + 0x30), *(const float*)(shl + 0x34), *(const float*)(shl + 0x38),
+        *(const float*)(shl + 0x187C), *(const float*)(shl + 0x1870));
+    probe_log(text);
+}
+naked void shl_cast_detour()
+{
+    __asm {
+        call dword ptr [g_shl_cast_fn]   // eax = the shell's position, as in the original call
+        test al, al
+        jnz cast_hit
+        pushad
+        push 0
+        push esi
+        call shl_note
+        popad
+    cast_hit:
+        jmp dword ptr [g_shl_cast_ret]
+    }
+}
+// the shells that die with their effect (sub_70E6B0 move 2 stores it at +0x1848, move 3 kills the shell once it's null)
+static std::unique_ptr<FunctionHook> g_shl_effect_hook, g_shl_gone_hook;
+static uintptr_t g_shl_effect_ret = 0x0070E8A2, g_shl_gone_ret = 0x0070E8F2;
+static void __stdcall shl_effect_note(uintptr_t shl, uintptr_t effect, uint32_t made)
+{
+    char text[240];
+    snprintf(text, sizeof text, "shl %s f%d%s pass %u pos %.4f %.4f %.4f effect vtable %08X", made ? "effect made" : "effect gone, kill",
+        g_tick_frame, g_sctx.g_resimulating ? " (again)" : "", g_tick_serial, *(const float*)(shl + 0x30),
+        *(const float*)(shl + 0x34), *(const float*)(shl + 0x38), effect ? *(const uint32_t*)effect : 0u);
+    probe_log(text);
+}
+naked void shl_effect_detour()
+{
+    __asm {
+        pushad
+        push 1
+        push eax
+        push ebx
+        call shl_effect_note
+        popad
+        mov [ebx+0x1848], eax
+        jmp dword ptr [g_shl_effect_ret]
+    }
+}
+naked void shl_gone_detour()
+{
+    __asm {
+        pushad
+        push 0
+        push 0
+        push ebx
+        call shl_effect_note
+        popad
+        mov edx, [ebx]
+        mov eax, [edx+0x30]
+        jmp dword ptr [g_shl_gone_ret]
+    }
+}
+naked void shl_kill_detour()
+{
+    __asm {
+        pushad
+        push 1
+        push esi
+        call shl_note
+        popad
+        mov eax, [esi]
+        mov edx, [eax+0x30]
+        jmp dword ptr [g_shl_kill_ret]
+    }
+}
+
+// diagnostics (DMC4_SHAKE_LOG): every enemy step that starts (uPlayer::checkEmJumpBegin 0x804970, this@edi, al = started),
+// with the jumper, sMediator::mpPlayer (isEmJump 0x4AB170 measures the enemies' step points against that player) and both
+// positions
+static std::unique_ptr<FunctionHook> g_emjump_hook;
+static uintptr_t g_emjump_original = 0;
+static void __stdcall emjump_note(uintptr_t jumper, uint32_t started)
+{
+    if (!(started & 0xFF) || !jumper) {
+        return;
+    }
+    const uintptr_t med = *(const uintptr_t*)0x00E558B8;
+    const uintptr_t mp = med ? *(const uintptr_t*)(med + 0x24) : 0;
+    char text[260];
+    snprintf(text, sizeof text, "emjump jumper %X (%.0f %.0f %.0f) mpPlayer %X (%.0f %.0f %.0f)", unit_tag(jumper),
+        *(const float*)(jumper + 0x30), *(const float*)(jumper + 0x34), *(const float*)(jumper + 0x38), mp ? unit_tag(mp) : 0u,
+        mp ? *(const float*)(mp + 0x30) : 0.f, mp ? *(const float*)(mp + 0x34) : 0.f, mp ? *(const float*)(mp + 0x38) : 0.f);
+    rollback::diag(text);
+}
+naked void emjump_detour()
+{
+    __asm {
+        call dword ptr [g_emjump_original]
+        pushad
+        push eax
+        push edi
+        call emjump_note
+        popad
+        ret
+    }
+}
+
+// Presentation code draws from its own random stream while netplay or the probe runs the ticks (sdk/PresentationRng.hpp).
+// A thunk per function: the caller's return address goes to a stack of its own, the original runs with the caller's
+// stack as it was (any calling convention: register arguments, stack arguments it pops, ST0 or xmm results), then the
+// stream is swapped back. Every general register is kept (the arithmetic flags after the original aren't: no call
+// promises them); enter / leave touch no SSE or x87 state. The thunks run single-threaded on the ticks' thread, and
+// nothing unwinds through a thunked function (they're game code), so the return stack stays balanced.
+static uintptr_t g_pres_ret[256];
+static int g_pres_top = 0;
+static void __stdcall pres_enter() { presentation_rng::enter(); }
+// An effect generator's parameters (uEffectVFR::initGeneratorParam): drawn from the stream seeded by the simulated frame
+// and the call's place in it, so the same generator made on the same frame gets the same numbers on every machine: some
+// units die with their effect (the em030 shells, sub_70E6B0 move 3), and an effect that lives a frame longer on one
+// machine would desync their deaths. The count restarts with every simulated tick, forward or again.
+static void __stdcall pres_enter_effect_gen()
+{
+    const uint32_t n = g_effect_gen_calls++;
+    presentation_rng::enter_seeded(0x2F6B1A93u ^ ((uint32_t)g_tick_frame * 0x9E3779B1u) ^ (n * 0x85EBCA77u));
+}
+static void __stdcall pres_leave() { presentation_rng::leave(); }
+// One thunk per hooked function (inline asm in a macro takes one instruction per __asm). On the ticks' thread, with room
+// on the return stack: `enter_fn`, the original with the caller's stack as it was (the caller's return address waits on
+// g_pres_ret), then pres_leave; anywhere else the original runs as it is.
+#define PRES_THUNK(name, enter_fn, original) \
+    naked void name() \
+    { \
+        __asm pushfd \
+        __asm push eax \
+        __asm mov eax, fs:[0x24] \
+        __asm cmp eax, g_pres_thread \
+        __asm jne pass_through \
+        __asm cmp dword ptr [g_pres_top], 256 \
+        __asm jae pass_through \
+        __asm pop eax \
+        __asm pushad \
+        __asm call enter_fn \
+        __asm popad \
+        __asm popfd \
+        __asm push eax \
+        __asm push ecx \
+        __asm mov ecx, g_pres_top \
+        __asm mov eax, [esp + 8] \
+        __asm mov dword ptr g_pres_ret[ecx * 4], eax \
+        __asm inc ecx \
+        __asm mov g_pres_top, ecx \
+        __asm pop ecx \
+        __asm pop eax \
+        __asm add esp, 4 \
+        __asm call dword ptr [original] \
+        __asm push eax \
+        __asm pushfd \
+        __asm pushad \
+        __asm call pres_leave \
+        __asm popad \
+        __asm popfd \
+        __asm push eax \
+        __asm push ecx \
+        __asm mov ecx, g_pres_top \
+        __asm dec ecx \
+        __asm mov g_pres_top, ecx \
+        __asm mov eax, dword ptr g_pres_ret[ecx * 4] \
+        __asm mov [esp + 8], eax \
+        __asm pop ecx \
+        __asm pop eax \
+        __asm ret \
+        __asm pass_through: \
+        __asm pop eax \
+        __asm popfd \
+        __asm jmp dword ptr [original] \
+    }
+
+// the stage's leaf animation unit (vtable 0xBDDFC8 +0x14, XfLeafAnim): the foliage's turbulence
+static uintptr_t g_pres_orig_leaf = 0;
+PRES_THUNK(pres_thunk_leaf, pres_enter, g_pres_orig_leaf)
+// uEffectVFR::initGeneratorParam: an effect generator's random parameters (seeded per call: pres_enter_effect_gen)
+static uintptr_t g_pres_orig_effect_gen = 0;
+PRES_THUNK(pres_thunk_effect_gen, pres_enter_effect_gen, g_pres_orig_effect_gen)
+// sound: a voice's random variation (sub_A47E20)
+static uintptr_t g_pres_orig_sound_voice = 0;
+PRES_THUNK(pres_thunk_sound_voice, pres_enter, g_pres_orig_sound_voice)
+// sound: sub_A47500
+static uintptr_t g_pres_orig_sound_cmd = 0;
+PRES_THUNK(pres_thunk_sound_cmd, pres_enter, g_pres_orig_sound_cmd)
+// cUtil::meleeEffectQuat: a hit effect's random turn
+static uintptr_t g_pres_orig_melee_quat = 0;
+PRES_THUNK(pres_thunk_melee_quat, pres_enter, g_pres_orig_melee_quat)
+#undef PRES_THUNK
+static std::unique_ptr<FunctionHook> g_pres_hooks[5];
+// aRoom::pauseInChk 0x40DE10 after its early-outs (0x40DE6D: ebx pushed with the result 0, esi = the room): under netplay
+// it never pauses (g_pause_from_inputs; the netplay pause is g_menu_paused).
+static std::unique_ptr<FunctionHook> g_pause_check_hook;
+static uintptr_t g_pause_check_original = 0;
+naked void pause_check_detour()
+{
+    __asm {
+        cmp byte ptr [g_pause_from_inputs], 0
+        je original
+        xor al, al
+        pop ebx
+        ret
+    original:
+        jmp [g_pause_check_original]
+    }
+}
+
+static void install_presentation_thunks()
+{
+    struct Site { uintptr_t at; uintptr_t thunk; uintptr_t* original; };
+    const Site sites[] = {
+        {0x0075CDB0, (uintptr_t)&pres_thunk_leaf, &g_pres_orig_leaf},
+        {0x0096AEC0, (uintptr_t)&pres_thunk_effect_gen, &g_pres_orig_effect_gen},
+        {0x00A47E20, (uintptr_t)&pres_thunk_sound_voice, &g_pres_orig_sound_voice},
+        {0x00A47500, (uintptr_t)&pres_thunk_sound_cmd, &g_pres_orig_sound_cmd},
+        {0x0045F860, (uintptr_t)&pres_thunk_melee_quat, &g_pres_orig_melee_quat},
+    };
+    static_assert(std::size(sites) == std::size(g_pres_hooks), "a hook per thunk");
+    for (size_t i = 0; i < std::size(sites); ++i) {
+        g_pres_hooks[i] = std::make_unique<FunctionHook>(sites[i].at, sites[i].thunk);
+        if (g_pres_hooks[i]->create()) {
+            *sites[i].original = g_pres_hooks[i]->get_original();
+        } else {
+            spdlog::error("CoopOnline: presentation random stream: failed to hook {:x}", sites[i].at);
+        }
+    }
+}
+
 std::optional<std::string> CoopOnline::on_initialize() {
     capture_canonical_environment();
-    if (std::getenv("DMC4_SHAKE_LOG")) {
+    install_presentation_thunks();
+    g_pause_check_hook = std::make_unique<FunctionHook>(0x0040DE6D, (uintptr_t)&pause_check_detour);
+    if (g_pause_check_hook->create()) {
+        g_pause_check_original = g_pause_check_hook->get_original();
+    } else {
+        spdlog::error("CoopOnline: failed to hook the pause check");
+    }
+    rollback::add_range("netplay game speed", &g_sim_speed, sizeof g_sim_speed);
+    rollback::add_range("netplay game speed known", &g_sim_speed_known, sizeof g_sim_speed_known);
+    if (test_switch("DMC4_SHAKE_LOG")) {
+        g_emjump_hook = std::make_unique<FunctionHook>(0x00804970, (uintptr_t)&emjump_detour);
+        if (g_emjump_hook->create()) {
+            g_emjump_original = g_emjump_hook->get_original();
+        }
+    }
+    g_spada_hook = std::make_unique<FunctionHook>(0x0070FE70, (uintptr_t)&spada_detour);
+    if (!g_spada_hook->create()) {
+        return "Failed to hook uEm030Spada's effect update (0x70FE70)";
+    }
+    g_spada_original = g_spada_hook->get_original();
+    if (test_switch("DMC4_SHL_LOG")) {
+        g_shl_cast_hook = std::make_unique<FunctionHook>(0x0070EBAE, (uintptr_t)&shl_cast_detour);
+        g_shl_kill_hook = std::make_unique<FunctionHook>(0x0070EBB7, (uintptr_t)&shl_kill_detour);
+        if (!g_shl_cast_hook->create() || !g_shl_kill_hook->create()) {
+            spdlog::error("CoopOnline: failed to hook uEm030Shl::moveFan's kills");
+        }
+        g_shl_effect_hook = std::make_unique<FunctionHook>(0x0070E89C, (uintptr_t)&shl_effect_detour);
+        g_shl_gone_hook = std::make_unique<FunctionHook>(0x0070E8ED, (uintptr_t)&shl_gone_detour);
+        if (!g_shl_effect_hook->create() || !g_shl_gone_hook->create()) {
+            spdlog::error("CoopOnline: failed to hook uEm030Shl's effect kill");
+        }
+    }
+    if (test_switch("DMC4_SHAKE_LOG")) {
+        rollback::diag_writer = [](const char* text) {
+            char line[400];
+            snprintf(line, sizeof line, "%s f%d%s pass %u", text, g_tick_frame, g_sctx.g_resimulating ? " (again)" : "", g_tick_serial);
+            probe_log(line);
+        };
         // + uDamage::calc (sStylishCount::addComboGauge logs through combo_gauge_entry)
         // + sUnit::addBottom, uEnemy::grabMessage
         const uintptr_t sites[6] = {0x00531B60, 0x00531A80, 0x00531AF0, 0x008DC540, 0x0051BE10, 0x00734EE0};

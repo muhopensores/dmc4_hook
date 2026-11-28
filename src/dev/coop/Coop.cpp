@@ -774,6 +774,10 @@ bool __stdcall context_enter(uintptr_t unit) {
     return coop_context::enter(unit);
 }
 
+void __stdcall context_born(uintptr_t unit) {
+    coop_context::unit_born(unit);
+}
+
 void __stdcall context_leave() {
     coop_context::leave();
 }
@@ -867,6 +871,8 @@ naked_extern void detour_unit_init() {
     __asm {
         cmp byte ptr [Coop::mod_enabled], 1
         jne originalcode
+        push esi
+        call context_born
         push esi
         call context_enter
         mov eax, [esi]

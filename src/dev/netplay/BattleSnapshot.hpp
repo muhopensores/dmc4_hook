@@ -61,9 +61,9 @@ constexpr uint32_t kMaxEnemies = 64;   // Macro.cpp scanned 128; 64 caps the wor
                                        // state at ~6 MiB with the parts (see below)
 
 constexpr uint32_t kWireMagic   = 0x444D4334u;   // "DMC4"
-// 14 removed the derived lock-on cache; 15 adds the per-joint sampler cursors that each motion
-// slot carries now that the rollback window has to reproduce joint playback, not just the root.
-constexpr uint32_t kWireVersion = 16u;   // 16: pad38 / prev_trans[0] (live pointers) left the wire
+// The layout's version: raised whenever a record's fields change, so builds with other layouts refuse each other's
+// states (and the netdump tool's tables, NetdumpTool.cpp, follow it).
+constexpr uint32_t kWireVersion = 17u;
 
 // uModel::MotionArray slots carried per unit. Root motion is computed from them, so a restore
 // that leaves them at the live frame replays the wrong translation delta (TTD: the position a
@@ -380,6 +380,40 @@ struct EnemyState {
     float tick_timer = 0.0f;
 };
 
+// ---------------------------------------------------------------- the other units of move lines 16 and 18
+//
+// The shells (every bullet, the Blue Rose bomb) and the enemies' parts (Echidna's uEm021_Leaf / _Snake / _Pipe / _Hand
+// on line 16, her uEm021Shell on line 18, mission 20's uEm032): units the player and enemy records leave out, where a
+// hit only one machine saw would stay out of sight until its damage reached an enemy. Each carries what its base
+// classes have, found through its class's
+// DTI: cUnit's state, uCoord's position, rotation and scale, uActor's motion sampler; and for the classes in
+// kPartLayouts (BattleSnapshot.cpp) its uDamage block and collision corrections. They pair up by move line, class and
+// place among that line's units of the class, so a shell only one machine has shifts no other class's records.
+constexpr int kPartLines[2] = {0x10, 0x12};
+constexpr uint32_t kMaxParts = 32;   // more are counted in part_overflow, not carried
+constexpr uint8_t kPartCoord = 1;    // a uCoord: position, rotation, scale
+constexpr uint8_t kPartActor = 2;    // a uActor: the motion sampler (capture_model)
+
+struct PartState {
+    uint8_t line = 0;
+    uint8_t kind = 0;                 // kPartCoord | kPartActor
+    uint16_t nth = 0;                 // its place among the line's units of its class
+    uint32_t class_id = 0;            // its DTI's id (the same in every process, unlike a DLL class's vtable)
+    uint16_t unit_flags = 0;          // cUnit +4, low half (the high half is the views it draws in, set per machine)
+    float delta = 0.0f;               // cUnit +0x10
+    uint32_t state = 0;               // cUnit +0x14
+    MtVector3 position{}, scale{};    // uCoord +0x30 / +0x50
+    MtVector4 quat{};                 // uCoord +0x40
+    bool damage_valid = false;
+    float hp = 0.0f, hp_max = 0.0f, hp_taken = 0.0f;
+    int32_t stun[5] = {}, displacement[5] = {};
+    bool is_dead = false;
+    bool coll_valid = false;
+    uint32_t coll_land = 0, coll_flags = 0;
+    uint32_t coll_correct[kCollCorrectWords] = {};
+    ModelState model;                 // with kPartActor
+};
+
 // MtRandom (0x00EAC6B0, see sdk/MtRandom.hpp for the layout and the non-standard seeding): the
 // game's one global generator, seeded once per stage and consumed inside the tick. That makes its
 // state part of the simulation - a re-simulated frame has to draw the same numbers the original
@@ -415,8 +449,11 @@ struct BattleSnapshot {
     PadState pad;
     uint32_t player_count;            // filled in by capture_battle
     uint32_t enemy_count;
+    uint32_t part_count;
+    uint32_t part_overflow;           // units of the part lines beyond kMaxParts
     PlayerState players[kMaxPlayers];
     EnemyState enemies[kMaxEnemies];
+    PartState parts[kMaxParts];
     BattleSnapshot();                 // BattleSnapshot.cpp: one memset
 };
 
