@@ -5,6 +5,7 @@
 #include "../dev/coop/CoopHud.hpp"
 #include "../mods/ViewportWindow.hpp"
 #include "Cam.hpp"
+#include "FrameHooks.hpp"
 #include <algorithm>
 
 namespace player_info {
@@ -65,7 +66,9 @@ __declspec(naked) void asm_is_player() {
 
 bool has_keyboard(uintptr_t player) {
     const int i = index_of(player);
-    if (i < 0) {
+    // under netplay nobody has it: the keys aren't in the input the machines share, so a key read by a mod would act on
+    // one machine only (both games read the keyboard in the background)
+    if (i < 0 || frame_hooks::ticks_driven()) {
         return false;
     }
     return Coop::mod_enabled ? i == coop_pads::keyboard_owner : i == 0;

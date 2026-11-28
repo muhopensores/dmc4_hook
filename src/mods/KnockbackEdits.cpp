@@ -1,4 +1,5 @@
 #include "KnockbackEdits.hpp"
+#include "../sdk/Rollback.hpp"
 
 bool KnockbackEdits::mod_enabled = false;
 uintptr_t KnockbackEdits::jmp_return0 = NULL;
@@ -98,6 +99,7 @@ naked void detour2() { // melee
 }
 
 std::optional<std::string> KnockbackEdits::on_initialize() {
+    rollback::add_range("KnockbackEdits last attack", &previousAttackStatus, sizeof previousAttackStatus);   // rollback netplay
     if (!install_hook_offset(0x10CAD7, hook0, &detour0, &jmp_return0, 11)) { // get all projectiles
         spdlog::error("Failed to init KnockbackEdits mod 0\n");
         return "Failed to init KnockbackEdits mod 0";

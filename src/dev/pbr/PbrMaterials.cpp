@@ -795,8 +795,11 @@ void draw_scene_buffer() {
     }
 }
 
+static bool cfg_enabled = true;   // what the cfg says (DMC4_NO_GFX)
+
 void PbrMaterials::on_config_load(const utility::Config& cfg) {
-    mod_enabled = cfg.get<bool>("pbr_materials").value_or(true);
+    mod_enabled = cfg_enabled = cfg.get<bool>("pbr_materials").value_or(true);
+    if (test_switch("DMC4_NO_GFX")) mod_enabled = false;   // test runs (frame-rate checks): the cfg keeps its value
     linear_light = cfg.get<bool>("pbr_linear_light").value_or(true);
     simple_specular = cfg.get<bool>("pbr_simple_specular").value_or(true);
     reflect_mode = std::clamp(cfg.get<int>("pbr_reflect").value_or(0), 0, 2);
@@ -813,7 +816,7 @@ void PbrMaterials::on_config_load(const utility::Config& cfg) {
 }
 
 void PbrMaterials::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("pbr_materials", mod_enabled);
+    cfg.set<bool>("pbr_materials", test_switch("DMC4_NO_GFX") ? cfg_enabled : mod_enabled);
     cfg.set<bool>("pbr_linear_light", linear_light);
     cfg.set<bool>("pbr_simple_specular", simple_specular);
     cfg.set<int>("pbr_reflect", reflect_mode);

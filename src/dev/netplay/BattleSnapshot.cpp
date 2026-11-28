@@ -2,7 +2,7 @@
 //
 // This is the whole cost centre of the netplay snapshot: the zpp_bits wire templates
 // (a field list per record, walked by pack_into / unpack_from), the capture and apply
-// code for every record, and the construction of the ~4 MiB BattleSnapshot record tree.
+// code for every record, and the construction of the ~6 MiB BattleSnapshot record tree.
 // It lives in its own translation unit so that consumers which only call the API
 // declared in BattleSnapshot.hpp (CoopOnline.cpp) compile neither the templates nor the
 // record-tree constructor. That is what keeps cl.exe off the multi-gigabyte path:
@@ -14,6 +14,8 @@
 // either direction has to walk them.
 
 #include "dev/netplay/BattleSnapshot.hpp"
+#include "sdk/TestSwitch.hpp"
+#include "dev/netplay/HeapSnapshot.hpp"
 
 #include <array>
 #include <cstring>
@@ -34,6 +36,7 @@
 #include "sdk/Cam.hpp"
 #include "sdk/Pad.hpp"
 #include "sdk/Devil4.hpp"
+#include "sdk/MtDTI.hpp"
 #include "mods/EnemyTracker.hpp"
 
 #include "zpp_bits.h"
@@ -318,7 +321,7 @@ uint32_t state_bytes()
         return cached;
     }
     // Heap allocations freed after the one-time probe: keeping the worst-case snapshot and its
-    // scratch as statics would pin ~12 MiB for the life of the process.
+    // scratch as statics would pin ~14 MiB for the life of the process.
     const auto worst = std::make_unique<BattleSnapshot>();
     worst->player_count = kMaxPlayers;
     worst->enemy_count = kMaxEnemies;
@@ -783,6 +786,15 @@ static void capture_gate(uEnemy_Old* enemy, BattleGateState& out)
     out.actor_status = *(const uint32_t*)(base + kActorStatusOffset);
     out.mode = *(const uint32_t*)(base + kBattleModeOffset);
     out.battle_flag = *(const uint8_t*)(base + kBattleFlagOffset);
+    // the offsets are uEnemy's own; in other classes they fall on pointers, which differ between machines
+    const auto heap_word = [&](uintptr_t offset) {
+        const uint32_t v = *(const uint32_t*)((uintptr_t)(base + offset) & ~(uintptr_t)3);
+        uintptr_t block = 0;
+        uint32_t bytes = 0;
+        return v >= 0x10000 && heap_snapshot::locate(v, block, bytes) != nullptr;
+    };
+    if (heap_word(kBattleModeOffset)) out.mode = 0;
+    if (heap_word(kBattleFlagOffset)) out.battle_flag = 0;
     const void* target = *(const void* const*)(base + kEnemyTargetOffset);
     uintptr_t target_vtable = 0;
     if (!target || !read_unit_vtable((const cUnit*)target, target_vtable)) {
@@ -818,8 +830,14 @@ static void apply_gate(uEnemy_Old* enemy, const BattleGateState& snap)
     }
     char* base = (char*)enemy;
     *(uint32_t*)(base + kActorStatusOffset) = snap.actor_status;
-    *(uint32_t*)(base + kBattleModeOffset) = snap.mode;
-    *(uint8_t*)(base + kBattleFlagOffset) = snap.battle_flag;
+    const auto heap_word = [&](uintptr_t offset) {   // as capture_gate: not uEnemy's fields in this class
+        const uint32_t v = *(const uint32_t*)((uintptr_t)(base + offset) & ~(uintptr_t)3);
+        uintptr_t block = 0;
+        uint32_t bytes = 0;
+        return v >= 0x10000 && heap_snapshot::locate(v, block, bytes) != nullptr;
+    };
+    if (!heap_word(kBattleModeOffset)) *(uint32_t*)(base + kBattleModeOffset) = snap.mode;
+    if (!heap_word(kBattleFlagOffset)) *(uint8_t*)(base + kBattleFlagOffset) = snap.battle_flag;
     if (snap.target_kind == 0 || snap.target_kind == 1) {
         *(void**)(base + kEnemyTargetOffset) = nullptr;
     }
@@ -901,6 +919,13 @@ void scrub_desync_noise(BattleSnapshot& snap)
     }
     for (uint32_t i = 0; i < snap.enemy_count; ++i) {
         scrub_model(snap.enemies[i].model);
+        EnemyState& e = snap.enemies[i];
+        for (MtVector3* v : {&e.position, &e.velocity, &e.rotation, &e.scale, &e.actor_velocity, &e.actor_acceleration,
+                 &e.target_position, &e.knockback_position, &e.knockback_rotation}) {
+            scrub_denormal(v->x);
+            scrub_denormal(v->y);
+            scrub_denormal(v->z);
+        }
     }
 }
 
@@ -1556,7 +1581,7 @@ bool capture_battle(sDevil4Main* main, uint64_t sim_time_us, BattleSnapshot& out
 {
     // No whole-record memset: a braced assignment materializes a whole BattleSnapshot
     // temporary on the stack, and the joint cursors pushed that past the 1 MiB game stack -
-    // and zeroing the ~4 MiB record on every save costs more than the pack itself at nine
+    // and zeroing the ~6 MiB record on every save costs more than the pack itself at nine
     // saves per presented frame. Everything below is fully rewritten per capture except the
     // camera and the pad, which are only captured when present; every present unit's record
     // clears itself (capture_player / capture_enemy -> capture_model), and unit records

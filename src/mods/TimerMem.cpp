@@ -1,4 +1,5 @@
 #include "TimerMem.hpp"
+#include "../sdk/Rollback.hpp"
 #include "TrickDown.hpp"
 #include "MoveTable.hpp"
 
@@ -167,6 +168,7 @@ naked void back_forward_detour(void) { // resets timer, player in ebx
 }
 
 std::optional<std::string> TimerMem::on_initialize() {
+    rollback::add_range("TimerMem timer", &TimerMem::timer_mem, sizeof TimerMem::timer_mem);   // rollback netplay
 	if (!install_hook_offset(0x003AD767, timer_hook, &timer_detour, &timer_jmp_ret, 13)) {
 		spdlog::error("Failed to init TimerMem mod\n");
 		return "Failed to init TimerMem mod";

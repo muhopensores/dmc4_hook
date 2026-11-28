@@ -6,6 +6,7 @@
 #include "CoopPvp.hpp"
 #include "../../mod.hpp"
 #include "../../sdk/Cam.hpp"
+#include "../../sdk/SimView.hpp"
 #include "../../mods/MultiCharFixes.hpp"
 #include "../../mods/EnemyAI.hpp"
 #include <cstring>
@@ -692,6 +693,38 @@ void set_inter_flags(uintptr_t mgr, uintptr_t player) {
     }
 }
 
+bool fixed_views = false;
+unsigned long fixed_views_thread = 0;
+
+bool in_fixed_views() {
+    return fixed_views && GetCurrentThreadId() == fixed_views_thread;
+}
+
+int aggro_slot(uintptr_t enemy) {
+    const Aggro* a = find_aggro(enemy);
+    return a ? a->slot : -1;
+}
+
+int lock_entries(int slot, uintptr_t* actors, float* lengths, uint8_t* in, uint8_t* camera_in, int max) {
+    if (slot < 0 || slot >= kMaxPlayers) return 0;
+    const LockCache& c = lock_cache[slot];
+    int n = 0;
+    for (int i = 0; i < c.n && n < max; ++i, ++n) {
+        actors[n] = at<uintptr_t>(c.e[i].target, kTgtModel);
+        lengths[n] = c.e[i].length;
+        in[n] = c.e[i].in;
+        camera_in[n] = c.e[i].camera_in;
+    }
+    return n;
+}
+
+// the camera whose view player `slot` sees (slot 0: viewport 0's, which may be a boss or event camera)
+static uintptr_t view_camera(int slot) {
+    if (slot >= 1 && slot < kMaxPlayers) return (uintptr_t)players[slot].cam;
+    const sCamera* cam = at<const sCamera*>(kCamera, 0);
+    return cam ? (uintptr_t)cam->viewports[0].mpCamera : 0;
+}
+
 // The targets' values from player `slot`'s position and view (mpPlayer must already be him: sub_4A8200's cone reads it).
 void compute_lock(uintptr_t mgr, int slot, uintptr_t player) {
     LockCache& c = lock_cache[slot];
@@ -705,6 +738,9 @@ void compute_lock(uintptr_t mgr, int slot, uintptr_t player) {
     if (vp && !vp->mpCamera) {
         vp = &cam->viewports[0];
     }
+    float planes[6][4];
+    const bool fixed = in_fixed_views();
+    const bool own_view = fixed && sim_view::camera_frustum(view_camera(slot), planes);
     for (uintptr_t list : {kMgrTop, kMgrSnatchTop}) {
         int n = 0;
         for (uintptr_t t = at<uintptr_t>(mgr, list); t && n < kMaxTargets && c.n < kMaxTargets; t = at<uintptr_t>(t, kTgtNext), ++n) {
@@ -721,8 +757,9 @@ void compute_lock(uintptr_t mgr, int slot, uintptr_t player) {
             get_near_length(actor, center, &e.length, nullptr, &in, near_pos);   // also places the spheres in the world
             bool camera_in = false;
             const int spheres = at<int>(actor, kSphereCount);
-            for (int k = 0; vp && k < spheres && k < 16 && !camera_in; k++) {
-                camera_in = sphere_in_view(*vp, reinterpret_cast<const float*>(actor + kSpheres + k * kSphereStride));
+            for (int k = 0; (vp || fixed) && k < spheres && k < 16 && !camera_in; k++) {
+                const float* sphere = reinterpret_cast<const float*>(actor + kSpheres + k * kSphereStride);
+                camera_in = fixed ? (own_view && sim_view::sphere_in(planes, sphere)) : sphere_in_view(*vp, sphere);
             }
             e.in = (uint8_t)in;
             e.camera_in = camera_in ? 1 : 0;
@@ -787,6 +824,10 @@ void restore_lock() {
 int view_slot = -1;
 
 bool sphere_in_viewport(const void* camera_system, int slot, const float* sphere) {
+    if (in_fixed_views()) {
+        float planes[6][4];
+        return sim_view::camera_frustum(view_camera(slot), planes) && sim_view::sphere_in(planes, sphere);
+    }
     const sCamera* cam = static_cast<const sCamera*>(camera_system);
     const sCamera_ViewPort& vp = cam->viewports[slot];
     return vp.mpCamera != nullptr && sphere_in_view(vp, sphere);

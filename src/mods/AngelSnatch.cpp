@@ -1,4 +1,5 @@
 #include "AngelSnatch.hpp"
+#include "../sdk/Rollback.hpp"
 
 bool AngelSnatch::mod_enabled = false;
 bool snatchFlag = false;
@@ -183,6 +184,7 @@ naked void detour6(void) {
 }
 
 std::optional<std::string> AngelSnatch::on_initialize() {
+    rollback::add_range("AngelSnatch flag", &snatchFlag, sizeof snatchFlag);   // rollback netplay
     //if (!install_hook_offset(0x3F9CF2, hook1, &detour1, &jmp_ret1, 6)) {
     //    spdlog::error("Failed to init AngelSnatch mod\n");
     //    return "Failed to init AngelSnatch mod";

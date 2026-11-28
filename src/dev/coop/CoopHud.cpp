@@ -169,6 +169,13 @@ int __fastcall cock_draw(uintptr_t cock, uintptr_t edx, int view) {
     const bool split = split_screen();
     const bool reticle = is_reticle(cock);
     const int slot = piece_slot(cock);
+    if (Coop::mod_enabled && coop::online_view >= 0 && slot != coop::online_view) {
+        // online: only this machine's player's cockpit and reticle (player 1's slot also holds the shared pieces)
+        const uintptr_t vt = *reinterpret_cast<uintptr_t*>(cock);
+        if (slot != 0 || reticle || vt == 0xBC7658 || vt == 0xBC7448) {   // uCockpitNero / uCockpitDante
+            return 0;
+        }
+    }
     if (!reticle && slot >= 0 && slot < coop::kMaxPlayers) {
         DrawDiag& g = draw_diag_of[slot];
         ++g.calls;

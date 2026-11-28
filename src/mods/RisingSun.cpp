@@ -1,4 +1,5 @@
 #include "RisingSun.hpp"
+#include "../sdk/Rollback.hpp"
 #include "../sdk/BossMoves.hpp"
 
 #if 1
@@ -233,6 +234,7 @@ static void register_boss_move() {
 }
 
 std::optional<std::string> RisingSun::on_initialize() {
+    rollback::add_range("RisingSun kick", &kickFlag, sizeof kickFlag);   // rollback netplay
     if (!install_hook_offset(0x3CD359, hook1, &detour1, &jmp_ret1, 5)) {
 		spdlog::error("Failed to init RisingSun mod\n");
 		return "Failed to init RisingSun mod";

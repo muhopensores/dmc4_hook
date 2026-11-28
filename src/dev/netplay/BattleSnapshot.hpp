@@ -26,7 +26,7 @@
 //   - the full skeletal pose and skin matrices: root and per-joint MJOINT_WORK playback cursors
 //     travel as byte offsets, but the evaluated joint transforms and skinning output do not (the
 //     animation system rebuilds them from the restored cursors on the next tick).
-//   - the sMain job system (sDevil4Main::mJobs): DeterministicSimulation forces it serial.
+//   - the sMain job system (sDevil4Main::mJobs): CoopOnline's MainThreadJobs runs the ticks' jobs on one thread.
 //   - any RNG the game keeps outside these units: none found in the sdk headers.
 //   - state the move tick does not own. sDevil4Main::move keeps running after the block the
 //     CoopOnline detour replaces (0x8AF04C onwards: the sound/camera/mediator/score systems),
@@ -58,7 +58,7 @@ constexpr int kLineCamera = 0x17;                     // the game camera, Coop.c
 
 constexpr uint32_t kMaxPlayers = 8;    // Coop.cpp spawns up to 4 players; headroom for extras
 constexpr uint32_t kMaxEnemies = 64;   // Macro.cpp scanned 128; 64 caps the worst-case rollback
-                                       // state at ~4 MiB (see below)
+                                       // state at ~6 MiB with the parts (see below)
 
 constexpr uint32_t kWireMagic   = 0x444D4334u;   // "DMC4"
 // 14 removed the derived lock-on cache; 15 adds the per-joint sampler cursors that each motion
@@ -427,10 +427,11 @@ struct BattleSnapshot {
 // BattleSnapshot.cpp; including this header costs neither. Failure is reported through
 // false plus a `reason` string literal.
 //
-// Worst case bytes: kMaxPlayers + kMaxEnemies units, every slot filled, every slot
-// carrying a joint cursor per joint. Each JointCursorState is 36 wire bytes (3 u32
-// cursors + 6 floats), so the envelope is ~4 MiB. Feed the result to
-// GekkoConfig::state_size; the scratch itself is only the sizing probe.
+// Worst case bytes: kMaxPlayers + kMaxEnemies + kMaxParts units, every slot filled, every
+// slot carrying a joint cursor per joint. Each JointCursorState is 36 wire bytes (3 u32
+// cursors + 6 floats), so the envelope is ~6 MiB. Feed the result to
+// GekkoConfig::state_size (GekkoNet keeps one per ring slot); the scratch itself is only
+// the sizing probe.
 constexpr uint32_t kWireScratchBytes = 8u * 1024u * 1024u;
 
 uint32_t state_bytes();

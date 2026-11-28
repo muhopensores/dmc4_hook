@@ -48,12 +48,15 @@ void InfDT::on_gui_frame(int display) {
     }
 }
 
+static bool cfg_enabled = false;   // what the cfg says (DMC4_NO_CHEATS)
+
 void InfDT::on_config_load(const utility::Config& cfg) {
-    mod_enabled = cfg.get<bool>("infinite_dt").value_or(false);
+    mod_enabled = cfg_enabled = cfg.get<bool>("infinite_dt").value_or(false);
+    if (test_switch("DMC4_NO_CHEATS")) mod_enabled = false;   // test runs (netplay soak): the cfg keeps its value
 }
 
 void InfDT::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("infinite_dt", mod_enabled);
+    cfg.set<bool>("infinite_dt", test_switch("DMC4_NO_CHEATS") ? cfg_enabled : mod_enabled);
 }
 
 void InfDT::on_update_input(utility::Input& input) {

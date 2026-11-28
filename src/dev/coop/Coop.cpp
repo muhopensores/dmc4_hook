@@ -16,6 +16,8 @@
 #include "../../mods/Macro.hpp"
 #include "../../mods/ViewportWindow.hpp"
 #include "../../Console.hpp"
+#include "../netplay/CoopOnline.hpp"
+#include "../../sdk/TestSwitch.hpp"
 #include <atomic>
 #include <cstring>
 
@@ -48,6 +50,7 @@ uintptr_t Coop::jmp_ret_unit_init = NULL;
 namespace coop {
 
 Player players[kMaxPlayers] = {{0, 0}, {0, 1}, {0, 2}, {0, 3}};
+int online_view = -1;
 
 } // namespace coop
 
@@ -226,22 +229,35 @@ void apply_viewport_layout(bool main_camera = true) {
     layout_detached = detached;
 }
 
-// Player 1's view on the whole screen, the extra views off (a viewport without a camera isn't drawn).
-void apply_single_view() {
-    sCamera* s_cam = *(sCamera**)sCamera_ptr;
-    if (!s_cam) {
-        return;
-    }
-    s_cam->viewports[0].mMode = REGION_FULLSCREEN;
-    const int detached = vpwin::detached_viewport();   // the window keeps its view
+// Online, another player's view hides viewport 0 (update_online_view below); the single view shows it again.
+bool online_hid_main = false;
+
+// The extra players' cameras off their viewports (a viewport without a camera isn't drawn), except viewport `keep` and
+// the detached window's, which keeps its view.
+void clear_extra_views(sCamera* s_cam, int keep) {
+    const int detached = vpwin::detached_viewport();
     for (int v = 1; v < kMaxPlayers; v++) {
-        if (v == detached) continue;
+        if (v == detached || v == keep) continue;
         for (int i = 1; i < kMaxPlayers; i++) {
             if (players[i].cam && s_cam->viewports[v].mpCamera == players[i].cam) {
                 s_cam->viewports[v].mpCamera = nullptr;
             }
         }
     }
+}
+
+// Player 1's view on the whole screen, the extra views off.
+void apply_single_view() {
+    sCamera* s_cam = *(sCamera**)sCamera_ptr;
+    if (!s_cam) {
+        return;
+    }
+    s_cam->viewports[0].mMode = REGION_FULLSCREEN;
+    if (online_hid_main) {
+        s_cam->viewports[0].mActive = 1;
+        online_hid_main = false;
+    }
+    clear_extra_views(s_cam, -1);
 }
 
 // Viewport 0 shows a player's view: player 1's follow camera, or the boss camera (sMediator +0xD4, uCameraBoss::setup
@@ -287,10 +303,45 @@ bool layout_broken(const sCamera* s_cam) {
 // layout the game changed is put back (no Refresh needed after a portal or an event). DebugCam's / PhotoMode's free
 // camera (Gameplay Cam off) hides viewport 0 and puts itself full screen in viewport 1, player 2's: the split waits
 // until Gameplay Cam is back on.
+// Online play (coop::online_view): only this machine's player's view, full screen. Player 1's is viewport 0; another
+// player's is their own viewport, with viewport 0 inactive (mActive: not drawn, its camera kept, as the game and the
+// simulation read it); the pause menu, events and the free camera bring viewport 0 back, as the split does.
+void update_online_view(sCamera* s_cam) {
+    const int me = coop::online_view;
+    const int n = (int)Coop::player_num;
+    coop_hud::split_shown = false;
+    for (int i = 0; i < kMaxPlayers; i++) coop_hud::view_scaled[i] = false;
+    const bool own_view = me >= 1 && me < n && me < kMaxPlayers && players[me].unit && players[me].cam &&
+        !devil4_sdk::is_paused() && player_view_on_main(s_cam) && DebugCam::toggle_gameplay_cam;
+    clear_extra_views(s_cam, own_view ? me : -1);
+    if (own_view) {
+        sCamera_ViewPort& vp = s_cam->viewports[me];
+        vp.mpCamera = players[me].cam;
+        vp.mMode = REGION_FULLSCREEN;
+        vp.mAttr = 0x17;
+        vp.mActive = 1;
+        s_cam->viewports[0].mActive = 0;
+        online_hid_main = true;
+    } else {
+        s_cam->viewports[0].mMode = REGION_FULLSCREEN;
+        if (online_hid_main) {
+            s_cam->viewports[0].mActive = 1;
+            online_hid_main = false;
+        }
+    }
+}
+
 void update_split() {
     sCamera* s_cam = *(sCamera**)sCamera_ptr;
     if (!s_cam) {
         return;
+    }
+    if (coop::online_view >= 0) {
+        update_online_view(s_cam);
+        return;
+    }
+    if (online_hid_main) {   // the session ended while another player's view was shown
+        apply_single_view();
     }
     bool extra = false;
     for (int i = 1; i < (int)Coop::player_num && i < kMaxPlayers; i++) {
@@ -1061,21 +1112,26 @@ void* __fastcall nero_save_data(uintptr_t player, uintptr_t edx, void* dst) {
     return nero_save_original(player, edx, dst);
 }
 
-// sCamera::isDispSphere (edi = MtSphere, esi = sCamera, result in al): in a player 2-4's context, his viewport.
+// sCamera::isDispSphere (edi = MtSphere, esi = sCamera, result in al): in a player 2-4's context, their viewport.
 constexpr uintptr_t kIsDispSphere = 0x8EE300;
 uintptr_t disp_sphere_original = 0;
 
-bool __stdcall disp_sphere_for_view(const void* camera_system, const float* sphere) {
-    return coop_context::sphere_in_viewport(camera_system, coop_context::view_slot, sphere);
+// Under netplay's simulated ticks (coop_context::fixed_views, on that thread only: the render jobs keep the viewports)
+// player 1's context too gets their camera's own view. 2 = the game's own test.
+int __stdcall disp_sphere_for_view(const void* camera_system, const float* sphere) {
+    if (coop_context::in_fixed_views() || coop_context::view_slot >= 1) {
+        return coop_context::sphere_in_viewport(camera_system, coop_context::view_slot, sphere) ? 1 : 0;
+    }
+    return 2;
 }
 
 naked_extern void detour_disp_sphere() {
     __asm {
-        cmp dword ptr [coop_context::view_slot], 1
-        jl originalcode
         push edi
         push esi
         call disp_sphere_for_view
+        cmp eax, 2
+        je originalcode
         ret
     originalcode:
         jmp dword ptr [disp_sphere_original]

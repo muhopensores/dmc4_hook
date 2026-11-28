@@ -235,8 +235,12 @@ static void WINAPI startup_proc() {
 
     patch_more_memories();
 #ifndef PUBLIC_BUILD
-    heap_snapshot::install_early();   // before the game makes its heaps: rollback netplay saves their pages
-    local_world::install_early();     // its allocator hooks, before the game's threads run through the allocator
+    if (!test_switch("DMC4_NO_HEAP_WATCH")) {   // test switch (frame-rate checks): no write-watched heaps, no rollback
+        heap_snapshot::install_early();   // before the game makes its heaps: rollback netplay saves their pages
+    }
+    if (!test_switch("DMC4_NO_LOCAL_WORLD")) {   // test switch: no allocator hooks
+        local_world::install_early();     // its allocator hooks, before the game's threads run through the allocator
+    }
 #endif
 
     g_framework = std::make_unique<ModFramework>();

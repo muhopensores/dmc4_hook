@@ -1,4 +1,6 @@
 #include "CoopOnline.hpp"
+#include "sdk/TestSwitch.hpp"
+#include "sdk/HostRules.hpp"
 #include "sdk/sDevil4Main.hpp"
 #include "sdk/sCollision.hpp"
 #include "sdk/sMediator.hpp"
@@ -29,6 +31,9 @@
 #include <map>
 #include <string>
 #include <unordered_set>
+#include <unordered_map>
+#include <algorithm>
+#include <new>
 
 static constexpr auto MAX_PLAYERS = 4;
 
@@ -167,6 +172,7 @@ static std::map<int, std::vector<uint8_t>> g_latest_saves;   // diagnostics: the
 // diagnostics (DMC4_RNG_WATCH): the code that drew from the game's random stream in each tick (a write watch on its index)
 static bool g_rng_watch = false;
 static bool g_speed_watch = false;   // DMC4_WATCH_SPEED: the watch is on sDevil4Main::mGlobalSpeed
+static bool g_watch_values = false;  // DMC4_WATCH_PERM: the watched word's value goes with each writer
 static int g_tick_frame = -1;   // the frame run_simulation_tick is simulating (an advance event's), -1 = none
 static uint32_t g_tick_serial = 0;   // run_simulation_tick calls so far (diagnostics: which pass a log line is from)
 static uint32_t g_tick_input_hash = 0, g_tick_pad_hash[2] = {}, g_tick_raw_hash[2] = {};   // what the tick ran on
@@ -331,8 +337,8 @@ struct Devil4State {
             // with sStylishCount's gauge +0x18C, rank +0x20 and its repetition guard's timers (+0x2C, 30 x 12 bytes)
             char text[900];
             const uintptr_t sc = *(const uintptr_t*)0x00E558CC;
-            int at = snprintf(text, sizeof text, "save f%d pass %u input %08X pads %08X %08X raw %08X %08X gauge %.3f rank %d guard",
-                (int)event->data.save.frame, g_tick_serial, g_tick_input_hash, g_tick_pad_hash[0], g_tick_pad_hash[1],
+            int at = snprintf(text, sizeof text, "save f%d pass %u mti %d input %08X pads %08X %08X raw %08X %08X gauge %.3f rank %d guard",
+                (int)event->data.save.frame, g_tick_serial, (int)mt_random_mti(), g_tick_input_hash, g_tick_pad_hash[0], g_tick_pad_hash[1],
                 g_tick_raw_hash[0], g_tick_raw_hash[1], sc ? *(const float*)(sc + 0x18C) : 0.0f, sc ? *(const int*)(sc + 0x20) : -1);
             for (int k = 0; sc && k < 30 && at < (int)sizeof text - 12; ++k) {
                 if (*(const uint32_t*)(sc + 0x24 + 12 * k)) {
@@ -346,8 +352,71 @@ struct Devil4State {
             }
             probe_log(text);
             {
+                // the enemies' (move line 18) action words: +0x17C (action / phase) and +0x2A8
+                char e[2400];
+                int m = snprintf(e, sizeof e, "ems f%d", (int)event->data.save.frame);
+                const sUnit* su = (const sUnit*)*(const uintptr_t*)0x00E552CC;
+                int guard = 0;
+                for (uintptr_t u = su ? (uintptr_t)su->mMoveLine[18].mTop : 0; u && guard < 64 && m < (int)sizeof e - 40; u = *(const uintptr_t*)(u + 8), ++guard)
+                    m += snprintf(e + m, sizeof e - m, " %X:%08X/%X", *(const uint32_t*)u & 0xFFFF, *(const uint32_t*)(u + 0x17C), *(const uint32_t*)(u + 0x2A8));
+                probe_log(e);
+                // the enemies (move lines 15 and 16): position and the player Coop has each after
+                m = snprintf(e, sizeof e, "e15 f%d", (int)event->data.save.frame);
+                for (int line : {15, 16}) {
+                    guard = 0;
+                    for (uintptr_t u = su ? (uintptr_t)su->mMoveLine[line].mTop : 0; u && guard < 32 && m < (int)sizeof e - 60; u = *(const uintptr_t*)(u + 8), ++guard)
+                        m += snprintf(e + m, sizeof e - m, " %d.%X:%.0f %.0f %.0f/p%d", line, *(const uint32_t*)u & 0xFFFF, *(const float*)(u + 0x30),
+                            *(const float*)(u + 0x34), *(const float*)(u + 0x38), coop_context::aggro_slot(u) + 1);
+                }
+                for (int i = 0; i < 2 && m < (int)sizeof e - 40; ++i) {
+                    const uintptr_t pl = player_info::player(i);
+                    if (pl) m += snprintf(e + m, sizeof e - m, " pl%d %.0f %.0f %.0f", i + 1, *(const float*)(pl + 0x30), *(const float*)(pl + 0x34), *(const float*)(pl + 0x38));
+                }
+                probe_log(e);
+                // the first uEm032's joint block word by word (DMC4_EMJ_RAW)
+                static const bool emj_raw = test_switch("DMC4_EMJ_RAW") != nullptr;
+                for (uintptr_t u = (emj_raw && su) ? (uintptr_t)su->mMoveLine[18].mTop : 0; u; u = *(const uintptr_t*)(u + 8)) {
+                    if (*(const uint32_t*)u != 0x00BD7C30) continue;
+                    const uintptr_t joints = *(const uintptr_t*)(u + 0x2E4);
+                    uintptr_t jb = 0;
+                    uint32_t jn = 0;
+                    if (!joints || !heap_snapshot::locate(joints, jb, jn) || !jb) break;
+                    size_t len = jb + jn - joints;
+                    if (len > 0x1000) len = 0x1000;
+                    static char wide[0x1000 / 4 * 9 + 64];
+                    int w = snprintf(wide, sizeof wide, "emj f%d", (int)event->data.save.frame);
+                    for (size_t o = 0; o + 4 <= len && w < (int)sizeof wide - 10; o += 4)
+                        w += snprintf(wide + w, sizeof wide - w, " %08X", *(const uint32_t*)(joints + o));
+                    probe_log(wide);
+                    break;
+                }
+                // uEm032 (vtable 0xBD7C30): the parent matrix it rides (getOyaPos 0x713B00: +0x20A4 == 1 -> +0x2068 matrix)
+                m = snprintf(e, sizeof e, "em32 f%d", (int)event->data.save.frame);
+                guard = 0;
+                for (uintptr_t u = su ? (uintptr_t)su->mMoveLine[18].mTop : 0; u && guard < 64 && m < (int)sizeof e - 120; u = *(const uintptr_t*)(u + 8), ++guard) {
+                    if (*(const uint32_t*)u != 0x00BD7C30) continue;
+                    const uintptr_t mat = *(const uintptr_t*)(u + 0x2068);
+                    uintptr_t block = 0;
+                    uint32_t bytes = 0;
+                    const char* heap = mat ? heap_snapshot::locate(mat, block, bytes) : nullptr;
+                    m += snprintf(e + m, sizeof e - m, " #%d flag %d mat %s %08X+%X tag %X (%.3f %.3f %.3f) pos %.3f %.3f %.3f", guard,
+                        *(const uint8_t*)(u + 0x20A4), heap ? heap : "-", block ? *(const uint32_t*)block : 0u, (unsigned)(block ? mat - block : 0),
+                        block ? unit_tag(block) : 0u, mat ? ((const float*)mat)[12] : 0.f, mat ? ((const float*)mat)[13] : 0.f,
+                        mat ? ((const float*)mat)[14] : 0.f, *(const float*)(u + 0x30), *(const float*)(u + 0x34), *(const float*)(u + 0x38));
+                    const uintptr_t joints = *(const uintptr_t*)(u + 0x2E4);
+                    uintptr_t jb = 0;
+                    uint32_t jn = 0;
+                    const char* jheap = joints ? heap_snapshot::locate(joints, jb, jn) : nullptr;
+                    m += snprintf(e + m, sizeof e - m, " joints %s+%X/%X", jheap ? jheap : "-", (unsigned)(jb ? joints - jb : 0), jn);
+                    m += snprintf(e + m, sizeof e - m, " spheres %d s0 %.3f %.3f %.3f j0 %.3f %.3f %.3f", *(const int*)(u + 0xEF0),
+                        *(const float*)(u + 0xF00), *(const float*)(u + 0xF04), *(const float*)(u + 0xF08),
+                        joints ? *(const float*)(joints + 0x80) : 0.f, joints ? *(const float*)(joints + 0x84) : 0.f, joints ? *(const float*)(joints + 0x88) : 0.f);
+                }
+                probe_log(e);
+            }
+            {
                 // each player's camera angle (uPlayer +0x16F8, from his camera's eye and target) and the camera's eye
-                char t[300];
+                char t[600];
                 int n = snprintf(t, sizeof t, "cams f%d", (int)event->data.save.frame);
                 Coop* coop = get_coop_mod();
                 for (int i = 0; i < 2; ++i) {
@@ -359,7 +428,84 @@ struct Devil4State {
                         cam ? *(const float*)(cam + 0x34) : 0.0f, cam ? *(const float*)(cam + 0x38) : 0.0f,
                         pl ? *(const uint8_t*)(pl + 0x1E14) : 0, pl ? *(const uint8_t*)(pl + 0x3148) : 0);
                 }
+                {
+                    // the frustum the tick tested against (sCamera +0x60, viewport 0, written by the previous tail) and
+                    // whether viewport 0's camera is player 1's
+                    const uintptr_t sc = *(const uintptr_t*)0x00E552D4;
+                    if (sc) {
+                        n += snprintf(t + n, sizeof t - n, " frus");
+                        for (int k = 0; k < 24 && n < (int)sizeof t - 12; k += 4)
+                            n += snprintf(t + n, sizeof t - n, " %.4f", *(const float*)(sc + 0x60 + 4 * (k + 3)));
+                    }
+                }
                 probe_log(t);
+                {
+                    // the players' lock-on targets (uPlayer +0x2000 -> its actor +0x8) and player 2's cached values
+                    int q = snprintf(t, sizeof t, "lock f%d", (int)event->data.save.frame);
+                    for (int i = 0; i < 2; ++i) {
+                        const uintptr_t pl = player_info::player(i);
+                        const uintptr_t tg = pl ? *(const uintptr_t*)(pl + 0x2000) : 0;
+                        q += snprintf(t + q, sizeof t - q, " p%d %X", i + 1, tg ? unit_tag(*(const uintptr_t*)(tg + 8)) : 0u);
+                    }
+                    uintptr_t actors[24];
+                    float lengths[24];
+                    uint8_t ins[24], cams[24];
+                    const int ne = coop_context::lock_entries(1, actors, lengths, ins, cams, 24);
+                    for (int k = 0; k < ne && q < (int)sizeof t - 40; ++k)
+                        q += snprintf(t + q, sizeof t - q, " %X:%X:%.2f/%d%d", unit_tag(actors[k]), actors[k] ? *(const uint32_t*)actors[k] & 0xFFFF : 0u, lengths[k], ins[k], cams[k]);
+                    probe_log(t);
+                }
+                // player 2's camera unit and its cCameraPlayer (+0x498) word by word (DMC4_CAM_RAW): the first field that drifts
+                static const bool cam_raw = test_switch("DMC4_CAM_RAW") != nullptr;
+                if (cam_raw && coop && coop->mod_enabled && coop::players[1].cam) {
+                    const uintptr_t cam = (uintptr_t)coop::players[1].cam;
+                    const auto dump = [&](uintptr_t obj, const char* tag) {
+                        uintptr_t block = 0;
+                        uint32_t bytes = 0;
+                        if (!obj || !heap_snapshot::locate(obj, block, bytes) || !block) return;
+                        size_t len = block + bytes - obj;
+                        if (len > 0x1000) len = 0x1000;
+                        static char wide[0x1000 / 4 * 9 + 64];
+                        int w = snprintf(wide, sizeof wide, "%s f%d", tag, (int)event->data.save.frame);
+                        for (size_t o = 0; o + 4 <= len && w < (int)sizeof wide - 10; o += 4)
+                            w += snprintf(wide + w, sizeof wide - w, " %08X", *(const uint32_t*)(obj + o));
+                        probe_log(wide);
+                    };
+                    dump(cam, "camr");
+                    dump(*(const uintptr_t*)(cam + 0x498), "cpr");
+                }
+                // each player's two cancel-script managers (cCharTblMgr +0x1DD4 / +0x1DF8): the script's first 64 bytes hashed,
+                // the read position, done, the contact data
+                for (int i = 0; i < 2; ++i) {
+                    const uintptr_t pl = player_info::player(i);
+                    if (!pl) continue;
+                    int k = snprintf(t, sizeof t, "ctn f%d p%d", (int)event->data.save.frame, i + 1);
+                    for (uintptr_t mgr : {pl + 0x1DD4, pl + 0x1DF8}) {
+                        const uint8_t* top = *(const uint8_t* const*)(mgr + 0xC);
+                        const uint8_t* cur = *(const uint8_t* const*)(mgr + 0x10);
+                        uint32_t h = 2166136261u;
+                        for (int b = 0; top && b < 64; ++b) h = (h ^ top[b]) * 16777619u;
+                        k += snprintf(t + k, sizeof t - k, " | %08X +%X done %d contact", top ? h : 0u,
+                            (unsigned)(top && cur ? cur - top : 0), *(const uint8_t*)(mgr + 0x14));
+                        for (int b = 0x15; b < 0x24 && k < (int)sizeof t - 4; ++b) {
+                            k += snprintf(t + k, sizeof t - k, " %02X", *(const uint8_t*)(mgr + b));
+                        }
+                        {
+                            uintptr_t block = 0;
+                            uint32_t bytes = 0;
+                            const char* heap = top ? heap_snapshot::locate((uintptr_t)top, block, bytes) : nullptr;
+                            static const uintptr_t dll = (uintptr_t)GetModuleHandleA("dinput8.dll");
+                            const bool in_dll = (uintptr_t)top >= dll && (uintptr_t)top < dll + 0x1500000;
+                            k += snprintf(t + k, sizeof t - k, " in %s+%X/%X", in_dll ? "dll" : heap ? heap : "-",
+                                (unsigned)(in_dll ? (uintptr_t)top - dll : block ? (uintptr_t)top - block : 0), bytes);
+                        }
+                        k += snprintf(t + k, sizeof t - k, " bytes");
+                        for (int b = 0; top && b < 32 && k < (int)sizeof t - 4; ++b) {
+                            k += snprintf(t + k, sizeof t - k, "%02X", top[b]);
+                        }
+                    }
+                    probe_log(t);
+                }
             }
             {
                 // every mod's rewound state (sdk/Rollback), hashed with heap pointers left out
@@ -380,6 +526,15 @@ struct Devil4State {
             for (int line = 0; su && line < 32; ++line) {
                 int guard = 0;
                 for (uintptr_t u = (uintptr_t)su->mMoveLine[line].mTop; u && guard < 4096; u = *(uintptr_t*)(u + 8), ++guard) {
+                    if (*(const uint32_t*)u == 0x00BD75E8u) {
+                        // uEm030Spada: its effect flag +0x1A4C, its effect +0x1A1C (unit state bits), time step
+                        const uintptr_t e = *(const uintptr_t*)(u + 0x1A1C);
+                        char t[160];
+                        snprintf(t, sizeof t, "spada f%d L%d#%d flag %d effect %d state %d dt %.4f", (int)event->data.save.frame,
+                            line, guard, *(const uint8_t*)(u + 0x1A4C), e ? 1 : 0, e ? (int)(*(const uint32_t*)(e + 4) & 7) : -1,
+                            *(const float*)(u + 0x10));
+                        probe_log(t);
+                    }
                     if (*(const uint32_t*)u != 0x00BD7458u) continue;
                     char t[200];
                     snprintf(t, sizeof t, "shell f%d L%d#%d state %d/%d pos %.3f %.3f %.3f dt %.4f flags %d %d", (int)event->data.save.frame,
@@ -435,6 +590,13 @@ struct Devil4State {
         }
         netplay_snapshot::scrub_scratch_camera(snapshot.camera);
         netplay_snapshot::scrub_desync_noise(snapshot);
+        if (shake_log && snapshot.enemy_count && event->data.save.frame < 3) {
+            char t[200];
+            uint32_t b[3];
+            std::memcpy(b, &snapshot.enemies[0].velocity, 12);
+            snprintf(t, sizeof t, "scrubbed f%d enemies %u e0 velocity %08X %08X %08X", (int)event->data.save.frame, snapshot.enemy_count, b[0], b[1], b[2]);
+            probe_log(t);
+        }
         if (netplay_snapshot::pack_into(crc_bytes, capacity, crc_len, snapshot, reason)) {
             *event->data.save.checksum = netplay_snapshot::checksum_of(crc_bytes, crc_len);
             // the diagnostic diffs whatever produced the checksum, so it must hold the same bytes
@@ -444,7 +606,7 @@ struct Devil4State {
                 // it), written out at the first desync (flush_latest_saves) to diff against the peer's (netdump_tool diff)
                 const int f = (int)event->data.save.frame;
                 g_latest_saves[f].assign(crc_bytes, crc_bytes + crc_len);
-                while (!g_latest_saves.empty() && g_latest_saves.begin()->first < f - 400) {
+                while (!g_latest_saves.empty() && g_latest_saves.begin()->first < f - kLatestSavesKept) {
                     g_latest_saves.erase(g_latest_saves.begin());
                 }
             }
@@ -584,15 +746,29 @@ static void random_online_input(NetplayInputInfo& input, int control)
         x ^= x << 5;
         return x;
     };
-    input.mBtnOn = next() & 0xFFF0u;
+    // each pick is held 4-30 frames, as a player holds buttons and the stick: mispredictions stay near real play's (a
+    // new pick every frame would make nearly every remote input one)
+    static int hold = 0;
+    static uint32_t on = 0;
+    static float ax = 0.0f, ay = 0.0f;
+    static uint8_t tl = 0, tr = 0;
+    if (hold-- <= 0) {
+        hold = 4 + (int)(next() % 27);
+        on = next() & 0xFFF0u;
+        ax = (float)((int)(next() % 2001) - 1000) / 1000.0f;
+        ay = (float)((int)(next() % 2001) - 1000) / 1000.0f;
+        tl = (uint8_t)next();
+        tr = (uint8_t)next();
+    }
+    input.mBtnOn = on;
     input.mBtnTrg = input.mBtnOn & ~previous_on;
     input.mBtnRel = previous_on & ~input.mBtnOn;
     input.mBtnRep = input.mBtnTrg;
     previous_on = input.mBtnOn;
-    input.mAnlgX = (float)((int)(next() % 2001) - 1000) / 1000.0f;
-    input.mAnlgY = (float)((int)(next() % 2001) - 1000) / 1000.0f;
-    input.mTrgL = (uint8_t)next();
-    input.mTrgR = (uint8_t)next();
+    input.mAnlgX = ax;
+    input.mAnlgY = ay;
+    input.mTrgL = tl;
+    input.mTrgR = tr;
 }
 
 static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx& ctx);
@@ -603,6 +779,7 @@ static SimCtx g_sctx = {}; // Simulation Context
 
 static void fill_live_input_control(NetplayInputInfo& input, int control);
 static void apply_recorded_input_control(const NetplayInputInfo& recorded, int control);
+static sDevil4Pad* game_pad();
 static void dump_desync_states(int frame, uint32_t local, uint32_t remote);
 static Coop* get_coop_mod();
 
@@ -727,7 +904,7 @@ static void sound_after_rewind()
 
 static void begin_heap_snapshot(int rollback_frames)
 {
-    if (g_heap_restore && !heap_snapshot::begin(rollback_frames + 4)) {
+    if (g_heap_restore && !heap_snapshot::begin(rollback_frames + 4 + kResyncHeapFrames)) {
         spdlog::screen(fmt::format("netplay: heap snapshot unavailable ({}), restoring fields instead",
             heap_snapshot::stats().last_error), 0xFF4C4CFF);
     }
@@ -776,6 +953,8 @@ struct OnlineComponent : NetplayComponent {
 
     // readout for draw_ui, updated in move()
     float frames_ahead = 0.0f;
+    float ahead_average = 0.0f;   // frames_ahead, averaged (the time sync)
+    int wait_cooldown = 0;
     int avg_ping_ms = 0;
 
     // Set by the Connect button; the GekkoNet session itself only starts at the next stage
@@ -936,6 +1115,8 @@ struct OnlineComponent : NetplayComponent {
         session = nullptr;
         ctx->g_pace_scale = 1.0f;
         frames_ahead = 0.0f;
+        ahead_average = 0.0f;
+        wait_cooldown = 0;
         avg_ping_ms = 0;
         if (keyboard_owner_saved) {
             coop_pads::set_keyboard_owner(saved_keyboard_owner);
@@ -949,16 +1130,69 @@ struct OnlineComponent : NetplayComponent {
         }
     }
 
+    // diagnostics: what one presented frame of online play costs (the stats line every 600 frames)
+    struct FrameCost {
+        double move_ms = 0.0, max_ms = 0.0, save_ms = 0.0, load_ms = 0.0, interval_ms = 0.0;
+        int64_t last_start = 0;
+        uint32_t frames = 0, ticks = 0, loads = 0;
+    };
+    static FrameCost& frame_cost() { static FrameCost c; return c; }
+    struct FrameTimer {
+        LARGE_INTEGER t0{};
+        uint32_t serial0 = 0, saves0 = 0, loads0 = 0;
+        FrameTimer() {
+            QueryPerformanceCounter(&t0);
+            FrameCost& c = frame_cost();
+            if (c.last_start) {
+                c.interval_ms += qpc_ms(c.last_start, t0.QuadPart);
+            }
+            c.last_start = t0.QuadPart;
+            serial0 = g_tick_serial;
+            saves0 = heap_snapshot::stats().saves;
+            loads0 = heap_snapshot::stats().loads;
+        }
+        ~FrameTimer() {
+            LARGE_INTEGER t1;
+            QueryPerformanceCounter(&t1);
+            FrameCost& c = frame_cost();
+            const double ms = qpc_ms(t0.QuadPart, t1.QuadPart);
+            c.move_ms += ms;
+            if (ms > c.max_ms) c.max_ms = ms;
+            c.ticks += g_tick_serial - serial0;
+            const heap_snapshot::Stats& hs = heap_snapshot::stats();
+            if (hs.saves != saves0) c.save_ms += hs.last_save_ms;
+            c.loads += hs.loads - loads0;
+            if (hs.loads != loads0) c.load_ms += hs.last_load_ms;
+            ++c.frames;
+        }
+    };
+
     // One presented frame of online play: submit the local pad, report desyncs, then run
     // whatever GekkoNet answers with (advances include rollback re-runs). The move loop only
     // dispatches this while a session exists; without one it ticks directly in
     // devil4_main_move_loop.
     void move(sDevil4Main* main) override {
-        // Adaptive pacing, OnlineSession.cpp handle_frame_time: when this session runs ahead
-        // of its slowest peer, stretch the frame deadline ~1.6% so the slower machine catches
-        // up instead of this one stalling on missing inputs. Never speeds the pacer up.
+#if defined(_DEBUG) || !defined(PUBLIC_BUILD)
+        FrameTimer frame_timer;   // the cost line
+#endif
+        g_local_control = local_control;
+        coop::online_view = (g_online_split || g_online_split_test) ? -1 : local_control;
+        // Time sync: GekkoNet's frames-ahead reading swings frame to frame, so it is averaged; while this machine is on
+        // average more than 1.5 frames ahead of its slowest peer it waits one whole frame (this frame's deadline twice as
+        // long), at most every 8 frames, and the peer catches up a frame each time: a whole frame closes a gap of several
+        // frames, where stretching every frame a little leaves the machine behind rolling back that far. Never speeds
+        // the pacer up.
         frames_ahead = gekko_frames_ahead(session);
-        ctx->g_pace_scale = frames_ahead > 0.5f ? 1.0f / 1.016f : 1.0f;
+        ahead_average += (frames_ahead - ahead_average) * 0.1f;
+        if (wait_cooldown > 0) {
+            --wait_cooldown;
+        }
+        ctx->g_pace_scale = 1.0f;
+        if (ahead_average > 1.5f && wait_cooldown == 0) {
+            ctx->g_pace_scale = 0.5f;
+            ahead_average -= 1.0f;   // the frame this wait gives back
+            wait_cooldown = 8;
+        }
 
         // Network readout, OnlineSession.cpp-style but on the screen overlay. Rollback stats
         // count how often the prediction actually had to rewind (and how deep).
@@ -977,19 +1211,21 @@ struct OnlineComponent : NetplayComponent {
         }
         GekkoRollbackStats rollback {};
         gekko_rollback_stats(session, &rollback);
+#if defined(_DEBUG) || !defined(PUBLIC_BUILD)
         {
             static int presented = 0;
             if (++presented % 600 == 0) {
-                char text[200];
+                char text[320];
                 snprintf(text, sizeof text, "stats: ping %.1f ms, frames ahead %.2f, rollbacks %u avg %.1f max %u, stalls %u",
                     netstats.avg_ping, frames_ahead, (unsigned)rollback.total_count, rollback.avg_frames,
                     (unsigned)rollback.max_frames, (unsigned)rollback.total_stalls);
                 probe_log(text);
             }
         }
+#endif
         const bool local_pad_ok = coop_pads::connected(local_control);
         spdlog::screen(fmt::format(
-            "net | P {:4.1f}ms PA {:4.1f}ms J {:4.1f}ms | S {:5.2f} R {:5.2f} KB/s | FA {:5.2f} | D {} W {} | RB {} avg {:.1f} max {} stalls {} | pad{} {}",
+            "net | P {:4.1f}ms PA {:4.1f}ms J {:4.1f}ms | S {:5.2f} R {:5.2f} KB/s | FA {:5.2f} | D {} W {} | RB {} avg {:.1f} max {} stalls {} | RS {} | pad{} {}",
             last_ping, netstats.avg_ping, netstats.jitter, netstats.kb_sent, netstats.kb_received,
             frames_ahead, peers[local_control].local_delay, prediction_window,
             rollback.total_count, rollback.avg_frames, rollback.max_frames, rollback.total_stalls,
@@ -1128,8 +1364,11 @@ struct OnlineComponent : NetplayComponent {
         num_players = highest + 1;
         connect_requested = true;
         coop_prep_pending = true;
-        spdlog::screen(fmt::format("netplay: armed from the command line, {} players, local {}",
-            num_players, local_control), 0xFF9ACDFF);
+        char text[120];
+        snprintf(text, sizeof text, "lobby start %u: %s %d, difficulty %d, player 1 as %d", (unsigned)s.id,
+            s.bloody_palace ? "Bloody Palace floor" : "mission", s.bloody_palace ? s.floor : s.mission, s.difficulty,
+            s.character);
+        probe_log(text);
     }
 
     void draw_ui() override {
@@ -1151,6 +1390,7 @@ struct OnlineComponent : NetplayComponent {
         if (prediction_window > kMaxPredictionWindow) {
             prediction_window = kMaxPredictionWindow;
         }
+    }
 
         int local = local_control;
         if (ImGui::InputInt("This machine plays player #", &local, 1, 1)) {
@@ -1170,7 +1410,6 @@ struct OnlineComponent : NetplayComponent {
             if (peers[i].local_delay > kMaxLocalDelay) {
                 peers[i].local_delay = kMaxLocalDelay;
             }
-            ImGui::PopID();
         }
         if (session) {
             ImGui::EndDisabled();
@@ -1440,7 +1679,7 @@ static bool rng_trace_enabled()
     static int enabled = -1;
     if (enabled < 0) {
         char value[8] = {};
-        enabled = GetEnvironmentVariableA("DMC4_RNG_TRACE", value, sizeof value) != 0 ? 1 : 0;
+        enabled = test_switch("DMC4_RNG_TRACE") != nullptr ? 1 : 0;
     }
     return enabled != 0;
 }
@@ -1455,11 +1694,99 @@ static void call_tail_system(void* system, size_t slot_bytes, const char* name)
     }
 }
 
+
+// A camera counts its shake units (uDevilCamera +0x270) and takes no new one at 8 (vibReq 0x531B60 / 0x531A80, vib2Req
+// 0x531AF0); each request counts on its camera, but the unit's destructor (uVegasControl 0x8A9EA8) takes one off
+// sMediator::mpCamera, whichever camera is current when the unit is deleted. In co-op that is often another player's, so
+// the counts drift, differently on each machine, and a request skipped on one machine and not the other (its spawn draws
+// from the random stream) splits the games. Under netplay the cap is off: the counts are kept but never read; the cap
+// only limits screen shake. With DMC4_SHAKE_LOG's hooks on 0x531A80 / 0x531AF0 the first two immediates live in their
+// trampolines, so the cap stays on for those two there (diagnostics only).
+static void shake_cap(bool on)
+{
+    static bool current = true;
+    if (on == current) {
+        return;
+    }
+    current = on;
+    for (uintptr_t at : {0x00531A86u, 0x00531AF6u, 0x00531B6Bu}) {   // each `cmp dword ptr [reg+270h], 8`: its immediate
+        DWORD old_protect = 0;
+        VirtualProtect((void*)at, 1, PAGE_EXECUTE_READWRITE, &old_protect);
+        *(uint8_t*)at = on ? 0x08 : 0xFF;   // -1: never reached
+        VirtualProtect((void*)at, 1, old_protect, &old_protect);
+    }
+}
+
+// sMain::executeJob 0x90DC80 runs its jobs on mJobPt (+0x8C) threads, which take them from one queue in whatever order
+// they get there; with 1 the main thread runs them all, in queue order. Simulated ticks and tails run that way under
+// netplay and the probe (the units draw from the one random stream); presentation between them keeps the game's threads.
+struct MainThreadJobs {
+    uint32_t* count = nullptr;
+    uint32_t saved = 0;
+    explicit MainThreadJobs(sDevil4Main* main, bool on) {
+        if (on && main) {
+            count = (uint32_t*)((unsigned char*)main + 0x8C);
+            saved = *count;
+            *count = 1;
+        }
+    }
+    ~MainThreadJobs() { if (count) *count = saved; }
+};
+
+// This machine asks for a pause: its trainer is open with Trainer Pauses on, its pause hotkey / checkbox is on, or Esc /
+// Start paused it (g_menu_paused). Sent in its input (kInputPause), so every machine pauses the same ticks: one machine
+// pausing alone would split the session.
+static bool local_pause_wanted()
+{
+    return (WorkRate::menu_open && TrainerPause::mod_enabled) || WorkRate::hotkey_paused || g_menu_paused;
+}
+
+struct SimSpeed {
+    sWorkRate* wr = nullptr;
+    bool paused = false;
+    SimSpeed(bool online, bool pause) {
+        if (!online || !(wr = devil4_sdk::get_work_rate())) {
+            wr = nullptr;
+            return;
+        }
+        if (!g_sim_speed_known) {
+            g_sim_speed = wr->global_speed > 0.0f ? wr->global_speed : 1.0f;   // a machine paused when the session began
+            g_sim_speed_known = true;
+        }
+        paused = pause;
+        wr->global_speed = paused ? 0.0f : g_sim_speed;
+    }
+    ~SimSpeed() {
+        if (!wr) return;
+        if (!paused) g_sim_speed = wr->global_speed;   // what the tick set (the game's own slowdowns) carries on
+        wr->global_speed = g_sim_speed;
+    }
+};
+
+// What the simulation calls the view (isDispSphere, lock-on): each player's camera with one aspect ratio
+// (sdk/SimView.hpp, answered by Coop's isDispSphere hook and lock-on cache), not the viewports, whose frusta follow the
+// screen (split layout, a view in its own window, window shape) and differ between machines. Only on this thread: the
+// render jobs that run beside the tick keep culling with the viewports.
+struct SimViews {
+    bool on = false;
+    explicit SimViews(bool want) {
+        if (!want) return;
+        on = true;
+        coop_context::fixed_views_thread = GetCurrentThreadId();
+        coop_context::fixed_views = true;
+    }
+    ~SimViews() {
+        if (on) coop_context::fixed_views = false;
+    }
+};
+
 static void run_tail_simulation(sDevil4Main* main)
 {
     if (!main) {
         return;
     }
+    SimViews sim_views(fixed_timing_wanted());
+    MainThreadJobs main_thread_jobs(main, fixed_timing_wanted());
     // sDevil4Main::move's tail block is 0x8AF04C..0x8AF13B (read in the IDB): it calls
     // 0x1037C, 0x103C0, 0x10378, 0x10358, 0x103A0, 0x103AC (all vtable +0x18),
     // 0x103A8 (+0x24), sDevil4Sound (sDevil4Sound::mpInstance 0x00E47D38), 0x103A4, 0x10390,
@@ -1467,15 +1794,13 @@ static void run_tail_simulation(sDevil4Main* main)
     // and after two of them the presentation helpers sub_AA7F40 (vertex-buffer
     // Unlock on 0x10378), sub_8F33B0 (the 0x10348 present: WaitForSingleObject +
     // D3D present) and sub_8AFD60 (SetThreadExecutionState), which stay out.
-    // The replay used to run sWorkRate before sMediator/sSave and never called
-    // 0x10378, 0x00E47D38 or the 32-list walk sub_8AFE20 (list heads at main +
-    // 0x102F0, stride 24, 0x300 bytes - the pass that moves the stage units the
-    // roamers note at :841 lost during a rollback). 0x103A4::move is 0x00484B40,
-    // an empty stub, so it needs no replay. Every field the two sides of a save
-    // pair disagreed on at the first desync of the online run (netdump f173:
-    // model.now_frame_quat/now_frame_pos, facing_direction, the cancel-permission
-    // bytes 0x0C51..0x0C5A, enemies[] position/target_position/knockback_*) is
-    // written by one of those three, with pad and MtRandom state identical.
+    // The order is the game's: sWorkRate after sMediator / sSave. 0x10378, 0x00E47D38 and
+    // the 32-list walk sub_8AFE20 (list heads at main + 0x102F0, stride 24, 0x300 bytes:
+    // the pass that moves the stage units) all write state the checksum covers
+    // (model.now_frame_quat / now_frame_pos, facing_direction, the cancel-permission
+    // bytes 0x0C51..0x0C5A, enemies[] position / target_position / knockback_*), so a
+    // replay without them splits the machines. 0x103A4::move is 0x00484B40, an empty
+    // stub, so it needs no replay.
     if (full_tail()) {
         call_tail_system(main_member(main, 0x1037C), 0x18, "sDevil4Effect");
     }
@@ -1774,10 +2099,16 @@ static void apply_recorded_input(const unsigned char* inputs)
     write_input_to_pad(*(const NetplayInputInfo*)inputs, game_pad());
 }
 
-// Online: every player's recorded input goes to his own control's pad.
+// Online: every player's recorded input goes to their own control's pad. Control 0's also goes to the game's own pad when
+// it plays on another: the game's menus read that one, and on each machine it otherwise holds whatever that machine's
+// hardware or co-op settings put there.
 static void apply_recorded_input_control(const NetplayInputInfo& recorded, int control)
 {
-    write_input_to_pad(recorded, netplay_pad_for(control));
+    sDevil4Pad* pad = netplay_pad_for(control);
+    write_input_to_pad(recorded, pad);
+    if (control == 0 && game_pad() && game_pad() != pad) {
+        write_input_to_pad(recorded, game_pad());
+    }
 }
 
 static Coop* get_coop_mod()
@@ -2197,7 +2528,9 @@ static void select_mode(NetplayMode mode) {
     if (g_mode == mode) {
         return;
     }
-    if (g_netplay) {
+    if (g_mode == NetplayMode::Online) {
+        g_online_component.leave();   // the lobby's port, the armed connect and the host's rules go with it
+    } else if (g_netplay) {
         g_netplay->end_session();
     }
     g_netplay = mode == NetplayMode::Online ? (NetplayComponent*)&g_online_component
@@ -2296,7 +2629,6 @@ static void update_simulation_timing(sDevil4Main* main)
 // request 30fps lock. 30fps paths are not tested
 // this locks to 60, from FramePacer.hpp
 static std::unique_ptr<FunctionHook> g_smain_move_timing_hook;
-static bool fixed_timing_wanted();
 void __fastcall sMain_move_fixed(uint8_t* self, void* unused0)
 {
     // the game's own timing unless a netplay mode or the rollback probe needs the fixed clock
@@ -2307,7 +2639,11 @@ void __fastcall sMain_move_fixed(uint8_t* self, void* unused0)
     sDevil4Main* main = (sDevil4Main*)self;
     if (!g_sctx.g_resimulating) {
         // g_pace_scale <= 1: only ever slows the pacer, and only the online component sets it.
+        LARGE_INTEGER w0, w1;
+        QueryPerformanceCounter(&w0);
         wait_for_next_frame_deadline(main->mFps * g_sctx.g_pace_scale);
+        QueryPerformanceCounter(&w1);
+        g_cost_wait_ms += qpc_ms(w0.QuadPart, w1.QuadPart);
     }
     update_simulation_timing(main);
 }
@@ -2399,6 +2735,37 @@ static void settle_loads(sDevil4Main* main)
     }
     call_system((void*)res, 0x18);
 }
+
+// The keyboard isn't in the input the machines share, and both games read it even in the background (BackgroundRendering):
+// a key pressed anywhere would reach each machine's tick at another time (the player's interface 0x7A9440,
+// setInterfaceInfoKB, the camera, Coop's peripheral update). Ticks run with no key down; the state is back for the menus
+// and the GUI after.
+struct NeutralKeyboard {
+    uint32_t saved[6][8];
+    sKeyboard* kb = nullptr;
+    explicit NeutralKeyboard(bool on)
+    {
+        kb = on ? *(sKeyboard**)0x00E559C0 : nullptr;   // sKeyboard::mpInstance
+        if (!kb) {
+            return;
+        }
+        uint32_t* parts[6] = {kb->mState.on, kb->mState.old, kb->mState.trg, kb->mState.release, kb->mState.change, kb->mState.rep};
+        for (int i = 0; i < 6; ++i) {
+            std::memcpy(saved[i], parts[i], sizeof saved[i]);
+            std::memset(parts[i], 0, sizeof saved[i]);
+        }
+    }
+    ~NeutralKeyboard()
+    {
+        if (!kb) {
+            return;
+        }
+        uint32_t* parts[6] = {kb->mState.on, kb->mState.old, kb->mState.trg, kb->mState.release, kb->mState.change, kb->mState.rep};
+        for (int i = 0; i < 6; ++i) {
+            std::memcpy(parts[i], saved[i], sizeof saved[i]);
+        }
+    }
+};
 
 static void run_simulation_tick(sDevil4Main* main, GekkoGameEvent* event, SimCtx& ctx)
 {
@@ -2645,8 +3012,6 @@ static uintptr_t g_watch_address = 0;           // test switch DMC4_WATCH=<hex o
 static volatile LONG g_watch_hits = 0;
 constexpr DWORD kArmWatch = 0xE0D40001;
 
-static void probe_log(const char* text);
-
 // Return addresses on the stack (the game's code and this DLL's), for the watch log.
 static void stack_addresses(const CONTEXT& c, char* out, size_t n)
 {
@@ -2697,9 +3062,39 @@ static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
     }
     if (code == EXCEPTION_SINGLE_STEP && (c.Dr6 & 1) && g_rng_watch) {
         c.Dr6 = 0;
+        static const bool rng_hist = test_switch("DMC4_RNG_HIST") != nullptr;
+        if (rng_hist) {
+            // every draw site with the first code addresses on its stack, counted (netdump/rnghist_<pid>.txt)
+            char stack[160];
+            stack_addresses(c, stack, sizeof stack);
+            char key[200];
+            snprintf(key, sizeof key, "%s %08X%s", g_in_sim_tick ? "tick" : "out ", c.Eip == 0x00405603 ? *(const uint32_t*)c.Esp : (unsigned)c.Eip, stack);
+            static std::unordered_map<std::string, uint32_t> hist;
+            static uint32_t draws = 0;
+            ++hist[key];
+            if (++draws % 20000 == 0) {
+                std::vector<std::pair<uint32_t, std::string>> rows;
+                for (const auto& [k, n] : hist) rows.emplace_back(n, k);
+                std::sort(rows.rbegin(), rows.rend());
+                char name[MAX_PATH];
+                sprintf_s(name, "netdump/rnghist_%lu.txt", GetCurrentProcessId());
+                CreateDirectoryA("netdump", NULL);
+                if (FILE* out = std::fopen(name, "w")) {
+                    for (const auto& [n, k] : rows) std::fprintf(out, "%8u %s\n", n, k.c_str());
+                    std::fclose(out);
+                }
+            }
+        }
         if (g_rng_eips.size() < 8192) {
             // MtRandom::nextTable 0x4055E0 is a leaf: after its write the caller is at [esp]
             g_rng_eips.push_back(c.Eip == 0x00405603 ? *(const uint32_t*)c.Esp : (uint32_t)c.Eip);
+            if (g_watch_values) {
+                char stack[120];
+                stack_addresses(c, stack, sizeof stack);
+                char text[200];
+                snprintf(text, sizeof text, " = %08X%s", *(const uint32_t*)g_watch_address, stack);
+                g_rng_stacks.emplace_back(text);
+            }
         }
         static const uint32_t stack_of = std::getenv("DMC4_RNG_STACK") ? std::strtoul(std::getenv("DMC4_RNG_STACK"), nullptr, 16) : 0;
         if (stack_of && c.Eip == 0x00405603 && *(const uint32_t*)c.Esp == stack_of && g_rng_stacks.size() < 64) {
@@ -2716,9 +3111,9 @@ static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
             char stack[160];
             stack_addresses(c, stack, sizeof stack);
             char line[300];
-            snprintf(line, sizeof line, "watch: %08X now %08X at %08X, %s tick %d, probe frame %d, stack%s",
+            snprintf(line, sizeof line, "watch: %08X now %08X at %08X, %s tick %d, probe frame %d, in sim %d f%d, stack%s",
                 (unsigned)g_watch_address, *(const uint32_t*)g_watch_address, (unsigned)c.Eip, g_probe_phase, g_probe_tick,
-                g_probe.frame, stack);
+                g_probe.frame, (int)g_in_sim_tick, g_tick_frame, stack);
             probe_log(line);
         }
         return EXCEPTION_CONTINUE_EXECUTION;
@@ -2727,8 +3122,9 @@ static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
         return EXCEPTION_CONTINUE_SEARCH;
     }
     char line[200];
-    snprintf(line, sizeof line, "fault at %08X reading %08X, %s tick %d, probe frame %d", (unsigned)c.Eip,
-        (unsigned)info->ExceptionRecord->ExceptionInformation[1], g_probe_phase, g_probe_tick, g_probe.frame);
+    snprintf(line, sizeof line, "fault at %08X reading %08X, %s tick %d, probe frame %d, f%d%s", (unsigned)c.Eip,
+        (unsigned)info->ExceptionRecord->ExceptionInformation[1], g_probe_phase, g_probe_tick, g_probe.frame, g_tick_frame,
+        g_sctx.g_resimulating ? " (again)" : "");
     probe_log(line);
     const char* names[] = {"eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"};
     const DWORD values[] = {c.Eax, c.Ebx, c.Ecx, c.Edx, c.Esi, c.Edi, c.Ebp};
@@ -2765,7 +3161,57 @@ static LONG CALLBACK probe_fault_logger(EXCEPTION_POINTERS* info)
 static void arm_rng_watch()
 {
     static bool armed = false;
-    if (!armed && std::getenv("DMC4_WATCH_SPEED")) {
+    if (!armed && test_switch("DMC4_WATCH_PERM")) {
+        // player 1's cancel permissions (uPlayer +0x1E14): every write, with its code and value, kept per tick like the
+        // random draws (netdump/rng_<pid>_f<n>.txt at the first desync)
+        const int which = std::atoi(test_switch("DMC4_WATCH_PERM")) - 1;   // 1 = player 1, 2 = player 2
+        const uintptr_t pl = player_info::player(which < 0 ? 0 : which);
+        if (!pl) {
+            return;
+        }
+        armed = true;
+        install_fault_logger();
+        g_watch_address = pl + 0x1E14;
+        g_rng_watch = true;
+        g_watch_values = true;
+        RaiseException(kArmWatch, 0, 0, nullptr);
+        return;
+    }
+    if (!armed && test_switch("DMC4_WATCH_JOINT")) {
+        // player 1's joint 0 world matrix, translation x (uModel +0x2E4 mpJoint, 0x90 a joint, world matrix +0x50)
+        // DMC4_WATCH_JOINT=<move line>: the first unit there with joints and lock-on spheres (uActor +0xEF0); 0 = player 1
+        const int line = std::atoi(test_switch("DMC4_WATCH_JOINT"));
+        uintptr_t pl = line <= 0 ? player_info::player(0) : 0;
+        const sUnit* su = (const sUnit*)*(const uintptr_t*)0x00E552CC;
+        for (uintptr_t u = (line > 0 && line < 32 && su) ? (uintptr_t)su->mMoveLine[line].mTop : 0; u && !pl; u = *(const uintptr_t*)(u + 8))
+            if (*(const uintptr_t*)(u + 0x2E4) && *(const int*)(u + 0xEF0) > 0) pl = u;
+        const uintptr_t joints = pl ? *(const uintptr_t*)(pl + 0x2E4) : 0;
+        if (!joints) {
+            return;
+        }
+        char text[120];
+        snprintf(text, sizeof text, "watching joint 0 of %08X (vtable %08X)", (unsigned)pl, *(const unsigned*)pl);
+        probe_log(text);
+        armed = true;
+        install_fault_logger();
+        // the joint lock-on sphere 0 hangs on (uActor +0xF10 joint number -> +0x2E8 table -> joint index), else joint 0
+        uintptr_t joint = joints;
+        const int no = *(const int*)(pl + 0xF10);
+        const uintptr_t table = *(const uintptr_t*)(pl + 0x2E8);
+        if (line > 0 && no >= 0 && table && *(const uint8_t*)(table + (uint8_t)no) != 255)
+            joint = joints + 0x90 * *(const uint8_t*)(table + (uint8_t)no);
+        g_watch_address = joint + 0x80;
+        RaiseException(kArmWatch, 0, 0, nullptr);
+        return;
+    }
+    if (!armed && test_switch("DMC4_WATCH_FRUSTUM")) {
+        armed = true;
+        install_fault_logger();
+        g_watch_address = *(const uintptr_t*)0x00E552D4 + 0x60;   // sCamera::mpInstance, viewport 0's frustum
+        RaiseException(kArmWatch, 0, 0, nullptr);
+        return;
+    }
+    if (!armed && test_switch("DMC4_WATCH_SPEED")) {
         armed = true;
         install_fault_logger();
         g_watch_address = *(const uintptr_t*)0x00E5574C + 0x74;   // sDevil4Main::mpInstance, mGlobalSpeed
@@ -3320,6 +3766,13 @@ static void draw_rollback_ui()
 #pragma endregion
 
 static void __stdcall devil4_main_move_loop(sDevil4Main* main) {
+#if defined(_DEBUG) || !defined(PUBLIC_BUILD)
+    struct LoopTimer {   // diagnostics: the cost line's move loop
+        LARGE_INTEGER t0{};
+        LoopTimer() { QueryPerformanceCounter(&t0); }
+        ~LoopTimer() { LARGE_INTEGER t1; QueryPerformanceCounter(&t1); g_cost_loop_ms += qpc_ms(t0.QuadPart, t1.QuadPart); }
+    } loop_timer;
+#endif
     // Every presented frame opens a page-observation interval; the journal's loop clock
     // only advances here so a rollback burst stays inside one interval.
     netplay_test::page_loop_begin();
@@ -3329,7 +3782,7 @@ static void __stdcall devil4_main_move_loop(sDevil4Main* main) {
         static bool routed = false;
         if (!routed) {
             // the GPU particles' own per-frame allocations (their prelude and tail calls, 0xAA0000..0xAB0000)
-            if (!GetEnvironmentVariableA("DMC4_NO_ROUTE", nullptr, 0)) {
+            if (!test_switch("DMC4_NO_ROUTE")) {
                 local_world::route_code(0x00AA0000, 0x00AB0000);
             }
             routed = true;
@@ -3337,8 +3790,12 @@ static void __stdcall devil4_main_move_loop(sDevil4Main* main) {
         local_world::set_enabled(fixed_timing_wanted());
     }
 
-    // while netplay or the probe runs the ticks, the mods' per-tick work runs at each tick's start (frame_hooks::TICK_START)
+    // while netplay or the probe runs the ticks, the mods' per-tick work runs at each tick's start (frame_hooks::TICK_START),
+    // and new game memory starts as zeros (no machine's heap history in fields nothing set)
     frame_hooks::set_ticks_driven(fixed_timing_wanted());
+    local_world::set_zero_fill(fixed_timing_wanted());
+    shake_cap(!fixed_timing_wanted());
+    presentation_rng::set_enabled(fixed_timing_wanted());
 
     // re-armed below by whichever path actually ticks forward this presented frame
     g_native_tail_due = false;
@@ -3411,7 +3868,7 @@ void CoopOnline::on_gui_frame(int display) {
             select_mode((NetplayMode)mode);
         }
         draw_rollback_ui();
-        if (g_netplay) {
+        if (g_netplay && g_mode == NetplayMode::Stress) {
             g_netplay->draw_ui();
         }
 }
@@ -3543,7 +4000,6 @@ naked void shake_detour1()
 // both machines, and what the reuse made it most of the time.
 static std::unique_ptr<FunctionHook> g_combo_gauge_hook, g_combo_gauge2_hook;
 static uintptr_t g_combo_gauge_original = 0, g_combo_gauge2_original = 0;
-static bool fixed_timing_wanted();
 static void __stdcall combo_gauge_entry(uint32_t* stack, int which)
 {
     static const bool log = std::getenv("DMC4_SHAKE_LOG") != nullptr;
@@ -3750,6 +4206,8 @@ void CoopOnline::on_config_load(const utility::Config& cfg) {
 
     g_smain_prelude_enabled = utility::check_argument("-netplay-prelude");
 
+    g_online_split = cfg.get<bool>("netplay_split_screen").value_or(false);
+    g_online_split_test = test_switch("DMC4_NET_SPLIT") != nullptr;
     g_heap_restore = cfg.get<bool>("netplay_heap_restore").value_or(true);
     g_heap_resource = cfg.get<bool>("netplay_heap_resource").value_or(false);
     g_heap_sound = cfg.get<bool>("netplay_heap_sound").value_or(false);
@@ -3771,6 +4229,7 @@ void CoopOnline::on_config_save(utility::Config& cfg) {
     cfg.set<int>("coop_online_mode", (int)g_mode);
     g_stress_component.on_config_save(cfg);
     cfg.set<bool>("netplay_heap_restore", g_heap_restore);
+    cfg.set<bool>("netplay_split_screen", g_online_split);
     cfg.set<bool>("netplay_heap_resource", g_heap_resource);
     cfg.set<bool>("netplay_heap_sound", g_heap_sound);
     cfg.set<bool>("netplay_probe", g_probe.enabled);

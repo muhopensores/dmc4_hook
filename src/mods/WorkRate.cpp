@@ -1,4 +1,5 @@
 #include "WorkRate.hpp"
+#include "sdk/FrameHooks.hpp"
 #include "TrainerPause.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/sWorkRate.hpp"
@@ -7,6 +8,7 @@
 bool WorkRate::force_custom_turbo = false;
 float WorkRate::custom_turbo = 0.0f;
 bool WorkRate::hotkey_paused = false;
+bool WorkRate::menu_open = false;
 
 std::optional<std::string> WorkRate::on_initialize() {
     utility::create_keyboard_hotkey(WorkRate::m_hotkeys, {VK_DECIMAL}, __("Pause Game"), "pause_game");
@@ -87,7 +89,7 @@ void WorkRate::on_gui_frame(int display) {
 }
 
 void WorkRate::on_frame(fmilliseconds& dt) {
-	if (force_custom_turbo) {
+	if (force_custom_turbo && !frame_hooks::ticks_driven()) {   // netplay: one machine's turbo would run its game faster
 		sWorkRate* s_work_rate_ptr = devil4_sdk::get_work_rate();
 		s_work_rate_ptr->turbo_speed = custom_turbo;
 	}

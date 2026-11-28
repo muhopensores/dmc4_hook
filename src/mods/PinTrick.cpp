@@ -1,4 +1,5 @@
 #include "PinTrick.hpp"
+#include "../sdk/Rollback.hpp"
 #include "sdk/uPlayer.hpp"
 bool PinTrick::mod_enabled = false;
 static bool PinTrickFlag = false;
@@ -174,6 +175,7 @@ naked void detour5() {
 
 
 std::optional<std::string> PinTrick::on_initialize() {
+    rollback::add_range("PinTrick flag", &PinTrickFlag, sizeof PinTrickFlag);   // rollback netplay
     if (!install_hook_offset(0x3B746F, hook1, &detour1, &jmp_ret1, 10))
     {
         spdlog::error("Failed to init PinTrick mod1\n");

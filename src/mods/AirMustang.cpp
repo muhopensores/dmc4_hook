@@ -1,4 +1,5 @@
 #include "AirMustang.hpp"
+#include "../sdk/Rollback.hpp"
 
 #if 1
 bool AirMustang::mod_enabled = false;
@@ -137,6 +138,7 @@ naked void detour3() {
 }
 
 std::optional<std::string> AirMustang::on_initialize() {
+    rollback::add_range("AirMustang flag", &flag, sizeof flag);   // rollback netplay
     /*if (!install_hook_offset(0x3CAE77, hook1, &detour1, &jmp_ret1, 5)) {
 		spdlog::error("Failed to init AirMustang mod\n");
 		return "Failed to init AirMustang mod";

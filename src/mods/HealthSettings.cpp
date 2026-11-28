@@ -288,9 +288,14 @@ void HealthSettings::on_update_input(utility::Input& input) {
     }
 }
 
+static bool cfg_player_invincible = false, cfg_enemy_invincible = false;   // what the cfg says (DMC4_NO_CHEATS)
+
 void HealthSettings::on_config_load(const utility::Config& cfg) {
     player_invincible = cfg.get<bool>("infinite_health_player").value_or(false);
     enemy_invincible  = cfg.get<bool>("infinite_health_enemy").value_or(false);
+    cfg_player_invincible = player_invincible;
+    cfg_enemy_invincible = enemy_invincible;
+    if (test_switch("DMC4_NO_CHEATS")) player_invincible = enemy_invincible = false;   // test runs (netplay soak): the cfg keeps its values
     all_invincible = player_invincible && enemy_invincible;
     outgoingDamageMultiplier = cfg.get<float>("outgoing_damage_multiplier").value_or(1.0f);
     incomingDamageMultiplier = cfg.get<float>("incoming_damage_multiplier").value_or(1.0f);
@@ -304,8 +309,9 @@ void HealthSettings::on_config_load(const utility::Config& cfg) {
 };
 
 void HealthSettings::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("infinite_health_player", player_invincible);
-    cfg.set<bool>("infinite_health_enemy", enemy_invincible);
+    const bool test_run = test_switch("DMC4_NO_CHEATS") != nullptr;
+    cfg.set<bool>("infinite_health_player", test_run ? cfg_player_invincible : player_invincible);
+    cfg.set<bool>("infinite_health_enemy", test_run ? cfg_enemy_invincible : enemy_invincible);
     cfg.set<float>("outgoing_damage_multiplier", outgoingDamageMultiplier);
     cfg.set<float>("incoming_damage_multiplier", incomingDamageMultiplier);
     cfg.set<bool>("must_style", mustStyleToggle);

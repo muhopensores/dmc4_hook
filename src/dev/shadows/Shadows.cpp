@@ -529,8 +529,11 @@ void Shadows::on_gui_frame(int display) {
     ImGui::Unindent(lineIndent);
 }
 
+static bool cfg_enabled = true;   // what the cfg says (DMC4_NO_GFX)
+
 void Shadows::on_config_load(const utility::Config& cfg) {
-    mod_enabled = cfg.get<bool>("shadows_enabled").value_or(true);
+    mod_enabled = cfg_enabled = cfg.get<bool>("shadows_enabled").value_or(true);
+    if (test_switch("DMC4_NO_GFX")) mod_enabled = false;   // test runs (frame-rate checks): the cfg keeps its value
     map_size = cfg.get<int>("shadows_map_size").value_or(2048);
     if (map_size != 0 && map_size != 2048 && map_size != 4096) map_size = 2048;
     for (int i = 0; i < FIELD_COUNT; ++i) {
@@ -559,7 +562,7 @@ void Shadows::on_config_load(const utility::Config& cfg) {
 }
 
 void Shadows::on_config_save(utility::Config& cfg) {
-    cfg.set<bool>("shadows_enabled", mod_enabled);
+    cfg.set<bool>("shadows_enabled", test_switch("DMC4_NO_GFX") ? cfg_enabled : mod_enabled);
     cfg.set<int>("shadows_map_size", map_size);
     for (int i = 0; i < FIELD_COUNT; ++i) {
         const std::string key = std::string("shadows_") + kFields[i].key;

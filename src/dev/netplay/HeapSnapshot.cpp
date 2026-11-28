@@ -225,6 +225,7 @@ struct Record {
     std::vector<uint8_t> blobs;
     std::vector<std::pair<uintptr_t, int32_t>> resources;   // each resource's count, without the hold
     std::vector<uint8_t> mods;                                // the mods' state (sdk/Rollback.hpp)
+    std::vector<uintptr_t> sound_units;                       // the unit each sound voice / command followed
 };
 std::deque<Record> g_records;
 size_t g_max_records = 16;
@@ -394,6 +395,65 @@ void hold_and_record(std::vector<std::pair<uintptr_t, int32_t>>& out, int frame,
         ++g_freed_resources;
     }
     // the records may still name them (count 0): a load skips what the table no longer has
+}
+
+bool in_rewound_heap(uintptr_t a)
+{
+    for (int i = 0; i < g_region_count; ++i) {
+        const Region& r = g_regions[i];
+        if (a >= (uintptr_t)r.base && a < (uintptr_t)r.base + r.size) {
+            return r.include;
+        }
+    }
+    return false;
+}
+
+// A voice follows the unit its command named (sub_A47E20: command +0x14 / +0x18 -> voice +0xA0 unit, +0xA4 joint; the
+// voice job sub_A3EAC0 reads the unit's joint through vtable +0x3C each frame unless the unit is 0). Sound isn't
+// rewound, so after a load a voice started in the undone frames can name a unit those frames made, whose memory is
+// another object's now (a dead unit's garbage vtable, or a live unit of another class read with a joint it lacks). Each
+// save records the unit of every voice and queued command; a load takes the unit off those that changed since (the
+// sound plays on where it is).
+struct SoundFollow { uintptr_t first; uint32_t stride; int count; uintptr_t unit; };
+constexpr SoundFollow kSoundFollows[] = {
+    {0x24, 60, 0x400, 0x14},        // commands
+    {0x10850, 0x500, 0x80, 0xA0},   // voices
+    {0x38850, 0x7C0, 8, 0xA0},      // stream voices
+};
+
+void record_sound_units(std::vector<uintptr_t>& out)
+{
+    out.clear();
+    const uintptr_t sound = *(const uintptr_t*)kSound;
+    if (!sound) {
+        return;
+    }
+    EnterCriticalSection((LPCRITICAL_SECTION)(sound + kSoundLock));
+    for (const SoundFollow& f : kSoundFollows) {
+        for (int i = 0; i < f.count; ++i) {
+            out.push_back(*(const uintptr_t*)(sound + f.first + i * f.stride + f.unit));
+        }
+    }
+    LeaveCriticalSection((LPCRITICAL_SECTION)(sound + kSoundLock));
+}
+
+void drop_new_sound_units(const std::vector<uintptr_t>& saved)
+{
+    const uintptr_t sound = *(const uintptr_t*)kSound;
+    if (!sound || saved.empty()) {
+        return;
+    }
+    size_t k = 0;
+    EnterCriticalSection((LPCRITICAL_SECTION)(sound + kSoundLock));
+    for (const SoundFollow& f : kSoundFollows) {
+        for (int i = 0; i < f.count && k < saved.size(); ++i, ++k) {
+            uintptr_t* unit = (uintptr_t*)(sound + f.first + i * f.stride + f.unit);
+            if (*unit && *unit != saved[k] && in_rewound_heap(*unit)) {
+                *unit = 0;
+            }
+        }
+    }
+    LeaveCriticalSection((LPCRITICAL_SECTION)(sound + kSoundLock));
 }
 
 void restore_counts(const std::vector<std::pair<uintptr_t, int32_t>>& counts)
@@ -1250,8 +1310,60 @@ uintptr_t region_base(const char* name)
     return 0;
 }
 
+// Effect lights (sub_AA82C0: 832-byte objects, freed at 0xAA7950 / 0xAA926F, the only users of off_E145A0) come from the
+// game's default allocator (0xE13EB0, plain process memory), which is never rewound, while the light list (the light
+// system 0xE559F4) and the generators holding the lights (Generator +0xD8) are: after a load a generator could hold a
+// light freed and reused since, and ending it would write into whatever has the memory (a fault at 0x9DDA8D). The slot
+// gets an allocator that takes lights from the Unit heap, so they go back with the frames; a light made before the
+// switch goes back to the old allocator. Installed once and kept: lights made through it must free back to the Unit
+// heap.
+namespace light_heap {
+constexpr uintptr_t kSlot = 0x00E145A0;
+constexpr uintptr_t kUnitSlot = 0x00E1434C;
+using AllocFn = void*(__thiscall*)(uintptr_t, size_t, int);
+using FreeFn = void(__thiscall*)(uintptr_t, void*);
+uintptr_t g_old = 0;
+void* g_vtable[32];
+struct Allocator { void** vtable; } g_allocator{g_vtable};
+
+void* __fastcall alloc(uintptr_t, void*, size_t size, int align)
+{
+    const uintptr_t unit = *(const uintptr_t*)kUnitSlot;
+    return ((AllocFn)(*(void***)unit)[5])(unit, size, align);
+}
+
+void __fastcall free(uintptr_t, void*, void* p)
+{
+    if (!p) {
+        return;
+    }
+    uintptr_t block = 0;
+    uint32_t bytes = 0;
+    const bool game_heap = locate((uintptr_t)p, block, bytes) || local_world::contains((uintptr_t)p);
+    const uintptr_t owner = game_heap ? *(const uintptr_t*)kUnitSlot : g_old;   // the Unit heap's free hands it to its heap
+    ((FreeFn)(*(void***)owner)[6])(owner, p);
+}
+
+void install()
+{
+    const uintptr_t current = *(const uintptr_t*)kSlot;
+    if (g_old || !current || !*(const uintptr_t*)kUnitSlot) {
+        return;
+    }
+    g_old = current;
+    std::memcpy(g_vtable, *(void***)current, sizeof g_vtable);
+    g_vtable[5] = (void*)&alloc;
+    g_vtable[6] = (void*)&free;
+    DWORD old_protect = 0;
+    VirtualProtect((void*)kSlot, 4, PAGE_EXECUTE_READWRITE, &old_protect);
+    *(uintptr_t*)kSlot = (uintptr_t)&g_allocator;
+    VirtualProtect((void*)kSlot, 4, old_protect, &old_protect);
+}
+} // namespace light_heap
+
 bool begin(int max_records)
 {
+    light_heap::install();
     if (g_active) {
         end();
     }
@@ -1388,6 +1500,9 @@ bool save(int frame)
     capture_blobs(rec.blobs);
     hold_and_record(rec.resources, frame, g_records.empty() ? frame : g_records.front().frame);
     rollback::capture(rec.mods);
+    if (!g_with_sound) {
+        record_sound_units(rec.sound_units);
+    }
     if (g_track_data) {
         g_data_copy.resize(kDataEnd - kDataBegin);
         std::memcpy(g_data_copy.data(), (const void*)kDataBegin, kDataEnd - kDataBegin);
@@ -1450,6 +1565,9 @@ bool load(int frame)
     }
     apply_blobs(g_records.back().blobs);
     restore_counts(g_records.back().resources);
+    if (!g_with_sound) {
+        drop_new_sound_units(g_records.back().sound_units);
+    }
     rollback::apply(g_records.back().mods);
     // the restore itself was watched
     for (int i = 0; i < g_region_count; ++i) {

@@ -1,4 +1,5 @@
 #include "ModelExtension.hpp"
+#include "../../sdk/PresentationRng.hpp"
 #include "../../sdk/CnsChain.hpp"
 #include "../../sdk/ChainLink.hpp"
 #include "../../sdk/ChainSolver.hpp"
@@ -981,7 +982,10 @@ bool physics_for(uintptr_t chain, chain_solver::Settings& out) {
 // result (the game's: RE note chain_cnschain.md 3.2b; ours: no pending time). The game's move still runs (it registers
 // the chain on the model's joints).
 void __fastcall detour_chain_move(uintptr_t chain, int edx) {
-    ((void(__fastcall*)(uintptr_t, int))orig_chain_move)(chain, edx);
+    {
+        presentation_rng::Scope cosmetic;   // its turbulence draws: chains are only seen (sdk/PresentationRng.hpp)
+        ((void(__fastcall*)(uintptr_t, int))orig_chain_move)(chain, edx);
+    }
     const float rate = chain_rate(*(uintptr_t*)(chain + kChainModel));
     float& step = *(float*)(chain + kChainStep);
     step = rate > 0.0f ? std::min(step * rate, 2.0f) : 0.0f;

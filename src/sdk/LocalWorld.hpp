@@ -20,6 +20,7 @@ constexpr int kLine = 31;   // empty in the stages checked; not one of the lines
 // Main.cpp startup, before the game starts its threads: the allocator hooks (inert until the local heap exists).
 void install_early();
 void set_enabled(bool on);  // netplay / the rollback probe: before the stage's units are spawned
+void set_zero_fill(bool on);   // netplay: new blocks of the game's heaps (not Resource, Sound, Temp, the local one) zeroed
 bool enabled();
 
 // While alive (game thread), the game's heaps are the local one. Nested scopes are fine.

@@ -1,4 +1,5 @@
 #include "TrainerPause.hpp"
+#include "sdk/FrameHooks.hpp"
 #include "WorkRate.hpp"
 #include "sdk/Devil4.hpp"
 #include "sdk/sWorkRate.hpp"
@@ -13,7 +14,7 @@ void TrainerPause::on_gui_frame(int display) {
     if (display == DISPLAY_SYSTEM_A) {
         if (ImGui::Checkbox(_("Trainer Pauses"), &mod_enabled)) {
             sWorkRate* wr = devil4_sdk::get_work_rate();
-            if (!wr) {
+            if (!wr || frame_hooks::ticks_driven()) {   // netplay: the game speed is the session's, not this machine's
                 return;
             }
             if (mod_enabled)

@@ -29,6 +29,10 @@ struct Player {
 
 extern Player players[kMaxPlayers];
 
+// Online play (set by netplay while a session runs): this machine's player (0-3), whose view alone is on the screen
+// (viewport 0 stays the game's, hidden while another player's view is shown); -1 = the local split screen.
+extern int online_view;
+
 } // namespace coop
 
 namespace coop_tint {

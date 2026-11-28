@@ -54,6 +54,8 @@ void remove(int id)
     }
 }
 
+void (*diag_writer)(const char* text) = nullptr;
+
 void entry_hashes(std::vector<std::pair<const char*, uint32_t>>& out, uintptr_t lo, uintptr_t hi)
 {
     std::lock_guard<std::mutex> lock(g_lock);

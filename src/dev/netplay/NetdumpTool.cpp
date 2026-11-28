@@ -400,7 +400,7 @@ struct EnemyX {
 
 #pragma pack(pop)
 
-static_assert(table_size(kHeader) == 16, "header drift");
+static_assert(table_size(kHeader) == 24, "header drift");
 static_assert(table_size(kTiming) == sizeof(TimingX), "kTiming drifted from TimingState");
 static_assert(table_size(kMediator) == sizeof(MediatorX), "kMediator drifted from MediatorState");
 static_assert(table_size(kRng) == sizeof(RngX), "kRng drifted from RngState");
@@ -463,13 +463,14 @@ static WalkResult walk_file(const std::vector<unsigned char>& data, bool build_m
     WalkResult w;
     size_t off = 0;
 
-    if (data.size() < 16) {
-        w.error = "file too small for the 16-byte header";
+    if (data.size() < 24) {
+        w.error = "file too small for the 24-byte header";
         return w;
     }
     const uint32_t players = le32(&data[8]);
     const uint32_t enemies = le32(&data[12]);
-    if (players > kMaxUnits || enemies > kMaxUnits) {
+    const uint32_t parts = le32(&data[16]);
+    if (players > kMaxPlayers || enemies > kMaxEnemies || parts > kMaxParts) {
         w.error = "implausible unit counts in the header";
         return w;
     }
@@ -477,7 +478,7 @@ static WalkResult walk_file(const std::vector<unsigned char>& data, bool build_m
     if (build_map) {
         add_table(w.map, 0, "", kHeader);
     }
-    off = 16;
+    off = 24;
 
     // advance and optionally record a field table
     auto add = [&](const FieldDef* table, const char* prefix) {
@@ -541,6 +542,20 @@ static WalkResult walk_file(const std::vector<unsigned char>& data, bool build_m
         }
         add(kGate, prefix);
         add(kTickTimer, prefix);
+    }
+
+    for (uint32_t p = 0; p < parts; ++p) {
+        char prefix[32];
+        sprintf_s(prefix, "parts[%u].", p);
+        if (off + 2 > data.size()) {
+            w.error = "file ends inside a part record";
+            return w;
+        }
+        const uint8_t kind = data[off + 1];
+        add(kPart, prefix);
+        if ((kind & kPartActor) && !add_model(prefix)) {
+            return w;
+        }
     }
 
     w.end = off;

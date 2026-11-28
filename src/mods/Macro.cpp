@@ -1,4 +1,5 @@
 #include "Macro.hpp"
+#include "sdk/FrameHooks.hpp"
 #include "AreaJump.hpp"
 #include "CharSwitcher.hpp"
 #include "EnemySpawn.hpp"
@@ -5261,6 +5262,9 @@ std::string export_current_macro_setup() {
 }
 
 bool set_screen_pause(bool paused) {
+    if (frame_hooks::ticks_driven()) {   // netplay: pausing one machine splits the session
+        return false;
+    }
     auto* work_rate = get_work_rate_safe();
     if (!work_rate) {
         ++Macro::screen_pause_fail_count;

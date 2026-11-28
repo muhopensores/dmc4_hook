@@ -134,6 +134,17 @@ constexpr int kOrigins = 2048;
 Origin g_origins[kOrigins];
 volatile LONG g_origin_next = 0;
 
+// Netplay: every block of the game's own heaps starts as zeros. The allocator hands out memory as the last user left it,
+// and constructors leave fields unset (a shake's +0x48, a damage vector until the first hit): what a machine read there
+// was its own heap's history, which machines with different pasts (a player who joined later) don't share.
+std::atomic<bool> g_zero_fill{false};
+
+bool zero_filled_heap(uintptr_t heap)
+{
+    const uintptr_t temp = *(const uintptr_t*)0x00C307AC;   // scratch the sound thread streams through
+    return routed_heap(heap) && heap != temp;
+}
+
 void* __fastcall alloc_detour(uintptr_t self, void*, size_t size, int align)
 {
     if (g_enabled && g_local && g_route_count) {
@@ -147,6 +158,9 @@ void* __fastcall alloc_detour(uintptr_t self, void*, size_t size, int align)
         }
     }
     void* p = g_alloc_original(self, size, align);
+    if (p && size && g_zero_fill.load(std::memory_order_relaxed) && zero_filled_heap(self)) {
+        std::memset(p, 0, size);
+    }
     if (p && self == g_local && g_local) {
         Origin& o = g_origins[(InterlockedIncrement(&g_origin_next) - 1) & (kOrigins - 1)];
         o.p = (uintptr_t)p;
@@ -272,6 +286,11 @@ void route_code(uintptr_t begin, uintptr_t end)
     if (g_route_count < 8) {
         g_routes[g_route_count++] = {begin, end};
     }
+}
+
+void set_zero_fill(bool on)
+{
+    g_zero_fill.store(on, std::memory_order_relaxed);
 }
 
 void set_enabled(bool on)

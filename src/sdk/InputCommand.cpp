@@ -1,6 +1,8 @@
 #include "InputCommand.hpp"
+#include "Rollback.hpp"
 #include <vector>
 #include <cstring>
+#include <cstddef>
 
 #define naked __declspec(naked)
 
@@ -67,6 +69,7 @@ int character_of(uintptr_t player) { return *(int*)(player + 0x1494) == 1 ? CHAR
 bool add_for(int character, const kCmdHead* head, int bit, const bool* enabled, Predicate predicate) {
     if (!valid(character, head, bit)) return false;
     Entry e; e.head = head; e.bit = bit; e.character = character; e.enabled = enabled; e.predicate = predicate;
+    ensure_rollback();
     entries().push_back(e);
     return true;
 }
@@ -74,6 +77,7 @@ bool add_for(int character, const kCmdHead* head, int bit, const bool* enabled, 
 bool add_for(int character, const kCmdHead* head, int bit, const bool* enabled, PredicateCtx predicate, void* ctx) {
     if (!valid(character, head, bit)) return false;
     Entry e; e.head = head; e.bit = bit; e.character = character; e.enabled = enabled; e.pred_ctx = predicate; e.ctx = ctx;
+    ensure_rollback();
     entries().push_back(e);
     return true;
 }

@@ -75,7 +75,18 @@ void inter_flags_for(uintptr_t player);
 // viewport 0's frustum only, and the lock-on camera (cCameraPlayer::main01 0x41A5AE) adjusts by it: player 2's camera
 // turned whenever his target left player 1's view, and snapped back. Coop's hook tests this viewport instead.
 extern int view_slot;
-// sCamera::isDispSphere against viewport `slot` (MtSphere: x y z r).
+// Set by netplay around its simulated ticks: the views tested are each player's camera's own (sdk/SimView.hpp), not the
+// viewports, which follow the screen layout.
+extern bool fixed_views;
+extern unsigned long fixed_views_thread;   // the thread running those ticks
+// on the thread running netplay's ticks while they run: the fixed views apply
+bool in_fixed_views();
+// diagnostics: the player (0-3) an enemy is after, -1 if Coop has none for it
+int aggro_slot(uintptr_t enemy);
+// diagnostics: player `slot`'s cached lock-on values (the target's actor, length, in, camera in), the count
+int lock_entries(int slot, uintptr_t* actors, float* lengths, uint8_t* in, uint8_t* camera_in, int max);
+// sCamera::isDispSphere against viewport `slot` (MtSphere: x y z r); under the fixed views, against that player's
+// camera's own frustum.
 bool sphere_in_viewport(const void* camera_system, int slot, const float* sphere);
 
 // Enemies (step 4a): each enemy unit, its shells and the boss Dante's shots update in the context of the player it is
